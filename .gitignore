@@ -81,3 +81,4 @@ scratch/
 cluster.yaml
 nodes.yaml
 talos/clusterconfig/*.yaml
+infra/terraform/tfplan
