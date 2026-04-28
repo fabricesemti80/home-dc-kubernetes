@@ -35,7 +35,7 @@ spec:
                 fieldRef:
                   fieldPath: spec.nodeName
             - name: PVC_NAME
-              value: nginx-test-pvc
+              value: nginx-test-pvc-v2
             - name: STORAGE_CLASS
               value: cephfs
             - name: MOUNT_PATH
@@ -78,4 +78,4 @@ spec:
       volumes:
         - name: nginx-storage
           persistentVolumeClaim:
-            claimName: nginx-test-pvc
+            claimName: nginx-test-pvc-v2
