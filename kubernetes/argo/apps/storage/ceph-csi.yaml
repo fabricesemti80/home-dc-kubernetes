@@ -40,3 +40,10 @@ spec:
       - ServerSideApply=true
       - PruneLast=true
       - RespectIgnoreDifferences=true
+  ignoreDifferences:
+    - group: storage.k8s.io
+      kind: CSIDriver
+      name: cephfs.csi.ceph.com
+      jsonPointers:
+        - /spec/attachedRequired
+        - /spec/attachRequired
