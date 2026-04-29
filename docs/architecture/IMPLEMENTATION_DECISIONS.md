@@ -49,15 +49,20 @@ Decision:
 -   Add a dedicated `productivity` namespace and deploy Linkwarden there behind Argo CD.
 -   Keep both Linkwarden archive storage and its PostgreSQL data on CephFS-backed PVCs so the app state stays inside the cluster storage layer already used elsewhere in the repo.
 -   Source runtime secrets from Doppler via the existing operator pattern instead of committing new encrypted application secrets into Git.
+-   Source the Linkwarden `NEXTAUTH_URL` from the same Doppler-managed secret so the external callback URL can vary by environment without another manifest edit.
 
 Assumptions:
 
 -   `linkwarden.krapulax.dev` will be the initial external hostname for the service.
 -   A single Linkwarden replica backed by a single PostgreSQL instance is acceptable for the first rollout.
 -   The Doppler `project-homelab/dev_homelab` config is the correct source of truth for Linkwarden bootstrap secrets.
+-   The Doppler config will be populated with `NEXTAUTH_URL=https://linkwarden.krapulax.dev` before the Kubernetes workload change is synced.
 
 Validation checks:
 
+-   `doppler secrets get NEXTAUTH_URL --project project-homelab --config dev_homelab`
+-   `kubectl get dopplersecret -n productivity linkwarden-secrets -o yaml`
+-   `kubectl get secret -n productivity linkwarden-secrets -o jsonpath='{.data.NEXTAUTH_URL}' | base64 -d`
 -   `kubectl get application -n argo-system linkwarden`
 -   `kubectl get deploy -n productivity linkwarden`
 -   `kubectl get statefulset -n productivity linkwarden-database`
@@ -65,10 +70,12 @@ Validation checks:
 -   `kubectl rollout status deploy/linkwarden -n productivity`
 -   `kubectl rollout status statefulset/linkwarden-database -n productivity`
 -   `kubectl get httproute -n productivity linkwarden`
+-   `kubectl get deploy -n productivity linkwarden -o jsonpath='{.spec.template.spec.containers[0].envFrom[0].secretRef.name}'`
 -   `kubectl logs -n productivity deploy/linkwarden --tail=100`
 
 Rollback:
 
+-   Restore the literal `NEXTAUTH_URL` entry in the Linkwarden values file if the Doppler-managed key is missing or incorrect.
 -   Delete the Argo CD `linkwarden` application and the `productivity` namespace resources if the rollout is not acceptable.
 -   Remove the Doppler-managed Linkwarden secrets after the application is decommissioned.
 -   Keep the CephFS PVCs intact until data export or cleanup is explicitly confirmed.

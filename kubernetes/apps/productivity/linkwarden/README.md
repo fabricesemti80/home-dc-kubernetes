@@ -21,6 +21,7 @@ Secrets:
 -   `linkwarden-secrets` is managed by the Doppler operator
 -   expected keys:
     -   `DATABASE_URL`
+    -   `NEXTAUTH_URL`
     -   `NEXTAUTH_SECRET`
     -   `LINKWARDEN_DB_PASSWORD`
 
