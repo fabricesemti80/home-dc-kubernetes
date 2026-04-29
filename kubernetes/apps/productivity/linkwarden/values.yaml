@@ -39,8 +39,7 @@ controllers:
             enabled: true
             custom: true
             spec:
-              httpGet:
-                path: /
+              tcpSocket:
                 port: &port 3000
               initialDelaySeconds: 45
               periodSeconds: 15

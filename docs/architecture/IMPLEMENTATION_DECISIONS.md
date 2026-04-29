@@ -73,6 +73,32 @@ Rollback:
 -   Remove the Doppler-managed Linkwarden secrets after the application is decommissioned.
 -   Keep the CephFS PVCs intact until data export or cleanup is explicitly confirmed.
 
+### Talos VM disk capacity increase
+
+Decision:
+
+-   Increase every Talos VM disk defined in Terraform from `30GB` to `45GB`.
+-   Apply the resize uniformly to active control-plane nodes and the powered-off worker rollback nodes so the inventory stays consistent.
+
+Assumptions:
+
+-   Proxmox can expand the existing VM disks in place without forcing VM recreation.
+-   Talos and the guest OS will continue to boot normally after the virtual disk size increase.
+-   The additional disk capacity is primarily to support cluster workloads and local state growth, including new persistent applications.
+
+Validation checks:
+
+-   `doppler run --project project-homelab --config dev_homelab --name-transformer tf-var -- tofu -chdir=terraform plan`
+-   `doppler run --project project-homelab --config dev_homelab --name-transformer tf-var -- tofu -chdir=terraform apply`
+-   `kubectl get nodes`
+-   `talosctl --talosconfig talos/clusterconfig/talosconfig health`
+-   `kubectl -n productivity get pods`
+
+Rollback:
+
+-   Do not attempt to shrink disks in place from Terraform; rollback is operational, not declarative.
+-   If a node fails after expansion, recover it from Proxmox backup or rebuild it with the prior known-good configuration.
+
 ## Pending final user confirmation
 
 -   Initial 5 application services to onboard after platform baseline.
