@@ -79,3 +79,7 @@ pages:
                     url: https://prowlarr.krapulax.dev
                   - title: Jellyseerr
                     url: https://requests.krapulax.dev
+              - title: Productivity
+                links:
+                  - title: Linkwarden
+                    url: https://linkwarden.krapulax.dev
