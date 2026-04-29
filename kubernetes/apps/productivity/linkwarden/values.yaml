@@ -77,7 +77,7 @@ controllers:
       app:
         image:
           repository: docker.io/library/postgres
-          tag: "18.3"
+          tag: "15.17"
         env:
           TZ: Europe/London
           POSTGRES_USER: linkwarden
