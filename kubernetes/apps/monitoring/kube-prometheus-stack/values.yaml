@@ -51,22 +51,40 @@ alertmanager:
         slack_configs:
           - api_url_file: /etc/alertmanager/secrets/alertmanager-slack-webhook/SLACK_WEBHOOK_MONITORING
             channel: "#monitoring"
+            color: >-
+              {{ if eq .Status "resolved" }}good{{ else if eq .CommonLabels.severity "critical" }}danger{{ else }}warning{{ end }}
             send_resolved: true
+            title_link: "https://alertmanager.krapulax.dev/#/alerts?receiver=slack-monitoring"
+            pretext: >-
+              {{ if eq .Status "resolved" }}Alert resolved{{ else }}Monitoring alert{{ end }}
+            short_fields: true
+            fields:
+              - title: Severity
+                value: '{{ .CommonLabels.severity | default "unknown" }}'
+                short: true
+              - title: Namespace
+                value: '{{ .CommonLabels.namespace | default "cluster" }}'
+                short: true
+              - title: Active Alerts
+                value: '{{ len .Alerts.Firing }}'
+                short: true
+              - title: Status
+                value: '{{ .Status | toUpper }}'
+                short: true
             title: >-
               [{{ .Status | toUpper }}{{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }}{{ end }}]
               {{ .CommonLabels.alertname }}
             text: >-
               {{ range .Alerts -}}
-              *Alert:* {{ .Annotations.summary | default .Labels.alertname }}
-              *Description:* {{ .Annotations.description | default "No description provided." }}
-              *Severity:* `{{ .Labels.severity | default "unknown" }}`
-              *Namespace:* `{{ .Labels.namespace | default "cluster" }}`
-              *Runbook:* {{ .Annotations.runbook_url | default "n/a" }}
+              *{{ .Annotations.summary | default .Labels.alertname }}*
+              {{ .Annotations.description | default "No description provided." }}
+              {{ if .Annotations.runbook_url }}<{{ .Annotations.runbook_url }}|Open runbook>{{ else }}Runbook: n/a{{ end }}
 
               {{ end }}
     templates:
       - /etc/alertmanager/config/*.tmpl
   alertmanagerSpec:
+    externalUrl: https://alertmanager.krapulax.dev
     replicas: 1
     secrets:
       - alertmanager-slack-webhook

@@ -91,6 +91,7 @@ Assumptions:
 
 -   The Doppler `project-homelab/dev_homelab` config is the correct source of truth for `SLACK_WEBHOOK_MONITORING`.
 -   The intended Slack destination is the `#monitoring` channel.
+-   `https://alertmanager.krapulax.dev` is the intended external Alertmanager address.
 -   The initial routing policy should stay simple: send normal alerts to Slack and continue discarding the default `Watchdog` alert.
 
 Validation checks:
@@ -100,6 +101,7 @@ Validation checks:
 -   `kubectl get secret -n monitoring alertmanager-slack-webhook -o jsonpath='{.data.SLACK_WEBHOOK_MONITORING}' | base64 -d`
 -   `kubectl get application -n argo-system kube-prometheus-stack`
 -   `kubectl get alertmanager -n monitoring kube-prometheus-stack-alertmanager -o yaml`
+-   `kubectl get httproute -n monitoring alertmanager`
 -   `kubectl rollout status statefulset/alertmanager-kube-prometheus-stack-alertmanager -n monitoring`
 -   `kubectl logs -n monitoring statefulset/alertmanager-kube-prometheus-stack-alertmanager --tail=100`
 
