@@ -56,7 +56,7 @@ alertmanager:
             send_resolved: true
             title_link: "https://alertmanager.krapulax.dev/#/alerts?receiver=slack-monitoring"
             pretext: >-
-              {{ if eq .Status "resolved" }}Alert resolved{{ else }}Monitoring alert{{ end }}
+              {{ if eq .Status "resolved" }}:white_check_mark: Alert resolved{{ else if eq .CommonLabels.severity "critical" }}:rotating_light: Critical alert{{ else if eq .CommonLabels.severity "warning" }}:warning: Warning alert{{ else }}:information_source: Monitoring alert{{ end }}
             short_fields: true
             fields:
               - title: Severity
@@ -72,6 +72,7 @@ alertmanager:
                 value: '{{ .Status | toUpper }}'
                 short: true
             title: >-
+              {{ if eq .Status "resolved" }}:white_check_mark:{{ else if eq .CommonLabels.severity "critical" }}:rotating_light:{{ else if eq .CommonLabels.severity "warning" }}:warning:{{ else }}:information_source:{{ end }}
               [{{ .Status | toUpper }}{{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }}{{ end }}]
               {{ .CommonLabels.alertname }}
             text: >-
