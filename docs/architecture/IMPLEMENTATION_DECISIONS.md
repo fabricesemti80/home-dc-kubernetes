@@ -42,6 +42,37 @@ Rollback:
 -   Reduce the replica counts back to `1` for the three scaled workloads if resource pressure, chart behavior, or failover behavior is not acceptable.
 -   Keep `cloudflare-dns` at a single replica until its deployed version gains a supported leader-election path.
 
+### Productivity namespace and Linkwarden deployment
+
+Decision:
+
+-   Add a dedicated `productivity` namespace and deploy Linkwarden there behind Argo CD.
+-   Keep both Linkwarden archive storage and its PostgreSQL data on CephFS-backed PVCs so the app state stays inside the cluster storage layer already used elsewhere in the repo.
+-   Source runtime secrets from Doppler via the existing operator pattern instead of committing new encrypted application secrets into Git.
+
+Assumptions:
+
+-   `linkwarden.krapulax.dev` will be the initial external hostname for the service.
+-   A single Linkwarden replica backed by a single PostgreSQL instance is acceptable for the first rollout.
+-   The Doppler `project-homelab/dev_homelab` config is the correct source of truth for Linkwarden bootstrap secrets.
+
+Validation checks:
+
+-   `kubectl get application -n argo-system linkwarden`
+-   `kubectl get deploy -n productivity linkwarden`
+-   `kubectl get statefulset -n productivity linkwarden-database`
+-   `kubectl get pvc -n productivity`
+-   `kubectl rollout status deploy/linkwarden -n productivity`
+-   `kubectl rollout status statefulset/linkwarden-database -n productivity`
+-   `kubectl get httproute -n productivity linkwarden`
+-   `kubectl logs -n productivity deploy/linkwarden --tail=100`
+
+Rollback:
+
+-   Delete the Argo CD `linkwarden` application and the `productivity` namespace resources if the rollout is not acceptable.
+-   Remove the Doppler-managed Linkwarden secrets after the application is decommissioned.
+-   Keep the CephFS PVCs intact until data export or cleanup is explicitly confirmed.
+
 ## Pending final user confirmation
 
 -   Initial 5 application services to onboard after platform baseline.

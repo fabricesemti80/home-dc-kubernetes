@@ -1,0 +1,141 @@
+---
+controllers:
+  linkwarden:
+    replicas: 1
+    strategy: RollingUpdate
+    initContainers:
+      wait-for-db:
+        image:
+          repository: docker.io/library/busybox
+          tag: "1.37"
+        command:
+          - /bin/sh
+          - -ec
+        args:
+          - |
+            until nc -z linkwarden-postgres 5432; do
+              echo "waiting for postgres..."
+              sleep 2
+            done
+      migrate:
+        image:
+          repository: ghcr.io/linkwarden/linkwarden
+          tag: v2.14.1
+        env:
+          NEXTAUTH_URL: https://linkwarden.krapulax.dev
+          NEXT_PUBLIC_DISABLE_REGISTRATION: "true"
+          STORAGE_FOLDER: /data
+        envFrom:
+          - secretRef:
+              name: linkwarden-secrets
+        args:
+          - prisma
+          - migrate
+          - deploy
+    containers:
+      app:
+        image:
+          repository: ghcr.io/linkwarden/linkwarden
+          tag: v2.14.1
+        env:
+          NEXTAUTH_URL: https://linkwarden.krapulax.dev
+          NEXT_PUBLIC_DISABLE_REGISTRATION: "true"
+          STORAGE_FOLDER: /data
+        envFrom:
+          - secretRef:
+              name: linkwarden-secrets
+        args:
+          - start
+        probes:
+          liveness: &probes
+            enabled: true
+            custom: true
+            spec:
+              httpGet:
+                path: /
+                port: &port 3000
+              initialDelaySeconds: 45
+              periodSeconds: 15
+              timeoutSeconds: 5
+              failureThreshold: 4
+          readiness: *probes
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities: { drop: ["ALL"] }
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            memory: 1Gi
+
+  database:
+    type: statefulset
+    replicas: 1
+    strategy: RollingUpdate
+    containers:
+      app:
+        image:
+          repository: docker.io/library/postgres
+          tag: "18.3"
+        env:
+          TZ: Europe/London
+          POSTGRES_USER: linkwarden
+          POSTGRES_PASSWORD:
+            valueFrom:
+              secretKeyRef:
+                name: linkwarden-secrets
+                key: LINKWARDEN_DB_PASSWORD
+          POSTGRES_DB: linkwarden
+        probes:
+          liveness: &db-probes
+            enabled: true
+            custom: true
+            spec:
+              tcpSocket:
+                port: 5432
+              initialDelaySeconds: 20
+              periodSeconds: 15
+              timeoutSeconds: 5
+              failureThreshold: 6
+          readiness: *db-probes
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            memory: 1Gi
+
+service:
+  app:
+    controller: linkwarden
+    ports:
+      http:
+        port: 80
+        targetPort: *port
+  postgres:
+    controller: database
+    ports:
+      postgres:
+        port: 5432
+        targetPort: 5432
+
+persistence:
+  data:
+    type: persistentVolumeClaim
+    accessMode: ReadWriteMany
+    storageClass: cephfs
+    size: 10Gi
+    advancedMounts:
+      linkwarden:
+        app:
+          - path: /data
+  postgres-data:
+    type: persistentVolumeClaim
+    accessMode: ReadWriteMany
+    storageClass: cephfs
+    size: 10Gi
+    advancedMounts:
+      database:
+        app:
+          - path: /var/lib/postgresql/data
