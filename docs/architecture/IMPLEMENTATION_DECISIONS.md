@@ -80,6 +80,34 @@ Rollback:
 -   Remove the Doppler-managed Linkwarden secrets after the application is decommissioned.
 -   Keep the CephFS PVCs intact until data export or cleanup is explicitly confirmed.
 
+### Monitoring Slack notifications via Alertmanager
+
+Decision:
+
+-   Add a basic Alertmanager Slack receiver for the monitoring stack.
+-   Source the Slack incoming webhook from Doppler and mount it into the Alertmanager pods as a Kubernetes secret file instead of embedding it in the Alertmanager config.
+
+Assumptions:
+
+-   The Doppler `project-homelab/dev_homelab` config is the correct source of truth for `SLACK_WEBHOOK_MONITORING`.
+-   The intended Slack destination is the `#monitoring` channel.
+-   The initial routing policy should stay simple: send normal alerts to Slack and continue discarding the default `Watchdog` alert.
+
+Validation checks:
+
+-   `doppler secrets get SLACK_WEBHOOK_MONITORING --project project-homelab --config dev_homelab`
+-   `kubectl get dopplersecret -n doppler-operator-system alertmanager-slack-webhook -o yaml`
+-   `kubectl get secret -n monitoring alertmanager-slack-webhook -o jsonpath='{.data.SLACK_WEBHOOK_MONITORING}' | base64 -d`
+-   `kubectl get application -n argo-system kube-prometheus-stack`
+-   `kubectl get alertmanager -n monitoring kube-prometheus-stack-alertmanager -o yaml`
+-   `kubectl rollout status statefulset/alertmanager-kube-prometheus-stack-alertmanager -n monitoring`
+-   `kubectl logs -n monitoring statefulset/alertmanager-kube-prometheus-stack-alertmanager --tail=100`
+
+Rollback:
+
+-   Remove the Slack route and receiver from the kube-prometheus-stack values file if notifications behave unexpectedly.
+-   Remove the Doppler-managed `alertmanager-slack-webhook` secret if Alertmanager Slack notifications are rolled back entirely.
+
 ### Talos VM disk capacity increase
 
 Decision:
