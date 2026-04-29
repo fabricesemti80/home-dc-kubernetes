@@ -18,13 +18,14 @@
 
 Decision:
 
--   Run `cloudflare-tunnel`, `cloudflare-dns`, `cert-manager`, and the `cilium` operator with 2 replicas to reduce outage risk during node failure, pod eviction, and rolling updates.
+-   Run `cloudflare-tunnel`, `cert-manager`, and the `cilium` operator with 2 replicas to reduce outage risk during node failure, pod eviction, and rolling updates.
+-   Defer scaling `cloudflare-dns` until the deployed `external-dns` version supports leader election in this cluster path.
 
 Assumptions:
 
 -   The active Talos cluster has enough schedulable capacity across control-plane nodes to carry a second replica for these lightweight services.
 -   `cloudflared` can maintain multiple concurrent connectors for the same tunnel without requiring route changes.
--   `external-dns` should only be scaled with leader election enabled so only one replica writes DNS changes at a time.
+-   `external-dns` should only be scaled after leader election is available so only one replica writes DNS changes at a time.
 
 Validation checks:
 
@@ -32,16 +33,14 @@ Validation checks:
 -   `kubectl get deploy -n cert-manager cert-manager`
 -   `kubectl get deploy -n kube-system cilium-operator`
 -   `kubectl get pods -n network -l app.kubernetes.io/name=cloudflare-tunnel -o wide`
--   `kubectl get lease -A | grep external-dns`
 -   `kubectl rollout status deploy/cloudflare-tunnel -n network`
--   `kubectl rollout status deploy/cloudflare-dns -n network`
 -   `kubectl rollout status deploy/cert-manager -n cert-manager`
 -   `kubectl rollout status deploy/cilium-operator -n kube-system`
 
 Rollback:
 
--   Reduce the replica counts back to `1` for the four workloads if resource pressure, chart behavior, or failover behavior is not acceptable.
--   Remove `--enable-leader-election` from `cloudflare-dns` if returning it to a single active replica.
+-   Reduce the replica counts back to `1` for the three scaled workloads if resource pressure, chart behavior, or failover behavior is not acceptable.
+-   Keep `cloudflare-dns` at a single replica until its deployed version gains a supported leader-election path.
 
 ## Pending final user confirmation
 
