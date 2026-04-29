@@ -12,6 +12,7 @@ This section covers the Talos, Argo CD, and Kubernetes-side configuration that n
 ## Day-to-Day Guides
 
 -   [Adding Applications](adding-applications.md)
+-   [Domain Configuration](domains.md)
 -   [Troubleshooting](../operations/troubleshooting.md)
 
 ## Source of Truth
