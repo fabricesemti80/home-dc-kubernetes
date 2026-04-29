@@ -224,7 +224,7 @@ Kubernetes storage is managed via ArgoCD:
 ### Deploy Test Workload
 
 ```bash
-kubectl apply -k kubernetes/apps/storage/nginx-test/
+kubectl apply -k kubernetes/storage/nginx-test/
 
 # Verify PVC is bound:
 kubectl get pvc -n storage
