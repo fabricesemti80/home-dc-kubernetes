@@ -1,0 +1,88 @@
+# TODO: Homelab Improvement Tasks
+
+## Completed (High Priority)
+
+### 1. Domain Documentation
+
+-   **Issue:** Hardcoded domains in http-route.yaml (34 locations)
+-   **Status:** Done
+-   **Action:** Created `docs/cluster/domains.md` as central reference
+
+### 2. Health Probes
+
+-   **Issue:** Verify all apps have proper health probe configs
+-   **Status:** Done
+-   **Action:** Verified: All 13 apps have probes (Recyclarr is cron job, doesn't need)
+
+### 3. Resource Limits
+
+-   **Issue:** Add memory/cpu limits to apps missing them
+-   **Status:** Done
+-   **Action:** Verified: All apps with resources define both requests AND limits
+
+### 4. Database Backups
+
+-   **Issue:** Document or implement backup for databases
+-   **Status:** Done
+-   **Action:** Created `docs/cluster/database-backups.md` with manual backup commands
+
+### 5. TZ Consolidation
+
+-   **Issue:** TZ: Europe/London repeated in ~10 values.yaml files
+-   **Status:** Deferred
+-   **Action:** Per-app TZ is correct - must be injected as env var into containers
+
+---
+
+## In Progress
+
+---
+
+## TODO (Medium Priority)
+
+### 6. Image Tags
+
+-   **Issue:** Some apps use `release` or `latest` instead of pinned versions
+-   **Files:** media/\*arr apps, immich, jellyfin, etc.
+-   **Status:** Done - Pinned all to specific versions
+-   **Action:** Updated:
+    -   jellyfin: 10.11.6 → 10.11.7
+    -   qbittorrent: latest → 5.1.4
+    -   sonarr: latest → 4.0.17
+    -   radarr: latest → 6.1.1
+    -   prowlarr: latest → 1.27.4
+    -   jellyseerr: latest → 3.2.1
+    -   sabnzbd: latest → 4.5.5
+    -   immich: release → v2.7.5 (2 containers)
+
+### 7. Security Contexts
+
+-   **Issue:** Inconsistent - some explicit, some inherit
+-   **Files:** Multiple values.yaml
+-   **Action:** Standardize on explicit `allowPrivilegeEscalation: false`
+
+### 8. Registry Auth in Git
+
+-   **Issue:** Hardcoded registry credentials in Talos machine config
+-   **Files:** `talos/patches/global/machine-registries.sops.yaml`
+-   **Action:** Move to Doppler
+
+### 9. Inconsistent Values Structure
+
+-   **Issue:** Mix of `values.yaml`, `values.sops.yaml`, plain config
+-   **Files:** Multiple app directories
+-   **Action:** Standardize naming convention
+
+### 10. Add Common Helm Values
+
+-   **Issue:** Repeated patterns (probes, security contexts, resources)
+-   **Files:** All app values.yaml
+-   **Action:** Create reusable values component
+
+---
+
+## Backlog (Low Priority)
+
+-   Create master app catalog/index
+-   Document app addition workflow
+-   Improve Taskfiles organization

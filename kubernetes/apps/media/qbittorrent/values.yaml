@@ -6,7 +6,7 @@ controllers:
       app:
         image:
           repository: lscr.io/linuxserver/qbittorrent
-          tag: latest
+          tag: "5.1.4"
         env:
           TZ: Europe/London
           PUID: "0"
