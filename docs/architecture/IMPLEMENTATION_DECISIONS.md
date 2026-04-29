@@ -61,7 +61,7 @@ Assumptions:
 Validation checks:
 
 -   `doppler secrets get NEXTAUTH_URL --project project-homelab --config dev_homelab`
--   `kubectl get dopplersecret -n productivity linkwarden-secrets -o yaml`
+-   `kubectl get dopplersecret -n doppler-operator-system linkwarden-secrets -o yaml`
 -   `kubectl get secret -n productivity linkwarden-secrets -o jsonpath='{.data.NEXTAUTH_URL}' | base64 -d`
 -   `kubectl get application -n argo-system linkwarden`
 -   `kubectl get deploy -n productivity linkwarden`
