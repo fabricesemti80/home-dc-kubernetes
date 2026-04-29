@@ -4,7 +4,7 @@ controllers:
     replicas: 1
     strategy: RollingUpdate
     initContainers:
-      wait-for-db:
+      00-wait-for-db:
         image:
           repository: docker.io/library/busybox
           tag: "1.37"
@@ -17,10 +17,13 @@ controllers:
               echo "waiting for postgres..."
               sleep 2
             done
-      migrate:
+      10-migrate:
         image:
           repository: ghcr.io/linkwarden/linkwarden
           tag: v2.14.1
+        command:
+          - /bin/sh
+          - -ec
         env:
           NEXTAUTH_URL: https://linkwarden.krapulax.dev
           NEXT_PUBLIC_DISABLE_REGISTRATION: "true"
@@ -29,14 +32,15 @@ controllers:
           - secretRef:
               name: linkwarden-secrets
         args:
-          - prisma
-          - migrate
-          - deploy
+          - yarn prisma:deploy
     containers:
       app:
         image:
           repository: ghcr.io/linkwarden/linkwarden
           tag: v2.14.1
+        command:
+          - /bin/sh
+          - -ec
         env:
           NEXTAUTH_URL: https://linkwarden.krapulax.dev
           NEXT_PUBLIC_DISABLE_REGISTRATION: "true"
@@ -45,7 +49,7 @@ controllers:
           - secretRef:
               name: linkwarden-secrets
         args:
-          - start
+          - yarn concurrently:start
         probes:
           liveness: &probes
             enabled: true
