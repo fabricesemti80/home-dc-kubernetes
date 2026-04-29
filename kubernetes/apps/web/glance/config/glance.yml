@@ -15,12 +15,12 @@ pages:
           - type: to-do
             id: dashboard
           - type: calendar
+          - type: server-stats
 
       - size: full
         widgets:
           - type: split-column
             widgets:
-              - type: server-stats
             #  - type: videos
              #   title: Tech Videos
               #  style: vertical-list
