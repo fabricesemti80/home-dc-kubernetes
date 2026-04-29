@@ -16,6 +16,6 @@ spec:
     - linkwarden.krapulax.dev
   rules:
     - backendRefs:
-        - name: linkwarden
+        - name: linkwarden-app
           namespace: productivity
           port: 80
