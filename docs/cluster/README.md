@@ -13,6 +13,7 @@ This section covers the Talos, Argo CD, and Kubernetes-side configuration that n
 
 -   [Adding Applications](adding-applications.md)
 -   [Domain Configuration](domains.md)
+-   [Database Backups](database-backups.md)
 -   [Troubleshooting](../operations/troubleshooting.md)
 
 ## Source of Truth
