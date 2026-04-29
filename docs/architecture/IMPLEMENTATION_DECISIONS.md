@@ -12,6 +12,37 @@
 -   Cluster relocation: keep the old `home-argo-cluster-2025` repo intact, but operate the migrated cluster directly from the `project-homelab` repo root with local state copied over.
 -   Worker handling during cutover: keep worker VMs represented in Terraform state, but allow them to remain provisioned and powered off by using per-node `started = false`.
 
+## Active Decisions
+
+### Multi-replica control-plane and edge services
+
+Decision:
+
+-   Run `cloudflare-tunnel`, `cloudflare-dns`, `cert-manager`, and the `cilium` operator with 2 replicas to reduce outage risk during node failure, pod eviction, and rolling updates.
+
+Assumptions:
+
+-   The active Talos cluster has enough schedulable capacity across control-plane nodes to carry a second replica for these lightweight services.
+-   `cloudflared` can maintain multiple concurrent connectors for the same tunnel without requiring route changes.
+-   `external-dns` should only be scaled with leader election enabled so only one replica writes DNS changes at a time.
+
+Validation checks:
+
+-   `kubectl get deploy -n network cloudflare-tunnel cloudflare-dns`
+-   `kubectl get deploy -n cert-manager cert-manager`
+-   `kubectl get deploy -n kube-system cilium-operator`
+-   `kubectl get pods -n network -l app.kubernetes.io/name=cloudflare-tunnel -o wide`
+-   `kubectl get lease -A | grep external-dns`
+-   `kubectl rollout status deploy/cloudflare-tunnel -n network`
+-   `kubectl rollout status deploy/cloudflare-dns -n network`
+-   `kubectl rollout status deploy/cert-manager -n cert-manager`
+-   `kubectl rollout status deploy/cilium-operator -n kube-system`
+
+Rollback:
+
+-   Reduce the replica counts back to `1` for the four workloads if resource pressure, chart behavior, or failover behavior is not acceptable.
+-   Remove `--enable-leader-election` from `cloudflare-dns` if returning it to a single active replica.
+
 ## Pending final user confirmation
 
 -   Initial 5 application services to onboard after platform baseline.
