@@ -22,9 +22,6 @@ controllers:
         image:
           repository: ghcr.io/linkwarden/linkwarden
           tag: v2.14.1
-        command:
-          - /bin/sh
-          - -ec
         env:
           NEXTAUTH_URL: https://linkwarden.krapulax.dev
           NEXT_PUBLIC_DISABLE_REGISTRATION: "true"
