@@ -30,7 +30,7 @@ controllers:
         env:
           NEXTAUTH_URL: https://linkwarden.krapulax.dev
           NEXT_PUBLIC_DISABLE_REGISTRATION: "true"
-          STORAGE_FOLDER: /data
+          STORAGE_FOLDER: /app/data
         envFrom:
           - secretRef:
               name: linkwarden-secrets
@@ -117,7 +117,7 @@ persistence:
     advancedMounts:
       linkwarden:
         app:
-          - path: /data
+          - path: /app/data
   postgres-data:
     type: persistentVolumeClaim
     accessMode: ReadWriteMany
