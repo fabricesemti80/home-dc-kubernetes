@@ -5,3 +5,4 @@ resources:
   - ./alertmanager-http-route.yaml
   - ./http-route.yaml
   - ./doppler-secret.yaml
+  - ./test-alert-rule.yaml
