@@ -6,7 +6,7 @@ controllers:
       app:
         image:
           repository: fallenbagel/jellyseerr
-          tag: "3.2.1"
+          tag: latest
         env:
           TZ: Europe/London
           PUID: "0"
