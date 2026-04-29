@@ -1,3 +1,4 @@
+# https://github.com/glanceapp/glance/blob/main/docs/configuration.md#server-stats
 # https://github.com/glanceapp/glance/blob/main/docs/themes.md#tucan
 theme:
   background-color: 50 1 6
@@ -19,6 +20,7 @@ pages:
         widgets:
           - type: split-column
             widgets:
+              - type: server-stats
             #  - type: videos
              #   title: Tech Videos
               #  style: vertical-list
