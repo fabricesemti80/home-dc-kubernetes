@@ -64,8 +64,7 @@ kubectl describe storageclass cephfs
 
 #### 4. **Test Deployment (nginx-test)** ✅
 
--   **Location**: `kubernetes/storage/nginx-test/` (primary source for ArgoCD)
--   **Also**: `kubernetes/apps/storage/nginx-test/` (working copy)
+-   **Location**: `kubernetes/storage/nginx-test/`
 -   **Components**:
     -   **PVC**: `nginx-test-pvc` (1Gi, ReadWriteMany)
     -   **Deployment**: Single nginx pod using the PVC
@@ -190,7 +189,7 @@ Common causes:
 | File                                                     | Purpose                      |
 | -------------------------------------------------------- | ---------------------------- |
 | `kubernetes/apps/storage/cephfs-sc.yaml`                 | StorageClass definition      |
-| `kubernetes/apps/storage/nginx-test/`                    | Test deployment manifests    |
+| `kubernetes/storage/nginx-test/`                         | Test deployment manifests    |
 | `kubernetes/apps/kube-system/ceph-csi/`                  | Secret kustomization         |
 | `kubernetes/argo/apps/storage/`                          | ArgoCD Applications          |
 | `templates/config/kubernetes/apps/kube-system/ceph-csi/` | Secret template with Doppler |
