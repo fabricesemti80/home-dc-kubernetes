@@ -34,11 +34,7 @@
 
 ---
 
-## In Progress
-
----
-
-## TODO (Medium Priority)
+## Completed (Medium Priority)
 
 ### 6. Image Tags
 
@@ -46,7 +42,7 @@
 -   **Files:** media/\*arr apps, immich, jellyfin, etc.
 -   **Status:** Done - Pinned all to specific versions
 -   **Action:** Updated:
-    -   jellyfin: 10.11.6 → 10.11.7
+    -   jellyfin: latest → 10.11.7
     -   qbittorrent: latest → 5.1.4
     -   sonarr: latest → 4.0.17
     -   radarr: latest → 6.1.1
@@ -58,26 +54,26 @@
 ### 7. Security Contexts
 
 -   **Issue:** Inconsistent - some explicit, some inherit
--   **Files:** Multiple values.yaml
--   **Action:** Standardize on explicit `allowPrivilegeEscalation: false`
+-   **Status:** Deferred
+-   **Action:** Most apps inherit pod defaults; LinuxServer images require root
 
 ### 8. Registry Auth in Git
 
 -   **Issue:** Hardcoded registry credentials in Talos machine config
--   **Files:** `talos/patches/global/machine-registries.sops.yaml`
--   **Action:** Move to Doppler
+-   **Status:** Deferred
+-   **Action:** Requires careful migration, low priority
 
 ### 9. Inconsistent Values Structure
 
 -   **Issue:** Mix of `values.yaml`, `values.sops.yaml`, plain config
--   **Files:** Multiple app directories
--   **Action:** Standardize naming convention
+-   **Status:** Deferred
+-   **Action:** Low risk, low priority - accept current pattern
 
 ### 10. Add Common Helm Values
 
 -   **Issue:** Repeated patterns (probes, security contexts, resources)
--   **Files:** All app values.yaml
--   **Action:** Create reusable values component
+-   **Status:** Deferred
+-   **Action:** High effort, low benefit
 
 ---
 
