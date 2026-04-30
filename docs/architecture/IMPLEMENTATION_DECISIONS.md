@@ -117,6 +117,8 @@ Decision:
 -   Add Homepage as an additional dashboard application in the `web` namespace.
 -   Expose it at `https://homepage.krapulax.dev`.
 -   Use Homepage's in-cluster Kubernetes integration with Gateway API discovery enabled so externally routed services can be auto-discovered from annotated `HTTPRoute` objects.
+-   Use Homepage layout ordering to keep `Media` after the smaller operational groups so the busiest section does not dominate the top of the page.
+-   Expose Prometheus directly at `https://prometheus.krapulax.dev` so the Prometheus expression browser is reachable without going through Grafana.
 -   Keep the initial Homepage deployment read-only: use discovery metadata and Kubernetes cluster widgets first, and only add API-backed widgets when their credentials are explicitly stored in Doppler.
 
 Assumptions:
@@ -133,6 +135,7 @@ Validation checks:
 -   `kubectl get serviceaccount -n web homepage`
 -   `kubectl get clusterrole homepage -o yaml`
 -   `kubectl get httproute -n web homepage -o yaml`
+-   `kubectl get httproute -n monitoring prometheus -o yaml`
 -   `kubectl rollout status deploy/homepage -n web`
 -   `kubectl logs -n web deploy/homepage --tail=100`
 -   `kubectl get httproute -A -o yaml | rg 'gethomepage.dev/'`

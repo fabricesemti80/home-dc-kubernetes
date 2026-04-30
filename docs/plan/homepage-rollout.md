@@ -6,6 +6,8 @@
 -   [ ] Expose Homepage at `https://homepage.krapulax.dev`
 -   [ ] Enable in-cluster Kubernetes discovery with Gateway API support
 -   [ ] Add Homepage discovery annotations to externally exposed `HTTPRoute` objects
+-   [ ] Order Homepage groups so `Media` renders after the smaller operational sections
+-   [ ] Expose Prometheus with a direct Homepage link to the expression browser
 -   [ ] Keep the initial rollout free of committed widget credentials
 
 ## Assumptions
@@ -20,6 +22,7 @@
 -   [ ] `kubectl get application -n argo-system homepage`
 -   [ ] `kubectl rollout status deploy/homepage -n web`
 -   [ ] `kubectl get httproute -n web homepage`
+-   [ ] `kubectl get httproute -n monitoring prometheus`
 -   [ ] `kubectl get httproute -A -o yaml | rg 'gethomepage.dev/'`
 -   [ ] Open `https://homepage.krapulax.dev`
 -   [ ] Confirm discovered services appear from annotated routes

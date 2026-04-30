@@ -2,3 +2,9 @@ title: Homepage
 description: Homelab dashboard
 headerStyle: clean
 hideVersion: true
+layout:
+  Dashboards:
+  Infrastructure:
+  Monitoring:
+  Productivity:
+  Media:

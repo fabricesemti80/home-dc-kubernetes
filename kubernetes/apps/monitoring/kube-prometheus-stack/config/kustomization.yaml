@@ -4,4 +4,5 @@ kind: Kustomization
 resources:
   - ./alertmanager-http-route.yaml
   - ./http-route.yaml
+  - ./prometheus-http-route.yaml
   - ./doppler-secret.yaml
