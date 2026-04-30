@@ -7,6 +7,12 @@ metadata:
   annotations:
     external-dns.alpha.kubernetes.io/hostname: sabnzbd.krapulax.dev
     external-dns.alpha.kubernetes.io/target: external.krapulax.dev
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/group: Media
+    gethomepage.dev/name: SABnzbd
+    gethomepage.dev/icon: sabnzbd.png
+    gethomepage.dev/description: Usenet downloads
+    gethomepage.dev/weight: "70"
 spec:
   parentRefs:
     - name: envoy-external

@@ -6,6 +6,12 @@ metadata:
   annotations:
     external-dns.alpha.kubernetes.io/hostname: grafana.krapulax.dev
     external-dns.alpha.kubernetes.io/target: external.krapulax.dev
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/group: Monitoring
+    gethomepage.dev/name: Grafana
+    gethomepage.dev/icon: grafana.png
+    gethomepage.dev/description: Dashboards and metrics exploration
+    gethomepage.dev/weight: "10"
 spec:
   parentRefs:
     - name: envoy-external

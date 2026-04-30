@@ -7,6 +7,12 @@ metadata:
   annotations:
     external-dns.alpha.kubernetes.io/hostname: qbittorrent.krapulax.dev
     external-dns.alpha.kubernetes.io/target: external.krapulax.dev
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/group: Media
+    gethomepage.dev/name: qBittorrent
+    gethomepage.dev/icon: qbittorrent.png
+    gethomepage.dev/description: Torrent downloads
+    gethomepage.dev/weight: "80"
 spec:
   parentRefs:
     - name: envoy-external

@@ -4,6 +4,14 @@ kind: HTTPRoute
 metadata:
   name: argo
   namespace: argo-system
+  annotations:
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/group: Infrastructure
+    gethomepage.dev/name: Argo CD
+    gethomepage.dev/icon: argo-cd.png
+    gethomepage.dev/description: GitOps control plane
+    gethomepage.dev/app: argocd-server
+    gethomepage.dev/weight: "10"
 spec:
   parentRefs:
     - name: envoy-external

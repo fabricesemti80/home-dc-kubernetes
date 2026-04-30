@@ -7,6 +7,12 @@ metadata:
   annotations:
     external-dns.alpha.kubernetes.io/hostname: radarr.krapulax.dev
     external-dns.alpha.kubernetes.io/target: external.krapulax.dev
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/group: Media
+    gethomepage.dev/name: Radarr
+    gethomepage.dev/icon: radarr.png
+    gethomepage.dev/description: Movie library automation
+    gethomepage.dev/weight: "40"
 spec:
   parentRefs:
     - name: envoy-external

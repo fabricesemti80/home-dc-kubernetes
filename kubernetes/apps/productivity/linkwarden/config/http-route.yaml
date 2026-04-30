@@ -7,6 +7,12 @@ metadata:
   annotations:
     external-dns.alpha.kubernetes.io/hostname: linkwarden.krapulax.dev
     external-dns.alpha.kubernetes.io/target: external.krapulax.dev
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/group: Productivity
+    gethomepage.dev/name: Linkwarden
+    gethomepage.dev/icon: linkwarden.png
+    gethomepage.dev/description: Bookmark and knowledge archive
+    gethomepage.dev/weight: "10"
 spec:
   parentRefs:
     - name: envoy-external

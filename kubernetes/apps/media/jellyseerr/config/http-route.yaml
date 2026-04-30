@@ -7,6 +7,12 @@ metadata:
   annotations:
     external-dns.alpha.kubernetes.io/hostname: requests.krapulax.dev
     external-dns.alpha.kubernetes.io/target: external.krapulax.dev
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/group: Media
+    gethomepage.dev/name: Jellyseerr
+    gethomepage.dev/icon: jellyseerr.png
+    gethomepage.dev/description: Media requests and approvals
+    gethomepage.dev/weight: "30"
 spec:
   parentRefs:
     - name: envoy-external

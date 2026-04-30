@@ -110,6 +110,39 @@ Rollback:
 -   Remove the Slack route and receiver from the kube-prometheus-stack values file if notifications behave unexpectedly.
 -   Remove the Doppler-managed `alertmanager-slack-webhook` secret if Alertmanager Slack notifications are rolled back entirely.
 
+### Homepage dashboard deployment
+
+Decision:
+
+-   Add Homepage as an additional dashboard application in the `web` namespace.
+-   Expose it at `https://homepage.krapulax.dev`.
+-   Use Homepage's in-cluster Kubernetes integration with Gateway API discovery enabled so externally routed services can be auto-discovered from annotated `HTTPRoute` objects.
+-   Keep the initial Homepage deployment read-only: use discovery metadata and Kubernetes cluster widgets first, and only add API-backed widgets when their credentials are explicitly stored in Doppler.
+
+Assumptions:
+
+-   `homepage.krapulax.dev` is the intended external hostname for the new dashboard.
+-   The current cluster should continue to use Gateway API `HTTPRoute` objects rather than `Ingress` for Homepage service discovery.
+-   Homepage can rely on a dedicated service account with read access to namespaces, pods, nodes, ingresses, gateways, httproutes, and metrics APIs.
+-   Any future Homepage widget credential or API token should be sourced from Doppler rather than committed in config files.
+
+Validation checks:
+
+-   `kubectl get application -n argo-system homepage`
+-   `kubectl get deploy -n web homepage`
+-   `kubectl get serviceaccount -n web homepage`
+-   `kubectl get clusterrole homepage -o yaml`
+-   `kubectl get httproute -n web homepage -o yaml`
+-   `kubectl rollout status deploy/homepage -n web`
+-   `kubectl logs -n web deploy/homepage --tail=100`
+-   `kubectl get httproute -A -o yaml | rg 'gethomepage.dev/'`
+
+Rollback:
+
+-   Delete the Argo CD `homepage` application if the rollout is not acceptable.
+-   Remove Homepage-specific `gethomepage.dev/*` annotations from `HTTPRoute` objects if discovery behavior is not acceptable.
+-   Remove any Doppler-managed Homepage widget secrets if API-backed widgets are rolled back.
+
 ### Talos VM disk capacity increase
 
 Decision:

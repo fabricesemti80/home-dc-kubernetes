@@ -7,6 +7,12 @@ metadata:
   annotations:
     external-dns.alpha.kubernetes.io/hostname: prowlarr.krapulax.dev
     external-dns.alpha.kubernetes.io/target: external.krapulax.dev
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/group: Media
+    gethomepage.dev/name: Prowlarr
+    gethomepage.dev/icon: prowlarr.png
+    gethomepage.dev/description: Indexer aggregation
+    gethomepage.dev/weight: "60"
 spec:
   parentRefs:
     - name: envoy-external

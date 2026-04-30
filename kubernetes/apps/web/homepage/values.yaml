@@ -1,0 +1,60 @@
+---
+controllers:
+  homepage:
+    strategy: RollingUpdate
+    serviceAccount:
+      name: homepage
+    containers:
+      app:
+        image:
+          repository: ghcr.io/gethomepage/homepage
+          tag: v1.12.3
+        env:
+          HOMEPAGE_ALLOWED_HOSTS: homepage.krapulax.dev
+          PUID: "65534"
+          PGID: "65534"
+          PORT: &port 3000
+        probes:
+          liveness: &probes
+            enabled: true
+            custom: true
+            spec:
+              httpGet:
+                path: /
+                port: *port
+              initialDelaySeconds: 20
+              periodSeconds: 15
+              timeoutSeconds: 3
+              failureThreshold: 4
+          readiness: *probes
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities: { drop: ["ALL"] }
+        resources:
+          requests:
+            cpu: 25m
+            memory: 128Mi
+          limits:
+            memory: 512Mi
+
+defaultPodOptions:
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 65534
+    runAsGroup: 65534
+
+service:
+  app:
+    controller: homepage
+    ports:
+      http:
+        port: 80
+        targetPort: *port
+
+persistence:
+  config:
+    type: configMap
+    name: homepage-configmap
+    globalMounts:
+      - path: /app/config
+        readOnly: true

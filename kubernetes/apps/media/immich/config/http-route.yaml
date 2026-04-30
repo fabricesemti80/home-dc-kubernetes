@@ -7,6 +7,12 @@ metadata:
   annotations:
     external-dns.alpha.kubernetes.io/hostname: photos.krapulax.dev
     external-dns.alpha.kubernetes.io/target: external.krapulax.dev
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/group: Media
+    gethomepage.dev/name: Immich
+    gethomepage.dev/icon: immich.png
+    gethomepage.dev/description: Photo and video library
+    gethomepage.dev/weight: "10"
 spec:
   parentRefs:
     - name: envoy-external
