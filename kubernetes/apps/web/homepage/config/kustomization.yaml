@@ -8,6 +8,7 @@ configMapGenerator:
   - name: homepage-configmap
     files:
       - docker.yaml
+      - proxmox.yaml
       - kubernetes.yaml
       - settings.yaml
       - widgets.yaml
