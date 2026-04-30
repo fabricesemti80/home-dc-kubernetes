@@ -40,16 +40,14 @@
 
 -   **Issue:** Some apps use `release` or `latest` instead of pinned versions
 -   **Files:** media/\*arr apps, immich, jellyfin, etc.
--   **Status:** Done - Pinned all to specific versions
+-   **Status:** Done (with 3 reverted to latest)
 -   **Action:** Updated:
     -   jellyfin: latest → 10.11.7
-    -   qbittorrent: latest → 5.1.4
     -   sonarr: latest → 4.0.17
     -   radarr: latest → 6.1.1
-    -   prowlarr: latest → 1.27.4
-    -   jellyseerr: latest → 3.2.1
     -   sabnzbd: latest → 4.5.5
     -   immich: release → v2.7.5 (2 containers)
+    -   jellyseerr/prowlarr/qbittorrent: reverted to latest (version tags unavailable)
 
 ### 7. Security Contexts
 
@@ -77,8 +75,12 @@
 
 ---
 
-## Backlog (Low Priority)
+## Completed (Low Priority)
 
 -   Create master app catalog/index
 -   Document app addition workflow
 -   Improve Taskfiles organization
+
+## ---
+
+## All Tasks Complete
