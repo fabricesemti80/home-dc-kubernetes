@@ -58,3 +58,7 @@ persistence:
     globalMounts:
       - path: /app/config
         readOnly: true
+  logs:
+    type: emptyDir
+    globalMounts:
+      - path: /app/config/logs
