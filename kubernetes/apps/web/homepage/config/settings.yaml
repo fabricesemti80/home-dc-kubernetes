@@ -1,5 +1,6 @@
 title: Homepage
 description: Homelab dashboard
+background: https://unsplash.com/photos/a-bunch-of-wires-and-wires-in-a-room-AfStyhXC5kM
 headerStyle: clean
 hideVersion: true
 layout:
