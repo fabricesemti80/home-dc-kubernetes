@@ -29,8 +29,8 @@ This repository is also the main deployment home for the Talos cluster and the h
 ## Docker Deployment Rules
 
 -   Use `task stack:render` before validating Compose config.
--   Use `task stack:deploy` from the Docker host checkout to start or update the stack.
--   Keep Docker stack deployment as a simple local Compose operation; do not bake SSH sync into the deploy task.
+-   Use `task stack:deploy` from this repo checkout to deploy the Docker stack to `morpheus` over SSH.
+-   The default Docker deployment target is `fs@10.0.40.19:/opt/project-homelab/infra/docker`; override it only intentionally.
 -   Omni is intentionally not part of the Docker deployment; use Terraform/Talos-native flows for cluster provisioning.
 
 ## Definition of done (for infra tasks)

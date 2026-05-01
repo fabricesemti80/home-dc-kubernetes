@@ -1,0 +1,36 @@
+services:
+  portainer:
+    image: portainer/portainer-ce:latest
+    platform: ${HOMELAB_DOCKER_PLATFORM:-linux/amd64}
+    container_name: portainer
+    command:
+      - --admin-password-file
+      - /run/secrets/portainer_admin_password
+      - --trusted-origins
+      - ${PORTAINER_HOSTNAME:-portainer.krapulax.dev}
+    restart: unless-stopped
+    ports:
+      - "9443:9443"
+      - "9000:9000"
+    environment:
+      PUID: ${PUID:-1000}
+      PGID: ${PGID:-1000}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - portainer_data:/data
+      - ${HOMELAB_DOCKER_ROOT:-.}/runtime/secrets/portainer/admin_password:/run/secrets/portainer_admin_password:ro
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.portainer.rule: Host(`${PORTAINER_HOSTNAME:-portainer.krapulax.dev}`)
+      traefik.http.routers.portainer.entrypoints: web
+      traefik.http.services.portainer.loadbalancer.server.port: "9000"
+    networks:
+      - proxy
+
+networks:
+  proxy:
+    name: homelab_proxy
+
+volumes:
+  portainer_data:
+    name: homelab_portainer_data

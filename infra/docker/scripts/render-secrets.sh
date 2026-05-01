@@ -9,6 +9,7 @@ required_vars=(
   CLOUDFLARED_TUNNEL_TOKEN
   ARCANE_ENCRYPTION_KEY
   ARCANE_JWT_SECRET
+  PORTAINER_ADMIN_PASSWORD
 )
 
 for var in "${required_vars[@]}"; do
@@ -36,8 +37,11 @@ write_dotenv() {
   local beszel_hostname="${BESZEL_HOSTNAME:-beszel.${domain}}"
   local uptime_kuma_hostname="${UPTIME_KUMA_HOSTNAME:-uptime.${domain}}"
   local whoami_hostname="${WHOAMI_HOSTNAME:-whoami.${domain}}"
+  local portainer_hostname="${PORTAINER_HOSTNAME:-portainer.${domain}}"
+  # Included Compose files resolve bind-mount paths relative to their own
+  # directories, so the shared Docker root must be explicit.
   if [ -z "$docker_root_value" ]; then
-    docker_root_value="."
+    docker_root_value="$docker_root"
   fi
   {
     printf 'COMPOSE_PROJECT_NAME=%s\n' "$(dotenv_quote "${COMPOSE_PROJECT_NAME:-homelab}")"
@@ -60,16 +64,18 @@ write_dotenv() {
     printf 'BESZEL_AGENT_KEY=%s\n' "$(dotenv_quote "${BESZEL_AGENT_KEY:-}")"
     printf 'UPTIME_KUMA_HOSTNAME=%s\n' "$(dotenv_quote "$uptime_kuma_hostname")"
     printf 'WHOAMI_HOSTNAME=%s\n' "$(dotenv_quote "$whoami_hostname")"
+    printf 'PORTAINER_HOSTNAME=%s\n' "$(dotenv_quote "$portainer_hostname")"
 
   } >"$env_file"
   chmod 0600 "$env_file"
 }
 tailscale_dir="${docker_root}/runtime/secrets/tailscale"
 cloudflared_dir="${docker_root}/runtime/secrets/cloudflared"
+portainer_dir="${docker_root}/runtime/secrets/portainer"
 traefik_dynamic_dir="${docker_root}/runtime/traefik/dynamic"
 
-mkdir -p "$tailscale_dir" "$cloudflared_dir" "$traefik_dynamic_dir"
-chmod 700 "${docker_root}/runtime" "${docker_root}/runtime/secrets" "$tailscale_dir" "$cloudflared_dir"
+mkdir -p "$tailscale_dir" "$cloudflared_dir" "$portainer_dir" "$traefik_dynamic_dir"
+chmod 700 "${docker_root}/runtime" "${docker_root}/runtime/secrets" "$tailscale_dir" "$cloudflared_dir" "$portainer_dir"
 
 # Remove generated files from the retired Omni deployment so local Compose runs
 # do not keep publishing stale Traefik routes or secret mounts.
@@ -104,6 +110,10 @@ if [ -n "${CLOUDFLARED_TUNNEL_TOKEN:-}" ]; then
   fi
   chmod 0600 "${cloudflared_dir}/config.yml"
 fi
+
+portainer_password_file="${portainer_dir}/admin_password"
+printf '%s\n' "$PORTAINER_ADMIN_PASSWORD" >"$portainer_password_file"
+chmod 0600 "$portainer_password_file"
 
 write_dotenv
 printf 'Rendered Docker runtime secrets under %s/runtime and %s/.env\n' "$docker_root" "$docker_root"

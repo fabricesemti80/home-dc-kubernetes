@@ -19,8 +19,21 @@ tasks:
       - test -f {{.ROOT_DIR}}/infra/docker/scripts/render-secrets.sh
 
   deploy:
-    desc: Render runtime files and start the host-level Docker Compose stack using Doppler-managed secrets
+    desc: Render runtime files and deploy the host-level Docker Compose stack to morpheus using Doppler-managed secrets
     cmd: doppler run --project project-homelab --config dev_homelab -- bash {{.ROOT_DIR}}/infra/docker/scripts/deploy.sh
     preconditions:
-      - which doppler
+      - which doppler ssh rsync
       - test -f {{.ROOT_DIR}}/infra/docker/scripts/deploy.sh
+
+  deploy-all:
+    desc: Render Docker runtime, start stack, and apply Cloudflare infrastructure changes
+    cmds:
+      - task: deploy
+      - task: cloudflare-apply
+
+  cloudflare-apply:
+    desc: Apply Cloudflare DNS and Access changes via Terraform
+    cmd: |
+      doppler run --project project-homelab --config dev_homelab --name-transformer tf-var -- sh -lc 'cd {{.ROOT_DIR}}/infra/terraform && tofu init && tofu apply -auto-approve'
+    preconditions:
+      - which doppler tofu

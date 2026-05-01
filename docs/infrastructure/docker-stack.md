@@ -14,12 +14,18 @@ Common examples include:
 4. WhoAmI
 5. Uptime Kuma
 6. Arcane
+7. Portainer
+
+Current Cloudflare Access intent:
+
+1. `portainer.krapulax.dev` stays protected by Cloudflare Access.
+2. `beszel.krapulax.dev` remains the bypassed public service in this Docker tier.
 
 Omni and its Proxmox provider are intentionally not part of this Docker tier.
 
 ## Deployment Model
 
-The Docker stack is rendered and deployed from the Docker host checkout using `task`:
+The Docker stack is rendered locally from this repository checkout and deployed to `morpheus` over SSH using `task`:
 
 ```bash
 task stack:render
@@ -33,6 +39,9 @@ task stack:deploy
 -   active Docker secret scope: `project-homelab / dev_homelab`
 -   `DOMAIN` is the primary hostname input; service hostnames and app URLs are derived from it unless explicitly overridden
 -   rendered runtime files are written to `infra/docker/runtime/`
+-   the default Docker deployment target is `fs@10.0.40.19:/opt/project-homelab/infra/docker` (`morpheus`)
+-   rendered `infra/docker/.env` pins `HOMELAB_DOCKER_ROOT` to the Docker stack root so included Compose files bind-mount the shared `runtime/` tree correctly
+-   `PORTAINER_ADMIN_PASSWORD` is a required Doppler-backed bootstrap secret for Portainer; the stack passes it to Portainer with `--admin-password-file` so first-run admin creation does not depend on a manual five-minute setup window
 -   local secret material belongs under `infra/docker/secrets/`
 -   these runtime and secret paths stay out of Git
 
