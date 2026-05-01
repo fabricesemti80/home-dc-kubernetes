@@ -1,6 +1,6 @@
 title: Homepage
 description: Homelab dashboard
-background: https://images.unsplash.com/photo-1558494949-ef526b0042a0?w=1920&q=80
+background: https://source.unsplash.com/2560x1440/?technology,servers,datacenter
 headerStyle: clean
 hideVersion: true
 layout:
