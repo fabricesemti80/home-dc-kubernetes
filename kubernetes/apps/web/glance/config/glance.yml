@@ -61,14 +61,10 @@ pages:
             title: Diablo 4
             style: vertical-list
             channels:
-              # Rhykker — veteran ARPG/D4 coverage
-              - UCnHPcM1ksKjfSqz7bHDPQlQ
-              # Raxx — top-tier builds & endgame
-              - UCjGLBqNMTZhhlNkBGBZWH2Q
-              # Rob2628 — endgame & ladder content
-              - UCbSFGDGXd4XGBHZhB4Pxo7A
-              # Mekuna — builds & season guides
-              - UCRRUBMjv3TJrv6MuWCEBNMQ
+              - UCRl31PWkfF0a3j3hiDRaCGA  # Rhykker
+              - UCs20qCPrd1AXRviSTdVCoAg  # Raxxanterax
+              - REPLACE_WITH_ROB2628_ID    # Rob2628 — look up @Rob2628
+              - REPLACE_WITH_MEKUNA_ID     # Mekuna — look up @Mekuna
             limit: 8
 
           - type: group
