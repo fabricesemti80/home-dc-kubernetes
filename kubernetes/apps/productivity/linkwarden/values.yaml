@@ -40,7 +40,7 @@ controllers:
             spec:
               tcpSocket:
                 port: &port 3000
-              initialDelaySeconds: 45
+              initialDelaySeconds: 90
               periodSeconds: 15
               timeoutSeconds: 5
               failureThreshold: 4
@@ -50,10 +50,10 @@ controllers:
           capabilities: { drop: ["ALL"] }
         resources:
           requests:
-            cpu: 100m
-            memory: 256Mi
+            cpu: 250m
+            memory: 512Mi
           limits:
-            memory: 1Gi
+            memory: 2Gi
 
   database:
     type: statefulset
