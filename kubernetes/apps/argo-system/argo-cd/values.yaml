@@ -37,6 +37,13 @@ configs:
       return hs
 controller:
   replicas: 2
+  livenessProbe:
+    httpGet:
+      path: /healthz
+      port: metrics
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    failureThreshold: 3
   metrics:
     enabled: true
     applicationLabels:
@@ -47,6 +54,13 @@ controller:
         release: kube-prometheus-stack
 dex:
   replicas: 2
+  livenessProbe:
+    httpGet:
+      path: /dex/healthz
+      port: 5556
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    failureThreshold: 3
   metrics:
     enabled: true
     serviceMonitor: *service-monitor
@@ -57,6 +71,13 @@ redis:
 server:
   replicas: 2
   allowAnyNamespace: true
+  livenessProbe:
+    httpGet:
+      path: /healthz
+      port: 8080
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    failureThreshold: 3
   metrics:
     enabled: true
     serviceMonitor: *service-monitor
@@ -67,6 +88,13 @@ notifications:
     serviceMonitor: *service-monitor
 repoServer:
   replicas: 2
+  livenessProbe:
+    httpGet:
+      path: /healthz
+      port: 8081
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    failureThreshold: 3
   serviceAccount:
     create: true
     name: argocd-repo-server
