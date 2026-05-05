@@ -6,3 +6,4 @@ resources:
   - ./http-route.yaml
   - ./prometheus-http-route.yaml
   - ./doppler-secret.yaml
+  - ./prometheus-rules.yaml

@@ -1,0 +1,28 @@
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: kube-prometheus-stack-suppressions
+  namespace: monitoring
+spec:
+  groups:
+    - name: alerting.rules
+      interval: 30s
+      rules:
+        # Suppress kube-proxy alerts - using Cilium CNI instead
+        - alert: KubeProxyDown
+          expr: 'false'
+          for: 0m
+          annotations:
+            summary: "Suppressed: kube-proxy replaced by Cilium"
+            description: "This cluster uses Cilium CNI which replaces kube-proxy functionality"
+
+        # Suppress kube-proxy target down alerts
+        - alert: TargetDown
+          expr: 'up{job="kube-proxy"} == 0'
+          for: 0m
+          labels:
+            severity: "none"
+          annotations:
+            summary: "Suppressed: kube-proxy target down (using Cilium)"
+            description: "kube-proxy is not deployed; Cilium handles service proxy duties"
