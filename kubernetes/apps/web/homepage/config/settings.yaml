@@ -1,9 +1,36 @@
 title: Homepage
 description: Homelab dashboard
-background: https://images.unsplash.com/photo-1687300172792-68a13c4e149a?q=80&w=1074&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D
-# background:  https://images.unsplash.com/photo-1502790671504-542ad42d5189?auto=format&fit=crop&w=2560&q=80
 headerStyle: clean
 hideVersion: true
+
+# The complex nature of your current background (the messy cables)
+# requires significant contrast for the white text and colored icons.
+background: https://images.unsplash.com/photo-1687300172792-68a13c4e149a?q=80&w=1074&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D
+
+# --- READABILITY TWEAKS ---
+
+# OPTION 1: Set a backdrop blur.
+# This blurs the background image *only behind the cards*.
+# It is excellent for readability without dimming the background image.
+# Valid options: none, sm, md, lg, xl, 2xl, 3xl.
+# Try starting with 'md'.
+# backgroundBlur: md # Un-comment (remove #) to test.
+
+# OPTION 2: Dim the background image.
+# This dims the entire background, making white text pop.
+# Range is 0 (fully dimmed/black) to 1 (full brightness).
+# Try starting with 0.6 and go lower if needed.
+# backgroundOpacity: 0.6 # Un-comment (remove #) to test.
+
+# OPTION 3 (Highly Recommended): Solidify the cards.
+# This makes the "buttons" (service cards) less see-through.
+# Range is 0 (fully transparent) to 1 (fully opaque).
+# Your screenshot looks like it is at ~0.4.
+# **This is likely the fix you are looking for.**
+cardOpacity: 0.85
+
+# --- END READABILITY TWEAKS ---
+
 layout:
   Dashboards:
   Infrastructure:
