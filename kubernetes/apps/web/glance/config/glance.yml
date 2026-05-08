@@ -1,9 +1,9 @@
 # https://github.com/glanceapp/glance/blob/main/docs/configuration.md
-# https://github.com/glanceapp/glance/blob/main/docs/themes.md#catppuccin-mocha
+# Color palette: https://colorhunt.co/palette/091413285a48408a71b0e4cc
 theme:
-  background-color: 240 21 15
-  primary-color: 217 92 83
-  positive-color: 115 54 76
+  background-color: 174 5 6
+  primary-color: 156 25 26
+  positive-color: 165 42 40
   negative-color: 347 70 65
   contrast-multiplier: 1.2
 
