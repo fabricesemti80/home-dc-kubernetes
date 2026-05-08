@@ -22,31 +22,6 @@ pages:
 
           - type: search
 
-          - type: bookmarks
-            groups:
-              - title: Media Servers
-                links:
-                  - title: Plex
-                    url: https://plex.krapulax.net
-                  - title: Jellyfin
-                    url: https://jelly.krapulax.dev
-              - title: Download Tools
-                links:
-                  - title: SABnzbd
-                    url: https://sabnzbd.krapulax.dev
-                  - title: qBittorrent
-                    url: https://qbittorrent.krapulax.dev
-              - title: "*arr Stack"
-                links:
-                  - title: Sonarr
-                    url: https://sonarr.krapulax.dev
-                  - title: Radarr
-                    url: https://radarr.krapulax.dev
-                  - title: Prowlarr
-                    url: https://prowlarr.krapulax.dev
-                  - title: Jellyseerr
-                    url: https://requests.krapulax.dev
-
       - size: full
         widgets:
           - type: reddit
@@ -72,8 +47,29 @@ pages:
       - size: small
         widgets:
           - type: bookmarks
-            title: Infrastructure
             groups:
+              - title: Media Servers
+                links:
+                  - title: Plex
+                    url: https://plex.krapulax.net
+                  - title: Jellyfin
+                    url: https://jelly.krapulax.dev
+              - title: Download Tools
+                links:
+                  - title: SABnzbd
+                    url: https://sabnzbd.krapulax.dev
+                  - title: qBittorrent
+                    url: https://qbittorrent.krapulax.dev
+              - title: "*arr Stack"
+                links:
+                  - title: Sonarr
+                    url: https://sonarr.krapulax.dev
+                  - title: Radarr
+                    url: https://radarr.krapulax.dev
+                  - title: Prowlarr
+                    url: https://prowlarr.krapulax.dev
+                  - title: Jellyseerr
+                    url: https://requests.krapulax.dev
               - title: Cluster
                 links:
                   - title: Argo CD
@@ -84,7 +80,13 @@ pages:
                     url: https://echo.${DOMAIN}
                   - title: Nginx Test
                     url: https://nginx-test.${DOMAIN}
-              - title: Productivity
-                links:
                   - title: Linkwarden
                     url: https://linkwarden.krapulax.dev
+              - title: External
+                links:
+                  - title: Uptime Kuma
+                    url: https://uptime.krapulax.dev
+                  - title: Beszel
+                    url: https://beszel.krapulax.dev
+                  - title: Portainer
+                    url: https://portainer.krapulax.dev
