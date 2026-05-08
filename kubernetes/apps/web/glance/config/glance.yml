@@ -43,8 +43,6 @@ pages:
 
           - type: calendar
 
-          - type: search
-
       - size: full
         widgets:
           - type: group
@@ -76,6 +74,8 @@ pages:
 
       - size: small
         widgets:
+          - type: search
+                  
           - type: bookmarks
             groups:
               - title: Media Servers
