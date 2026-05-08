@@ -9,11 +9,11 @@ theme:
   presets:
     # Dark - Green + Royal Blue (https://colorhunt.co/palette/fdff009cff2e38e54d2192ff)
     neon-green-blue:
-      background-color: 224 92 21
-      primary-color: 211 92 56
-      positive-color: 133 77 51
-      negative-color: 60 100 50
-      contrast-multiplier: 1.2
+      background-color: 220 60 5
+      primary-color: 210 100 60
+      positive-color: 120 100 45
+      negative-color: 350 100 60
+      contrast-multiplier: 1.3
     # Dark - Nordic Red (https://colorhunt.co/palette/ff7d7dff6464f8ffdbb3ffae)
     nordic-red:
       background-color: 276 30 11
@@ -47,14 +47,20 @@ pages:
 
       - size: full
         widgets:
-          - type: reddit
-            subreddit: diablo4
+          - type: group
+            style: tabs
+            widgets:
+              - type: reddit
+                title: Diablo
+                subreddit: diablo4
 
-          - type: reddit
-            subreddit: technology
+              - type: reddit
+                title: Tech
+                subreddit: technology
 
-          - type: hacker-news
-            limit: 10
+              - type: hacker-news
+                title: HN
+                limit: 10
 
           - type: videos
             title: Diablo 4
