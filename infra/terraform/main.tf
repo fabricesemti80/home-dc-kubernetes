@@ -139,6 +139,26 @@ resource "cloudflare_zero_trust_access_application" "jellyseerr" {
   ]
 }
 
+resource "cloudflare_zero_trust_access_application" "linkwarden" {
+  count = 1
+
+  account_id = var.cloudflare_account_id
+  name       = "Linkwarden"
+  domain     = "linkwarden.krapulax.dev"
+  type       = "self_hosted"
+
+  http_only_cookie_attribute = true
+  session_duration           = "720h"
+  auto_redirect_to_identity  = false
+
+  policies = [
+    {
+      id         = cloudflare_zero_trust_access_policy.bypass[0].id
+      precedence = 1
+    }
+  ]
+}
+
 resource "cloudflare_zero_trust_access_application" "immich" {
   count = 1
 
