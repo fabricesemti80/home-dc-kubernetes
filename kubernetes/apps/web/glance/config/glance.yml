@@ -1,9 +1,11 @@
-# https://github.com/glanceapp/glance/blob/main/docs/configuration.md#server-stats
-# https://github.com/glanceapp/glance/blob/main/docs/themes.md#tucan
+# https://github.com/glanceapp/glance/blob/main/docs/configuration.md
+# https://github.com/glanceapp/glance/blob/main/docs/themes.md#catppuccin-mocha
 theme:
-  background-color: 50 1 6
-  primary-color: 24 97 58
-  negative-color: 209 88 54
+  background-color: 240 21 15
+  primary-color: 217 92 83
+  positive-color: 115 54 76
+  negative-color: 347 70 65
+  contrast-multiplier: 1.2
 
 pages:
   - name: Dashboard
@@ -44,7 +46,35 @@ pages:
                     url: https://prowlarr.krapulax.dev
                   - title: Jellyseerr
                     url: https://requests.krapulax.dev
-              - title: Infrastructure
+
+      - size: full
+        widgets:
+          - type: reddit
+            subreddit: diablo4
+
+          - type: reddit
+            subreddit: technology
+
+          - type: hacker-news
+            limit: 10
+
+          - type: videos
+            title: Diablo 4
+            style: vertical-list
+            channels:
+              - UCRl31PWkfF0a3j3hiDRaCGA  # Rhykker
+              - UCs20qCPrd1AXRviSTdVCoAg  # Raxxanterax
+              - UCSl8TBqqflby-ymdEQVfRNQ  # Rob2628
+              - UC78d2aaqdrt02RfmtRLmlAw  # wudijo
+              - REPLACE_WITH_MEKUNA_ID    # Mekuna
+            limit: 8
+
+      - size: small
+        widgets:
+          - type: bookmarks
+            title: Infrastructure
+            groups:
+              - title: Cluster
                 links:
                   - title: Argo CD
                     url: https://argo.${DOMAIN}
@@ -58,26 +88,3 @@ pages:
                 links:
                   - title: Linkwarden
                     url: https://linkwarden.krapulax.dev
-
-      - size: full
-        widgets:
-          - type: group
-            widgets:
-              - type: videos
-                title: Diablo 4
-                style: vertical-list
-                channels:
-                  - UCRl31PWkfF0a3j3hiDRaCGA
-                  - UCs20qCPrd1AXRviSTdVCoAg
-                  - REPLACE_WITH_ROB2628_ID
-                  - REPLACE_WITH_MEKUNA_ID
-                limit: 8
-
-          - type: group
-            widgets:
-              - type: reddit
-                subreddit: diablo4
-              - type: reddit
-                subreddit: technology
-              - type: hacker-news
-                limit: 10
