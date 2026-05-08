@@ -51,20 +51,21 @@ pages:
             style: tabs
             widgets:
               - type: reddit
-                title: Diablo
-                subreddit: diablo4
-
-              - type: reddit
                 title: Tech
                 subreddit: technology
+                limit: 10
 
               - type: hacker-news
                 title: HN
                 limit: 10
 
+              - type: reddit
+                title: Diablo
+                subreddit: diablo4  
+                limit: 10              
+
           - type: videos
             title: Diablo 4
-            style: vertical-list
             channels:
               - UCRl31PWkfF0a3j3hiDRaCGA  # Rhykker
               - UCs20qCPrd1AXRviSTdVCoAg  # Raxxanterax
