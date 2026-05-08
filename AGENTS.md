@@ -33,6 +33,53 @@ This repository is also the main deployment home for the Talos cluster and the h
 -   The default Docker deployment target is `fs@10.0.40.19:/opt/project-homelab/infra/docker`; override it only intentionally.
 -   Omni is intentionally not part of the Docker deployment; use Terraform/Talos-native flows for cluster provisioning.
 
+## Kubernetes App Conventions
+
+### Structure
+-   All apps should follow the established directory structure: `kubernetes/apps/<category>/<app>/`
+-   Each app should have: `values.yaml`, `kustomization.yaml`, and `config/` subdirectory
+-   Use the app-template chart pattern for new apps
+
+### Storage Standards
+
+#### Configuration Storage
+-   **Default**: Use `storageClass: cephfs` for all config/configMaps PVCs
+-   This applies to all namespaces unless explicitly justified otherwise
+-   Example pattern:
+    ```yaml
+    persistence:
+      config:
+        type: persistentVolumeClaim
+        accessMode: ReadWriteMany
+        storageClass: cephfs
+        size: 2Gi
+    ```
+
+#### Permanent Storage (Media/Data)
+-   **Default**: Use the established `media-library-pvc` (NFS share) for all permanent data
+-   The NFS share is at `10.0.40.2:/media` (managed in jellyfin app)
+-   **Never** create new PVs with `Delete` reclaim policy - use `Retain` only
+-   Use `existingClaim: media-library-pvc` for any app requiring media storage, regardless of namespace
+-   Example pattern:
+    ```yaml
+    persistence:
+      media:
+        enabled: true
+        existingClaim: media-library-pvc
+        globalMounts:
+          - path: /media
+      downloads:
+        enabled: true
+        existingClaim: media-library-pvc
+        globalMounts:
+          - path: /downloads
+            subPath: downloads/complete
+    ```
+
+**CONFIRMATION**: Currently, all media apps (jellyfin, radarr, sonarr, qbittorrent, sabnzbd, immich, prowlarr, jellyseerr) use:
+-   `storageClass: cephfs` for config
+-   `existingClaim: media-library-pvc` (NFS) for media/downloads
+
 ## Definition of done (for infra tasks)
 
 -   Architecture or design doc updated.
