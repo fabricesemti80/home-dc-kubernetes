@@ -15,7 +15,7 @@ spec:
       ref: repo
     - repoURL: ghcr.io/argoproj/argo-helm
       chart: argo-cd
-      targetRevision: 9.5.11
+      targetRevision: 9.5.12
       helm:
         releaseName: argo-cd
         valueFiles:
