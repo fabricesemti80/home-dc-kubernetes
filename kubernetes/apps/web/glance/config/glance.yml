@@ -16,13 +16,35 @@ pages:
           - type: weather
             location: Stevenage, United Kingdom
 
-          - type: search
-
           - type: calendar
+
+          - type: search
 
           - type: bookmarks
             groups:
-              - title: Cluster
+              - title: Media Servers
+                links:
+                  - title: Plex
+                    url: https://plex.krapulax.net
+                  - title: Jellyfin
+                    url: https://jelly.krapulax.dev
+              - title: Download Tools
+                links:
+                  - title: SABnzbd
+                    url: https://sabnzbd.krapulax.dev
+                  - title: qBittorrent
+                    url: https://qbittorrent.krapulax.dev
+              - title: "*arr Stack"
+                links:
+                  - title: Sonarr
+                    url: https://sonarr.krapulax.dev
+                  - title: Radarr
+                    url: https://radarr.krapulax.dev
+                  - title: Prowlarr
+                    url: https://prowlarr.krapulax.dev
+                  - title: Jellyseerr
+                    url: https://requests.krapulax.dev
+              - title: Infrastructure
                 links:
                   - title: Argo CD
                     url: https://argo.${DOMAIN}
@@ -32,24 +54,6 @@ pages:
                     url: https://echo.${DOMAIN}
                   - title: Nginx Test
                     url: https://nginx-test.${DOMAIN}
-              - title: Media
-                links:
-                  - title: Plex
-                    url: https://plex.krapulax.net
-                  - title: Jellyfin
-                    url: https://jelly.krapulax.dev
-                  - title: SABnzbd
-                    url: https://sabnzbd.krapulax.dev
-                  - title: qBittorrent
-                    url: https://qbittorrent.krapulax.dev
-                  - title: Sonarr
-                    url: https://sonarr.krapulax.dev
-                  - title: Radarr
-                    url: https://radarr.krapulax.dev
-                  - title: Prowlarr
-                    url: https://prowlarr.krapulax.dev
-                  - title: Jellyseerr
-                    url: https://requests.krapulax.dev
               - title: Productivity
                 links:
                   - title: Linkwarden
@@ -57,15 +61,17 @@ pages:
 
       - size: full
         widgets:
-          - type: videos
-            title: Diablo 4
-            style: vertical-list
-            channels:
-              - UCRl31PWkfF0a3j3hiDRaCGA  # Rhykker
-              - UCs20qCPrd1AXRviSTdVCoAg  # Raxxanterax
-              - REPLACE_WITH_ROB2628_ID    # Rob2628 — look up @Rob2628
-              - REPLACE_WITH_MEKUNA_ID     # Mekuna — look up @Mekuna
-            limit: 8
+          - type: group
+            widgets:
+              - type: videos
+                title: Diablo 4
+                style: vertical-list
+                channels:
+                  - UCRl31PWkfF0a3j3hiDRaCGA
+                  - UCs20qCPrd1AXRviSTdVCoAg
+                  - REPLACE_WITH_ROB2628_ID
+                  - REPLACE_WITH_MEKUNA_ID
+                limit: 8
 
           - type: group
             widgets:
