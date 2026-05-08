@@ -2,7 +2,7 @@
 # Color palette: https://colorhunt.co/palette/091413285a48408a71b0e4cc
 theme:
   background-color: 174 5 6
-  primary-color: 156 25 26
+  primary-color: 164 34 43
   positive-color: 165 42 40
   negative-color: 347 70 65
   contrast-multiplier: 1.2
