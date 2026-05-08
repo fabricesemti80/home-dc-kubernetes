@@ -6,6 +6,29 @@ theme:
   positive-color: 165 42 40
   negative-color: 347 70 65
   contrast-multiplier: 1.2
+  presets:
+    # Dark - Green + Royal Blue (https://colorhunt.co/palette/fdff009cff2e38e54d2192ff)
+    neon-green-blue:
+      background-color: 224 92 21
+      primary-color: 211 92 56
+      positive-color: 133 77 51
+      negative-color: 60 100 50
+      contrast-multiplier: 1.2
+    # Dark - Nordic Red (https://colorhunt.co/palette/ff7d7dff6464f8ffdbb3ffae)
+    nordic-red:
+      background-color: 276 30 11
+      primary-color: 0 100 76
+      positive-color: 109 75 75
+      negative-color: 0 100 70
+      contrast-multiplier: 1.2
+    # Light - Fresh Mint (https://colorhunt.co/palette/f0f7f41e6f5c28df99f93827)
+    fresh-light:
+      light: true
+      background-color: 160 29 96
+      primary-color: 168 53 28
+      positive-color: 160 74 53
+      negative-color: 4 90 50
+      contrast-multiplier: 1.1
 
 pages:
   - name: Dashboard
