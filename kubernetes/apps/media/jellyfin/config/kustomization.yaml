@@ -5,3 +5,4 @@ resources:
   - ./media-library-pv.yaml
   - ./media-library-pvc.yaml
   - ./http-route.yaml
+  - ./http-route-internal.yaml

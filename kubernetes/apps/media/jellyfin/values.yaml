@@ -9,8 +9,12 @@ controllers:
           tag: "10.11.8"
         env:
           TZ: Europe/London
-          PUID: "0"
-          PGID: "0"
+          PUID: "1000"
+          PGID: "100"
+          JELLYFIN_PreferredMetadataLanguage: eng
+          JELLYFIN_Codepage: ""
+          JELLYFIN_MaxStreamBitrate: "80000000"
+          JELLYFIN_TranscodeMaxAudioChannels: "2"
         probes:
           liveness: &probes
             enabled: true
@@ -21,15 +25,16 @@ controllers:
                 port: 8096
               initialDelaySeconds: 60
               periodSeconds: 30
-              timeoutSeconds: 5
+              timeoutSeconds: 10
               failureThreshold: 3
           readiness: *probes
         resources:
           requests:
-            cpu: 250m
-            memory: 512Mi
+            cpu: 1000m
+            memory: 2Gi
           limits:
-            memory: 6Gi
+            cpu: 2000m
+            memory: 8Gi
 
 service:
   app:
@@ -51,7 +56,7 @@ persistence:
     type: persistentVolumeClaim
     accessMode: ReadWriteMany
     storageClass: cephfs
-    size: 5Gi
+    size: 20Gi
     globalMounts:
       - path: /cache
   media:
