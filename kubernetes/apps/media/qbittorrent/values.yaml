@@ -1,4 +1,7 @@
 ---
+global:
+  createDefaultServiceAccount: false
+
 controllers:
   qbittorrent:
     strategy: RollingUpdate
@@ -34,6 +37,7 @@ controllers:
             memory: 2Gi
 
 defaultPodOptions:
+  automountServiceAccountToken: false
   hostname: qbittorrent
 
 service:
