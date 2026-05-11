@@ -1,0 +1,404 @@
+/* ============================================================
+   Homepage — custom.css
+   Drop into your homepage config dir as `custom.css`
+   Docs: https://gethomepage.dev/configs/custom-css-js/
+   ============================================================ */
+
+:root {
+  /* Palette — cool, deep, with a precise cyan/teal action */
+  --hp-ink:        #070b14;
+  --hp-ink-2:      #0c1320;
+  --hp-surface:    rgba(14, 20, 34, 0.62);
+  --hp-surface-hi: rgba(22, 32, 52, 0.78);
+  --hp-line:       rgba(148, 175, 220, 0.10);
+  --hp-line-hi:    rgba(148, 175, 220, 0.22);
+
+  --hp-fg:         #e8edf6;
+  --hp-fg-dim:     #aab4c6;
+  --hp-fg-mute:    #6c7892;
+
+  --hp-accent:     #58c8ff;          /* primary cyan */
+  --hp-accent-2:   #6ee7b7;          /* mint */
+  --hp-accent-3:   #f0a854;          /* amber */
+  --hp-accent-glow: rgba(88, 200, 255, 0.32);
+
+  --hp-ok:         #4ade80;
+  --hp-warn:       #fbbf24;
+  --hp-err:        #f87171;
+
+  --hp-radius:     14px;
+  --hp-radius-sm:  10px;
+
+  /* easing */
+  --hp-ease: cubic-bezier(.2,.8,.2,1);
+}
+
+/* ============================================================
+   Page surface — slight vignette + scanline texture over background
+   ============================================================ */
+body {
+  font-feature-settings: "ss01", "cv11", "cv02";
+  letter-spacing: -0.005em;
+}
+
+body::before {
+  content: "";
+  position: fixed; inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(1100px 700px at 12% -8%, rgba(88,200,255,0.10), transparent 60%),
+    radial-gradient(900px  600px at 92% 110%, rgba(110,231,183,0.06), transparent 55%),
+    radial-gradient(1400px 900px at 50% 50%, transparent 0%, rgba(4,7,14,0.55) 80%);
+}
+
+body::after {
+  content: "";
+  position: fixed; inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.35;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.012) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.012) 1px, transparent 1px);
+  background-size: 48px 48px, 48px 48px;
+  mask-image: radial-gradient(ellipse 80% 70% at 50% 35%, #000 30%, transparent 85%);
+}
+
+#page_container, main { position: relative; z-index: 1; }
+
+/* ============================================================
+   Top information widgets (resource pills, search)
+   ============================================================ */
+#information-widgets {
+  padding: 14px 18px;
+  margin: 4px 0 18px;
+  background: linear-gradient(180deg, rgba(12,19,32,0.72), rgba(12,19,32,0.46));
+  border: 1px solid var(--hp-line);
+  border-radius: var(--hp-radius);
+  backdrop-filter: blur(14px) saturate(1.1);
+  -webkit-backdrop-filter: blur(14px) saturate(1.1);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.04) inset,
+    0 20px 40px -24px rgba(0,0,0,0.6);
+}
+
+/* resource widget — compact, monospaced figures */
+#information-widgets .resource,
+#information-widgets [class*="resource"] {
+  position: relative;
+  padding: 4px 12px;
+}
+#information-widgets .resource + .resource::before,
+#information-widgets [class*="resource"] + [class*="resource"]::before {
+  content: "";
+  position: absolute; left: 0; top: 18%; bottom: 18%;
+  width: 1px;
+  background: linear-gradient(180deg, transparent, var(--hp-line-hi), transparent);
+}
+
+/* host/label under each widget */
+#information-widgets .resource .resource-name,
+#information-widgets [class*="resource"] .resource-name,
+#information-widgets .resource-name {
+  font-size: 10px !important;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--hp-fg-mute) !important;
+  font-weight: 500;
+}
+
+/* numbers monospaced */
+#information-widgets .resource-value,
+#information-widgets [class*="resource"] .resource-value,
+#information-widgets span:where(.font-bold, .font-medium) {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
+}
+
+/* small icon next to value */
+#information-widgets svg {
+  color: var(--hp-accent);
+  opacity: 0.85;
+}
+
+/* ============================================================
+   Search bar
+   ============================================================ */
+#search-bar, .search-bar, input[id*="search"], input[name*="search"] {
+  background: rgba(7,11,20,0.55) !important;
+  border: 1px solid var(--hp-line) !important;
+  border-radius: var(--hp-radius-sm) !important;
+  color: var(--hp-fg) !important;
+  font-size: 14px !important;
+  padding: 10px 14px 10px 40px !important;
+  transition: border-color .18s var(--hp-ease), box-shadow .18s var(--hp-ease), background .18s var(--hp-ease);
+  caret-color: var(--hp-accent);
+}
+#search-bar:hover, .search-bar:hover {
+  border-color: var(--hp-line-hi) !important;
+}
+#search-bar:focus, .search-bar:focus,
+input[id*="search"]:focus {
+  outline: none !important;
+  border-color: rgba(88,200,255,0.5) !important;
+  box-shadow:
+    0 0 0 3px var(--hp-accent-glow),
+    0 0 24px -4px var(--hp-accent-glow) !important;
+  background: rgba(10,16,28,0.78) !important;
+}
+#search-bar::placeholder { color: var(--hp-fg-mute); letter-spacing: 0.01em; }
+
+/* ============================================================
+   Group titles
+   ============================================================ */
+.services-group h2,
+h2.services-group-name,
+[class*="services-group"] > h2,
+.services > h2 {
+  position: relative;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.18em !important;
+  text-transform: uppercase !important;
+  color: var(--hp-fg-dim) !important;
+  margin: 18px 0 12px !important;
+  padding-left: 14px !important;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.services-group h2::before,
+h2.services-group-name::before,
+[class*="services-group"] > h2::before,
+.services > h2::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 50%;
+  width: 4px; height: 14px;
+  transform: translateY(-50%);
+  background: linear-gradient(180deg, var(--hp-accent), var(--hp-accent-2));
+  border-radius: 2px;
+  box-shadow: 0 0 12px var(--hp-accent-glow);
+}
+
+.services-group h2::after,
+h2.services-group-name::after,
+[class*="services-group"] > h2::after,
+.services > h2::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, var(--hp-line-hi), transparent 60%);
+  margin-left: 6px;
+}
+
+/* ============================================================
+   Service cards — the core element
+   ============================================================ */
+.service-card,
+[class*="service-card"],
+.services-group li > a,
+.services-group .service {
+  position: relative;
+  background: var(--hp-surface) !important;
+  border: 1px solid var(--hp-line) !important;
+  border-radius: var(--hp-radius) !important;
+  backdrop-filter: blur(10px) saturate(1.05);
+  -webkit-backdrop-filter: blur(10px) saturate(1.05);
+  transition:
+    transform .22s var(--hp-ease),
+    border-color .22s var(--hp-ease),
+    background .22s var(--hp-ease),
+    box-shadow .22s var(--hp-ease);
+  overflow: hidden;
+  isolation: isolate;
+}
+
+/* subtle gradient hairline on top edge */
+.service-card::before,
+[class*="service-card"]::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.10) 30%, rgba(255,255,255,0.10) 70%, transparent);
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* internal radial highlight on hover */
+.service-card::after,
+[class*="service-card"]::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  background: radial-gradient(600px circle at var(--mx, 50%) var(--my, 0%),
+                              rgba(88,200,255,0.10), transparent 40%);
+  opacity: 0;
+  transition: opacity .25s var(--hp-ease);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.service-card:hover,
+[class*="service-card"]:hover {
+  transform: translateY(-2px);
+  border-color: rgba(148,175,220,0.28) !important;
+  background: var(--hp-surface-hi) !important;
+  box-shadow:
+    0 12px 28px -16px rgba(0,0,0,0.7),
+    0 0 0 1px rgba(88,200,255,0.08) inset,
+    0 0 30px -10px var(--hp-accent-glow);
+}
+.service-card:hover::after,
+[class*="service-card"]:hover::after { opacity: 1; }
+
+/* card content padding */
+.service-card .service-container,
+.service-card > div {
+  position: relative;
+  z-index: 1;
+}
+
+/* icon block */
+.service-card .service-icon,
+.service-icon,
+.service-card img[alt*="icon" i],
+.service-card .parent-icon {
+  border-radius: 10px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01));
+  border: 1px solid var(--hp-line);
+  padding: 6px;
+  transition: border-color .22s var(--hp-ease), transform .22s var(--hp-ease);
+}
+.service-card:hover .service-icon,
+.service-card:hover .parent-icon {
+  border-color: var(--hp-line-hi);
+  transform: scale(1.03);
+}
+
+/* name + description */
+.service-card .service-name,
+.service-name {
+  color: var(--hp-fg) !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.005em;
+  font-size: 14px !important;
+}
+.service-card .service-description,
+.service-description {
+  color: var(--hp-fg-dim) !important;
+  font-size: 12.5px !important;
+  letter-spacing: 0.005em;
+  line-height: 1.35 !important;
+}
+
+/* ============================================================
+   Status pill — "RUNNING" badge
+   Works for docker/k8s status pills in homepage.
+   ============================================================ */
+.status-style,
+[class*="status-"],
+.docker-status, .kubernetes-status,
+.service-card .status {
+  position: relative;
+  display: inline-flex !important;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 9px 3px 18px !important;
+  border-radius: 999px !important;
+  font-size: 9.5px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.14em !important;
+  text-transform: uppercase !important;
+  background: rgba(74,222,128,0.10) !important;
+  color: #86efac !important;
+  border: 1px solid rgba(74,222,128,0.24) !important;
+  box-shadow: 0 0 18px -8px rgba(74,222,128,0.45);
+}
+.status-style::before,
+[class*="status-"]::before,
+.docker-status::before, .kubernetes-status::before,
+.service-card .status::before {
+  content: "";
+  position: absolute;
+  left: 8px; top: 50%;
+  width: 6px; height: 6px;
+  border-radius: 999px;
+  background: var(--hp-ok);
+  transform: translateY(-50%);
+  box-shadow: 0 0 0 0 rgba(74,222,128,0.55);
+  animation: hp-pulse 2.2s var(--hp-ease) infinite;
+}
+@keyframes hp-pulse {
+  0%   { box-shadow: 0 0 0 0 rgba(74,222,128,0.55); }
+  70%  { box-shadow: 0 0 0 7px rgba(74,222,128,0); }
+  100% { box-shadow: 0 0 0 0 rgba(74,222,128,0); }
+}
+
+/* down/error variants — homepage uses suffixes like -down / -error */
+.status-style[class*="down"],
+[class*="status-"][class*="down"],
+.status-style[class*="error"],
+[class*="status-"][class*="error"] {
+  background: rgba(248,113,113,0.10) !important;
+  color: #fca5a5 !important;
+  border-color: rgba(248,113,113,0.24) !important;
+  box-shadow: 0 0 18px -8px rgba(248,113,113,0.45);
+}
+.status-style[class*="down"]::before,
+.status-style[class*="error"]::before,
+[class*="status-"][class*="down"]::before,
+[class*="status-"][class*="error"]::before {
+  background: var(--hp-err);
+  animation: none;
+}
+
+/* paused / partial */
+.status-style[class*="partial"],
+.status-style[class*="paused"],
+[class*="status-"][class*="partial"],
+[class*="status-"][class*="paused"] {
+  background: rgba(251,191,36,0.10) !important;
+  color: #fcd34d !important;
+  border-color: rgba(251,191,36,0.24) !important;
+}
+
+/* ============================================================
+   Bookmarks (if/when added) — small chips
+   ============================================================ */
+.bookmark, [class*="bookmark"] {
+  border: 1px solid var(--hp-line) !important;
+  border-radius: 10px !important;
+  background: rgba(14,20,34,0.45) !important;
+  transition: all .18s var(--hp-ease);
+}
+.bookmark:hover, [class*="bookmark"]:hover {
+  border-color: var(--hp-line-hi) !important;
+  background: rgba(22,32,52,0.70) !important;
+}
+
+/* ============================================================
+   Mouse-tracked card glow (requires custom.js — optional)
+   ============================================================ */
+/* If you also drop the companion custom.js, cards will follow the
+   cursor with a soft accent glow. Pure-CSS hover still looks good
+   without it. */
+
+/* ============================================================
+   Footer / misc
+   ============================================================ */
+#footer {
+  color: var(--hp-fg-mute) !important;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
