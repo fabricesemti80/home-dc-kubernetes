@@ -1,4 +1,10 @@
 ---
+global:
+  createDefaultServiceAccount: false
+
+defaultPodOptions:
+  automountServiceAccountToken: false
+
 controllers:
   immich:
     replicas: 1

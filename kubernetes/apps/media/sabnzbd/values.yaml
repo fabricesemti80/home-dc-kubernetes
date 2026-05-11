@@ -1,4 +1,7 @@
 ---
+global:
+  createDefaultServiceAccount: false
+
 controllers:
   sabnzbd:
     strategy: RollingUpdate
@@ -86,6 +89,7 @@ controllers:
             memory: 2Gi
 
 defaultPodOptions:
+  automountServiceAccountToken: false
   hostname: sabnzbd
 
 service:

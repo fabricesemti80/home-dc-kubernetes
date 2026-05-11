@@ -31,6 +31,9 @@ Where:
 Create a `values.yaml` file with your application configuration. Use the [app-template](https://github.com/bjw-s-labs/helm-charts/tree/main/charts/app-template) chart as a base:
 
 ```yaml
+global:
+    createDefaultServiceAccount: false
+
 controllers:
     <app>:
         strategy: RollingUpdate
@@ -65,6 +68,7 @@ controllers:
                     limits:
                         memory: 128Mi
 defaultPodOptions:
+    automountServiceAccountToken: false
     securityContext:
         runAsNonRoot: true
         runAsUser: 65534
@@ -169,7 +173,7 @@ spec:
           ref: repo
         - repoURL: ghcr.io/bjw-s-labs/helm
           chart: app-template
-          targetRevision: 4.6.2
+          targetRevision: 5.0.0
           helm:
               releaseName: <app>
               valueFiles:
@@ -196,6 +200,8 @@ spec:
             - PruneLast=true
             - RespectIgnoreDifferences=true
 ```
+
+For app-template v5, keep `global.createDefaultServiceAccount: false` unless the chart should create a Helm-managed ServiceAccount. Set `defaultPodOptions.automountServiceAccountToken: true` only for apps that need Kubernetes API access, and document the matching RBAC resources.
 
 ### 5. Expose the Application (Optional)
 

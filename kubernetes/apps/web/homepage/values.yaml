@@ -1,4 +1,7 @@
 ---
+global:
+  createDefaultServiceAccount: false
+
 controllers:
   homepage:
     strategy: RollingUpdate
@@ -38,6 +41,7 @@ controllers:
             memory: 512Mi
 
 defaultPodOptions:
+  automountServiceAccountToken: true
   annotations:
     reloader.stakater.com/auto: "true"
   securityContext:

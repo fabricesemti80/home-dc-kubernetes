@@ -1,4 +1,7 @@
 ---
+global:
+  createDefaultServiceAccount: false
+
 controllers:
   recyclarr:
     strategy: RollingUpdate
@@ -25,6 +28,7 @@ controllers:
             memory: 512Mi
 
 defaultPodOptions:
+  automountServiceAccountToken: false
   annotations:
     reloader.stakater.com/auto: "true"
   securityContext:

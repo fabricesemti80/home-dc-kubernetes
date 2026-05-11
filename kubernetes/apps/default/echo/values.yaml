@@ -1,3 +1,6 @@
+global:
+  createDefaultServiceAccount: false
+
 controllers:
   echo:
     strategy: RollingUpdate
@@ -34,6 +37,7 @@ controllers:
           limits:
             memory: 256Mi
 defaultPodOptions:
+  automountServiceAccountToken: false
   securityContext:
     runAsNonRoot: true
     runAsUser: 65534
@@ -47,5 +51,6 @@ service:
 serviceMonitor:
   app:
     serviceName: echo
+    jobLabel: echo
     endpoints:
       - port: http
