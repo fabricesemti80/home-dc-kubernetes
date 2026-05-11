@@ -10,7 +10,13 @@
      in widget data via SWR.
    ============================================================ */
 (function () {
-  const SEL = '.service-card, [class*="service-card"]';
+  const SEL = [
+    '.service-card',
+    '.service-card > a',
+    '.service-card > div',
+    '.service-card .service-container',
+    'li.bookmark > a',
+  ].join(',');
 
   function bind(card) {
     if (card.__hpBound) return;

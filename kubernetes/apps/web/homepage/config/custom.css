@@ -389,6 +389,126 @@ h2.services-group-name::after,
    without it. */
 
 /* ============================================================
+   Homepage v1.13 compatibility
+
+   The visible card surface is applied to nested elements in v1.13,
+   so style both the service li and the clickable/card children.
+   ============================================================ */
+.service-card,
+.service-card > a,
+.service-card > div,
+.service-card .service-container,
+.service-card .service-title,
+li.bookmark > a {
+  position: relative;
+  background: var(--hp-surface) !important;
+  border: 1px solid var(--hp-line) !important;
+  border-radius: var(--hp-radius) !important;
+  backdrop-filter: blur(10px) saturate(1.05);
+  -webkit-backdrop-filter: blur(10px) saturate(1.05);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.04) inset,
+    0 18px 36px -26px rgba(0,0,0,0.70) !important;
+  overflow: hidden;
+  transition:
+    transform .22s var(--hp-ease),
+    border-color .22s var(--hp-ease),
+    background .22s var(--hp-ease),
+    box-shadow .22s var(--hp-ease) !important;
+}
+
+.service-card:hover,
+.service-card:hover > a,
+.service-card:hover > div,
+.service-card:hover .service-container,
+.service-card:hover .service-title,
+li.bookmark:hover > a {
+  transform: translateY(-2px);
+  border-color: rgba(148,175,220,0.28) !important;
+  background: var(--hp-surface-hi) !important;
+  box-shadow:
+    0 14px 30px -16px rgba(0,0,0,0.75),
+    0 0 0 1px rgba(88,200,255,0.10) inset,
+    0 0 30px -12px var(--hp-accent-glow) !important;
+}
+
+.service-card > a::before,
+.service-card > div::before,
+.service-card .service-container::before,
+li.bookmark > a::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.12) 30%, rgba(255,255,255,0.12) 70%, transparent);
+  pointer-events: none;
+  z-index: 2;
+}
+
+.service-card > a::after,
+.service-card > div::after,
+.service-card .service-container::after,
+li.bookmark > a::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  background: radial-gradient(600px circle at var(--mx, 50%) var(--my, 0%),
+                              rgba(88,200,255,0.12), transparent 42%);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .25s var(--hp-ease);
+  z-index: 0;
+}
+
+.service-card:hover > a::after,
+.service-card:hover > div::after,
+.service-card:hover .service-container::after,
+li.bookmark:hover > a::after {
+  opacity: 1;
+}
+
+.service-card .service-title,
+.service-card .service-stats,
+.service-card .service-tags,
+li.bookmark > a > div {
+  position: relative;
+  z-index: 1;
+}
+
+.service-card .service-group-name,
+.service-group-name {
+  position: relative;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.18em !important;
+  text-transform: uppercase !important;
+  color: var(--hp-fg-dim) !important;
+}
+
+.service-card .service-name,
+.service-card .service-title-text,
+.service-name,
+.service-title-text,
+.bookmark-name {
+  color: var(--hp-fg) !important;
+  font-weight: 600 !important;
+}
+
+.service-card .service-description,
+.service-description,
+.bookmark-description {
+  color: var(--hp-fg-dim) !important;
+}
+
+.service-card .service-icon,
+.service-icon,
+.bookmark-icon {
+  border-radius: 10px;
+  border: 1px solid var(--hp-line);
+  background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.01));
+}
+
+/* ============================================================
    Footer / misc
    ============================================================ */
 #footer {
