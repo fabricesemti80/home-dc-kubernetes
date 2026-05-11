@@ -15,6 +15,9 @@ controllers:
           JELLYFIN_Codepage: ""
           JELLYFIN_MaxStreamBitrate: "80000000"
           JELLYFIN_TranscodeMaxAudioChannels: "2"
+          # Software transcoding tuning
+          JELLYFIN_FFmpeg_CpuThreads: "4"
+          JELLYFIN_EncodingThreadCount: "4"
         probes:
           liveness: &probes
             enabled: true
@@ -30,11 +33,11 @@ controllers:
           readiness: *probes
         resources:
           requests:
-            cpu: 1000m
-            memory: 2Gi
+            cpu: 2000m
+            memory: 3Gi
           limits:
-            cpu: 3000m
-            memory: 6Gi
+            cpu: 4000m
+            memory: 8Gi
 
 service:
   app:
