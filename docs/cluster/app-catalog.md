@@ -33,6 +33,7 @@ This document provides an index of all applications deployed in the Kubernetes c
 | sonarr      | TV Manager       | lscr.io/linuxserver/sonarr       | 8989 | sonarr.krapulax.dev      | TV automation            |
 | sabnzbd     | Usenet Client    | lscr.io/linuxserver/sabnzbd      | 8080 | sabnzbd.krapulax.dev     | Usenet downloads         |
 | recyclarr   | Sync Tool        | ghcr.io/recyclarr/recyclarr      | -    | -                        | Aria2/Radarr sync (cron) |
+| tdarr       | Transcoder       | ghcr.io/haveagitgat/tdarr        | 8265 | tdarr.krapulax.dev       | Media transcode checks   |
 
 ### productivity
 

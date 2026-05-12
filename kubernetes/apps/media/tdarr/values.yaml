@@ -1,0 +1,86 @@
+---
+global:
+  createDefaultServiceAccount: false
+
+defaultPodOptions:
+  automountServiceAccountToken: false
+  hostname: tdarr
+
+controllers:
+  tdarr:
+    strategy: Recreate
+    containers:
+      app:
+        image:
+          repository: ghcr.io/haveagitgat/tdarr
+          tag: latest
+        env:
+          TZ: Europe/London
+          PUID: "0"
+          PGID: "0"
+          UMASK_SET: "002"
+          serverIP: 0.0.0.0
+          serverPort: "8266"
+          webUIPort: "8265"
+          internalNode: "true"
+          inContainer: "true"
+          ffmpegVersion: "7"
+          nodeName: tdarr-internal
+          auth: "false"
+          openBrowser: "false"
+          maxLogSizeMB: "10"
+          cronPluginUpdate: ""
+          transcodecpuWorkers: "1"
+          healthcheckcpuWorkers: "1"
+        probes:
+          liveness: &probes
+            enabled: true
+            custom: true
+            spec:
+              tcpSocket:
+                port: 8265
+              initialDelaySeconds: 60
+              periodSeconds: 20
+              timeoutSeconds: 5
+              failureThreshold: 6
+          readiness: *probes
+        resources:
+          requests:
+            cpu: 250m
+            memory: 1Gi
+          limits:
+            memory: 4Gi
+
+service:
+  app:
+    controller: tdarr
+    ports:
+      http:
+        port: 8265
+        targetPort: 8265
+      server:
+        port: 8266
+        targetPort: 8266
+
+persistence:
+  config:
+    type: persistentVolumeClaim
+    accessMode: ReadWriteMany
+    storageClass: cephfs
+    size: 5Gi
+    globalMounts:
+      - path: /app/server
+        subPath: server
+      - path: /app/configs
+        subPath: configs
+      - path: /app/logs
+        subPath: logs
+  media:
+    enabled: true
+    existingClaim: media-library-pvc
+    globalMounts:
+      - path: /media
+  transcode-cache:
+    type: emptyDir
+    globalMounts:
+      - path: /temp

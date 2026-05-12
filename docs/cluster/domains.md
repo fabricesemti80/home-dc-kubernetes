@@ -34,6 +34,7 @@ Centralized documentation for all external DNS hostnames in the cluster.
 | Radarr      | `radarr.krapulax.dev`      | `kubernetes/apps/media/radarr/config/http-route.yaml`      |
 | Prowlarr    | `prowlarr.krapulax.dev`    | `kubernetes/apps/media/prowlarr/config/http-route.yaml`    |
 | Jellyseerr  | `requests.krapulax.dev`    | `kubernetes/apps/media/jellyseerr/config/http-route.yaml`  |
+| Tdarr       | `tdarr.krapulax.dev`       | `kubernetes/apps/media/tdarr/config/http-route.yaml`       |
 | Immich      | `photos.krapulax.dev`      | `kubernetes/apps/media/immich/config/http-route.yaml`      |
 
 ### Monitoring

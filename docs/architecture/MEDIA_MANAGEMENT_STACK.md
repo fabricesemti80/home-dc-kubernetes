@@ -19,6 +19,7 @@ Initial rollout includes:
 -   `recyclarr`
 -   `radarr`
 -   `jellyseerr`
+-   `tdarr`
 
 Deferred until the first two apps are stable:
 
@@ -68,6 +69,10 @@ Planned pod paths:
     -   `/downloads` on NFS subpath `downloads/complete`
 -   `jellyseerr`
     -   `/app/config` on CephFS
+-   `tdarr`
+    -   `/app/server`, `/app/configs`, and `/app/logs` on CephFS
+    -   `/media` on NFS
+    -   `/temp` on pod-local `emptyDir` for transient transcode cache
 
 ## API-Key Automation Direction
 
@@ -94,6 +99,8 @@ This avoids coupling runtime app internals to guessed static secrets in Doppler.
 -   qBittorrent WebUI credentials should remain application-managed; if later automated, source them from Doppler
 -   qBittorrent peer efficiency depends on a manual router forward to the peer `LoadBalancer` IP and is not handled by Cloudflare
 -   Recyclarr API credentials should be sourced from Doppler rather than committed into Git
+-   Tdarr is deployed with UI auth disabled initially; enable application authentication in the UI before exposing it beyond trusted admin access
+-   Tdarr transcode cache is intentionally pod-local and disposable; do not store source media or retained outputs under `/temp`
 -   The NFS-backed media library remains shared state and should be treated as retained data
 
 ## Assumptions
@@ -116,10 +123,11 @@ already exist or can be created on the NFS server before workloads start.
 -   `recyclarr` can run against Sonarr without authentication failures
 -   `radarr` serves its UI and can see both `/media` and `/downloads`
 -   `jellyseerr` serves its UI and can reach Jellyfin, Sonarr, and Radarr over the configured URLs
+-   `tdarr` serves its UI, creates its internal node, can see `/media`, and can write temporary transcode data under `/temp`
 
 ## Rollback
 
--   Delete the `sabnzbd`, `qbittorrent`, `sonarr`, `prowlarr`, `recyclarr`, `radarr`, and `jellyseerr` Argo applications
+-   Delete the `sabnzbd`, `qbittorrent`, `sonarr`, `prowlarr`, `recyclarr`, `radarr`, `jellyseerr`, and `tdarr` Argo applications
 -   Remove their HTTPRoutes
 -   Delete their CephFS PVCs if app config should be discarded
 -   Retain NFS media content and download directories
