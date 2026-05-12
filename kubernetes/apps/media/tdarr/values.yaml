@@ -216,6 +216,7 @@ persistence:
   transcode-cache:
     enabled: true
     existingClaim: media-library-pvc
+    size: 50Gi  # Limit transcode cache to prevent unbounded growth
     advancedMounts:
       tdarr:
         app:
