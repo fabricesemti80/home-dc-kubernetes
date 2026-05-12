@@ -82,6 +82,8 @@ persistence:
     globalMounts:
       - path: /media
   transcode-cache:
-    type: emptyDir
+    enabled: true
+    existingClaim: media-library-pvc
     globalMounts:
       - path: /temp
+        subPath: tdarr-cache
