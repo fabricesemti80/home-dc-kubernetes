@@ -15,7 +15,8 @@ locals {
     "uptime"    = "uptime.krapulax.dev"
     "whoami"    = "whoami.krapulax.dev"
     "portainer" = "portainer.krapulax.dev"
-    "tdarr"     = "tdarr.krapulax.dev"
+    # tdarr is managed separately; already exists in Cloudflare
+    # "tdarr"     = "tdarr.krapulax.dev"
   }
 
   # Zero Trust Applications configuration
