@@ -4,11 +4,14 @@ global:
 
 defaultPodOptions:
   automountServiceAccountToken: false
-  hostname: tdarr
 
 controllers:
   tdarr:
     strategy: Recreate
+    pod:
+      hostname: tdarr
+      nodeSelector:
+        kubernetes.io/hostname: k8s-ctrl-01
     containers:
       app:
         image:
@@ -22,16 +25,13 @@ controllers:
           serverIP: 0.0.0.0
           serverPort: "8266"
           webUIPort: "8265"
-          internalNode: "true"
+          internalNode: "false"
           inContainer: "true"
           ffmpegVersion: "7"
-          nodeName: tdarr-internal
           auth: "false"
           openBrowser: "false"
           maxLogSizeMB: "10"
           cronPluginUpdate: ""
-          transcodecpuWorkers: "1"
-          healthcheckcpuWorkers: "1"
         probes:
           liveness: &probes
             enabled: true
@@ -49,7 +49,108 @@ controllers:
             cpu: 250m
             memory: 1Gi
           limits:
-            cpu: "2"
+            cpu: 500m
+            memory: 4Gi
+
+  worker-k8s-ctrl-01:
+    strategy: Recreate
+    pod:
+      nodeSelector:
+        kubernetes.io/hostname: k8s-ctrl-01
+    containers:
+      app: &worker
+        image:
+          repository: ghcr.io/haveagitgat/tdarr_node
+          tag: latest
+        env:
+          TZ: Europe/London
+          PUID: "0"
+          PGID: "0"
+          UMASK_SET: "002"
+          nodeName: tdarr-k8s-ctrl-01
+          serverURL: http://tdarr:8266
+          inContainer: "true"
+          ffmpegVersion: "7"
+          nodeType: mapped
+          priority: "-1"
+          cronPluginUpdate: ""
+          maxLogSizeMB: "10"
+          pollInterval: "2000"
+          startPaused: "false"
+          transcodecpuWorkers: "3"
+          healthcheckcpuWorkers: "1"
+        resources:
+          requests:
+            cpu: "1"
+            memory: 1Gi
+          limits:
+            cpu: 3500m
+            memory: 4Gi
+
+  worker-k8s-ctrl-02:
+    strategy: Recreate
+    pod:
+      nodeSelector:
+        kubernetes.io/hostname: k8s-ctrl-02
+    containers:
+      app:
+        <<: *worker
+        env:
+          TZ: Europe/London
+          PUID: "0"
+          PGID: "0"
+          UMASK_SET: "002"
+          nodeName: tdarr-k8s-ctrl-02
+          serverURL: http://tdarr:8266
+          inContainer: "true"
+          ffmpegVersion: "7"
+          nodeType: mapped
+          priority: "-1"
+          cronPluginUpdate: ""
+          maxLogSizeMB: "10"
+          pollInterval: "2000"
+          startPaused: "false"
+          transcodecpuWorkers: "4"
+          healthcheckcpuWorkers: "1"
+        resources:
+          requests:
+            cpu: "1"
+            memory: 1Gi
+          limits:
+            cpu: "4"
+            memory: 4Gi
+
+  worker-k8s-ctrl-03:
+    strategy: Recreate
+    pod:
+      nodeSelector:
+        kubernetes.io/hostname: k8s-ctrl-03
+    containers:
+      app:
+        <<: *worker
+        env:
+          TZ: Europe/London
+          PUID: "0"
+          PGID: "0"
+          UMASK_SET: "002"
+          nodeName: tdarr-k8s-ctrl-03
+          serverURL: http://tdarr:8266
+          inContainer: "true"
+          ffmpegVersion: "7"
+          nodeType: mapped
+          priority: "-1"
+          cronPluginUpdate: ""
+          maxLogSizeMB: "10"
+          pollInterval: "2000"
+          startPaused: "false"
+          transcodecpuWorkers: "4"
+          healthcheckcpuWorkers: "1"
+        resources:
+          requests:
+            cpu: "1"
+            memory: 1Gi
+          limits:
+            cpu: "4"
             memory: 4Gi
 
 service:
@@ -69,21 +170,66 @@ persistence:
     accessMode: ReadWriteMany
     storageClass: cephfs
     size: 5Gi
-    globalMounts:
-      - path: /app/server
-        subPath: server
-      - path: /app/configs
-        subPath: configs
-      - path: /app/logs
-        subPath: logs
+    advancedMounts:
+      tdarr:
+        app:
+          - path: /app/server
+            subPath: server
+          - path: /app/configs
+            subPath: configs
+          - path: /app/logs
+            subPath: logs
+      worker-k8s-ctrl-01:
+        app:
+          - path: /app/configs
+            subPath: configs/worker-k8s-ctrl-01
+          - path: /app/logs
+            subPath: logs/worker-k8s-ctrl-01
+      worker-k8s-ctrl-02:
+        app:
+          - path: /app/configs
+            subPath: configs/worker-k8s-ctrl-02
+          - path: /app/logs
+            subPath: logs/worker-k8s-ctrl-02
+      worker-k8s-ctrl-03:
+        app:
+          - path: /app/configs
+            subPath: configs/worker-k8s-ctrl-03
+          - path: /app/logs
+            subPath: logs/worker-k8s-ctrl-03
   media:
     enabled: true
     existingClaim: media-library-pvc
-    globalMounts:
-      - path: /media
+    advancedMounts:
+      tdarr:
+        app:
+          - path: /media
+      worker-k8s-ctrl-01:
+        app:
+          - path: /media
+      worker-k8s-ctrl-02:
+        app:
+          - path: /media
+      worker-k8s-ctrl-03:
+        app:
+          - path: /media
   transcode-cache:
     enabled: true
     existingClaim: media-library-pvc
-    globalMounts:
-      - path: /temp
-        subPath: tdarr-cache
+    advancedMounts:
+      tdarr:
+        app:
+          - path: /temp
+            subPath: tdarr-cache
+      worker-k8s-ctrl-01:
+        app:
+          - path: /temp
+            subPath: tdarr-cache
+      worker-k8s-ctrl-02:
+        app:
+          - path: /temp
+            subPath: tdarr-cache
+      worker-k8s-ctrl-03:
+        app:
+          - path: /temp
+            subPath: tdarr-cache

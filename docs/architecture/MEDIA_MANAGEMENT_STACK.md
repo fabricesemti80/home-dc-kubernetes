@@ -72,7 +72,9 @@ Planned pod paths:
 -   `tdarr`
     -   `/app/server`, `/app/configs`, and `/app/logs` on CephFS
     -   `/media` on NFS
-    -   `/temp` on pod-local `emptyDir` for transient transcode cache
+    -   `/temp` on NFS subpath `tdarr-cache` for shared transient transcode cache
+    -   server/UI runs as a single pod with its internal node disabled
+    -   three `tdarr_node` worker pods are pinned one per Kubernetes node, with a total CPU limit of 12 cores across the 24-core cluster
 
 ## API-Key Automation Direction
 
@@ -100,7 +102,8 @@ This avoids coupling runtime app internals to guessed static secrets in Doppler.
 -   qBittorrent peer efficiency depends on a manual router forward to the peer `LoadBalancer` IP and is not handled by Cloudflare
 -   Recyclarr API credentials should be sourced from Doppler rather than committed into Git
 -   Tdarr is deployed with UI auth disabled initially; enable application authentication in the UI before exposing it beyond trusted admin access
--   Tdarr transcode cache is intentionally pod-local and disposable; do not store source media or retained outputs under `/temp`
+-   Tdarr transcode cache is intentionally disposable and isolated under `/media/tdarr-cache`; do not store source media or retained outputs under `/temp`
+-   Tdarr workers are Kubernetes-only; external Docker workers are not part of this rollout
 -   The NFS-backed media library remains shared state and should be treated as retained data
 
 ## Assumptions
