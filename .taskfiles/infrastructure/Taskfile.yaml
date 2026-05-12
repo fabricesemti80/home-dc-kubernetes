@@ -58,10 +58,10 @@ tasks:
       - which kubectl talosctl
 
   tf-init:
-    desc: Initialize both OpenTofu stacks in execution order
+    desc: Initialize both OpenTofu stacks in execution order (upgrades provider versions)
     cmds:
-      - doppler run --project project-homelab --config dev_homelab --name-transformer tf-var -- tofu -chdir={{.ROOT_DIR}}/terraform init
-      - doppler run --project project-homelab --config dev_homelab --name-transformer tf-var -- tofu -chdir={{.ROOT_DIR}}/infra/terraform init
+      - doppler run --project project-homelab --config dev_homelab --name-transformer tf-var -- tofu -chdir={{.ROOT_DIR}}/terraform init -upgrade
+      - doppler run --project project-homelab --config dev_homelab --name-transformer tf-var -- tofu -chdir={{.ROOT_DIR}}/infra/terraform init -upgrade
     preconditions:
       - which doppler tofu
 
