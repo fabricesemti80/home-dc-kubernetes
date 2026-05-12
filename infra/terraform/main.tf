@@ -7,19 +7,82 @@ resource "cloudflare_zero_trust_tunnel_cloudflared" "trinity" {
   tunnel_secret = null # Managed locally via config.yml
 }
 
-# DNS Records
+# DNS Records & Zero Trust Applications
 locals {
-  apps = {
+  dns_apps = {
     "arcane"    = "arcane.krapulax.dev"
     "beszel"    = "beszel.krapulax.dev"
     "uptime"    = "uptime.krapulax.dev"
     "whoami"    = "whoami.krapulax.dev"
     "portainer" = "portainer.krapulax.dev"
+    "tdarr"     = "tdarr.krapulax.dev"
+  }
+
+  # Zero Trust Applications configuration
+  # policy_type: "allow" or "bypass"
+  # session_hours: session duration multiplier
+  zero_trust_apps = {
+    "arcane" = {
+      name          = "Arcane"
+      domain        = local.dns_apps["arcane"]
+      policy_type   = "allow"
+      session_hours = 24
+      auto_redirect = false
+    }
+    "uptime" = {
+      name          = "Uptime Kuma"
+      domain        = local.dns_apps["uptime"]
+      policy_type   = "allow"
+      session_hours = 24
+      auto_redirect = false
+    }
+    "portainer" = {
+      name          = "Portainer"
+      domain        = local.dns_apps["portainer"]
+      policy_type   = "allow"
+      session_hours = 24
+      auto_redirect = false
+    }
+    "beszel" = {
+      name          = "Beszel"
+      domain        = local.dns_apps["beszel"]
+      policy_type   = "bypass"
+      session_hours = 24
+      auto_redirect = false
+    }
+    "jellyfin" = {
+      name          = "Jellyfin"
+      domain        = "jelly.krapulax.dev"
+      policy_type   = "bypass"
+      session_hours = 720
+      auto_redirect = false
+    }
+    "jellyseerr" = {
+      name          = "Jellyseerr"
+      domain        = "requests.krapulax.dev"
+      policy_type   = "bypass"
+      session_hours = 720
+      auto_redirect = false
+    }
+    "linkwarden" = {
+      name          = "Linkwarden"
+      domain        = "linkwarden.krapulax.dev"
+      policy_type   = "bypass"
+      session_hours = 720
+      auto_redirect = false
+    }
+    "immich" = {
+      name          = "Immich"
+      domain        = "photos.krapulax.dev"
+      policy_type   = "bypass"
+      session_hours = 720
+      auto_redirect = false
+    }
   }
 }
 
 resource "cloudflare_dns_record" "app" {
-  for_each = local.apps
+  for_each = local.dns_apps
 
   zone_id = var.cloudflare_zone_id
   name    = each.value
@@ -60,120 +123,22 @@ resource "cloudflare_zero_trust_access_policy" "bypass" {
   ]
 }
 
-# Access Applications (Referencing policies in v5)
+# Access Applications (using locals with foreach)
 resource "cloudflare_zero_trust_access_application" "app" {
-  for_each = toset(["arcane", "uptime", "portainer"])
+  for_each = local.zero_trust_apps
 
   account_id = var.cloudflare_account_id
-  name       = each.key == "arcane" ? "Arcane" : (each.key == "portainer" ? "Portainer" : "Uptime Kuma")
-  domain     = local.apps[each.key]
+  name       = each.value.name
+  domain     = each.value.domain
   type       = "self_hosted"
 
   http_only_cookie_attribute = true
-  session_duration           = "24h"
+  session_duration           = "${each.value.session_hours}h"
+  auto_redirect_to_identity  = each.value.auto_redirect
 
   policies = [
     {
-      id         = cloudflare_zero_trust_access_policy.allow_emails[0].id
-      precedence = 1
-    }
-  ]
-}
-
-resource "cloudflare_zero_trust_access_application" "bypass_app" {
-  for_each = toset(["beszel"])
-
-  account_id = var.cloudflare_account_id
-  name       = "Beszel Bypass"
-  domain     = local.apps[each.key]
-  type       = "self_hosted"
-
-  http_only_cookie_attribute = true
-  session_duration           = "24h"
-
-  policies = [
-    {
-      id         = cloudflare_zero_trust_access_policy.bypass[0].id
-      precedence = 1
-    }
-  ]
-}
-
-resource "cloudflare_zero_trust_access_application" "jellyfin" {
-  count = 1
-
-  account_id = var.cloudflare_account_id
-  name       = "Jellyfin"
-  domain     = "jelly.krapulax.dev"
-  type       = "self_hosted"
-
-  http_only_cookie_attribute = true
-  session_duration           = "720h"
-  auto_redirect_to_identity  = false
-
-  policies = [
-    {
-      id         = cloudflare_zero_trust_access_policy.bypass[0].id
-      precedence = 1
-    }
-  ]
-}
-
-resource "cloudflare_zero_trust_access_application" "jellyseerr" {
-  count = 1
-
-  account_id = var.cloudflare_account_id
-  name       = "Jellyseerr"
-  domain     = "requests.krapulax.dev"
-  type       = "self_hosted"
-
-  http_only_cookie_attribute = true
-  session_duration           = "720h"
-  auto_redirect_to_identity  = false
-
-  policies = [
-    {
-      id         = cloudflare_zero_trust_access_policy.bypass[0].id
-      precedence = 1
-    }
-  ]
-}
-
-resource "cloudflare_zero_trust_access_application" "linkwarden" {
-  count = 1
-
-  account_id = var.cloudflare_account_id
-  name       = "Linkwarden"
-  domain     = "linkwarden.krapulax.dev"
-  type       = "self_hosted"
-
-  http_only_cookie_attribute = true
-  session_duration           = "720h"
-  auto_redirect_to_identity  = false
-
-  policies = [
-    {
-      id         = cloudflare_zero_trust_access_policy.bypass[0].id
-      precedence = 1
-    }
-  ]
-}
-
-resource "cloudflare_zero_trust_access_application" "immich" {
-  count = 1
-
-  account_id = var.cloudflare_account_id
-  name       = "Immich"
-  domain     = "photos.krapulax.dev"
-  type       = "self_hosted"
-
-  http_only_cookie_attribute = true
-  session_duration           = "720h"
-  auto_redirect_to_identity  = false
-
-  policies = [
-    {
-      id         = cloudflare_zero_trust_access_policy.bypass[0].id
+      id         = each.value.policy_type == "allow" ? cloudflare_zero_trust_access_policy.allow_emails[0].id : cloudflare_zero_trust_access_policy.bypass[0].id
       precedence = 1
     }
   ]
