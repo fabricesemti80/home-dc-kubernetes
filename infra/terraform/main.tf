@@ -9,13 +9,15 @@ resource "cloudflare_zero_trust_tunnel_cloudflared" "trinity" {
 
 # DNS Records & Zero Trust Applications
 locals {
+  base_domain = "krapulax.dev"
+
   dns_apps = {
-    "arcane"    = "arcane.krapulax.dev"
-    "beszel"    = "beszel.krapulax.dev"
-    "uptime"    = "uptime.krapulax.dev"
-    "whoami"    = "whoami.krapulax.dev"
-    "portainer" = "portainer.krapulax.dev"
-    "tdarr"     = "tdarr.krapulax.dev"
+    "arcane"    = "arcane"
+    "beszel"    = "beszel"
+    "uptime"    = "uptime"
+    "whoami"    = "whoami"
+    "portainer" = "portainer"
+    "tdarr"     = "tdarr"
   }
 
   # Zero Trust Applications configuration
@@ -24,56 +26,56 @@ locals {
   zero_trust_apps = {
     "arcane" = {
       name          = "Arcane"
-      domain        = local.dns_apps["arcane"]
+      subdomain     = "arcane"
       policy_type   = "allow"
       session_hours = 24
       auto_redirect = false
     }
     "uptime" = {
       name          = "Uptime Kuma"
-      domain        = local.dns_apps["uptime"]
+      subdomain     = "uptime"
       policy_type   = "allow"
       session_hours = 24
       auto_redirect = false
     }
     "portainer" = {
       name          = "Portainer"
-      domain        = local.dns_apps["portainer"]
+      subdomain     = "portainer"
       policy_type   = "allow"
       session_hours = 24
       auto_redirect = false
     }
     "beszel" = {
       name          = "Beszel"
-      domain        = local.dns_apps["beszel"]
+      subdomain     = "beszel"
       policy_type   = "bypass"
       session_hours = 24
       auto_redirect = false
     }
     "jellyfin" = {
       name          = "Jellyfin"
-      domain        = "jelly.krapulax.dev"
+      subdomain     = "jelly"
       policy_type   = "bypass"
       session_hours = 720
       auto_redirect = false
     }
     "jellyseerr" = {
       name          = "Jellyseerr"
-      domain        = "requests.krapulax.dev"
+      subdomain     = "requests"
       policy_type   = "bypass"
       session_hours = 720
       auto_redirect = false
     }
     "linkwarden" = {
       name          = "Linkwarden"
-      domain        = "linkwarden.krapulax.dev"
+      subdomain     = "linkwarden"
       policy_type   = "bypass"
       session_hours = 720
       auto_redirect = false
     }
     "immich" = {
       name          = "Immich"
-      domain        = "photos.krapulax.dev"
+      subdomain     = "photos"
       policy_type   = "bypass"
       session_hours = 720
       auto_redirect = false
@@ -85,7 +87,7 @@ resource "cloudflare_dns_record" "app" {
   for_each = local.dns_apps
 
   zone_id = var.cloudflare_zone_id
-  name    = each.value
+  name    = "${each.value}.${local.base_domain}"
   content = "${cloudflare_zero_trust_tunnel_cloudflared.trinity[0].id}.cfargotunnel.com"
   type    = "CNAME"
   proxied = true
@@ -129,7 +131,7 @@ resource "cloudflare_zero_trust_access_application" "app" {
 
   account_id = var.cloudflare_account_id
   name       = each.value.name
-  domain     = each.value.domain
+  domain     = "${each.value.subdomain}.${local.base_domain}"
   type       = "self_hosted"
 
   http_only_cookie_attribute = true
