@@ -1,0 +1,72 @@
+---
+global:
+  createDefaultServiceAccount: false
+
+defaultPodOptions:
+  automountServiceAccountToken: false
+
+controllers:
+  n8n:
+    replicas: 1
+    strategy: RollingUpdate
+    containers:
+      app:
+        image:
+          repository: docker.io/n8nio/n8n
+          tag: "1.89.1"
+        env:
+          TZ: Europe/London
+          N8N_HOST: "n8n.krapulax.dev"
+          N8N_PROTOCOL: "https"
+          N8N_PORT: "5678"
+          WEBHOOK_URL: "https://n8n.krapulax.dev"
+          GENERIC_TIMEZONE: "Europe/London"
+          EXECUTIONS_DATA_SAVE_ON_ERROR: "all"
+          EXECUTIONS_DATA_SAVE_ON_SUCCESS: "all"
+          EXECUTIONS_DATA_SAVE_ON_PROGRESS: "true"
+          EXECUTIONS_DATA_SAVE_MANUAL_EXECUTIONS: "true"
+          N8N_METRICS: "true"
+        # n8n requires the following secrets in Doppler (project: project-homelab, config: dev_homelab):
+# N8N_BASIC_AUTH_ACTIVE, N8N_BASIC_AUTH_USER, N8N_BASIC_AUTH_PASSWORD, N8N_ENCRYPTION_KEY
+envFrom:
+  - secretRef:
+      name: n8n-secrets
+        probes:
+          liveness: &probes
+            enabled: true
+            custom: true
+            spec:
+              httpGet:
+                path: /healthz
+                port: 5678
+              initialDelaySeconds: 60
+              periodSeconds: 30
+              timeoutSeconds: 10
+              failureThreshold: 3
+          readiness: *probes
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities: { drop: ["ALL"] }
+        resources:
+          requests:
+            cpu: 250m
+            memory: 512Mi
+          limits:
+            memory: 2Gi
+
+service:
+  app:
+    controller: n8n
+    ports:
+      http:
+        port: 5678
+        targetPort: 5678
+
+persistence:
+  config:
+    type: persistentVolumeClaim
+    accessMode: ReadWriteMany
+    storageClass: cephfs
+    size: 5Gi
+    globalMounts:
+      - path: /home/node/.n8n
