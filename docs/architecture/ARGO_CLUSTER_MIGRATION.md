@@ -8,7 +8,7 @@ Relocate the existing Talos/Argo cluster workflow from `home-argo-cluster-2025` 
 
 -   Tracked cluster workspace files were merged into the `project-homelab` repo root.
 -   Local-only runtime files were copied into the new workspace and remain gitignored.
--   The current OpenTofu state was copied into `terraform/terraform.tfstate`.
+-   The current OpenTofu state was copied into `infra/terraform_proxmox/terraform.tfstate`.
 -   Argo bootstrap manifests now point to `https://github.com/fabricesemti80/project-homelab.git`.
 -   Argo application paths now target the root-level `kubernetes/...` paths in this repo.
 -   The encrypted Argo repository secret was re-encrypted with the new repo URL.
@@ -32,7 +32,7 @@ The imported Terraform module originally forced every Talos VM to `started = tru
 ## Recommended Cutover Sequence
 
 1. Push `project-homelab` with the imported cluster workspace to GitHub.
-2. In `terraform/nodes.auto.tfvars`, keep worker nodes `started = false` and control-plane nodes `true` unless you are also removing the VM definitions in the same change.
+2. In `infra/terraform_proxmox/nodes.auto.tfvars`, keep worker nodes `started = false` and control-plane nodes `true` unless you are also removing the VM definitions in the same change.
 3. Run `task tf:init`.
 4. Run `task tf:plan` and confirm the plan is limited to the repo/path-related changes you expect.
 5. Power on only the control-plane VMs if they are currently off.

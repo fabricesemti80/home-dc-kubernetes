@@ -34,6 +34,7 @@ variable "nodes" {
     address      = string
     controller   = bool
     started      = optional(bool, true)
+    on_boot      = optional(bool)
     schematic_id = string
     proxmox_node = string
     vm_id        = number

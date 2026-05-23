@@ -1,6 +1,11 @@
 ---
 version: '3'
 
+vars:
+  TF_PROXMOX_DIR: '{{.ROOT_DIR}}/infra/terraform_proxmox'
+  TF_CLOUDFLARE_DIR: '{{.ROOT_DIR}}/infra/terraform_cloudflare'
+  TF_LOCALDNS_DIR: '{{.ROOT_DIR}}/infra/terraform_localdns'
+
 tasks:
 
   argo-sync-bootstrap:
@@ -58,52 +63,135 @@ tasks:
       - which kubectl talosctl
 
   tf-init:
-    desc: Initialize both OpenTofu stacks in execution order (upgrades provider versions)
+    desc: Initialize all OpenTofu stacks in execution order
     cmds:
-      - doppler run --project project-homelab --config dev_homelab --name-transformer tf-var -- tofu -chdir={{.ROOT_DIR}}/terraform init -upgrade
-      - doppler run --project project-homelab --config dev_homelab --name-transformer tf-var -- tofu -chdir={{.ROOT_DIR}}/infra/terraform init -upgrade
-    preconditions:
-      - which doppler tofu
+      - task: tf-proxmox-init
+      - task: tf-cloudflare-init
+      - task: tf-localdns-init
 
   tf-plan:
-    desc: Plan node infrastructure first, then shared infra
+    desc: Plan all OpenTofu stacks in execution order
     cmds:
-      - doppler run --project project-homelab --config dev_homelab --name-transformer tf-var -- tofu -chdir={{.ROOT_DIR}}/terraform plan -out=tfplan
-      - doppler run --project project-homelab --config dev_homelab --name-transformer tf-var -- tofu -chdir={{.ROOT_DIR}}/infra/terraform plan -out=tfplan
-    preconditions:
-      - which doppler tofu
-      - test -d {{.ROOT_DIR}}/terraform/.terraform
-      - test -d {{.ROOT_DIR}}/infra/terraform/.terraform
+      - task: tf-proxmox-plan
+      - task: tf-cloudflare-plan
+      - task: tf-localdns-plan
 
   tf-apply:
-    desc: Apply node infrastructure first, then shared infra
+    desc: Apply all OpenTofu stacks in execution order
     cmds:
-      - |
-        cd {{.ROOT_DIR}}/terraform
-        echo "Planning node infrastructure..."
-        doppler run --project project-homelab --config dev_homelab --name-transformer tf-var -- tofu plan -out=tfplan
-        echo "Applying node infrastructure..."
-        doppler run --project project-homelab --config dev_homelab --name-transformer tf-var -- tofu apply tfplan
-      - |
-        cd {{.ROOT_DIR}}/infra/terraform
-        echo "Planning shared infrastructure..."
-        doppler run --project project-homelab --config dev_homelab --name-transformer tf-var -- tofu plan -out=tfplan
-        echo "Applying shared infrastructure..."
-        doppler run --project project-homelab --config dev_homelab --name-transformer tf-var -- tofu apply tfplan
-    preconditions:
-      - which doppler tofu
-      - test -d {{.ROOT_DIR}}/terraform/.terraform
-      - test -d {{.ROOT_DIR}}/infra/terraform/.terraform
+      - task: tf-proxmox-apply
+      - task: tf-cloudflare-apply
+      - task: tf-localdns-apply
 
   tf-destroy:
-    desc: Destroy shared infra first, then node infrastructure
+    desc: Destroy all OpenTofu stacks in reverse dependency order
     cmds:
-      - doppler run --project project-homelab --config dev_homelab --name-transformer tf-var -- tofu -chdir={{.ROOT_DIR}}/infra/terraform destroy -auto-approve
-      - doppler run --project project-homelab --config dev_homelab --name-transformer tf-var -- tofu -chdir={{.ROOT_DIR}}/terraform destroy -auto-approve
+      - task: tf-localdns-destroy
+      - task: tf-cloudflare-destroy
+      - task: tf-proxmox-destroy
+
+  tf-proxmox-init:
+    desc: Initialize the Proxmox/Talos OpenTofu stack
+    cmd: doppler run --project project-homelab --config dev_homelab --name-transformer tf-var -- tofu -chdir={{.TF_PROXMOX_DIR}} init -upgrade
     preconditions:
       - which doppler tofu
-      - test -d {{.ROOT_DIR}}/terraform/.terraform
-      - test -d {{.ROOT_DIR}}/infra/terraform/.terraform
+
+  tf-proxmox-plan:
+    desc: Plan the Proxmox/Talos OpenTofu stack
+    cmd: doppler run --project project-homelab --config dev_homelab --name-transformer tf-var -- tofu -chdir={{.TF_PROXMOX_DIR}} plan -out=tfplan
+    preconditions:
+      - which doppler tofu
+      - test -d {{.TF_PROXMOX_DIR}}/.terraform
+
+  tf-proxmox-apply:
+    desc: Apply the Proxmox/Talos OpenTofu stack
+    cmds:
+      - doppler run --project project-homelab --config dev_homelab --name-transformer tf-var -- tofu -chdir={{.TF_PROXMOX_DIR}} plan -out=tfplan
+      - doppler run --project project-homelab --config dev_homelab --name-transformer tf-var -- tofu -chdir={{.TF_PROXMOX_DIR}} apply tfplan
+    preconditions:
+      - which doppler tofu
+      - test -d {{.TF_PROXMOX_DIR}}/.terraform
+
+  tf-proxmox-destroy:
+    desc: Destroy the Proxmox/Talos OpenTofu stack
+    cmd: doppler run --project project-homelab --config dev_homelab --name-transformer tf-var -- tofu -chdir={{.TF_PROXMOX_DIR}} destroy -auto-approve
+    preconditions:
+      - which doppler tofu
+      - test -d {{.TF_PROXMOX_DIR}}/.terraform
+
+  tf-cloudflare-init:
+    desc: Initialize the Cloudflare OpenTofu stack
+    cmd: doppler run --project project-homelab --config dev_homelab --name-transformer tf-var -- tofu -chdir={{.TF_CLOUDFLARE_DIR}} init -upgrade
+    preconditions:
+      - which doppler tofu
+
+  tf-cloudflare-plan:
+    desc: Plan the Cloudflare OpenTofu stack
+    cmd: doppler run --project project-homelab --config dev_homelab --name-transformer tf-var -- tofu -chdir={{.TF_CLOUDFLARE_DIR}} plan -out=tfplan
+    preconditions:
+      - which doppler tofu
+      - test -d {{.TF_CLOUDFLARE_DIR}}/.terraform
+
+  tf-cloudflare-apply:
+    desc: Apply the Cloudflare OpenTofu stack
+    cmds:
+      - doppler run --project project-homelab --config dev_homelab --name-transformer tf-var -- tofu -chdir={{.TF_CLOUDFLARE_DIR}} plan -out=tfplan
+      - doppler run --project project-homelab --config dev_homelab --name-transformer tf-var -- tofu -chdir={{.TF_CLOUDFLARE_DIR}} apply tfplan
+    preconditions:
+      - which doppler tofu
+      - test -d {{.TF_CLOUDFLARE_DIR}}/.terraform
+
+  tf-cloudflare-destroy:
+    desc: Destroy the Cloudflare OpenTofu stack
+    cmd: doppler run --project project-homelab --config dev_homelab --name-transformer tf-var -- tofu -chdir={{.TF_CLOUDFLARE_DIR}} destroy -auto-approve
+    preconditions:
+      - which doppler tofu
+      - test -d {{.TF_CLOUDFLARE_DIR}}/.terraform
+
+  tf-localdns-init:
+    desc: Initialize the local DNS OpenTofu stack when populated
+    cmd: |
+      if find {{.TF_LOCALDNS_DIR}} -maxdepth 1 -name '*.tf' | grep -q .; then
+        doppler run --project project-homelab --config dev_homelab --name-transformer tf-var -- tofu -chdir={{.TF_LOCALDNS_DIR}} init -upgrade
+      else
+        echo "No localdns OpenTofu files yet; skipping init."
+      fi
+    preconditions:
+      - which doppler tofu
+
+  tf-localdns-plan:
+    desc: Plan the local DNS OpenTofu stack when populated
+    cmd: |
+      if find {{.TF_LOCALDNS_DIR}} -maxdepth 1 -name '*.tf' | grep -q .; then
+        doppler run --project project-homelab --config dev_homelab --name-transformer tf-var -- tofu -chdir={{.TF_LOCALDNS_DIR}} plan -out=tfplan
+      else
+        echo "No localdns OpenTofu files yet; skipping plan."
+      fi
+    preconditions:
+      - which doppler tofu
+
+  tf-localdns-apply:
+    desc: Apply the local DNS OpenTofu stack when populated
+    cmd: |
+      if find {{.TF_LOCALDNS_DIR}} -maxdepth 1 -name '*.tf' | grep -q .; then
+        doppler run --project project-homelab --config dev_homelab --name-transformer tf-var -- tofu -chdir={{.TF_LOCALDNS_DIR}} plan -out=tfplan
+        doppler run --project project-homelab --config dev_homelab --name-transformer tf-var -- tofu -chdir={{.TF_LOCALDNS_DIR}} apply tfplan
+      else
+        echo "No localdns OpenTofu files yet; skipping apply."
+      fi
+    preconditions:
+      - which doppler tofu
+
+  tf-localdns-destroy:
+    desc: Destroy the local DNS OpenTofu stack when populated
+    cmd: |
+      if find {{.TF_LOCALDNS_DIR}} -maxdepth 1 -name '*.tf' | grep -q .; then
+        doppler run --project project-homelab --config dev_homelab --name-transformer tf-var -- tofu -chdir={{.TF_LOCALDNS_DIR}} destroy -auto-approve
+      else
+        echo "No localdns OpenTofu files yet; skipping destroy."
+      fi
+    preconditions:
+      - which doppler tofu
 
   rolling-restart-cluster-vms:
     desc: Reboot cluster VMs through Proxmox one at a time and wait for nodes to recover [PROXMOX_SSH_HOST=required]

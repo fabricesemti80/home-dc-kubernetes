@@ -35,17 +35,23 @@ sops.*
 
 # ---- Terraform ----
 .terraform/
+**/.terraform/
 .terraform.lock.hcl
+**/.terraform.lock.hcl
 *.tfstate
 *.tfstate.*
 *.tfvars
 *.auto.tfvars
 crash.log
+crash.*.log
 override.tf
 override.tf.json
 *_override.tf
 *_override.tf.json
-terraform/tfplan
+tfplan
+tfplan.*
+**/tfplan
+**/tfplan.*
 
 # ---- Ansible ----
 *.retry
@@ -81,4 +87,3 @@ scratch/
 cluster.yaml
 nodes.yaml
 talos/clusterconfig/*.yaml
-infra/terraform/tfplan

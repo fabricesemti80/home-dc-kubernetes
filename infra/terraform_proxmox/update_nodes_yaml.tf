@@ -18,7 +18,7 @@ resource "null_resource" "update_nodes_yaml" {
           mac_address = details.mac_address
         }
       })
-      NODES_YAML = "${path.root}/../nodes.yaml"
+      NODES_YAML = abspath("${path.root}/../../nodes.yaml")
     }
     interpreter = ["/bin/bash", "-c"]
   }

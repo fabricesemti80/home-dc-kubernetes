@@ -21,7 +21,7 @@ provider "proxmox" {
 }
 
 # Download Talos ISO for each unique schematic on each Proxmox node
-resource "proxmox_virtual_environment_download_file" "talos_iso" {
+resource "proxmox_download_file" "talos_iso" {
   for_each = {
     for combo in flatten([
       for node in var.nodes : [
@@ -52,6 +52,7 @@ resource "proxmox_virtual_environment_vm" "talos_node" {
   description = "Talos ${each.value.controller ? "Control Plane" : "Worker"} Node"
   node_name   = each.value.proxmox_node
   vm_id       = each.value.vm_id
+  on_boot     = coalesce(each.value.on_boot, each.value.controller)
 
   cpu {
     cores = each.value.cpu_cores
@@ -69,7 +70,7 @@ resource "proxmox_virtual_environment_vm" "talos_node" {
   }
 
   cdrom {
-    file_id   = proxmox_virtual_environment_download_file.talos_iso["${each.value.proxmox_node}-${each.value.schematic_id}"].id
+    file_id   = proxmox_download_file.talos_iso["${each.value.proxmox_node}-${each.value.schematic_id}"].id
     interface = "ide3"
   }
 
@@ -124,7 +125,12 @@ resource "proxmox_virtual_environment_vm" "talos_node" {
     ignore_changes = [disk[0].file_id, cdrom[0].file_id]
   }
 
-  depends_on = [proxmox_virtual_environment_download_file.talos_iso]
+  depends_on = [proxmox_download_file.talos_iso]
+}
+
+moved {
+  from = proxmox_virtual_environment_download_file.talos_iso
+  to   = proxmox_download_file.talos_iso
 }
 
 # Extract DHCP-assigned IPs directly from VM resources with improved error handling

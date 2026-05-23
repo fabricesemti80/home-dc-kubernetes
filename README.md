@@ -4,7 +4,7 @@ This repository is the main source of truth for the homelab. It manages:
 
 -   the host-level Docker stack under `infra/docker/`
 -   the imported Talos / Argo cluster workflow at the repo root
--   the OpenTofu stacks under `infra/terraform/` and `terraform/`
+-   the OpenTofu stacks under `infra/terraform_*`
 
 ## Start Here
 
@@ -36,7 +36,7 @@ Common workflows:
 # Host-level Docker stack
 task stack:deploy
 
-# Both OpenTofu stacks
+# OpenTofu stacks
 task tf:init
 task tf:plan
 

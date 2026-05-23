@@ -43,6 +43,7 @@ variable "nodes" {
     address      = string           # Static IP address (must be in the network CIDR)
     controller   = bool             # true for control plane nodes, false for worker nodes
     started      = optional(bool)   # VM power state in Proxmox (defaults to true)
+    on_boot      = optional(bool)   # Proxmox host boot policy; defaults to controller flag
     mac_address  = string           # MAC address (leave empty for auto-generation)
     schematic_id = string           # Talos schematic ID from https://factory.talos.dev/
     cpu_cores    = number           # Number of CPU cores

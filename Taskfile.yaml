@@ -11,6 +11,9 @@ vars:
   TALOS_DIR: '{{.ROOT_DIR}}/talos'
   PRIVATE_DIR: '{{.ROOT_DIR}}/.private'
   TALOSCONFIG: '{{.ROOT_DIR}}/talos/clusterconfig/talosconfig'
+  TF_PROXMOX_DIR: '{{.ROOT_DIR}}/infra/terraform_proxmox'
+  TF_CLOUDFLARE_DIR: '{{.ROOT_DIR}}/infra/terraform_cloudflare'
+  TF_LOCALDNS_DIR: '{{.ROOT_DIR}}/infra/terraform_localdns'
 
 env:
   KUBECONFIG: '{{.ROOT_DIR}}/kubeconfig'
@@ -43,8 +46,7 @@ tasks:
   lint:
     desc: Run linters manually with auto-fixing where possible
     cmds:
-      - tofu -chdir={{.ROOT_DIR}}/infra/terraform fmt -recursive
-      - tofu -chdir={{.ROOT_DIR}}/terraform fmt -recursive
+      - task: tf:fmt
       - shfmt -w -i 2 -s {{.ROOT_DIR}}/scripts/*.sh {{.ROOT_DIR}}/scripts/lib/*.sh {{.ROOT_DIR}}/infra/docker/scripts/*.sh
       - yamllint {{.ROOT_DIR}}
       - shellcheck {{.ROOT_DIR}}/scripts/*.sh {{.ROOT_DIR}}/scripts/lib/*.sh {{.ROOT_DIR}}/infra/docker/scripts/*.sh
@@ -64,10 +66,16 @@ tasks:
       - which pre-commit
 
   tf:fmt:
-    desc: Format both OpenTofu stacks
+    desc: Format all OpenTofu stacks
     cmds:
-      - tofu -chdir={{.ROOT_DIR}}/infra/terraform fmt -recursive
-      - tofu -chdir={{.ROOT_DIR}}/terraform fmt -recursive
+      - tofu -chdir={{.TF_PROXMOX_DIR}} fmt -recursive
+      - tofu -chdir={{.TF_CLOUDFLARE_DIR}} fmt -recursive
+      - |
+        if find {{.TF_LOCALDNS_DIR}} -maxdepth 1 -name '*.tf' | grep -q .; then
+          tofu -chdir={{.TF_LOCALDNS_DIR}} fmt -recursive
+        else
+          echo "No localdns OpenTofu files yet; skipping fmt."
+        fi
     preconditions:
       - which tofu
 
@@ -84,7 +92,7 @@ tasks:
     cmd: task docker:deploy
 
   infra:provision:
-    desc: Apply both OpenTofu stacks in execution order
+    desc: Apply OpenTofu stacks in execution order
     cmd: task infrastructure:tf-apply
 
   talos:genconfig:
@@ -128,20 +136,68 @@ tasks:
     cmd: task infrastructure:verify
 
   tf:init:
-    desc: Initialize both OpenTofu stacks in execution order
+    desc: Initialize all OpenTofu stacks in execution order
     cmd: task infrastructure:tf-init
 
   tf:plan:
-    desc: Plan node infrastructure first, then shared infra
+    desc: Plan all OpenTofu stacks in execution order
     cmd: task infrastructure:tf-plan
 
   tf:apply:
-    desc: Apply node infrastructure first, then shared infra
+    desc: Apply all OpenTofu stacks in execution order
     cmd: task infrastructure:tf-apply
 
   tf:destroy:
-    desc: Destroy shared infra first, then node infrastructure
+    desc: Destroy all OpenTofu stacks in reverse dependency order
     cmd: task infrastructure:tf-destroy
+
+  tf:proxmox:init:
+    desc: Initialize the Proxmox/Talos OpenTofu stack
+    cmd: task infrastructure:tf-proxmox-init
+
+  tf:proxmox:plan:
+    desc: Plan the Proxmox/Talos OpenTofu stack
+    cmd: task infrastructure:tf-proxmox-plan
+
+  tf:proxmox:apply:
+    desc: Apply the Proxmox/Talos OpenTofu stack
+    cmd: task infrastructure:tf-proxmox-apply
+
+  tf:proxmox:destroy:
+    desc: Destroy the Proxmox/Talos OpenTofu stack
+    cmd: task infrastructure:tf-proxmox-destroy
+
+  tf:cloudflare:init:
+    desc: Initialize the Cloudflare OpenTofu stack
+    cmd: task infrastructure:tf-cloudflare-init
+
+  tf:cloudflare:plan:
+    desc: Plan the Cloudflare OpenTofu stack
+    cmd: task infrastructure:tf-cloudflare-plan
+
+  tf:cloudflare:apply:
+    desc: Apply the Cloudflare OpenTofu stack
+    cmd: task infrastructure:tf-cloudflare-apply
+
+  tf:cloudflare:destroy:
+    desc: Destroy the Cloudflare OpenTofu stack
+    cmd: task infrastructure:tf-cloudflare-destroy
+
+  tf:localdns:init:
+    desc: Initialize the local DNS OpenTofu stack when populated
+    cmd: task infrastructure:tf-localdns-init
+
+  tf:localdns:plan:
+    desc: Plan the local DNS OpenTofu stack when populated
+    cmd: task infrastructure:tf-localdns-plan
+
+  tf:localdns:apply:
+    desc: Apply the local DNS OpenTofu stack when populated
+    cmd: task infrastructure:tf-localdns-apply
+
+  tf:localdns:destroy:
+    desc: Destroy the local DNS OpenTofu stack when populated
+    cmd: task infrastructure:tf-localdns-destroy
 
   cluster:sync-argo:
     desc: Apply the Argo bootstrap resources from this repo

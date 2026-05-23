@@ -161,8 +161,8 @@ Assumptions:
 
 Validation checks:
 
--   `doppler run --project project-homelab --config dev_homelab --name-transformer tf-var -- tofu -chdir=terraform plan`
--   `doppler run --project project-homelab --config dev_homelab --name-transformer tf-var -- tofu -chdir=terraform apply`
+-   `task tf:proxmox:plan`
+-   `task tf:proxmox:apply`
 -   `kubectl get nodes`
 -   `talosctl --talosconfig talos/clusterconfig/talosconfig health`
 -   `kubectl -n productivity get pods`
@@ -171,6 +171,32 @@ Rollback:
 
 -   Do not attempt to shrink disks in place from Terraform; rollback is operational, not declarative.
 -   If a node fails after expansion, recover it from Proxmox backup or rebuild it with the prior known-good configuration.
+
+### Talos worker VM boot policy
+
+Decision:
+
+-   Keep Talos worker VMs represented in the Proxmox/OpenTofu inventory but default their Proxmox `on_boot` policy to `false`.
+-   Default control-plane nodes to `on_boot = true` so the active cluster comes back after a Proxmox host reboot.
+-   Allow a per-node `on_boot` override for exceptional cases, while retaining `controller` as the default boot-policy signal.
+-   Continue using per-node `started = false` for worker power state so workers can remain powered off without being destroyed.
+
+Assumptions:
+
+-   The current steady state is the three control-plane nodes only.
+-   Worker VMs are retained as rollback capacity and should not automatically start with their Proxmox hosts.
+-   Proxmox `on_boot` changes are in-place VM metadata changes and do not recreate VMs.
+
+Validation checks:
+
+-   `task tf:proxmox:plan`
+-   Confirm the plan shows no `on_boot = false -> true` updates for `k8s-wrkr-*`.
+-   Confirm Proxmox worker VM Options keep `Start at boot` disabled.
+
+Rollback:
+
+-   Set `on_boot = true` on selected worker entries in `infra/terraform_proxmox/nodes.auto.tfvars` if workers should start with Proxmox again.
+-   Set worker `started = true` only when intentionally reintroducing them as active cluster capacity.
 
 ## Pending final user confirmation
 

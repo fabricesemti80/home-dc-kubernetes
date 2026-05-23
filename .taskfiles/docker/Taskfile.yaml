@@ -34,6 +34,6 @@ tasks:
   cloudflare-apply:
     desc: Apply Cloudflare DNS and Access changes via Terraform
     cmd: |
-      doppler run --project project-homelab --config dev_homelab --name-transformer tf-var -- sh -lc 'cd {{.ROOT_DIR}}/infra/terraform && tofu init && tofu apply -auto-approve'
+      doppler run --project project-homelab --config dev_homelab --name-transformer tf-var -- sh -lc 'cd {{.ROOT_DIR}}/infra/terraform_docker && tofu init && tofu apply -auto-approve'
     preconditions:
       - which doppler tofu

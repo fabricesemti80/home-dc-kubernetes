@@ -37,8 +37,9 @@ The control-plane sizing is intentionally increased to absorb ingress, storage, 
 ## 4) Repository layout proposal
 
 ```text
-infra/terraform/        # Docker-side and shared host-level infrastructure
-terraform/              # Talos cluster and tunnel infrastructure
+infra/terraform_proxmox/     # Proxmox VMs and Talos cluster infrastructure
+infra/terraform_cloudflare/  # Kubernetes and host-level Cloudflare resources
+infra/terraform_localdns/    # Reserved local DNS stack
 talos/                  # Talos cluster configuration
 kubernetes/             # Argo apps and cluster manifests
 bootstrap/              # Helmfile-based cluster bootstrap
