@@ -198,6 +198,45 @@ Rollback:
 -   Set `on_boot = true` on selected worker entries in `infra/terraform_proxmox/nodes.auto.tfvars` if workers should start with Proxmox again.
 -   Set worker `started = true` only when intentionally reintroducing them as active cluster capacity.
 
+### Kubernetes local DNS in UniFi
+
+Decision:
+
+-   Move Kubernetes-required local DNS records from the standalone UniFi Terraform repo into `infra/terraform_localdns/`.
+-   Manage only the Kubernetes ingress records in this repo: `kubernetes.krapulax.home` plus internal `krapulax.home` CNAMEs for routable media namespace apps.
+-   Add internal HTTPRoutes for media apps that already have an external HTTPRoute so LAN clients can use the internal Envoy Gateway without Cloudflare.
+-   Leave swarm, Wi-Fi, device, network, port-profile, and non-Kubernetes records in the existing UniFi repo for now.
+-   Replace the old 1Password Terraform provider flow with Doppler-injected OpenTofu variables.
+
+Assumptions:
+
+-   `kubernetes.krapulax.home` should continue to point at `10.0.40.102`.
+-   `photos.krapulax.home`, `jellyfin.krapulax.home`, `requests.krapulax.home`, `prowlarr.krapulax.home`, `qbittorrent.krapulax.home`, `radarr.krapulax.home`, `sabnzbd.krapulax.home`, `sonarr.krapulax.home`, and `tdarr.krapulax.home` should CNAME to `kubernetes.krapulax.home`.
+-   Recyclarr is not exposed through a local HTTPRoute because it has no existing external HTTPRoute or user-facing service in the current media namespace config.
+-   Doppler `project-homelab/dev_homelab` will provide `UNIFI_USERNAME`, `UNIFI_PASSWORD`, `UNIFI_API_URL`, and optionally `UNIFI_ALLOW_INSECURE`.
+
+Validation checks:
+
+-   `task tf:localdns:init`
+-   `task tf:localdns:plan`
+-   `kubectl get httproute -n media`
+-   `dig +short kubernetes.krapulax.home`
+-   `dig +short photos.krapulax.home`
+-   `dig +short jellyfin.krapulax.home`
+-   `dig +short requests.krapulax.home`
+-   `dig +short prowlarr.krapulax.home`
+-   `dig +short qbittorrent.krapulax.home`
+-   `dig +short radarr.krapulax.home`
+-   `dig +short sabnzbd.krapulax.home`
+-   `dig +short sonarr.krapulax.home`
+-   `dig +short tdarr.krapulax.home`
+
+Rollback:
+
+-   Remove the added internal HTTPRoutes from the media app config kustomizations if LAN routing through Envoy is not acceptable.
+-   Remove the localdns resources from `infra/terraform_localdns/` and return ownership to `/Users/fs/Documents/repositories/terraform/homelab-terraform-unifi` only if UniFi DNS ownership needs to move back.
+-   If state was moved, move the relevant `unifi_dns_record.*` addresses back before applying the old UniFi repo.
+
 ## Pending final user confirmation
 
 -   Initial 5 application services to onboard after platform baseline.
