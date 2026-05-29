@@ -4,6 +4,13 @@ kind: HTTPRoute
 metadata:
   name: termix-internal
   namespace: productivity
+  annotations:
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/group: Productivity
+    gethomepage.dev/name: Termix
+    gethomepage.dev/icon: terminal.png
+    gethomepage.dev/description: Internal SSH and server access
+    gethomepage.dev/weight: "20"
 spec:
   parentRefs:
     - name: envoy-internal

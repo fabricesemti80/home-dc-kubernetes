@@ -114,6 +114,8 @@ pages:
                     url: https://nginx-test.${DOMAIN}
                   - title: Linkwarden
                     url: https://linkwarden.krapulax.dev
+                  - title: Termix
+                    url: https://termix.krapulax.home
               - title: External
                 links:
                   - title: Uptime Kuma
