@@ -9,7 +9,7 @@
 -   [x] Store PostgreSQL data on a CephFS-backed PVC.
 -   [x] Source runtime secrets from Doppler via the existing operator pattern.
 -   [x] Model the internal UniFi DNS CNAME in Terraform for later apply.
--   [x] Model the external Cloudflare Access app in Terraform for later apply.
+-   [x] Model the external Cloudflare DNS record and Access app in Terraform for later apply.
 
 ## Namespace
 
@@ -47,6 +47,8 @@ Planka is a user-facing planning and project-management application. It fits bes
 -   Routes:
     -   external `HTTPRoute` on `envoy-external` section `https`, hostname `planka.krapulax.dev`
     -   internal `HTTPRoute` on `envoy-internal` sections `http` and `https`, hostname `planka.krapulax.home`
+-   Cloudflare DNS:
+    -   proxied CNAME `planka.krapulax.dev` to `external.krapulax.dev`
 
 ## Doppler Secrets
 
@@ -90,6 +92,7 @@ postgresql://planka:<PLANKA_DB_PASSWORD>@planka-postgres/planka
 -   [ ] `kubectl rollout status deploy/planka -n productivity`
 -   [ ] `kubectl rollout status statefulset/planka-database -n productivity`
 -   [ ] `kubectl get httproute -n productivity planka planka-internal -o yaml`
+-   [ ] `task tf:cloudflare:plan`
 -   [ ] Open `https://planka.krapulax.dev`
 -   [ ] Open `https://planka.krapulax.home`
 -   [ ] Login with the Doppler-managed default admin credentials

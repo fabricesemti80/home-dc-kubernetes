@@ -62,6 +62,10 @@ locals {
     "portainer" = "portainer"
   }
 
+  kubernetes_dns_apps = {
+    "planka" = "planka"
+  }
+
   zero_trust_apps = {
     "arcane" = {
       name          = "Arcane"
