@@ -3,7 +3,7 @@
 ## Scope
 
 -   [x] Deploy Termix into the existing `productivity` namespace.
--   [x] Expose Termix internally only at `http://termix.krapulax.home`.
+-   [x] Expose Termix internally only at `http://termix.krapulax.home` and `https://termix.krapulax.home`.
 -   [x] Do not create an external `HTTPRoute`, Cloudflare DNS record, or public tunnel route.
 -   [x] Persist Termix application data at `/app/data` on a CephFS-backed PVC.
 -   [ ] Include `guacd` as an optional sidecar or companion controller only if RDP, VNC, or Telnet support is required for the first rollout.
@@ -49,7 +49,7 @@ Termix is a user-facing admin/productivity application, similar in placement to 
 -   Internal route:
     -   `HTTPRoute` named `termix-internal`
     -   parent `envoy-internal` in namespace `network`
-    -   section `http`
+    -   sections `http` and `https`
     -   hostname `termix.krapulax.home`
 -   Local DNS:
     -   add `termix.krapulax.home` as a CNAME to `kubernetes.krapulax.home` in `infra/terraform_localdns/`
@@ -111,6 +111,7 @@ Termix auto-generates those values on first startup and stores them in `{DATA_DI
 -   [ ] `kubectl logs -n productivity deploy/termix --tail=100`
 -   [ ] `dig +short termix.krapulax.home`
 -   [ ] Open `http://termix.krapulax.home`
+-   [ ] Open `https://termix.krapulax.home`
 -   [ ] Confirm terminal sessions work through the internal route
 -   [ ] If `guacd` is enabled, confirm RDP/VNC/Telnet connection tests work and that `termix-guacd` is not externally exposed
 

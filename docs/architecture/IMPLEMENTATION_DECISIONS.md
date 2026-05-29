@@ -151,7 +151,7 @@ Rollback:
 Decision:
 
 -   Deploy Termix into the existing `productivity` namespace.
--   Expose Termix only through the internal Envoy Gateway at `http://termix.krapulax.home`.
+-   Expose Termix only through the internal Envoy Gateway at `http://termix.krapulax.home` and `https://termix.krapulax.home`.
 -   Do not add an external `HTTPRoute`, Cloudflare DNS record, or public tunnel route for the initial rollout.
 -   Store Termix data on a CephFS-backed PVC mounted at `/app/data`.
 -   Pin the Termix image to `ghcr.io/lukegus/termix:release-2.3.1` instead of using `latest`.
@@ -177,6 +177,7 @@ Validation checks:
 -   `kubectl logs -n productivity deploy/termix --tail=100`
 -   `dig +short termix.krapulax.home`
 -   Open `http://termix.krapulax.home`
+-   Open `https://termix.krapulax.home`
 -   Confirm SSH terminal sessions work through the internal route.
 
 Rollback:
