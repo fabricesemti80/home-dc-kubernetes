@@ -13,6 +13,6 @@ spec:
     - termix.krapulax.home
   rules:
     - backendRefs:
-        - name: termix-app
+        - name: termix
           namespace: productivity
           port: 80
