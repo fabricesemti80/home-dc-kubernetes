@@ -112,6 +112,13 @@ locals {
       session_hours = 720
       auto_redirect = false
     }
+    "planka" = {
+      name          = "Planka"
+      subdomain     = "planka"
+      policy_type   = "bypass"
+      session_hours = 720
+      auto_redirect = false
+    }
     "immich" = {
       name          = "Immich"
       subdomain     = "photos"

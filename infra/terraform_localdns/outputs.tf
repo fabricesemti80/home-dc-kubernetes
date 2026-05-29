@@ -55,5 +55,10 @@ output "kubernetes_internal_dns_records" {
       type   = unifi_dns_record.termix_internal.type
       record = unifi_dns_record.termix_internal.record
     }
+    planka = {
+      name   = unifi_dns_record.planka_internal.name
+      type   = unifi_dns_record.planka_internal.type
+      record = unifi_dns_record.planka_internal.record
+    }
   }
 }

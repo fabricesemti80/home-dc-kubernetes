@@ -187,6 +187,44 @@ Rollback:
 -   Remove the Termix DopplerSecret manifest if OIDC secrets were synced.
 -   Keep the Termix PVC until saved credentials, generated encryption material, and any exported host data have been backed up or intentionally destroyed.
 
+### Planka productivity deployment
+
+Decision:
+
+-   Deploy Planka into the existing `productivity` namespace.
+-   Expose Planka externally at `https://planka.krapulax.dev` and internally at `https://planka.krapulax.home`.
+-   Store Planka attachments/app data and PostgreSQL data on CephFS-backed PVCs.
+-   Source Planka runtime and bootstrap admin secrets from Doppler through the existing Doppler operator pattern.
+-   Model the internal `planka.krapulax.home` CNAME in `infra/terraform_localdns/`.
+-   Model the Cloudflare Access app for `planka.krapulax.dev` in `infra/terraform_cloudflare/`, using the same bypass policy pattern as Linkwarden.
+
+Assumptions:
+
+-   `planka.krapulax.dev` is the canonical `BASE_URL`.
+-   Planka's own authentication is the primary public access control for the initial rollout.
+-   A single Planka replica and a single PostgreSQL instance are acceptable for the first deployment.
+-   The Doppler `project-homelab/dev_homelab` config is the correct source of truth for Planka secrets.
+
+Validation checks:
+
+-   `doppler secrets get PLANKA_SECRET_KEY --project project-homelab --config dev_homelab`
+-   `kubectl get dopplersecret -n doppler-operator-system planka-secrets -o yaml`
+-   `kubectl get secret -n productivity planka-secrets`
+-   `kubectl get application -n argo-system planka`
+-   `kubectl get deploy,statefulset,pvc -n productivity | rg planka`
+-   `kubectl rollout status deploy/planka -n productivity`
+-   `kubectl rollout status statefulset/planka-database -n productivity`
+-   `kubectl get httproute -n productivity planka planka-internal -o yaml`
+-   Open `https://planka.krapulax.dev`
+-   Open `https://planka.krapulax.home`
+
+Rollback:
+
+-   Remove the Planka Argo CD application and its route resources if the rollout is not acceptable.
+-   Remove Planka Terraform DNS/Access entries if they were applied.
+-   Keep the Planka PVCs until data export or deletion is explicitly confirmed.
+-   Remove Planka Doppler secrets only after the app and data are decommissioned.
+
 ### Talos VM disk capacity increase
 
 Decision:
@@ -252,7 +290,7 @@ Decision:
 Assumptions:
 
 -   `kubernetes.krapulax.home` should continue to point at `10.0.40.102`.
--   `photos.krapulax.home`, `jellyfin.krapulax.home`, `requests.krapulax.home`, `prowlarr.krapulax.home`, `qbittorrent.krapulax.home`, `radarr.krapulax.home`, `sabnzbd.krapulax.home`, `sonarr.krapulax.home`, `tdarr.krapulax.home`, and `termix.krapulax.home` should CNAME to `kubernetes.krapulax.home`.
+-   `photos.krapulax.home`, `jellyfin.krapulax.home`, `requests.krapulax.home`, `prowlarr.krapulax.home`, `qbittorrent.krapulax.home`, `radarr.krapulax.home`, `sabnzbd.krapulax.home`, `sonarr.krapulax.home`, `tdarr.krapulax.home`, `termix.krapulax.home`, and `planka.krapulax.home` should CNAME to `kubernetes.krapulax.home`.
 -   Recyclarr is not exposed through a local HTTPRoute because it has no existing external HTTPRoute or user-facing service in the current media namespace config.
 -   Doppler `project-homelab/dev_homelab` will provide `UNIFI_USERNAME`, `UNIFI_PASSWORD`, `UNIFI_API_URL`, and optionally `UNIFI_ALLOW_INSECURE`.
 
@@ -272,6 +310,7 @@ Validation checks:
 -   `dig +short sonarr.krapulax.home`
 -   `dig +short tdarr.krapulax.home`
 -   `dig +short termix.krapulax.home`
+-   `dig +short planka.krapulax.home`
 
 Rollback:
 

@@ -1,0 +1,147 @@
+---
+global:
+  createDefaultServiceAccount: false
+
+defaultPodOptions:
+  automountServiceAccountToken: false
+  annotations:
+    reloader.stakater.com/auto: "true"
+
+controllers:
+  planka:
+    replicas: 1
+    strategy: RollingUpdate
+    initContainers:
+      00-wait-for-db:
+        image:
+          repository: docker.io/library/busybox
+          tag: "1.37"
+        command:
+          - /bin/sh
+          - -ec
+        args:
+          - |
+            until nc -z planka-postgres 5432; do
+              echo "waiting for postgres..."
+              sleep 2
+            done
+    containers:
+      app:
+        image:
+          repository: ghcr.io/plankanban/planka
+          tag: 2.1.1
+        env:
+          TZ: Europe/London
+          BASE_URL: https://planka.krapulax.dev
+          TRUST_PROXY: "true"
+          DEFAULT_ADMIN_NAME: Fabrice
+          DEFAULT_ADMIN_USERNAME: fabrice
+          DATABASE_URL:
+            valueFrom:
+              secretKeyRef:
+                name: planka-secrets
+                key: PLANKA_DATABASE_URL
+          SECRET_KEY:
+            valueFrom:
+              secretKeyRef:
+                name: planka-secrets
+                key: PLANKA_SECRET_KEY
+          DEFAULT_ADMIN_EMAIL:
+            valueFrom:
+              secretKeyRef:
+                name: planka-secrets
+                key: PLANKA_DEFAULT_ADMIN_EMAIL
+          DEFAULT_ADMIN_PASSWORD:
+            valueFrom:
+              secretKeyRef:
+                name: planka-secrets
+                key: PLANKA_DEFAULT_ADMIN_PASSWORD
+        probes:
+          liveness: &probes
+            enabled: true
+            custom: true
+            spec:
+              tcpSocket:
+                port: &port 1337
+              initialDelaySeconds: 60
+              periodSeconds: 15
+              timeoutSeconds: 5
+              failureThreshold: 4
+          readiness: *probes
+        resources:
+          requests:
+            cpu: 250m
+            memory: 512Mi
+          limits:
+            memory: 2Gi
+
+  database:
+    type: statefulset
+    replicas: 1
+    strategy: RollingUpdate
+    containers:
+      app:
+        image:
+          repository: docker.io/library/postgres
+          tag: 16-alpine
+        env:
+          TZ: Europe/London
+          POSTGRES_USER: planka
+          POSTGRES_PASSWORD:
+            valueFrom:
+              secretKeyRef:
+                name: planka-secrets
+                key: PLANKA_DB_PASSWORD
+          POSTGRES_DB: planka
+        probes:
+          liveness: &db-probes
+            enabled: true
+            custom: true
+            spec:
+              tcpSocket:
+                port: 5432
+              initialDelaySeconds: 20
+              periodSeconds: 15
+              timeoutSeconds: 5
+              failureThreshold: 6
+          readiness: *db-probes
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            memory: 1Gi
+
+service:
+  app:
+    controller: planka
+    ports:
+      http:
+        port: 80
+        targetPort: *port
+  postgres:
+    controller: database
+    ports:
+      postgres:
+        port: 5432
+        targetPort: 5432
+
+persistence:
+  data:
+    type: persistentVolumeClaim
+    accessMode: ReadWriteMany
+    storageClass: cephfs
+    size: 10Gi
+    advancedMounts:
+      planka:
+        app:
+          - path: /app/data
+  postgres-data:
+    type: persistentVolumeClaim
+    accessMode: ReadWriteMany
+    storageClass: cephfs
+    size: 10Gi
+    advancedMounts:
+      database:
+        app:
+          - path: /var/lib/postgresql/data
