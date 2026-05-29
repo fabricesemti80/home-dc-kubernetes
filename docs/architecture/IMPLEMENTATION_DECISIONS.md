@@ -196,7 +196,8 @@ Decision:
 -   Store Planka attachments/app data and PostgreSQL data on CephFS-backed PVCs.
 -   Source Planka runtime and bootstrap admin secrets from Doppler through the existing Doppler operator pattern.
 -   Model the internal `planka.krapulax.home` CNAME in `infra/terraform_localdns/`.
--   Model the Cloudflare DNS record and Access app for `planka.krapulax.dev` in `infra/terraform_cloudflare/`, using the same bypass policy pattern as Linkwarden.
+-   Let `external-dns` own the Cloudflare DNS record for `planka.krapulax.dev` from the external `HTTPRoute` annotations.
+-   Model the Cloudflare Access app for `planka.krapulax.dev` in `infra/terraform_cloudflare/`, using the same bypass policy pattern as Linkwarden.
 
 Assumptions:
 

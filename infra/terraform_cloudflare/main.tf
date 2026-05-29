@@ -112,17 +112,6 @@ resource "cloudflare_dns_record" "app" {
   ttl     = 1
 }
 
-resource "cloudflare_dns_record" "kubernetes_app" {
-  for_each = local.kubernetes_dns_apps
-
-  zone_id = var.cloudflare_zone_id
-  name    = "${each.value}.${local.base_domain}"
-  content = "external.${local.base_domain}"
-  type    = "CNAME"
-  proxied = true
-  ttl     = 1
-}
-
 resource "cloudflare_zero_trust_access_policy" "allow_emails" {
   count = 1
 

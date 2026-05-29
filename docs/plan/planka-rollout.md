@@ -9,7 +9,8 @@
 -   [x] Store PostgreSQL data on a CephFS-backed PVC.
 -   [x] Source runtime secrets from Doppler via the existing operator pattern.
 -   [x] Model the internal UniFi DNS CNAME in Terraform for later apply.
--   [x] Model the external Cloudflare DNS record and Access app in Terraform for later apply.
+-   [x] Let `external-dns` manage the external Cloudflare DNS record from the `HTTPRoute`.
+-   [x] Model the external Cloudflare Access app in Terraform for later apply.
 
 ## Namespace
 
@@ -48,7 +49,7 @@ Planka is a user-facing planning and project-management application. It fits bes
     -   external `HTTPRoute` on `envoy-external` section `https`, hostname `planka.krapulax.dev`
     -   internal `HTTPRoute` on `envoy-internal` sections `http` and `https`, hostname `planka.krapulax.home`
 -   Cloudflare DNS:
-    -   proxied CNAME `planka.krapulax.dev` to `external.krapulax.dev`
+    -   `external-dns` creates the proxied CNAME `planka.krapulax.dev` to `external.krapulax.dev` from the external `HTTPRoute` annotations
 
 ## Doppler Secrets
 
