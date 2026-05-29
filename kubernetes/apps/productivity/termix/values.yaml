@@ -1,0 +1,64 @@
+---
+global:
+  createDefaultServiceAccount: false
+
+defaultPodOptions:
+  automountServiceAccountToken: false
+  annotations:
+    reloader.stakater.com/auto: "true"
+
+controllers:
+  termix:
+    replicas: 1
+    strategy: RollingUpdate
+    containers:
+      app:
+        image:
+          repository: ghcr.io/lukegus/termix
+          tag: release-2.3.1
+        env:
+          TZ: Europe/London
+          PORT: &port 8080
+          DATA_DIR: /app/data
+          NODE_ENV: production
+          SSL_ENABLED: "false"
+        probes:
+          liveness: &probes
+            enabled: true
+            custom: true
+            spec:
+              tcpSocket:
+                port: *port
+              initialDelaySeconds: 30
+              periodSeconds: 15
+              timeoutSeconds: 5
+              failureThreshold: 4
+          readiness: *probes
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities: { drop: ["ALL"] }
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            memory: 1Gi
+
+service:
+  app:
+    controller: termix
+    ports:
+      http:
+        port: 80
+        targetPort: *port
+
+persistence:
+  data:
+    type: persistentVolumeClaim
+    accessMode: ReadWriteMany
+    storageClass: cephfs
+    size: 5Gi
+    advancedMounts:
+      termix:
+        app:
+          - path: /app/data

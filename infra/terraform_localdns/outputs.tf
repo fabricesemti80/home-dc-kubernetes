@@ -50,5 +50,10 @@ output "kubernetes_internal_dns_records" {
       type   = unifi_dns_record.tdarr_internal.type
       record = unifi_dns_record.tdarr_internal.record
     }
+    termix = {
+      name   = unifi_dns_record.termix_internal.name
+      type   = unifi_dns_record.termix_internal.type
+      record = unifi_dns_record.termix_internal.record
+    }
   }
 }
