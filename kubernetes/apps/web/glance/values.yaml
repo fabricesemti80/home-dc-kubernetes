@@ -9,7 +9,7 @@ controllers:
       app:
         image:
           repository: docker.io/glanceapp/glance
-          tag: v0.8.4
+          tag: v0.8.5
         env:
           TZ: Europe/London
           DOMAIN: krapulax.dev
