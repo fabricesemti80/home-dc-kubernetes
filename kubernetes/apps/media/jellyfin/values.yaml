@@ -12,7 +12,7 @@ controllers:
       app:
         image:
           repository: lscr.io/linuxserver/jellyfin
-          tag: "10.11.8"
+          tag: "10.11.10"
         env:
           TZ: Europe/London
           PUID: "0"
