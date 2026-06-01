@@ -13,7 +13,7 @@ controllers:
       00-wait-for-db:
         image:
           repository: docker.io/library/busybox
-          tag: "1.37"
+          tag: "1.38"
         command:
           - /bin/sh
           - -ec
