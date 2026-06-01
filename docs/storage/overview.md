@@ -190,6 +190,28 @@ kubectl logs -n storage -f -l app=ceph-csi-ceph-csi-cephfs-provisioner -c csi-pr
 kubectl get pvc -n storage -w
 ```
 
+### Provisioner Replica Count
+
+The CephFS CSI provisioner intentionally runs as a single replica in this lab cluster. The control-plane nodes are schedulable and the API server is fronted by the Talos VIP, so a single provisioner avoids unnecessary leader-election traffic during API or etcd latency while retaining the node plugin on every control-plane node.
+
+Assumptions:
+
+-   Control-plane nodes remain schedulable for storage-system workloads.
+-   CephFS provisioning availability is acceptable with one active provisioner pod in the lab environment.
+-   Node plugins continue to run on every node for mount and unmount handling.
+
+Validation checks:
+
+```bash
+kubectl get applications -n argo-system ceph-csi
+kubectl get pods -n storage -l app=ceph-csi-cephfs
+kubectl get --raw=/readyz
+```
+
+Rollback:
+
+-   Increase `provisioner.replicaCount` in `kubernetes/apps/storage/ceph-csi/values.sops.yaml` and allow Argo CD to resync `ceph-csi`.
+
 ---
 
 ## Automation

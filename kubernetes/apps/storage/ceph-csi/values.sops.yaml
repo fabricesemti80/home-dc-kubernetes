@@ -9,13 +9,12 @@ csiConfig:
 cephFS:
   kernelMountOptions: ms_mode=prefercrc
 provisioner:
-  replicaCount: 3
+  replicaCount: 1
 nodeplugin:
   replicaCount: 3
 sops:
   age:
-    - recipient: age1saea3t7l67lavg0ardepzys6egp50g82uvks98pk53xdlj57uf8sa2arcs
-      enc: |
+    - enc: |
         -----BEGIN AGE ENCRYPTED FILE-----
         YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBFTjJiOWJ6WUt5ekp5OHo3
         aFN2anpKQ1R5bkhYWHZWYkdtSlVSUDFJcnpJCndFTUNtT044ejdpT1haa0p0R3lN
@@ -23,8 +22,9 @@ sops:
         MklkYUo5RVpSc3c4azZGanRyLzBoRHMKvFhroTyk//t4ft1V7W7ATtJlek9kHj84
         lkxJ9eBi00p7yE4M4ikEYXIuAdq67RTSh4Ie0sNtkPna2RR75oP6Wg==
         -----END AGE ENCRYPTED FILE-----
-  lastmodified: "2026-03-14T15:22:03Z"
-  mac: ENC[AES256_GCM,data:cdAvlHrtAmB16CCZK27UzcMhtmWliQPFFebjtZFmFqutV883Ghwxp8H4r6gD4lv3KGEf9j6nulXihcTwe0HQBmbC+LRs6VetuktOx/47YlQitcXLu14vuL3S61vYnLpeb2aghSMS91zD+wDrA+N4sK8OWVi/elYnm7lHZji11bU=,iv:EcZ9976dc0dAURGH+NCqQXv5hym9pJf3nllxENt1eHM=,tag:rWIbbsTZ7kWxDHNHGHsj0g==,type:str]
+      recipient: age1saea3t7l67lavg0ardepzys6egp50g82uvks98pk53xdlj57uf8sa2arcs
   encrypted_regex: ^(adminKey|userKey|.*Key)$
+  lastmodified: "2026-06-01T11:42:13Z"
+  mac: ENC[AES256_GCM,data:l1wcnDfBRgWUmp2j+KnUWOIjKKvMkLkIGdAtB0n0YJTsJPI/iOFrvTZVQeNuZFPjp1MAxp3+/IFK1qtYxs5b4rs+hB/uk21tl7zKYjzQV6IRzqHfvB2nb1n4z+T8AL8BPQhgELFvxTRSQmu+AE0naez9CQfIkIU8YK3g0HNOpHc=,iv:QU3QLACL85cM7f4Y1W9wZm5LtvdCvyE68Q5Z3Fc67to=,tag:2nT9xJaw3KKPiKW9fWLRTg==,type:str]
   mac_only_encrypted: true
   version: 3.12.1
