@@ -61,9 +61,10 @@ dex:
     initialDelaySeconds: 30
     periodSeconds: 10
     failureThreshold: 3
+  # Metrics endpoint disabled — dex-server container doesn't expose /metrics on port 5558
+  # Causes TargetDown alert in Prometheus
   metrics:
-    enabled: true
-    serviceMonitor: *service-monitor
+    enabled: false
 redis:
   metrics:
     enabled: true
