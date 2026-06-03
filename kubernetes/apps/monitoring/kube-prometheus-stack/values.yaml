@@ -134,6 +134,9 @@ prometheus:
             requests:
               storage: 20Gi
 
+kubeProxy:
+  enabled: false
+
 nodeExporter:
   enabled: true
 
