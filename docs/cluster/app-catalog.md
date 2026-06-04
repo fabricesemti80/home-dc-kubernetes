@@ -6,6 +6,7 @@ This document provides an index of all applications deployed in the Kubernetes c
 
 | Namespace               | App Count | Description                                             |
 | ----------------------- | --------- | ------------------------------------------------------- |
+| ai                      | 1         | Paperclip AI agent orchestration                        |
 | media                   | 10        | Media management stack (Jellyfin, Sonarr, Radarr, etc.) |
 | productivity            | 1         | Linkwarden                                              |
 | monitoring              | 1         | Prometheus/Grafana stack                                |
@@ -19,6 +20,12 @@ This document provides an index of all applications deployed in the Kubernetes c
 ---
 
 ## Applications by Namespace
+
+### ai
+
+| App       | Type             | Image                           | Port | Domain | Notes                        |
+| --------- | ---------------- | ------------------------------- | ---- | ------ | ---------------------------- |
+| paperclip | AI Orchestration | ghcr.io/paperclipinc/paperclip | 3100 | -      | Private ClusterIP deployment |
 
 ### media
 

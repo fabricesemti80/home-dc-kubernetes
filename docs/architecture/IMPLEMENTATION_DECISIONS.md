@@ -220,6 +220,41 @@ Rollback:
 -   Re-apply local DNS and Cloudflare Terraform plans.
 -   Reuse preserved PVCs and Doppler secrets if they were intentionally retained.
 
+### Paperclip operator deployment
+
+Decision:
+
+-   Deploy Paperclip in a new `ai` namespace.
+-   Install `paperclip-operator` with the upstream Helm chart pinned to `0.12.1`.
+-   Create a private Paperclip `Instance` pinned to image tag `2026.0529`.
+-   Use managed PostgreSQL and Paperclip app persistence on CephFS.
+-   Source auth, master-key, and provider API key material from Doppler into a Kubernetes Secret.
+-   Do not expose Paperclip publicly or internally through Gateway API until the private deployment is validated.
+
+Assumptions:
+
+-   Kubernetes `v1.36.1` satisfies the operator chart requirement of Kubernetes `>=1.28.0`.
+-   The Doppler `project-homelab/dev_homelab` config can provide `PAPERCLIP_BETTER_AUTH_SECRET`, `PAPERCLIP_MASTER_KEY`, `OPENAI_API_KEY`, and `ANTHROPIC_API_KEY`.
+-   A single Paperclip replica and operator-managed PostgreSQL are acceptable for the first deployment.
+-   CephFS is acceptable for the initial managed PostgreSQL and app storage PVCs.
+
+Validation checks:
+
+-   `kubectl get application -n argo-system paperclip-operator paperclip`
+-   `kubectl get crd | rg paperclip`
+-   `kubectl get dopplersecret -n doppler-operator-system paperclip-secrets`
+-   `kubectl get secret -n ai paperclip-secrets`
+-   `kubectl get instances -n ai`
+-   `kubectl get pods,pvc,svc -n ai`
+-   `kubectl port-forward -n ai svc/paperclip 3100:3100`
+
+Rollback:
+
+-   Remove the Paperclip `Instance` application first so the operator can reconcile dependent resources.
+-   Remove the Paperclip operator application only after managed resources are gone or intentionally retained.
+-   Keep Paperclip PVCs until data export or deletion is explicitly confirmed.
+-   Remove Doppler Paperclip secrets only after rollback/export is no longer required.
+
 ### Talos VM disk capacity increase
 
 Decision:

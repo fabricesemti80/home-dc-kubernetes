@@ -1,0 +1,85 @@
+---
+apiVersion: paperclip.inc/v1alpha1
+kind: Instance
+metadata:
+  name: paperclip
+  namespace: ai
+  annotations:
+    argocd.argoproj.io/sync-wave: '0'
+spec:
+  image:
+    repository: ghcr.io/paperclipinc/paperclip
+    tag: "2026.0529"
+
+  deployment:
+    mode: authenticated
+    exposure: private
+
+  database:
+    mode: managed
+    managed:
+      image: postgres:17-alpine
+      storageSize: 10Gi
+      storageClass: cephfs
+
+  auth:
+    secretRef:
+      name: paperclip-secrets
+      key: PAPERCLIP_BETTER_AUTH_SECRET
+
+  secrets:
+    masterKeySecretRef:
+      name: paperclip-secrets
+      key: PAPERCLIP_MASTER_KEY
+    strictMode: true
+
+  storage:
+    persistence:
+      enabled: true
+      size: 10Gi
+      storageClass: cephfs
+
+  heartbeat:
+    enabled: true
+    intervalMS: 60000
+
+  adapters:
+    apiKeysSecretRef:
+      name: paperclip-secrets
+
+  security:
+    networkPolicy:
+      enabled: true
+    rbac:
+      create: true
+
+  networking:
+    service:
+      type: ClusterIP
+      port: 3100
+
+  observability:
+    metrics:
+      enabled: true
+      serviceMonitor:
+        enabled: false
+    logging:
+      level: info
+
+  availability:
+    podDisruptionBudget:
+      enabled: true
+      minAvailable: 1
+
+  resources:
+    requests:
+      cpu: 500m
+      memory: 512Mi
+    limits:
+      cpu: "2"
+      memory: 2Gi
+
+  probes:
+    startup:
+      failureThreshold: 60
+      periodSeconds: 5
