@@ -8,8 +8,8 @@ metadata:
     argocd.argoproj.io/sync-wave: '0'
 spec:
   image:
-    repository: ghcr.io/paperclipinc/paperclip
-    tag: "2026.0529"
+    repository: ghcr.io/paperclipai/paperclip
+    digest: sha256:33d6183ba25698f9d61759fc348f964fa235af61a479d12cf73b02828e1a0d79
 
   deployment:
     mode: authenticated

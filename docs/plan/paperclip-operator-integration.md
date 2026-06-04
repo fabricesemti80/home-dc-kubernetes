@@ -20,7 +20,7 @@
     -   `kubernetes/argo/apps/ai/paperclip-operator.yaml`
     -   `kubernetes/argo/apps/ai/paperclip.yaml`
 -   Instance API: `paperclip.inc/v1alpha1`
--   Paperclip image tag: `2026.0529`
+-   Paperclip image: `ghcr.io/paperclipai/paperclip@sha256:33d6183ba25698f9d61759fc348f964fa235af61a479d12cf73b02828e1a0d79`
 -   Deployment mode: `authenticated`
 -   Exposure: `private`
 -   Service: `ClusterIP` on port `3100`

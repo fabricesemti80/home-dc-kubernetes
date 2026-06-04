@@ -226,7 +226,7 @@ Decision:
 
 -   Deploy Paperclip in a new `ai` namespace.
 -   Install `paperclip-operator` with the upstream Helm chart pinned to `0.12.1`.
--   Create a private Paperclip `Instance` pinned to image tag `2026.0529`.
+-   Create a private Paperclip `Instance` pinned to the amd64 digest for `ghcr.io/paperclipai/paperclip:latest`.
 -   Use managed PostgreSQL on CephFS and keep Paperclip app storage ephemeral for the initial deployment because the upstream operator injects a `chcon` init container that CephFS does not support.
 -   Source auth, master-key, and provider API key material from Doppler into a Kubernetes Secret.
 -   Do not expose Paperclip publicly or internally through Gateway API until the private deployment is validated.

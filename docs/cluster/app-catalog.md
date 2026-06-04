@@ -25,7 +25,7 @@ This document provides an index of all applications deployed in the Kubernetes c
 
 | App       | Type             | Image                           | Port | Domain | Notes                        |
 | --------- | ---------------- | ------------------------------- | ---- | ------ | ---------------------------- |
-| paperclip | AI Orchestration | ghcr.io/paperclipinc/paperclip | 3100 | -      | Private ClusterIP deployment |
+| paperclip | AI Orchestration | ghcr.io/paperclipai/paperclip | 3100 | -      | Private ClusterIP deployment |
 
 ### media
 
