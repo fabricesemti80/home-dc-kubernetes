@@ -227,7 +227,7 @@ Decision:
 -   Deploy Paperclip in a new `ai` namespace.
 -   Install `paperclip-operator` with the upstream Helm chart pinned to `0.12.1`.
 -   Create a private Paperclip `Instance` pinned to image tag `2026.0529`.
--   Use managed PostgreSQL and Paperclip app persistence on CephFS.
+-   Use managed PostgreSQL on CephFS and keep Paperclip app storage ephemeral for the initial deployment because the upstream operator injects a `chcon` init container that CephFS does not support.
 -   Source auth, master-key, and provider API key material from Doppler into a Kubernetes Secret.
 -   Do not expose Paperclip publicly or internally through Gateway API until the private deployment is validated.
 
@@ -236,7 +236,7 @@ Assumptions:
 -   Kubernetes `v1.36.1` satisfies the operator chart requirement of Kubernetes `>=1.28.0`.
 -   The Doppler `project-homelab/dev_homelab` config can provide `PAPERCLIP_BETTER_AUTH_SECRET`, `PAPERCLIP_MASTER_KEY`, `OPENAI_API_KEY`, and `ANTHROPIC_API_KEY`.
 -   A single Paperclip replica and operator-managed PostgreSQL are acceptable for the first deployment.
--   CephFS is acceptable for the initial managed PostgreSQL and app storage PVCs.
+-   Paperclip app storage persistence should be revisited after the operator can disable SELinux relabeling or a compatible storage class is selected.
 
 Validation checks:
 

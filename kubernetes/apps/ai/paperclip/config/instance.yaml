@@ -35,9 +35,7 @@ spec:
 
   storage:
     persistence:
-      enabled: true
-      size: 10Gi
-      storageClass: cephfs
+      enabled: false
 
   heartbeat:
     enabled: true

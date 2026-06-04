@@ -6,7 +6,8 @@
 -   [x] Install the upstream `paperclip-operator` Helm chart.
 -   [x] Create a Paperclip `Instance` custom resource.
 -   [x] Source auth and provider API keys from Doppler.
--   [x] Use CephFS-backed persistence for Paperclip app storage and managed PostgreSQL.
+-   [x] Use CephFS-backed persistence for managed PostgreSQL.
+-   [x] Keep Paperclip app storage ephemeral for the initial deployment because the upstream operator's SELinux relabel init container is not compatible with CephFS.
 -   [x] Keep the first deployment private until auth, storage, and secret handling are validated.
 
 ## Proposed Shape
@@ -24,7 +25,7 @@
 -   Exposure: `private`
 -   Service: `ClusterIP` on port `3100`
 -   Database: managed PostgreSQL with CephFS storage
--   App persistence: CephFS storage
+-   App persistence: disabled for the initial deployment
 
 ## Secrets
 
@@ -55,7 +56,8 @@ Optional later keys:
 ## Assumptions
 
 -   Kubernetes `v1.36.1` remains the active Talos target and satisfies the operator chart requirement of Kubernetes `>=1.28.0`.
--   CephFS is acceptable for the initial managed PostgreSQL and application PVCs.
+-   CephFS is acceptable for the initial managed PostgreSQL PVC.
+-   Paperclip app storage persistence requires either an upstream operator switch to disable SELinux relabeling or a storage class that supports the injected `chcon` init container.
 -   A single Paperclip replica and managed PostgreSQL are acceptable for first validation.
 -   Public access can be added later through Gateway API HTTPRoute after the private deployment is healthy.
 
