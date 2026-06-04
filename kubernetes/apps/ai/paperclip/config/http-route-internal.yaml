@@ -1,0 +1,28 @@
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: paperclip-internal
+  namespace: ai
+  annotations:
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/group: AI
+    gethomepage.dev/name: Paperclip
+    gethomepage.dev/icon: paperclip.png
+    gethomepage.dev/description: Internal AI agent orchestration workspace
+    gethomepage.dev/weight: "10"
+spec:
+  parentRefs:
+    - name: envoy-internal
+      namespace: network
+      sectionName: http
+    - name: envoy-internal
+      namespace: network
+      sectionName: https
+  hostnames:
+    - paperclip.krapulax.home
+  rules:
+    - backendRefs:
+        - name: paperclip
+          namespace: ai
+          port: 3100

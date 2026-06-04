@@ -6,3 +6,5 @@ resources:
   - doppler-secret.yaml
   - operator-leader-election-rbac.yaml
   - instance.yaml
+  - http-route.yaml
+  - http-route-internal.yaml

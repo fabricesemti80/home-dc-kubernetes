@@ -229,7 +229,8 @@ Decision:
 -   Create a private Paperclip `Instance` pinned to the amd64 digest for `ghcr.io/paperclipai/paperclip:latest`.
 -   Use managed PostgreSQL on CephFS and keep Paperclip app storage ephemeral for the initial deployment because the upstream operator injects a `chcon` init container that CephFS does not support.
 -   Source auth, master-key, and provider API key material from Doppler into a Kubernetes Secret.
--   Do not expose Paperclip publicly or internally through Gateway API until the private deployment is validated.
+-   Expose Paperclip externally at `https://paperclip.krapulax.dev` and internally at `https://paperclip.krapulax.home` once the private deployment is validated.
+-   Model `paperclip.krapulax.home` in `infra/terraform_localdns/` and let `external-dns` own the external Cloudflare record from the public `HTTPRoute`.
 
 Assumptions:
 
@@ -246,6 +247,8 @@ Validation checks:
 -   `kubectl get secret -n ai paperclip-secrets`
 -   `kubectl get instances -n ai`
 -   `kubectl get pods,pvc,svc -n ai`
+-   `kubectl get httproute -n ai paperclip paperclip`
+-   `kubectl get httproute -n ai paperclip paperclip-internal`
 -   `kubectl port-forward -n ai svc/paperclip 3100:3100`
 
 Rollback:

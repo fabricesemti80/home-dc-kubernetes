@@ -8,7 +8,7 @@
 -   [x] Source auth and provider API keys from Doppler.
 -   [x] Use CephFS-backed persistence for managed PostgreSQL.
 -   [x] Keep Paperclip app storage ephemeral for the initial deployment because the upstream operator's SELinux relabel init container is not compatible with CephFS.
--   [x] Keep the first deployment private until auth, storage, and secret handling are validated.
+-   [x] Expose Paperclip externally and internally through Gateway API after the private deployment is validated.
 
 ## Proposed Shape
 
@@ -22,7 +22,7 @@
 -   Instance API: `paperclip.inc/v1alpha1`
 -   Paperclip image: `ghcr.io/paperclipai/paperclip@sha256:33d6183ba25698f9d61759fc348f964fa235af61a479d12cf73b02828e1a0d79`
 -   Deployment mode: `authenticated`
--   Exposure: `private`
+-   Exposure: `private`, then public/internal via Gateway API routes
 -   Service: `ClusterIP` on port `3100`
 -   Database: managed PostgreSQL with CephFS storage
 -   App persistence: disabled for the initial deployment
@@ -48,7 +48,7 @@ Optional later keys:
 ## Security Impact
 
 -   Paperclip runs agent orchestration workloads and may receive LLM provider API keys, so the namespace should be treated as high-trust.
--   Start with private exposure to keep the control plane off public DNS while validating authentication.
+-   Start with private exposure until the service is validated, then publish external and internal routes.
 -   Enable the operator and instance network policies where they do not block required cluster access.
 -   Do not store provider API keys in `Instance` specs; use Secret references so credentials are not persisted directly in custom resources.
 -   Pin image tags for the operator and Paperclip app; avoid `latest`.
@@ -59,7 +59,8 @@ Optional later keys:
 -   CephFS is acceptable for the initial managed PostgreSQL PVC.
 -   Paperclip app storage persistence requires either an upstream operator switch to disable SELinux relabeling or a storage class that supports the injected `chcon` init container.
 -   A single Paperclip replica and managed PostgreSQL are acceptable for first validation.
--   Public access can be added later through Gateway API HTTPRoute after the private deployment is healthy.
+-   Public access is via `paperclip.krapulax.dev`; internal access is via `paperclip.krapulax.home`.
+-   `paperclip.krapulax.home` should CNAME to `kubernetes.krapulax.home`.
 
 ## Validation
 
@@ -68,6 +69,8 @@ Optional later keys:
 -   [ ] `kubectl get application -n argo-system paperclip-operator paperclip`
 -   [ ] `kubectl get instances -n ai`
 -   [ ] `kubectl get pods,pvc,svc -n ai`
+-   [ ] `kubectl get httproute -n ai paperclip paperclip`
+-   [ ] `kubectl get httproute -n ai paperclip paperclip-internal`
 -   [ ] `kubectl port-forward -n ai svc/paperclip 3100:3100`
 
 ## Rollback
