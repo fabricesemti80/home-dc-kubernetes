@@ -1,107 +1,63 @@
-# Planka Rollout
+# Planka Decommission
 
 ## Scope
 
--   [x] Deploy Planka into the existing `productivity` namespace.
--   [x] Expose Planka externally at `https://planka.krapulax.dev`.
--   [x] Expose Planka internally at `https://planka.krapulax.home`.
--   [x] Store Planka attachments and app data on a CephFS-backed PVC mounted at `/app/data`.
--   [x] Store PostgreSQL data on a CephFS-backed PVC.
--   [x] Source runtime secrets from Doppler via the existing operator pattern.
--   [x] Model the internal UniFi DNS CNAME in Terraform for later apply.
--   [x] Let `external-dns` manage the external Cloudflare DNS record from the `HTTPRoute`.
--   [x] Model the external Cloudflare Access app in Terraform for later apply.
+-   [x] Remove Planka from Argo CD desired state.
+-   [x] Remove Planka Kubernetes manifests from the repository.
+-   [x] Remove `planka.krapulax.home` from local DNS Terraform.
+-   [x] Remove `planka.krapulax.dev` from Cloudflare Access Terraform.
+-   [x] Remove Planka from dashboard navigation.
+-   [x] Preserve live PVCs and Doppler secrets until data deletion is explicitly confirmed.
+-   [x] Add validation and rollback steps.
 
-## Namespace
+## Non-Goals
 
-Use `productivity`.
+-   Do not delete live Planka PVCs.
+-   Do not delete Doppler Planka secrets.
+-   Do not create a replacement project-management app in this change.
 
-Planka is a user-facing planning and project-management application. It fits beside Linkwarden and Termix rather than `media`, `monitoring`, `network`, `storage`, or `kube-system`.
-
-## Upstream References
-
--   Planka repository: `https://github.com/plankanban/planka`
--   Docker production docs: `https://docs.planka.cloud/docs/installation/docker/production-version/`
--   Upstream Docker Compose: `https://raw.githubusercontent.com/plankanban/planka/master/docker-compose.yml`
-
-## Proposed Kubernetes Shape
+## Removed Desired State
 
 -   Argo CD app: `kubernetes/argo/apps/productivity/planka.yaml`
 -   App config: `kubernetes/apps/productivity/planka/`
--   Helm chart: existing `app-template` pattern
--   Main image: `ghcr.io/plankanban/planka:2.1.1`
--   Main container port: `1337`
--   Required env:
-    -   `BASE_URL=https://planka.krapulax.dev`
-    -   `DATABASE_URL` from Doppler-managed secret
-    -   `SECRET_KEY` from Doppler-managed secret
-    -   `TRUST_PROXY=true`
--   Bootstrap admin env:
-    -   `DEFAULT_ADMIN_EMAIL` from Doppler-managed secret
-    -   `DEFAULT_ADMIN_PASSWORD` from Doppler-managed secret
-    -   `DEFAULT_ADMIN_NAME=Fabrice`
-    -   `DEFAULT_ADMIN_USERNAME=fabrice`
--   PostgreSQL:
-    -   `postgres:16-alpine`
-    -   service name `planka-postgres`
-    -   database/user `planka`
--   Routes:
-    -   external `HTTPRoute` on `envoy-external` section `https`, hostname `planka.krapulax.dev`
-    -   internal `HTTPRoute` on `envoy-internal` sections `http` and `https`, hostname `planka.krapulax.home`
--   Cloudflare DNS:
-    -   `external-dns` creates the proxied CNAME `planka.krapulax.dev` to `external.krapulax.dev` from the external `HTTPRoute` annotations
+-   Local DNS resource: `unifi_dns_record.planka_internal`
+-   Cloudflare Access app key: `planka`
+-   Dashboard link: `Planka`
 
-## Doppler Secrets
+## Secrets And Data
 
-Required in `project-homelab/dev_homelab`:
-
--   `PLANKA_DATABASE_URL`
--   `PLANKA_SECRET_KEY`
--   `PLANKA_DB_PASSWORD`
--   `PLANKA_DEFAULT_ADMIN_EMAIL`
--   `PLANKA_DEFAULT_ADMIN_PASSWORD`
-
-`PLANKA_DATABASE_URL` should use the in-cluster service:
-
-```text
-postgresql://planka:<PLANKA_DB_PASSWORD>@planka-postgres/planka
-```
+-   Keep existing Doppler Planka keys until the Planka data-retention decision is complete.
+-   Keep Planka PVCs until exported data and attachments are no longer needed.
+-   Delete Doppler keys only after confirming there is no rollback or export requirement.
 
 ## Security Impact
 
--   Planka is externally reachable, so application authentication must remain enabled.
--   The default admin password is sensitive and must stay in Doppler only.
--   `SECRET_KEY` must be stable across restarts and restores; changing it can invalidate sessions and signed tokens.
--   The Planka app PVC and PostgreSQL PVC contain user content and should be treated as backup-sensitive data.
--   Cloudflare Access is modeled as bypass to match Linkwarden's current external-app pattern; Planka's own authentication is the primary public access control.
+-   Removing the external route and Cloudflare Access entry reduces public exposure.
+-   Removing the internal route and local DNS entry reduces LAN-visible attack surface.
+-   Retained PVCs may still contain user data and should remain backup-sensitive.
+-   Retained Doppler secrets remain secret material and must not be committed.
 
 ## Assumptions
 
--   `planka.krapulax.dev` is the canonical external URL.
--   `planka.krapulax.home` should CNAME to `kubernetes.krapulax.home`.
--   The external route should be discoverable by Homepage under `Productivity`.
--   A single Planka replica and single PostgreSQL instance are acceptable for the first rollout.
--   CephFS remains the default storage class for app configuration and data PVCs.
+-   Planka is no longer needed as an active service.
+-   Argo CD will prune resources for removed applications during sync.
+-   PVCs may remain in the cluster even after workload resources are removed.
+-   Cloudflare and local DNS Terraform state currently own the records being removed.
 
 ## Validation
 
--   [ ] `doppler secrets get PLANKA_SECRET_KEY --project project-homelab --config dev_homelab`
--   [ ] `kubectl get dopplersecret -n doppler-operator-system planka-secrets -o yaml`
--   [ ] `kubectl get secret -n productivity planka-secrets`
 -   [ ] `kubectl get application -n argo-system planka`
--   [ ] `kubectl get deploy,statefulset,pvc -n productivity | rg planka`
--   [ ] `kubectl rollout status deploy/planka -n productivity`
--   [ ] `kubectl rollout status statefulset/planka-database -n productivity`
--   [ ] `kubectl get httproute -n productivity planka planka-internal -o yaml`
+-   [ ] `kubectl get deploy,statefulset,httproute -n productivity | rg planka`
+-   [ ] `kubectl get pvc -n productivity | rg planka`
+-   [ ] `task tf:localdns:plan`
 -   [ ] `task tf:cloudflare:plan`
--   [ ] Open `https://planka.krapulax.dev`
--   [ ] Open `https://planka.krapulax.home`
--   [ ] Login with the Doppler-managed default admin credentials
+-   [ ] `dig +short planka.krapulax.home`
 
 ## Rollback
 
--   [ ] Remove the Planka Argo CD application.
--   [ ] Remove the Planka `HTTPRoute` resources.
--   [ ] Remove the local DNS and Cloudflare Access Terraform entries if they were applied.
--   [ ] Keep the Planka PVCs until exported data and attachments are no longer needed.
--   [ ] Remove Planka Doppler secrets only after the app and data are intentionally decommissioned.
+-   [ ] Restore `kubernetes/argo/apps/productivity/planka.yaml` from Git history.
+-   [ ] Restore `kubernetes/apps/productivity/planka/` from Git history.
+-   [ ] Restore the `planka` Cloudflare Access app entry and `planka.krapulax.home` local DNS resource from Git history.
+-   [ ] Re-sync the restored Argo CD application.
+-   [ ] Re-apply local DNS and Cloudflare Terraform plans.
+-   [ ] Reuse retained PVCs and Doppler secrets if they were not deleted.
