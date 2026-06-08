@@ -60,7 +60,6 @@ locals {
     "uptime"    = "uptime"
     "whoami"    = "whoami"
     "portainer" = "portainer"
-    "n8n"       = "n8n"
   }
 
   zero_trust_apps = {
