@@ -22,6 +22,7 @@ Centralized documentation for all external DNS hostnames in the cluster.
 | App        | Hostname                  | Config                                                           |
 | ---------- | ------------------------- | ---------------------------------------------------------------- |
 | Linkwarden | `linkwarden.krapulax.dev` | `kubernetes/apps/productivity/linkwarden/config/http-route.yaml` |
+| Paperclip  | `paperclip.krapulax.dev`  | `kubernetes/apps/ai/paperclip/config/http-route.yaml`            |
 
 ### Media
 
