@@ -120,39 +120,6 @@ controllers:
             cpu: "4"
             memory: 4Gi
 
-  worker-k8s-ctrl-03:
-    strategy: Recreate
-    pod:
-      nodeSelector:
-        kubernetes.io/hostname: k8s-ctrl-03
-    containers:
-      app:
-        <<: *worker
-        env:
-          TZ: Europe/London
-          PUID: "0"
-          PGID: "0"
-          UMASK_SET: "002"
-          nodeName: tdarr-k8s-ctrl-03
-          serverURL: http://tdarr:8266
-          inContainer: "true"
-          ffmpegVersion: "7"
-          nodeType: mapped
-          priority: "-1"
-          cronPluginUpdate: ""
-          maxLogSizeMB: "10"
-          pollInterval: "2000"
-          startPaused: "false"
-          transcodecpuWorkers: "4"
-          healthcheckcpuWorkers: "1"
-        resources:
-          requests:
-            cpu: "1"
-            memory: 1Gi
-          limits:
-            cpu: "4"
-            memory: 4Gi
-
 service:
   app:
     controller: tdarr
@@ -191,12 +158,6 @@ persistence:
             subPath: configs/worker-k8s-ctrl-02
           - path: /app/logs
             subPath: logs/worker-k8s-ctrl-02
-      worker-k8s-ctrl-03:
-        app:
-          - path: /app/configs
-            subPath: configs/worker-k8s-ctrl-03
-          - path: /app/logs
-            subPath: logs/worker-k8s-ctrl-03
   media:
     enabled: true
     existingClaim: media-library-pvc
@@ -208,9 +169,6 @@ persistence:
         app:
           - path: /media
       worker-k8s-ctrl-02:
-        app:
-          - path: /media
-      worker-k8s-ctrl-03:
         app:
           - path: /media
   transcode-cache:
@@ -227,10 +185,6 @@ persistence:
           - path: /temp
             subPath: tdarr-cache
       worker-k8s-ctrl-02:
-        app:
-          - path: /temp
-            subPath: tdarr-cache
-      worker-k8s-ctrl-03:
         app:
           - path: /temp
             subPath: tdarr-cache

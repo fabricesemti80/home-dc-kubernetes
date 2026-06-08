@@ -8,6 +8,17 @@ defaultPodOptions:
 controllers:
   jellyfin:
     strategy: RollingUpdate
+    pod:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: app.kubernetes.io/instance
+                    operator: In
+                    values:
+                      - tdarr
+              topologyKey: kubernetes.io/hostname
     containers:
       app:
         image:
@@ -42,7 +53,7 @@ controllers:
             cpu: 2000m
             memory: 3Gi
           limits:
-            cpu: 4000m
+            cpu: 8000m
             memory: 8Gi
 
 service:
