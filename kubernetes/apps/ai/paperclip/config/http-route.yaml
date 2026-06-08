@@ -1,0 +1,27 @@
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: paperclip
+  namespace: ai
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: paperclip.krapulax.dev
+    external-dns.alpha.kubernetes.io/target: external.krapulax.dev
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/group: AI
+    gethomepage.dev/name: Paperclip
+    gethomepage.dev/icon: paperclip.png
+    gethomepage.dev/description: AI agent orchestration workspace
+    gethomepage.dev/weight: "10"
+spec:
+  parentRefs:
+    - name: envoy-external
+      namespace: network
+      sectionName: https
+  hostnames:
+    - paperclip.krapulax.dev
+  rules:
+    - backendRefs:
+        - name: paperclip
+          namespace: ai
+          port: 3100

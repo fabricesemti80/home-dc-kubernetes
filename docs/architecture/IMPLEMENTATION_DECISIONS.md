@@ -220,6 +220,44 @@ Rollback:
 -   Re-apply local DNS and Cloudflare Terraform plans.
 -   Reuse preserved PVCs and Doppler secrets if they were intentionally retained.
 
+### Paperclip operator deployment
+
+Decision:
+
+-   Deploy Paperclip in a new `ai` namespace.
+-   Install `paperclip-operator` with the upstream Helm chart pinned to `0.12.1`.
+-   Create a private Paperclip `Instance` pinned to the amd64 digest for `ghcr.io/paperclipai/paperclip:latest`.
+-   Use managed PostgreSQL on CephFS and keep Paperclip app storage ephemeral for the initial deployment because the upstream operator injects a `chcon` init container that CephFS does not support.
+-   Source auth, master-key, and provider API key material from Doppler into a Kubernetes Secret.
+-   Expose Paperclip externally at `https://paperclip.krapulax.dev` and internally at `https://paperclip.krapulax.home` once the private deployment is validated.
+-   Model `paperclip.krapulax.home` in `infra/terraform_localdns/` and let `external-dns` own the external Cloudflare record from the public `HTTPRoute`.
+
+Assumptions:
+
+-   Kubernetes `v1.36.1` satisfies the operator chart requirement of Kubernetes `>=1.28.0`.
+-   The Doppler `project-homelab/dev_homelab` config can provide `PAPERCLIP_BETTER_AUTH_SECRET`, `PAPERCLIP_MASTER_KEY`, `OPENAI_API_KEY`, and `ANTHROPIC_API_KEY`.
+-   A single Paperclip replica and operator-managed PostgreSQL are acceptable for the first deployment.
+-   Paperclip app storage persistence should be revisited after the operator can disable SELinux relabeling or a compatible storage class is selected.
+
+Validation checks:
+
+-   `kubectl get application -n argo-system paperclip-operator paperclip`
+-   `kubectl get crd | rg paperclip`
+-   `kubectl get dopplersecret -n doppler-operator-system paperclip-secrets`
+-   `kubectl get secret -n ai paperclip-secrets`
+-   `kubectl get instances -n ai`
+-   `kubectl get pods,pvc,svc -n ai`
+-   `kubectl get httproute -n ai paperclip paperclip`
+-   `kubectl get httproute -n ai paperclip paperclip-internal`
+-   `kubectl port-forward -n ai svc/paperclip 3100:3100`
+
+Rollback:
+
+-   Remove the Paperclip `Instance` application first so the operator can reconcile dependent resources.
+-   Remove the Paperclip operator application only after managed resources are gone or intentionally retained.
+-   Keep Paperclip PVCs until data export or deletion is explicitly confirmed.
+-   Remove Doppler Paperclip secrets only after rollback/export is no longer required.
+
 ### Talos VM disk capacity increase
 
 Decision:

@@ -55,5 +55,10 @@ output "kubernetes_internal_dns_records" {
       type   = unifi_dns_record.termix_internal.type
       record = unifi_dns_record.termix_internal.record
     }
+    paperclip = {
+      name   = unifi_dns_record.paperclip_internal.name
+      type   = unifi_dns_record.paperclip_internal.type
+      record = unifi_dns_record.paperclip_internal.record
+    }
   }
 }
