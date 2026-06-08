@@ -91,3 +91,7 @@ persistence:
     type: emptyDir
     globalMounts:
       - path: /tmp
+  cache:
+    type: emptyDir
+    globalMounts:
+      - path: /home/node/.cache
