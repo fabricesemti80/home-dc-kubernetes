@@ -60,6 +60,7 @@ locals {
     "uptime"    = "uptime"
     "whoami"    = "whoami"
     "portainer" = "portainer"
+    "n8n"       = "n8n"
   }
 
   zero_trust_apps = {
@@ -117,6 +118,13 @@ locals {
       subdomain     = "photos"
       policy_type   = "bypass"
       session_hours = 720
+      auto_redirect = false
+    }
+    "n8n" = {
+      name          = "n8n"
+      subdomain     = "n8n"
+      policy_type   = "allow"
+      session_hours = 24
       auto_redirect = false
     }
   }

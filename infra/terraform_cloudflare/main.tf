@@ -101,6 +101,55 @@ resource "cloudflare_zero_trust_tunnel_cloudflared" "trinity" {
   tunnel_secret = null
 }
 
+resource "cloudflare_zero_trust_access_policy" "n8n_webhook_bypass" {
+  account_id       = var.cloudflare_account_id
+  name             = "n8n Webhook Bypass"
+  decision         = "bypass"
+  session_duration = "30m"
+
+  include = [
+    {
+      everyone = {}
+    }
+  ]
+}
+
+resource "cloudflare_zero_trust_access_application" "n8n_webhook" {
+  account_id                 = var.cloudflare_account_id
+  name                       = "n8n Webhook"
+  domain                     = "n8n.krapulax.dev/webhook"
+  type                       = "self_hosted"
+  http_only_cookie_attribute = false
+  session_duration           = "30m"
+  skip_interstitial          = true
+  auto_redirect_to_identity  = false
+
+  policies = [
+    {
+      id         = cloudflare_zero_trust_access_policy.n8n_webhook_bypass.id
+      precedence = 1
+    }
+  ]
+}
+
+resource "cloudflare_zero_trust_access_application" "n8n_webhook_test" {
+  account_id                 = var.cloudflare_account_id
+  name                       = "n8n Webhook Test"
+  domain                     = "n8n.krapulax.dev/webhook-test"
+  type                       = "self_hosted"
+  http_only_cookie_attribute = false
+  session_duration           = "30m"
+  skip_interstitial          = true
+  auto_redirect_to_identity  = false
+
+  policies = [
+    {
+      id         = cloudflare_zero_trust_access_policy.n8n_webhook_bypass.id
+      precedence = 1
+    }
+  ]
+}
+
 resource "cloudflare_dns_record" "app" {
   for_each = local.dns_apps
 

@@ -1,0 +1,92 @@
+---
+global:
+  createDefaultServiceAccount: false
+
+controllers:
+  n8n:
+    replicas: 1
+    strategy: RollingUpdate
+    containers:
+      app:
+        image:
+          repository: docker.io/n8nio/n8n
+          tag: 2.25.6
+        env:
+          TZ: Europe/London
+          N8N_PORT: &port 5678
+          N8N_PROTOCOL: https
+          N8N_HOST: n8n.krapulax.dev
+          N8N_EDITOR_BASE_URL: https://n8n.krapulax.dev
+          WEBHOOK_URL: https://n8n.krapulax.dev
+          N8N_METRICS: "false"
+          EXECUTIONS_DATA_PRUNE: "true"
+          EXECUTIONS_DATA_MAX_AGE: "168"
+          DB_TYPE: sqlite
+        envFrom:
+          - secretRef:
+              name: n8n-secrets
+        probes:
+          liveness: &probes
+            enabled: true
+            custom: true
+            spec:
+              httpGet:
+                path: /healthz
+                port: *port
+              initialDelaySeconds: 20
+              periodSeconds: 15
+              timeoutSeconds: 3
+              failureThreshold: 6
+          readiness: *probes
+          startup:
+            enabled: true
+            custom: true
+            spec:
+              httpGet:
+                path: /healthz
+                port: *port
+              initialDelaySeconds: 5
+              periodSeconds: 10
+              timeoutSeconds: 3
+              failureThreshold: 30
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities: { drop: ["ALL"] }
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            ephemeral-storage: 2Gi
+            memory: 1Gi
+
+defaultPodOptions:
+  automountServiceAccountToken: false
+  annotations:
+    reloader.stakater.com/auto: "true"
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+    runAsGroup: 1000
+    fsGroup: 1000
+
+service:
+  app:
+    controller: n8n
+    ports:
+      http:
+        port: 5678
+
+persistence:
+  data:
+    type: persistentVolumeClaim
+    accessMode: ReadWriteMany
+    storageClass: cephfs
+    size: 5Gi
+    globalMounts:
+      - path: /home/node/.n8n
+  tmp:
+    type: emptyDir
+    globalMounts:
+      - path: /tmp
