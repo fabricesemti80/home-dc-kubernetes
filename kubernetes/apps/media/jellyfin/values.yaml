@@ -35,6 +35,7 @@ controllers:
           # Software transcoding tuning
           JELLYFIN_FFmpeg_CpuThreads: "4"
           JELLYFIN_EncodingThreadCount: "4"
+          JELLYFIN_CACHE_DIR: /cache
         probes:
           liveness: &probes
             enabled: true

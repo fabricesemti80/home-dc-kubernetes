@@ -1,0 +1,39 @@
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: jellyfin-transcode-cleanup
+  namespace: media
+  labels:
+    app.kubernetes.io/name: jellyfin
+    app.kubernetes.io/instance: jellyfin
+    app.kubernetes.io/component: maintenance
+spec:
+  schedule: "0 4 * * 0"  # Weekly: Sunday 04:00 UTC
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      template:
+        spec:
+          restartPolicy: OnFailure
+          automountServiceAccountToken: false
+          containers:
+            - name: cleanup
+              image: busybox:1.37
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  echo "Cleaning stale transcodes..."
+                  rm -rf /cache/transcodes/*
+                  echo "Done."
+              volumeMounts:
+                - name: cache
+                  mountPath: /cache
+          volumes:
+            - name: cache
+              persistentVolumeClaim:
+                claimName: jellyfin-cache

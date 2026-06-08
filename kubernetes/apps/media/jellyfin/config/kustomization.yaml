@@ -6,3 +6,4 @@ resources:
   - ./media-library-pvc.yaml
   - ./http-route.yaml
   - ./http-route-internal.yaml
+  - ./transcode-cleanup.yaml
