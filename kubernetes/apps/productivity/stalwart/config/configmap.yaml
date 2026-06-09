@@ -1,0 +1,56 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: stalwart-config
+  namespace: productivity
+data:
+  config.toml: |
+    # Stalwart Mail Server configuration
+    # All other config managed through the WebAdmin UI on port 8080
+
+    [server]
+    hostname = "mail.krapulax.dev"
+
+    [server.listener."http"]
+    bind = ["[::]:8080"]
+    protocol = "http"
+
+    [server.listener."smtp"]
+    bind = ["[::]:25"]
+    protocol = "smtp"
+    tls.implicit = false
+
+    [server.listener."submissions"]
+    bind = ["[::]:587"]
+    protocol = "smtp"
+    tls.implicit = false
+
+    [server.listener."submissions-tls"]
+    bind = ["[::]:465"]
+    protocol = "smtp"
+    tls.implicit = true
+
+    [server.listener."imap"]
+    bind = ["[::]:143"]
+    protocol = "imap"
+    tls.implicit = false
+
+    [server.listener."imaptls"]
+    bind = ["[::]:993"]
+    protocol = "imap"
+    tls.implicit = true
+
+    [server.listener."managesieve"]
+    bind = ["[::]:4190"]
+    protocol = "manageSieve"
+    tls.implicit = false
+
+    [storage]
+    data = "rocksdb"
+    fts = "rocksdb"
+    blob = "rocksdb"
+    lookup = "rocksdb"
+
+    [directory]
+    type = "internal"

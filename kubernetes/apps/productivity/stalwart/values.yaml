@@ -1,0 +1,91 @@
+---
+global:
+  createDefaultServiceAccount: false
+
+controllers:
+  stalwart:
+    type: statefulset
+    replicas: 1
+    strategy: RollingUpdate
+    pod:
+      securityContext:
+        runAsUser: 2000
+        runAsGroup: 2000
+        fsGroup: 2000
+    containers:
+      app:
+        image:
+          repository: stalwartlabs/mail-server
+          tag: latest
+        env:
+          TZ: Europe/London
+          STALWART_HOSTNAME: mail.krapulax.dev
+        probes:
+          liveness: &probes
+            enabled: true
+            custom: true
+            spec:
+              httpGet:
+                path: /health
+                port: 8080
+              initialDelaySeconds: 30
+              periodSeconds: 20
+              timeoutSeconds: 5
+              failureThreshold: 6
+          readiness: *probes
+          startup:
+            enabled: true
+            custom: true
+            spec:
+              httpGet:
+                path: /health
+                port: 8080
+              initialDelaySeconds: 5
+              periodSeconds: 10
+              timeoutSeconds: 5
+              failureThreshold: 30
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            memory: 1Gi
+
+service:
+  app:
+    controller: stalwart
+    ports:
+      http:
+        port: 8080
+      smtp:
+        port: 25
+      submissions:
+        port: 587
+      smtps:
+        port: 465
+      imap:
+        port: 143
+      imaps:
+        port: 993
+      managesieve:
+        port: 4190
+
+persistence:
+  config:
+    type: configMap
+    name: stalwart-config
+    globalMounts:
+      - path: /etc/stalwart
+  data:
+    type: persistentVolumeClaim
+    accessMode: ReadWriteMany
+    storageClass: cephfs
+    size: 10Gi
+    advancedMounts:
+      stalwart:
+        app:
+          - path: /var/lib/stalwart
+  tmp:
+    type: emptyDir
+    globalMounts:
+      - path: /tmp

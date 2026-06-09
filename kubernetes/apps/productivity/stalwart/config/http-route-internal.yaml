@@ -1,0 +1,28 @@
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: stalwart-internal
+  namespace: productivity
+  annotations:
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/group: Productivity
+    gethomepage.dev/name: Stalwart Mail
+    gethomepage.dev/icon: email.png
+    gethomepage.dev/description: All-in-one mail server
+    gethomepage.dev/weight: "30"
+spec:
+  parentRefs:
+    - name: envoy-internal
+      namespace: network
+      sectionName: http
+    - name: envoy-internal
+      namespace: network
+      sectionName: https
+  hostnames:
+    - stalwart.krapulax.home
+  rules:
+    - backendRefs:
+        - name: stalwart
+          namespace: productivity
+          port: 8080
