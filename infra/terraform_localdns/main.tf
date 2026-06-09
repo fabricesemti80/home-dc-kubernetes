@@ -76,3 +76,9 @@ resource "unifi_dns_record" "n8n_internal" {
   type   = "CNAME"
   record = unifi_dns_record.kubernetes_internal_gateway.name
 }
+
+resource "unifi_dns_record" "stalwart_internal" {
+  name   = "stalwart.${local.internal_domain}"
+  type   = "CNAME"
+  record = unifi_dns_record.kubernetes_internal_gateway.name
+}

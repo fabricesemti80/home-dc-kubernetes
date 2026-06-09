@@ -15,11 +15,15 @@ controllers:
     containers:
       app:
         image:
-          repository: stalwartlabs/mail-server
-          tag: latest
+          repository: stalwartlabs/stalwart
+          tag: v0.16
         env:
           TZ: Europe/London
           STALWART_HOSTNAME: mail.krapulax.dev
+          STALWART_PUBLIC_URL: https://mail.krapulax.dev
+        envFrom:
+          - secretRef:
+              name: stalwart-secrets
         probes:
           liveness: &probes
             enabled: true
