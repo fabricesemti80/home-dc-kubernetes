@@ -161,6 +161,26 @@ resource "cloudflare_dns_record" "app" {
   ttl     = 1
 }
 
+# Mail server DNS records (Stalwart)
+
+resource "cloudflare_dns_record" "mail_mx" {
+  zone_id  = var.cloudflare_zone_id
+  name     = local.base_domain
+  content  = "mail.${local.base_domain}"
+  type     = "MX"
+  priority = 10
+  proxied  = false
+  ttl      = 1
+}
+
+resource "cloudflare_dns_record" "mail_spf" {
+  zone_id = var.cloudflare_zone_id
+  name    = local.base_domain
+  content  = "v=spf1 mx ~all"
+  type    = "TXT"
+  ttl     = 1
+}
+
 resource "cloudflare_zero_trust_access_policy" "allow_emails" {
   count = 1
 
