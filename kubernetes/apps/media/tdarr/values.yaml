@@ -50,7 +50,7 @@ controllers:
             memory: 1Gi
           limits:
             cpu: 500m
-            memory: 4Gi
+            memory: 1Gi
 
   worker-k8s-ctrl-01:
     strategy: Recreate
@@ -85,7 +85,7 @@ controllers:
             memory: 1Gi
           limits:
             cpu: 3500m
-            memory: 4Gi
+            memory: 1Gi
 
   worker-k8s-ctrl-02:
     strategy: Recreate

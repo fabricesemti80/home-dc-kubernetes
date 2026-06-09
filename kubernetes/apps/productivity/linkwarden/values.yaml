@@ -59,7 +59,7 @@ controllers:
             cpu: 250m
             memory: 512Mi
           limits:
-            memory: 2Gi
+            memory: 1536Mi
 
   database:
     type: statefulset
@@ -96,7 +96,7 @@ controllers:
             cpu: 100m
             memory: 256Mi
           limits:
-            memory: 1Gi
+            memory: 512Mi
 
 service:
   app:
