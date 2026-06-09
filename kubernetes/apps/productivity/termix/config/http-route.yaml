@@ -1,0 +1,27 @@
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: termix
+  namespace: productivity
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: termix.krapulax.dev
+    external-dns.alpha.kubernetes.io/target: external.krapulax.dev
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/group: Productivity
+    gethomepage.dev/name: Termix
+    gethomepage.dev/icon: terminal.png
+    gethomepage.dev/description: Internal SSH and server access
+    gethomepage.dev/weight: "20"
+spec:
+  parentRefs:
+    - name: envoy-external
+      namespace: network
+      sectionName: https
+  hostnames:
+    - termix.krapulax.dev
+  rules:
+    - backendRefs:
+        - name: termix
+          namespace: productivity
+          port: 80
