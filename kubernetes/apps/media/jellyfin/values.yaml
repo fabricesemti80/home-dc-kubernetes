@@ -11,14 +11,16 @@ controllers:
     pod:
       affinity:
         podAntiAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            - labelSelector:
-                matchExpressions:
-                  - key: app.kubernetes.io/instance
-                    operator: In
-                    values:
-                      - tdarr
-              topologyKey: kubernetes.io/hostname
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: app.kubernetes.io/instance
+                      operator: In
+                      values:
+                        - immich
+                topologyKey: kubernetes.io/hostname
     containers:
       app:
         image:
@@ -33,8 +35,8 @@ controllers:
           JELLYFIN_MaxStreamBitrate: "80000000"
           JELLYFIN_TranscodeMaxAudioChannels: "2"
           # Software transcoding tuning — 10 cores available
-          JELLYFIN_FFmpeg_CpuThreads: "6"
-          JELLYFIN_EncodingThreadCount: "6"
+          JELLYFIN_FFmpeg_CpuThreads: "8"
+          JELLYFIN_EncodingThreadCount: "8"
           JELLYFIN_CACHE_DIR: /cache
         probes:
           liveness: &probes
