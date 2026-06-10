@@ -28,14 +28,16 @@ tasks:
       - which talhelper talosctl yq
 
   upgrade-node:
-    desc: Upgrade Talos on a single node [IP=required]
+    desc: Upgrade Talos on a single node [IP=required, VERSION=optional]
     dir: '{{.TALOS_DIR}}'
     cmd: talhelper gencommand upgrade --node {{.IP}} --extra-flags "--image='{{.TALOS_IMAGE}}:{{.TALOS_VERSION}}' --timeout=10m" | bash
     vars:
       TALOS_IMAGE:
-        sh: yq '.nodes[] | select(.ipAddress == "{{.IP}}") | .talosImageURL' {{.TALOS_DIR}}/talconfig.yaml
+        sh: yq -r '.nodes[] | select(.ipAddress == "{{.IP}}") | .talosImageURL' {{.TALOS_DIR}}/talconfig.yaml
+      TARGET_VERSION:
+        sh: yq -r '.talosVersion' {{.TALOS_DIR}}/talenv.yaml
       TALOS_VERSION:
-        sh: yq '.talosVersion' {{.TALOS_DIR}}/talenv.yaml
+        sh: echo '{{.VERSION | default .TARGET_VERSION}}'
     requires:
       vars: [IP]
     preconditions:
@@ -50,7 +52,7 @@ tasks:
     cmd: talhelper gencommand upgrade-k8s --extra-flags "--to '{{.KUBERNETES_VERSION}}'" | bash
     vars:
       KUBERNETES_VERSION:
-        sh: yq '.kubernetesVersion' {{.TALOS_DIR}}/talenv.yaml
+        sh: yq -r '.kubernetesVersion' {{.TALOS_DIR}}/talenv.yaml
     preconditions:
       - talosctl config info
       - test -f {{.TALOSCONFIG}}
