@@ -272,6 +272,59 @@ Rollback:
 -   Set `on_boot = true` on selected worker entries in `infra/terraform_proxmox/nodes.auto.tfvars` if workers should start with Proxmox again.
 -   Set worker `started = true` only when intentionally reintroducing them as active cluster capacity.
 
+### Talos etcd stability on existing storage
+
+Decision:
+
+-   Keep the existing Proxmox VM and Ceph RBD layout unchanged.
+-   Keep the default 100 ms etcd heartbeat and set a 3000 ms election timeout to tolerate short storage stalls without slowing normal heartbeat cadence.
+-   Keep the default snapshot count and 2 GiB backend quota because the current backend is far below either operational limit.
+-   Do not schedule automatic etcd defragmentation. Run Talos-native defrag one member at a time only when backend fragmentation is material.
+-   Optionally upgrade Talos in place from v1.12.4 to v1.12.8 and then v1.13.4, using the matching client for each adjacent-minor step.
+-   Keep Kubernetes and the generated configuration target at the deployed v1.35.1 during this runbook; treat v1.36.1 as a separate Kubernetes upgrade.
+
+Context:
+
+-   Each control-plane VM has 8 vCPU and 16 GiB RAM; live utilization does not show CPU or memory pressure.
+-   Inter-host latency is below 0.5 ms on both cluster networks.
+-   Ceph reports about 10 ms OSD commit latency.
+-   etcd logs show repeated 100-700 ms transactions and delayed heartbeats attributed to slow disk.
+-   The etcd backend is only about 62-64 MB per member, with about 20 MB in use, so quota growth and weekly defrag are not current constraints.
+
+Assumptions:
+
+-   The current Proxmox and Ceph storage design remains a hard constraint for this change.
+-   Occasional storage stalls are more harmful than a slower control-plane failure detection time.
+-   A 3-second election timeout is acceptable for this personal lab.
+-   In-place Talos image upgrades do not rerun Terraform or recreate Proxmox network devices.
+-   The current Talos Image Factory schematic remains valid for v1.12.8 and v1.13.4.
+
+Security and resilience impact:
+
+-   The change does not alter network exposure, credentials, storage placement, or VM durability.
+-   Leader failure detection may take up to about three seconds instead of the one-second default.
+-   Talos secrets, machine configuration, and regular etcd snapshots remain required for disaster recovery.
+-   Talos uses an A/B image upgrade scheme and can automatically boot the prior image if the new version fails.
+
+Validation checks:
+
+-   `talosctl --talosconfig talos/clusterconfig/talosconfig health`.
+-   `talosctl --talosconfig talos/clusterconfig/talosconfig -n 10.0.40.90,10.0.40.91,10.0.40.92 etcd status`.
+-   Confirm the rendered controller configuration contains only `election-timeout: "3000"` in addition to the existing metrics listener.
+-   Compare leader-election churn before and after the rolling apply.
+-   Confirm all nodes report Talos v1.13.4 only if the optional OS upgrade is performed.
+-   Confirm Kubernetes remains v1.35.1 until a separate Kubernetes upgrade is approved.
+
+Rollback:
+
+-   Remove the `election-timeout` extra argument.
+-   Regenerate Talos machine configuration and apply it to one control-plane at a time.
+-   Use `talosctl rollback` on one node at a time if the optional Talos upgrade causes a node-level regression.
+
+Optional host recommendation:
+
+-   If Talos-only mitigation is insufficient, evaluate lower-latency storage for control-plane VM disks or dedicated workers to reduce I/O contention. This is outside the scope of this decision and must not be applied through this change.
+
 ### Kubernetes local DNS in UniFi
 
 Decision:
