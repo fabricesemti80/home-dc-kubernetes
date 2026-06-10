@@ -32,7 +32,7 @@ controllers:
           JELLYFIN_Codepage: ""
           JELLYFIN_MaxStreamBitrate: "80000000"
           JELLYFIN_TranscodeMaxAudioChannels: "2"
-          # Software transcoding tuning — 8 cores available
+          # Software transcoding tuning — 10 cores available
           JELLYFIN_FFmpeg_CpuThreads: "6"
           JELLYFIN_EncodingThreadCount: "6"
           JELLYFIN_CACHE_DIR: /cache
@@ -54,7 +54,7 @@ controllers:
             cpu: 2000m
             memory: 3Gi
           limits:
-            cpu: 8000m
+            cpu: 9500m
             memory: 8Gi
 
 service:
