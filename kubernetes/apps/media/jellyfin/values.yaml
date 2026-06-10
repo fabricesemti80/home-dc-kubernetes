@@ -9,10 +9,6 @@ controllers:
   jellyfin:
     strategy: RollingUpdate
     pod:
-      extraVolumes:
-        - name: transcode
-          emptyDir:
-            medium: Memory
       affinity:
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
@@ -30,9 +26,6 @@ controllers:
         image:
           repository: lscr.io/linuxserver/jellyfin
           tag: "10.11.11"
-        extraVolumeMounts:
-          - name: transcode
-            mountPath: /transcode
         env:
           TZ: Europe/London
           PUID: "0"
@@ -75,6 +68,11 @@ service:
         targetPort: 8096
 
 persistence:
+  transcode:
+    type: emptyDir
+    medium: Memory
+    globalMounts:
+      - path: /transcode
   config:
     type: persistentVolumeClaim
     accessMode: ReadWriteMany
