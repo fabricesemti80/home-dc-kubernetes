@@ -1,0 +1,27 @@
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: bambuddy
+  namespace: productivity
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: bambuddy.krapulax.dev
+    external-dns.alpha.kubernetes.io/target: external.krapulax.dev
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/group: Productivity
+    gethomepage.dev/name: Bambuddy
+    gethomepage.dev/icon: bambuddy.png
+    gethomepage.dev/description: Self-hosted Bambu Lab 3D printer management
+    gethomepage.dev/weight: "40"
+spec:
+  parentRefs:
+    - name: envoy-external
+      namespace: network
+      sectionName: https
+  hostnames:
+    - bambuddy.krapulax.dev
+  rules:
+    - backendRefs:
+        - name: bambuddy
+          namespace: productivity
+          port: 8000
