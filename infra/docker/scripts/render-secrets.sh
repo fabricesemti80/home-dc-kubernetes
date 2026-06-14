@@ -38,6 +38,7 @@ write_dotenv() {
   local uptime_kuma_hostname="${UPTIME_KUMA_HOSTNAME:-uptime.${domain}}"
   local whoami_hostname="${WHOAMI_HOSTNAME:-whoami.${domain}}"
   local portainer_hostname="${PORTAINER_HOSTNAME:-portainer.${domain}}"
+  local bambuddy_hostname="${BAMBUDDY_HOSTNAME:-bambuddy.${domain}}"
   # Included Compose files resolve bind-mount paths relative to their own
   # directories, so the shared Docker root must be explicit.
   if [ -z "$docker_root_value" ]; then
@@ -65,6 +66,7 @@ write_dotenv() {
     printf 'UPTIME_KUMA_HOSTNAME=%s\n' "$(dotenv_quote "$uptime_kuma_hostname")"
     printf 'WHOAMI_HOSTNAME=%s\n' "$(dotenv_quote "$whoami_hostname")"
     printf 'PORTAINER_HOSTNAME=%s\n' "$(dotenv_quote "$portainer_hostname")"
+    printf 'BAMBUDDY_HOSTNAME=%s\n' "$(dotenv_quote "$bambuddy_hostname")"
 
   } >"$env_file"
   chmod 0600 "$env_file"

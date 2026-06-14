@@ -7,6 +7,7 @@ include:
   - ./beszel/compose.yml
   - ./uptime-kuma/compose.yml
   - ./whoami/compose.yml
+  - ./bambuddy/compose.yml
   - ./portainer/compose.yml
 
 networks:
