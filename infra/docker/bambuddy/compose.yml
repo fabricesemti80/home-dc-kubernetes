@@ -15,11 +15,6 @@ services:
     volumes:
       - bambuddy_data:/app/data
       - bambuddy_logs:/app/logs
-    labels:
-      traefik.enable: "true"
-      traefik.http.routers.bambuddy.rule: Host(`${BAMBUDDY_HOSTNAME:-bambuddy.krapulax.dev}`)
-      traefik.http.routers.bambuddy.entrypoints: web
-      traefik.http.services.bambuddy.loadbalancer.server.port: "${BAMBUDDY_PORT:-8000}"
 
 volumes:
   bambuddy_data:

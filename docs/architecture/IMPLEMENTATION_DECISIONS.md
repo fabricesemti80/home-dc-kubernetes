@@ -341,6 +341,8 @@ Assumptions:
 -   `photos.krapulax.home`, `jellyfin.krapulax.home`, `requests.krapulax.home`, `prowlarr.krapulax.home`, `qbittorrent.krapulax.home`, `radarr.krapulax.home`, `sabnzbd.krapulax.home`, `sonarr.krapulax.home`, `tdarr.krapulax.home`, and `termix.krapulax.home` should CNAME to `kubernetes.krapulax.home`.
 -   Recyclarr is not exposed through a local HTTPRoute because it has no existing external HTTPRoute or user-facing service in the current media namespace config.
 -   Doppler `project-homelab/dev_homelab` will provide `UNIFI_USERNAME`, `UNIFI_PASSWORD`, `UNIFI_API_URL`, and optionally `UNIFI_ALLOW_INSECURE`.
+-   The UniFi API is reachable from operator workstations at `https://192.168.1.1`; the provider must allow its self-signed TLS certificate.
+-   Bambuddy remains on host networking for printer discovery and camera streaming. It is exposed only on the LAN as `bambuddy.krapulax.home:8000`, pointing to Docker host `10.0.40.19`; Cloudflare and Traefik do not publish it.
 
 Validation checks:
 

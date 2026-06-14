@@ -11,6 +11,12 @@ resource "unifi_dns_record" "kubernetes_internal_gateway" {
   record = local.kubernetes_internal_gateway_ip
 }
 
+resource "unifi_dns_record" "bambuddy_internal" {
+  name   = "bambuddy.${local.internal_domain}"
+  type   = "A"
+  record = local.docker_host_ip
+}
+
 resource "unifi_dns_record" "immich_internal" {
   name   = "photos.${local.internal_domain}"
   type   = "CNAME"

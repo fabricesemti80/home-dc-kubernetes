@@ -20,6 +20,7 @@ Current Cloudflare Access intent:
 
 1. `portainer.krapulax.dev` stays protected by Cloudflare Access.
 2. `beszel.krapulax.dev` remains the bypassed public service in this Docker tier.
+3. Bambuddy is LAN-only at `http://bambuddy.krapulax.home:8000`; UniFi DNS points that name directly to `morpheus`.
 
 Omni and its Proxmox provider are intentionally not part of this Docker tier.
 

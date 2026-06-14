@@ -5,6 +5,11 @@ output "kubernetes_internal_dns_records" {
       type   = unifi_dns_record.kubernetes_internal_gateway.type
       record = unifi_dns_record.kubernetes_internal_gateway.record
     }
+    bambuddy = {
+      name   = unifi_dns_record.bambuddy_internal.name
+      type   = unifi_dns_record.bambuddy_internal.type
+      record = unifi_dns_record.bambuddy_internal.record
+    }
     photos = {
       name   = unifi_dns_record.immich_internal.name
       type   = unifi_dns_record.immich_internal.type
