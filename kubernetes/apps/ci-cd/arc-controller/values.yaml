@@ -1,0 +1,41 @@
+---
+# Actions Runner Controller
+# Installs the ARC controller + CRDs for managing runner scale sets.
+# Prerequisites: none (the runner-set chart depends on the CRDs this installs).
+
+replicaCount: 1
+
+image:
+  repository: "ghcr.io/actions/gha-runner-scale-set-controller"
+  pullPolicy: IfNotPresent
+
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  name: ""
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    memory: 256Mi
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+priorityClassName: ""
+
+# Disable metrics unless you have Prometheus scraping set up
+# metrics:
+#   controllerManagerAddr: ":8080"
+#   listenerAddr: ":8080"
+#   listenerEndpoint: "/metrics"
+
+flags:
+  logLevel: "info"
+  logFormat: "text"
+  runnerMaxConcurrentReconciles: 2

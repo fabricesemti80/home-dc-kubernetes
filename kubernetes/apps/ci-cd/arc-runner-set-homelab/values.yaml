@@ -1,0 +1,69 @@
+---
+# ARC Runner Scale Set — project-homelab repo
+# Defines the autoscaling runner group for this GitHub repo.
+# Requires the arc-controller chart (CRDs) to be installed first,
+# and a GitHub App secret to exist in the arc-system namespace.
+
+githubConfigUrl: "https://github.com/fabricesemti80/project-homelab"
+
+# Auth: GitHub App (pre-created secret — see PR description for setup)
+# After creating the GitHub App, create the secret with:
+#
+#   kubectl create secret generic arc-github-app-secret \
+#     --namespace arc-system \
+#     --from-literal=github_app_id="<APP_ID>" \
+#     --from-literal=github_app_installation_id="<INSTALL_ID>" \
+#     --from-literal=github_app_private_key="$(cat /path/to/private-key.pem)"
+#
+githubConfigSecret: arc-github-app-secret
+
+# Autoscaling bounds — runners spin up on demand and idle at 0
+minRunners: 0
+maxRunners: 3
+
+# Runner group (optional — use "default" unless you've created custom groups)
+runnerGroup: "default"
+
+# Labels so workflows can target these runners via `runs-on: [self-hosted, homelab]`
+scaleSetLabels:
+  - self-hosted
+  - homelab
+
+# Container mode: dind (needed for workflows that use `docker build`)
+containerMode:
+  type: "dind"
+
+# Listener template — restrict runner pods to media/general workers
+listenerTemplate:
+  spec:
+    tolerations:
+      - key: "node-role.kubernetes.io/master"
+        operator: "Exists"
+        effect: "NoSchedule"
+    nodeSelector:
+      kubernetes.io/role: worker
+
+# Runner pod template overrides
+# (ARC generates the rest — only adding security + resource constraints)
+template:
+  spec:
+    securityContext:
+      runAsNonRoot: true
+      runAsUser: 1001
+      runAsGroup: 123
+      fsGroup: 123
+    containers:
+      - name: runner
+        resources:
+          requests:
+            cpu: 500m
+            memory: 512Mi
+          limits:
+            memory: 2Gi
+      - name: dind
+        resources:
+          requests:
+            cpu: 500m
+            memory: 512Mi
+          limits:
+            memory: 2Gi

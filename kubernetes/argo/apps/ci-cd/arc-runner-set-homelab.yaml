@@ -1,0 +1,42 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: arc-runner-set-homelab
+  namespace: argo-system
+  annotations:
+    argocd.argoproj.io/sync-wave: '1'
+spec:
+  project: kubernetes
+  sources:
+    - repoURL: "https://github.com/fabricesemti80/project-homelab.git"
+      path: kubernetes/apps/ci-cd/arc-runner-set-homelab
+      targetRevision: main
+      ref: repo
+    - repoURL: oci://ghcr.io/actions/actions-runner-controller-charts/gha-runner-scale-set
+      chart: gha-runner-scale-set
+      targetRevision: 0.6.1
+      helm:
+        releaseName: arc-runner-set-homelab
+        valueFiles:
+          - $repo/kubernetes/apps/ci-cd/arc-runner-set-homelab/values.yaml
+  destination:
+    name: in-cluster
+    namespace: arc-system
+  syncPolicy:
+    automated:
+      allowEmpty: true
+      prune: true
+      selfHeal: true
+    retry:
+      limit: 1
+      backoff:
+        duration: 10s
+        factor: 2
+        maxDuration: 3m
+    syncOptions:
+      - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true
+      - ServerSideApply=true
+      - PruneLast=true
+      - RespectIgnoreDifferences=true
