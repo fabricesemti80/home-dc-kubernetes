@@ -39,13 +39,14 @@ listenerTemplate:
 # NOTE: image/command are omitted — the chart fills them from its defaults
 template:
   spec:
+    securityContext:
+      fsGroup: 123
     containers:
       - name: runner
         securityContext:
           runAsNonRoot: true
           runAsUser: 1001
           runAsGroup: 123
-          fsGroup: 123
           capabilities:
             drop: ["ALL"]
         resources:
