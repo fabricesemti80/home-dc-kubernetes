@@ -19,6 +19,10 @@ maxRunners: 3
 
 runnerGroup: "default"
 
+controllerServiceAccount:
+  namespace: arc-system
+  name: arc-controller-gha-rs-controller
+
 # Container mode: dind (needed for `docker build` in CI)
 containerMode:
   type: "dind"
