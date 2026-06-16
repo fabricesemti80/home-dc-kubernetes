@@ -34,15 +34,20 @@ listenerTemplate:
       - key: "node-role.kubernetes.io/master"
         operator: "Exists"
         effect: "NoSchedule"
+    containers:
+      - name: listener
 
-# Runner pod overrides — only set resources + container-level security context
-# NOTE: image/command are omitted — the chart fills them from its defaults
+# Runner pod overrides for dind mode.
+# The chart reuses the runner image for its dind init container, so keep image
+# and command explicit when overriding the runner container.
 template:
   spec:
     securityContext:
       fsGroup: 123
     containers:
       - name: runner
+        image: ghcr.io/actions/actions-runner:latest
+        command: ["/home/runner/run.sh"]
         securityContext:
           runAsNonRoot: true
           runAsUser: 1001
