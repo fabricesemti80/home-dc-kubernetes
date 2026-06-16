@@ -1,0 +1,60 @@
+---
+# ARC Runner Scale Set — project-homelab repo
+# Defines the autoscaling runner group for this GitHub repo.
+# Requires the arc-controller chart (CRDs) to be installed first,
+# and an arc-github-app-secret created by DopplerSecret in arc-system.
+
+githubConfigUrl: "https://github.com/fabricesemti80/project-homelab"
+
+# Auth: pull the pre-created K8s secret managed by DopplerSecret
+githubConfigSecret: arc-github-app-secret
+
+# Runner scale set name — workflows target this via:
+#   runs-on: [self-hosted, project-homelab]
+runnerScaleSetName: "project-homelab"
+
+# Autoscaling
+minRunners: 0
+maxRunners: 3
+
+runnerGroup: "default"
+
+# Container mode: dind (needed for `docker build` in CI)
+containerMode:
+  type: "dind"
+
+# Listener template — no restrictive node selector (only 3 control-plane nodes exist atm)
+listenerTemplate:
+  spec:
+    tolerations:
+      - key: "node-role.kubernetes.io/master"
+        operator: "Exists"
+        effect: "NoSchedule"
+
+# Runner pod overrides — only set resources + container-level security context
+# NOTE: image/command are omitted — the chart fills them from its defaults
+template:
+  spec:
+    containers:
+      - name: runner
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1001
+          runAsGroup: 123
+          fsGroup: 123
+          capabilities:
+            drop: ["ALL"]
+        resources:
+          requests:
+            cpu: 500m
+            memory: 512Mi
+          limits:
+            memory: 2Gi
+      - name: dind
+        # dind runs as root (required by docker:dind) — no runAsUser override
+        resources:
+          requests:
+            cpu: 500m
+            memory: 512Mi
+          limits:
+            memory: 2Gi
