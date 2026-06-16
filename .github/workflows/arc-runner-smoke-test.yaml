@@ -7,7 +7,7 @@ on:
 jobs:
   smoke-test:
     name: Smoke test self-hosted ARC runner
-    runs-on: [self-hosted, project-homelab]
+    runs-on: project-homelab
     timeout-minutes: 10
 
     steps:
