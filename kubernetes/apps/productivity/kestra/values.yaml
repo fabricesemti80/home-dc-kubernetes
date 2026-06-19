@@ -1,0 +1,46 @@
+---
+# Kestra Standalone Deployment
+# Port 8080 is used for the UI and API.
+
+common:
+  # Use 3 control-plane nodes only for now
+  tolerations:
+    - key: "node-role.kubernetes.io/master"
+      operator: "Exists"
+      effect: "NoSchedule"
+
+deployments:
+  standalone:
+    enabled: true
+    dind:
+      enabled: true
+
+# Kestra configuration via a ConfigMap mapped to /app/confs/_default.yml
+configurations:
+  application:
+    kestra:
+      database:
+        # Use Doppler-managed secret for the DB URL
+        # Note: we pass the secret name to the env from the App, 
+        # but since Kestra uses a config file, we map it via extraEnv.
+        url: ${KESTRA_DATABASE_URL}
+      storage:
+        type: s3
+        s3:
+          amazon.aws.accessKey: ${KESTRA_STORAGE_S3_ACCESS_KEY}
+          amazon.aws.secretKey: ${KESTRA_STORAGE_S3_SECRET_KEY}
+          amazon.aws.s3.bucket: kestra-bucket
+          amazon.aws.s3.region: us-east-1
+
+# Map Doppler secrets to Environment Variables
+common:
+  extraEnvFrom:
+    - secretRef:
+        name: kestra-secrets
+
+service:
+  type: ClusterIP
+  ports:
+    http:
+      port: 8080
+      containerPort: 8080

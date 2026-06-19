@@ -60,6 +60,7 @@ locals {
     "uptime"    = "uptime"
     "whoami"    = "whoami"
     "portainer" = "portainer"
+    "kestra"    = "kestra"
   }
 
   zero_trust_apps = {
@@ -122,6 +123,13 @@ locals {
     "n8n" = {
       name          = "n8n"
       subdomain     = "n8n"
+      policy_type   = "allow"
+      session_hours = 24
+      auto_redirect = false
+    }
+    "kestra" = {
+      name          = "Kestra"
+      subdomain     = "kestra"
       policy_type   = "allow"
       session_hours = 24
       auto_redirect = false
