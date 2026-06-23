@@ -47,7 +47,8 @@ Planned pod paths:
 -   `sonarr`
     -   `/config` on CephFS
     -   `/media` on NFS
-    -   `/downloads` on NFS subpath `downloads`
+    -   `/downloads` on NFS subpath `downloads/complete`
+    -   `PATH` includes `/app/sonarr/bin` so the bundled `ffprobe` is available during completed-download sample detection
 -   `sabnzbd`
     -   `/config` on CephFS
     -   `/media` on NFS
@@ -122,6 +123,7 @@ already exist or can be created on the NFS server before workloads start.
 -   `sabnzbd` serves its UI and can write test files under `/downloads`
 -   `qbittorrent` serves its UI and can write test files under `/downloads` and `/incomplete-downloads`
 -   `sonarr` serves its UI and can see both `/media` and `/downloads`
+-   `sonarr` can resolve `ffprobe` from the container `PATH`
 -   `prowlarr` serves its UI and can reach Sonarr over the in-cluster service
 -   `recyclarr` can run against Sonarr without authentication failures
 -   `radarr` serves its UI and can see both `/media` and `/downloads`

@@ -15,6 +15,7 @@ controllers:
           tag: "4.0.17"
         env:
           TZ: Europe/London
+          PATH: /app/sonarr/bin:/lsiopy/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
           PUID: "0"
           PGID: "0"
           UMASK: "002"

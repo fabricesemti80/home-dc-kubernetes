@@ -22,3 +22,7 @@ The pod mounts:
 -   `/config` on CephFS
 -   `/media` on the shared NFS library
 -   `/downloads` on the shared NFS completed-downloads path
+
+Runtime note:
+
+-   `PATH` includes `/app/sonarr/bin` so Sonarr can run its bundled `ffprobe` when checking whether completed-download files are samples.

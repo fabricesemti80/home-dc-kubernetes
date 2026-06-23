@@ -7,10 +7,10 @@ Initial setup:
 -   Add libraries using paths under `/media`.
 -   Use `/temp` as the transcode cache path.
 -   The server pod has its built-in internal node disabled.
--   Three Kubernetes `tdarr_node` worker pods are pinned one per control-plane node.
+-   Kubernetes `tdarr_node` worker pods are pinned per node. The `k8s-ctrl-02` worker is temporarily set to `replicas: 0` after the June 21, 2026 reboot because it was contributing heavy IO pressure during control-plane recovery.
 -   The worker on `k8s-ctrl-01` shares the node with the server and is capped at 3.5 CPU with 3 CPU transcode workers.
--   The workers on `k8s-ctrl-02` and `k8s-ctrl-03` are capped at 4 CPU with 4 CPU transcode workers each.
--   The total in-cluster Tdarr CPU limit is 12 CPU, roughly 50% of the three 8-core Kubernetes nodes.
+-   The worker on `k8s-ctrl-02` is capped at 4 CPU with 4 CPU transcode workers when enabled.
+-   With `k8s-ctrl-02` disabled, the active in-cluster Tdarr CPU limit is 4 CPU.
 
 The pod mounts:
 
@@ -20,5 +20,6 @@ The pod mounts:
 
 Rollback:
 
+-   Re-enable the `k8s-ctrl-02` worker by setting `controllers.worker-k8s-ctrl-02.replicas` back to `1` after node IO pressure clears.
 -   Disable or delete the `tdarr` Argo CD application.
 -   Remove the generated `tdarr` PVC after confirming no Tdarr state needs to be kept.
