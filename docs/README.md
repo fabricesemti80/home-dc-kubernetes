@@ -10,7 +10,6 @@ This is the main documentation hub for `project-homelab`.
 
 ## Infrastructure
 
--   [Docker Stack](infrastructure/docker-stack.md)
 -   [OpenTofu Setup](infrastructure/terraform.md)
 
 ## Cluster

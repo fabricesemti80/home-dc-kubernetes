@@ -5,8 +5,8 @@ This repository keeps OpenTofu stacks under `infra/` so provider state and lifec
 ## Stack Layout
 
 -   `infra/terraform_proxmox/`: Proxmox VMs and Talos cluster infrastructure
--   `infra/terraform_cloudflare/`: Kubernetes and host-level Cloudflare tunnels, DNS, Access policies, and tunnel credentials
--   `infra/terraform_localdns/`: reserved for local DNS infrastructure once it is moved into this repo
+-   `infra/terraform_cloudflare/`: Kubernetes Cloudflare tunnel, DNS, Access policies, and tunnel credentials
+-   `infra/terraform_localdns/`: Kubernetes local DNS infrastructure
 
 ## Inputs and Local State
 
@@ -42,9 +42,8 @@ task tf:localdns:plan
 
 -   Proxmox resource addresses remain unchanged, especially `module.talos.*`, so existing VMs stay attached to their current state.
 -   The former mixed root `terraform/` state was split locally into `infra/terraform_proxmox/terraform.tfstate` and `infra/terraform_cloudflare/terraform.tfstate`.
--   The former Docker Cloudflare stack was merged back into `infra/terraform_cloudflare/`; `infra/terraform_docker/` is retired.
+-   Docker-specific Cloudflare and local DNS resources moved to `/Users/fs/Documents/repositories/infrastructure/home-DC-docker`.
 -   Stale copied root outputs should be pruned by a scoped plan/apply after a stack split so each stack only reports its own outputs.
--   `infra/terraform_localdns/` intentionally contains only `.gitkeep` until the local DNS stack is moved.
 -   Rollback is a directory/state-file move back to the previous layout before applying changes; no remote resources are changed by the split itself.
 
 ## Related Documents

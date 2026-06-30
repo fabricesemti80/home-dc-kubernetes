@@ -2,9 +2,10 @@
 
 This repository is the main source of truth for the homelab. It manages:
 
--   the host-level Docker stack under `infra/docker/`
 -   the imported Talos / Argo cluster workflow at the repo root
--   the OpenTofu stacks under `infra/terraform_*`
+-   the Kubernetes/Talos OpenTofu stacks under `infra/terraform_*`
+
+Host-level Docker services moved to `/Users/fs/Documents/repositories/infrastructure/home-DC-docker`.
 
 ## Start Here
 
@@ -15,7 +16,6 @@ This repository is the main source of truth for the homelab. It manages:
 
 ## Documentation Map
 
--   Docker stack: [docs/infrastructure/docker-stack.md](docs/infrastructure/docker-stack.md)
 -   OpenTofu setup: [docs/infrastructure/terraform.md](docs/infrastructure/terraform.md)
 -   Talos / Argo / cluster docs: [docs/cluster/README.md](docs/cluster/README.md)
 -   Storage docs: [docs/storage/overview.md](docs/storage/overview.md)
@@ -33,9 +33,6 @@ task deps
 Common workflows:
 
 ```bash
-# Host-level Docker stack
-task stack:deploy
-
 # OpenTofu stacks
 task tf:init
 task tf:plan
@@ -53,4 +50,5 @@ Task execution now lives in structured files under `.taskfiles/`. `mise.toml` re
 
 -   `kubernetes/` and `bootstrap/` are the active GitOps source for cluster apps.
 -   `talos/`, `cluster.yaml`, and `nodes.yaml` are still part of the active Talos config-generation workflow.
+-   Host-level Docker services are intentionally managed outside this repo.
 -   Older placeholder folders were removed from Git where they no longer backed any active workflow.

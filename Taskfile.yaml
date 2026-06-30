@@ -22,7 +22,6 @@ env:
 
 includes:
   bootstrap: .taskfiles/bootstrap
-  docker: .taskfiles/docker
   infrastructure: .taskfiles/infrastructure
   talos: .taskfiles/talos
   template: .taskfiles/template
@@ -47,9 +46,9 @@ tasks:
     desc: Run linters manually with auto-fixing where possible
     cmds:
       - task: tf:fmt
-      - shfmt -w -i 2 -s {{.ROOT_DIR}}/scripts/*.sh {{.ROOT_DIR}}/scripts/lib/*.sh {{.ROOT_DIR}}/infra/docker/scripts/*.sh
+      - shfmt -w -i 2 -s {{.ROOT_DIR}}/scripts/*.sh {{.ROOT_DIR}}/scripts/lib/*.sh
       - yamllint {{.ROOT_DIR}}
-      - shellcheck {{.ROOT_DIR}}/scripts/*.sh {{.ROOT_DIR}}/scripts/lib/*.sh {{.ROOT_DIR}}/infra/docker/scripts/*.sh
+      - shellcheck {{.ROOT_DIR}}/scripts/*.sh {{.ROOT_DIR}}/scripts/lib/*.sh
     preconditions:
       - which tofu shfmt yamllint shellcheck
 
@@ -78,18 +77,6 @@ tasks:
         fi
     preconditions:
       - which tofu
-
-  stack:render:
-    desc: Render Docker runtime files from Doppler-managed secrets
-    cmd: task docker:render
-
-  stack:config:
-    desc: Render and validate Docker Compose configuration using Doppler-managed secrets
-    cmd: task docker:config
-
-  stack:deploy:
-    desc: Render runtime files and start the host-level Docker Compose stack using Doppler-managed secrets
-    cmd: task docker:deploy
 
   infra:provision:
     desc: Apply OpenTofu stacks in execution order

@@ -54,43 +54,7 @@ locals {
     TunnelName   = var.kubernetes_tunnel_name
   })
 
-  dns_apps = {
-    "arcane"    = "arcane"
-    "beszel"    = "beszel"
-    "uptime"    = "uptime"
-    "whoami"    = "whoami"
-    "portainer" = "portainer"
-  }
-
   zero_trust_apps = {
-    "arcane" = {
-      name          = "Arcane"
-      subdomain     = "arcane"
-      policy_type   = "allow"
-      session_hours = 24
-      auto_redirect = false
-    }
-    "uptime" = {
-      name          = "Uptime Kuma"
-      subdomain     = "uptime"
-      policy_type   = "allow"
-      session_hours = 24
-      auto_redirect = false
-    }
-    "portainer" = {
-      name          = "Portainer"
-      subdomain     = "portainer"
-      policy_type   = "allow"
-      session_hours = 24
-      auto_redirect = false
-    }
-    "beszel" = {
-      name          = "Beszel"
-      subdomain     = "beszel"
-      policy_type   = "bypass"
-      session_hours = 24
-      auto_redirect = false
-    }
     "jellyfin" = {
       name          = "Jellyfin"
       subdomain     = "jelly"

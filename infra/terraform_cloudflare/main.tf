@@ -93,14 +93,6 @@ resource "cloudflare_zero_trust_access_application" "argo_webhook" {
   ]
 }
 
-resource "cloudflare_zero_trust_tunnel_cloudflared" "trinity" {
-  count = 1
-
-  account_id    = var.cloudflare_account_id
-  name          = "trinity"
-  tunnel_secret = null
-}
-
 resource "cloudflare_zero_trust_access_policy" "n8n_webhook_bypass" {
   account_id       = var.cloudflare_account_id
   name             = "n8n Webhook Bypass"
@@ -148,17 +140,6 @@ resource "cloudflare_zero_trust_access_application" "n8n_webhook_test" {
       precedence = 1
     }
   ]
-}
-
-resource "cloudflare_dns_record" "app" {
-  for_each = local.dns_apps
-
-  zone_id = var.cloudflare_zone_id
-  name    = "${each.value}.${local.base_domain}"
-  content = "${cloudflare_zero_trust_tunnel_cloudflared.trinity[0].id}.cfargotunnel.com"
-  type    = "CNAME"
-  proxied = true
-  ttl     = 1
 }
 
 resource "cloudflare_zero_trust_access_policy" "allow_emails" {

@@ -26,5 +26,4 @@ locals {
   internal_domain = "krapulax.home"
 
   kubernetes_internal_gateway_ip = "10.0.40.102"
-  docker_host_ip                 = "10.0.40.19"
 }
