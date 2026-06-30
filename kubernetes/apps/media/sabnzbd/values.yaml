@@ -63,7 +63,7 @@ controllers:
       app:
         image:
           repository: lscr.io/linuxserver/sabnzbd
-          tag: "5.0.3"
+          tag: "5.0.4"
         env:
           TZ: Europe/London
           PUID: "0"
