@@ -146,7 +146,7 @@ variable "talos_image_type" {
 variable "storage_pool" {
   description = "Proxmox storage pool for VM disks"
   type        = string
-  default     = "ceph-proxmox-rbd"
+  default     = "local"
 }
 
 # Ceph network configuration (for storage traffic)
