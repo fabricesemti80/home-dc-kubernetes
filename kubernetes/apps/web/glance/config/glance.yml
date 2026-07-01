@@ -57,10 +57,10 @@ pages:
                 title: HN
                 limit: 10
 
-              - type: reddit
-                title: Diablo
-                subreddit: diablo4
-                limit: 10
+              # - type: reddit
+              #   title: Diablo
+              #   subreddit: diablo4
+              #   limit: 10
 
           # - type: videos
           #   title: Diablo 4
