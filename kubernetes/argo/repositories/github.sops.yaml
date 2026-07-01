@@ -9,11 +9,10 @@ metadata:
     argocd.argoproj.io/secret-type: repository
 stringData:
   type: ENC[AES256_GCM,data:RW/J,iv:We9wzRpV7EyOCHeAFGE1syN502SCUu2ikaKdvNKzS7s=,tag:XVX0p3EUJp9KLgPr9BtKlQ==,type:str]
-  url: ENC[AES256_GCM,data:fXSInqoHRcz3y7YZX0qAQg6RuLjN/Zrq5R0EABC4DbAJePT3bCtUczQZa7XT+wOrdka7hKQ=,iv:CqCvpH1Fk5IG4nnnJjP2sYryJMIWltA4LTo1Oet9amo=,tag:coo/QO0GQBMxpi+5vboUgA==,type:str]
+  url: ENC[AES256_GCM,data:xCBNS6G6V7h0i7fwOrvap80ptAqvjgAz8siMi5HF1Jgb4P91nW+tiL18UVHJ+D5MIYaitPlLm+I=,iv:1BVIuCQZYo47enwvhd+PE3IKciyQDUFCZHT8J7CgW7E=,tag:Ien0shKmcFdgeVQ+avc31g==,type:str]
 sops:
   age:
-    - recipient: age1saea3t7l67lavg0ardepzys6egp50g82uvks98pk53xdlj57uf8sa2arcs
-      enc: |
+    - enc: |
         -----BEGIN AGE ENCRYPTED FILE-----
         YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBjcUp6V2NvZUpSYkpYZlFC
         SFh1dEQvQXFWeEkzdGpqZ1YwWkhmZVQ1blVBCk84Z3VCY0VFMzZXNUlORlF5ZEFr
@@ -21,8 +20,9 @@ sops:
         VWdkZjJlQnh5TmZCREVUMXFxWThFazgKSoIJB5VSMWreZ+JVJboTGv0C7evJsoGP
         7YHTEBQJhTRDSltQIr82uojvYQSvweQfl8pZjtdNnYQ87U4rs8TMUg==
         -----END AGE ENCRYPTED FILE-----
-  lastmodified: "2026-04-23T09:42:49Z"
-  mac: ENC[AES256_GCM,data:+XqGRU9Y5zDzFSjDVTvBByXL/XKPC6fW4xouysa2MaK/mmCIhX5odjB/fYLv+T6Mz2E2IRzBUw9WwbZScf/+GXDIuRvrQS/IM0NTKeb5s50AaVa7P630rv/clLnPEAHY5fRhcewtNcGo/7nWc1i0w/SgnIo84vbnAsjXcDYKtMU=,iv:kbVaaAlL0TMpOJH3bDK30ehXN1kOl9ms4Fo5ZPWmJ4I=,tag:dT9eLGGLA16F7i+oZ+VoEA==,type:str]
+      recipient: age1saea3t7l67lavg0ardepzys6egp50g82uvks98pk53xdlj57uf8sa2arcs
   encrypted_regex: ^(data|stringData)$
+  lastmodified: "2026-07-01T08:29:33Z"
+  mac: ENC[AES256_GCM,data:xrzZtrtSF/8v8QGOG4QNzMcOdZJ27WDZ8/Gx5hzrHgNY2yjTgyaakeWF7Mm58cS7ML0az6oJ8Gb9j6zqfStGdtP0bURD792LI30dfP+rDW/Ssz8Fpi0n3Y2nVmkGDDTOedDo4V119L+OEPaEUdbX6WYL7MREvN4+qqjR/dkFsN4=,iv:FghpxpxjclbmmotPTQ4XBjy4EWJKq2E9x5pOwma1xUA=,tag:umB0PaCEI72pBAV4iQ56Bw==,type:str]
   mac_only_encrypted: true
   version: 3.12.2

@@ -10,7 +10,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: "https://github.com/fabricesemti80/project-homelab.git"
+    repoURL: "https://github.com/fabricesemti80/home-dc-kubernetes.git"
     path: kubernetes/argo/apps
     targetRevision: main
     directory:

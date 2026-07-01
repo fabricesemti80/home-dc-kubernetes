@@ -12,7 +12,7 @@ spec:
     server: https://kubernetes.default.svc
   project: default
   source:
-    repoURL: "https://github.com/fabricesemti80/project-homelab.git"
+    repoURL: "https://github.com/fabricesemti80/home-dc-kubernetes.git"
     path: kubernetes/storage/nginx-test
     targetRevision: main
   syncPolicy:

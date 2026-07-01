@@ -1,6 +1,6 @@
 # Documentation
 
-This is the main documentation hub for `project-homelab`.
+This is the main documentation hub for `home-dc-kubernetes`.
 
 ## Start Here
 

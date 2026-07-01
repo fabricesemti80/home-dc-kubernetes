@@ -4,7 +4,7 @@
 # Requires the arc-controller chart (CRDs) to be installed first,
 # and an arc-github-app-secret created by DopplerSecret in arc-system.
 
-githubConfigUrl: "https://github.com/fabricesemti80/project-homelab"
+githubConfigUrl: "https://github.com/fabricesemti80/home-dc-kubernetes"
 
 # Auth: pull the pre-created K8s secret managed by DopplerSecret
 githubConfigSecret: arc-github-app-secret

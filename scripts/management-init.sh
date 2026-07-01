@@ -5,7 +5,7 @@ source "$(dirname "${0}")/lib/common.sh"
 
 TARGET_USER="${TARGET_USER:-${SUDO_USER:-${USER}}}"
 TARGET_HOME="$(eval echo "~${TARGET_USER}")"
-REPO_DIR="${REPO_DIR:-${TARGET_HOME}/repos/project-homelab}"
+REPO_DIR="${REPO_DIR:-${TARGET_HOME}/repos/home-dc-kubernetes}"
 DOPPLER_PROJECT="${DOPPLER_PROJECT:-project-homelab}"
 DOPPLER_CONFIG="${DOPPLER_CONFIG:-dev_homelab}"
 

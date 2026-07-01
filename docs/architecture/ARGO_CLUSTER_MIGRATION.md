@@ -1,5 +1,7 @@
 # Argo Cluster Relocation
 
+Current repository name: `home-dc-kubernetes`. This document records the earlier migration into `project-homelab`; live Argo repository targets have since been renamed.
+
 ## Goal
 
 Relocate the existing Talos/Argo cluster workflow from `home-argo-cluster-2025` into `project-homelab` without destroying the old repo, without recreating the VMs, and without forcing the worker nodes back online.
