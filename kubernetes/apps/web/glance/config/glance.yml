@@ -62,15 +62,15 @@ pages:
                 subreddit: diablo4
                 limit: 10
 
-          - type: videos
-            title: Diablo 4
-            channels:
-              - UCRl31PWkfF0a3j3hiDRaCGA  # Rhykker
-              - UCs20qCPrd1AXRviSTdVCoAg  # Raxxanterax
-              - UCSl8TBqqflby-ymdEQVfRNQ  # Rob2628
-              - UC78d2aaqdrt02RfmtRLmlAw  # wudijo
-              - REPLACE_WITH_MEKUNA_ID    # Mekuna
-            limit: 8
+          # - type: videos
+          #   title: Diablo 4
+          #   channels:
+          #     - UCRl31PWkfF0a3j3hiDRaCGA  # Rhykker
+          #     - UCs20qCPrd1AXRviSTdVCoAg  # Raxxanterax
+          #     - UCSl8TBqqflby-ymdEQVfRNQ  # Rob2628
+          #     - UC78d2aaqdrt02RfmtRLmlAw  # wudijo
+          #     - REPLACE_WITH_MEKUNA_ID    # Mekuna
+          #   limit: 8
 
       - size: small
         widgets:
