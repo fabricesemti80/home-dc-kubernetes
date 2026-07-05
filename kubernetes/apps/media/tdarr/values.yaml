@@ -61,7 +61,7 @@ controllers:
       app: &worker
         image:
           repository: ghcr.io/haveagitgat/tdarr_node
-          tag: 2.81.01
+          tag: 2.82.02
         env:
           TZ: Europe/London
           PUID: "0"
