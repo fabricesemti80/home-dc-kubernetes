@@ -4,6 +4,8 @@ kind: HTTPRoute
 metadata:
   name: tdarr-internal
   namespace: media
+  annotations:
+    external-dns.alpha.kubernetes.io/target: kubernetes.krapulax.home
 spec:
   parentRefs:
     - name: envoy-internal

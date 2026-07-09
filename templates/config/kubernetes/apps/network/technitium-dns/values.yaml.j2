@@ -1,0 +1,62 @@
+---
+fullnameOverride: technitium-dns
+
+provider:
+  name: webhook
+  webhook:
+    image:
+      repository: ghcr.io/roosmaa/external-dns-technitium-webhook
+      tag: latest
+    env:
+      - name: LISTEN_PORT
+        value: "8080"
+      - name: TECHNITIUM_URL
+        valueFrom:
+          secretKeyRef:
+            name: technitium-dns-secrets
+            key: TECHNITIUM_URL
+      - name: TECHNITIUM_USERNAME
+        valueFrom:
+          secretKeyRef:
+            name: technitium-dns-secrets
+            key: TECHNITIUM_USERNAME
+      - name: TECHNITIUM_PASSWORD
+        valueFrom:
+          secretKeyRef:
+            name: technitium-dns-secrets
+            key: TECHNITIUM_PASSWORD
+      - name: ZONE
+        value: krapulax.home
+      - name: DOMAIN_FILTERS
+        value: krapulax.home
+    livenessProbe:
+      httpGet:
+        path: /health
+        port: http-webhook
+    readinessProbe:
+      httpGet:
+        path: /health
+        port: http-webhook
+    serviceMonitor: null
+
+extraArgs:
+  - --webhook-provider-url=http://localhost:8080
+  - --crd-source-apiversion=externaldns.k8s.io/v1alpha1
+  - --crd-source-kind=DNSEndpoint
+  - --gateway-name=envoy-internal
+
+triggerLoopOnEvent: true
+policy: sync
+sources:
+  - crd
+  - gateway-httproute
+txtPrefix: k8s-int.
+txtOwnerId: technitium-internal
+domainFilters:
+  - krapulax.home
+
+serviceMonitor:
+  enabled: true
+
+podAnnotations:
+  secret.reloader.stakater.com/reload: "technitium-dns-secrets"

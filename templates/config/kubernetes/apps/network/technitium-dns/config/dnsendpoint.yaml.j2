@@ -1,0 +1,13 @@
+---
+apiVersion: externaldns.k8s.io/v1alpha1
+kind: DNSEndpoint
+metadata:
+  name: technitium-internal-base-records
+  namespace: network
+spec:
+  endpoints:
+    - dnsName: kubernetes.krapulax.home
+      recordTTL: 300
+      recordType: A
+      targets:
+        - 10.0.40.102

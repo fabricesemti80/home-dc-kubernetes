@@ -4,6 +4,8 @@ kind: HTTPRoute
 metadata:
   name: n8n-internal
   namespace: productivity
+  annotations:
+    external-dns.alpha.kubernetes.io/target: kubernetes.krapulax.home
 spec:
   parentRefs:
     - name: envoy-internal

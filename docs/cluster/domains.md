@@ -1,14 +1,16 @@
 # Domain Configuration
 
-Centralized documentation for all external DNS hostnames in the cluster.
+Centralized documentation for external and internal DNS hostnames in the cluster.
 
 ## Base Domains
 
-| Domain                  | Target | Description                   |
-| ----------------------- | ------ | ----------------------------- |
-| `krapulax.dev`          | -      | Primary domain                |
-| `external.krapulax.dev` | -      | External load balancer target |
-| `internal.krapulax.dev` | -      | Internal routing              |
+| Domain                     | Target        | Description                   |
+| -------------------------- | ------------- | ----------------------------- |
+| `krapulax.dev`             | -             | Primary domain                |
+| `external.krapulax.dev`    | -             | External load balancer target |
+| `internal.krapulax.dev`    | -             | Internal routing              |
+| `krapulax.home`            | -             | Internal Technitium zone      |
+| `kubernetes.krapulax.home` | `10.0.40.102` | Internal gateway target       |
 
 ## Application Hostnames
 
@@ -59,6 +61,9 @@ Centralized documentation for all external DNS hostnames in the cluster.
 
 ## Notes
 
+-   External `krapulax.dev` records are managed by `cloudflare-dns`.
+-   Internal `krapulax.home` records are managed by `technitium-dns` from internal HTTPRoutes and DNSEndpoint resources.
+-   Internal HTTPRoutes set `external-dns.alpha.kubernetes.io/target: kubernetes.krapulax.home`.
 -   Some values reference `${DOMAIN}` variable in Glance bookmarks
 -   Hostnames are defined in both HTTPRoute annotations and `external-dns.alpha.kubernetes.io/hostname`
 -   The `external-dns.alpha.kubernetes.io/target` annotation points to `external.krapulax.dev` for all apps
