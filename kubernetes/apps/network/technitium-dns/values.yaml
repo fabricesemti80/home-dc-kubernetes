@@ -38,6 +38,9 @@ provider:
         path: /health
         port: http-webhook
     serviceMonitor: null
+    securityContext:
+      runAsNonRoot: false
+      runAsUser: 0
 
 extraArgs:
   - --webhook-provider-url=http://localhost:8080
