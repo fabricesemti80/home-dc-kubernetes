@@ -220,6 +220,47 @@ Rollback:
 -   Re-apply local DNS and Cloudflare Terraform plans.
 -   Reuse preserved PVCs and Doppler secrets if they were intentionally retained.
 
+### Browser IDE for cluster administration
+
+Decision:
+
+-   Deploy `code-server` in the `productivity` namespace as a self-hosted browser IDE at `https://code.krapulax.dev`.
+-   Store `/root` and `/workspace` on CephFS PVCs so editor state, Codex auth state, Doppler auth state, and checked-out repositories survive pod restarts.
+-   Install `kubectl`, Doppler CLI, and Codex CLI during container startup instead of maintaining a custom image for the first rollout.
+-   Run the pod with a dedicated `code-server` service account bound to `cluster-admin` so `kubectl` works from the browser IDE.
+-   Source `CODE_SERVER_PASSWORD` from Doppler via the existing operator pattern.
+-   Remove orphaned live Planka `HTTPRoute` objects from the cluster so Homepage no longer discovers stale Planka entries.
+
+Assumptions:
+
+-   `code.krapulax.dev` is the intended external hostname.
+-   External access is protected by code-server password auth and any Cloudflare-side access controls managed outside this Kubernetes repo.
+-   The `project-homelab/dev_homelab` Doppler config will contain `CODE_SERVER_PASSWORD` before rollout.
+-   Codex, Doppler, and GitHub auth can be completed inside the IDE and then persists under the `/root` PVC.
+-   A privileged in-cluster IDE is acceptable for personal homelab administration.
+-   Startup-time CLI installation is acceptable initially; a custom image is only needed if startup time, availability, or upstream install drift becomes a problem.
+
+Validation checks:
+
+-   `doppler secrets get CODE_SERVER_PASSWORD --project project-homelab --config dev_homelab`
+-   `kubectl get dopplersecret -n doppler-operator-system code-server-secrets -o yaml`
+-   `kubectl get secret -n productivity code-server-secrets`
+-   `kubectl get application -n argo-system code-server`
+-   `kubectl get deploy,pvc,httproute -n productivity | rg code-server`
+-   `kubectl rollout status deploy/code-server -n productivity`
+-   `kubectl logs -n productivity deploy/code-server --tail=100`
+-   `kubectl exec -n productivity deploy/code-server -- kubectl version --client`
+-   `kubectl exec -n productivity deploy/code-server -- doppler --version`
+-   `kubectl exec -n productivity deploy/code-server -- codex --version`
+-   Open `https://code.krapulax.dev`.
+
+Rollback:
+
+-   Delete the `code-server` Argo CD application if the rollout is not acceptable.
+-   Remove the `code-server` HTTPRoute, service account, cluster role binding, and DopplerSecret manifests.
+-   Keep the `/root` and `/workspace` PVCs until checked-out repositories and auth state have been exported or intentionally destroyed.
+-   Recreate the Planka `HTTPRoute` objects from Git history only if Planka is restored.
+
 ### Talos VM disk capacity increase
 
 Decision:

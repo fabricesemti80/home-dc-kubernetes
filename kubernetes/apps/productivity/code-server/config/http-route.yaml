@@ -1,0 +1,27 @@
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: code-server
+  namespace: productivity
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: code.krapulax.dev
+    external-dns.alpha.kubernetes.io/target: external.krapulax.dev
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/group: Productivity
+    gethomepage.dev/name: Code Server
+    gethomepage.dev/icon: vscode.png
+    gethomepage.dev/description: Browser IDE with cluster tooling
+    gethomepage.dev/weight: "15"
+spec:
+  parentRefs:
+    - name: envoy-external
+      namespace: network
+      sectionName: https
+  hostnames:
+    - code.krapulax.dev
+  rules:
+    - backendRefs:
+        - name: code-server
+          namespace: productivity
+          port: 80
