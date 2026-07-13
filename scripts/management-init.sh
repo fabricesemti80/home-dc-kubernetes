@@ -23,16 +23,6 @@ function ensure_base_packages() {
   apt_install bash build-essential ca-certificates curl git gpg sudo unzip zsh
 }
 
-function ensure_mise() {
-  if [[ -x "${TARGET_HOME}/.local/bin/mise" ]]; then
-    log info "mise already installed" "path=${TARGET_HOME}/.local/bin/mise"
-    return
-  fi
-
-  log info "Installing mise" "user=${TARGET_USER}"
-  as_target_user HOME="${TARGET_HOME}" sh -lc 'curl https://mise.run | sh'
-}
-
 function ensure_starship() {
   if [[ -x "${TARGET_HOME}/.local/bin/starship" ]] || command -v starship &>/dev/null; then
     log info "starship already installed"
@@ -49,10 +39,6 @@ function ensure_shell_config() {
   sudo touch "${rc_file}"
   sudo chown "${TARGET_USER}":"${TARGET_USER}" "${rc_file}"
 
-  if ! sudo grep -Fq 'eval "$('"${TARGET_HOME}"'/.local/bin/mise activate zsh)"' "${rc_file}"; then
-    echo "eval \"\$(${TARGET_HOME}/.local/bin/mise activate zsh)\"" | sudo tee -a "${rc_file}" >/dev/null
-  fi
-
   if ! sudo grep -Fq 'eval "$(starship init zsh)"' "${rc_file}"; then
     # shellcheck disable=SC2016
     echo 'eval "$(starship init zsh)"' | sudo tee -a "${rc_file}" >/dev/null
@@ -65,16 +51,12 @@ function ensure_repo_parent() {
 }
 
 function ensure_repo_tools() {
-  if [[ ! -f "${REPO_DIR}/.mise.toml" ]]; then
-    log warn "Repo not found or missing .mise.toml" "repo_dir=${REPO_DIR}"
+  if [[ ! -f "${REPO_DIR}/.devcontainer/devcontainer.json" ]]; then
+    log warn "Repo not found or missing devcontainer config" "repo_dir=${REPO_DIR}"
     return
   fi
 
-  log info "Trusting repo config for mise" "repo_dir=${REPO_DIR}"
-  as_target_user HOME="${TARGET_HOME}" PATH="${TARGET_HOME}/.local/bin:${PATH}" sh -lc "cd '${REPO_DIR}' && ~/.local/bin/mise trust"
-
-  log info "Installing repo-managed tools with mise" "repo_dir=${REPO_DIR}"
-  as_target_user HOME="${TARGET_HOME}" PATH="${TARGET_HOME}/.local/bin:${PATH}" sh -lc "cd '${REPO_DIR}' && ~/.local/bin/mise install"
+  log info "Repo tools are defined by the devcontainer" "repo_dir=${REPO_DIR}"
 }
 
 function ensure_docker() {
@@ -126,7 +108,6 @@ function main() {
 
   ensure_base_packages
   ensure_repo_parent
-  ensure_mise
   ensure_starship
   ensure_shell_config
   ensure_docker
