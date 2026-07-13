@@ -1,0 +1,27 @@
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: sterling-pdf
+  namespace: productivity
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: pdf.krapulax.dev
+    external-dns.alpha.kubernetes.io/target: external.krapulax.dev
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/group: Productivity
+    gethomepage.dev/name: Sterling PDF
+    gethomepage.dev/icon: stirling-pdf.png
+    gethomepage.dev/description: PDF editor and manipulation tool
+    gethomepage.dev/weight: "30"
+spec:
+  parentRefs:
+    - name: envoy-external
+      namespace: network
+      sectionName: https
+  hostnames:
+    - pdf.krapulax.dev
+  rules:
+    - backendRefs:
+        - name: sterling-pdf
+          namespace: productivity
+          port: 80
