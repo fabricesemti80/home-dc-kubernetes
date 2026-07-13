@@ -7,7 +7,7 @@ This document provides an index of all applications deployed in the Kubernetes c
 | Namespace               | App Count | Description                                             |
 | ----------------------- | --------- | ------------------------------------------------------- |
 | media                   | 10        | Media management stack (Jellyfin, Sonarr, Radarr, etc.) |
-| productivity            | 1         | Linkwarden                                              |
+| productivity            | 2         | Linkwarden, Sterling PDF                                |
 | monitoring              | 1         | Prometheus/Grafana stack                                |
 | network                 | 2         | Cloudflare DNS and Tunnel                               |
 | web                     | 1         | Glance dashboard                                        |
@@ -37,9 +37,10 @@ This document provides an index of all applications deployed in the Kubernetes c
 
 ### productivity
 
-| App        | Type             | Image                         | Port | Domain                  | Notes                        |
-| ---------- | ---------------- | ----------------------------- | ---- | ----------------------- | ---------------------------- |
-| linkwarden | Bookmark Manager | ghcr.io/linkwarden/linkwarden | 3000 | linkwarden.krapulax.dev | Self-hosted bookmark manager |
+| App          | Type             | Image                                | Port | Domain                  | Notes                            |
+| ------------ | ---------------- | ------------------------------------ | ---- | ----------------------- | -------------------------------- |
+| linkwarden   | Bookmark Manager | ghcr.io/linkwarden/linkwarden        | 3000 | linkwarden.krapulax.dev | Self-hosted bookmark manager     |
+| sterling-pdf | PDF Tools        | docker.io/stirlingtools/stirling-pdf | 8080 | pdf.krapulax.dev        | PDF editor and manipulation tool |
 
 ### monitoring
 
@@ -104,6 +105,10 @@ This document provides an index of all applications deployed in the Kubernetes c
 -   glanceapp/glance
 -   recyclarr/recyclarr
 -   spegel/spegel
+
+### Docker Hub
+
+-   stirlingtools/stirling-pdf
 
 ### Official
 
