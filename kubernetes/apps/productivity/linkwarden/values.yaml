@@ -27,12 +27,12 @@ controllers:
       app:
         image:
           repository: ghcr.io/linkwarden/linkwarden
-          tag: v2.15.1
+          tag: v2.14.1
         command:
           - sh
           - -c
         args:
-          - corepack yarn prisma:deploy && corepack yarn concurrently:start
+          - yarn prisma:deploy && yarn concurrently:start
         env:
           NEXT_PUBLIC_DISABLE_REGISTRATION: "false"
           STORAGE_FOLDER: /app/data
