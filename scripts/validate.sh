@@ -4,7 +4,8 @@ set -euo pipefail
 required=(
   "docs/architecture/ARCHITECTURE_PLAN.md"
   "docs/architecture/PHASE_0_1_BLUEPRINT.md"
-  "mise.toml"
+  ".devcontainer/devcontainer.json"
+  ".devcontainer/Dockerfile"
 )
 
 for f in "${required[@]}"; do

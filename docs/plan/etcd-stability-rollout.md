@@ -44,8 +44,7 @@ The Talos-only change cannot reduce storage latency. It can reduce unnecessary e
 2. Install the final repository tools:
 
     ```bash
-    mise install
-    mise exec -- talosctl version --client
+    talosctl version --client
     ```
 
     Expected final client: `v1.13.4`.
@@ -120,30 +119,29 @@ Talos recommends using a client matching the currently running minor version and
 Use a temporary v1.12.8 client without changing the repository's final v1.13.4 pin:
 
 ```bash
-mise exec aqua:siderolabs/talos@1.12.8 -- \
-  talosctl version --client
+curl -fsSL -o /tmp/talosctl-v1.12.8 \
+  https://github.com/siderolabs/talos/releases/download/v1.12.8/talosctl-linux-amd64
+chmod +x /tmp/talosctl-v1.12.8
+/tmp/talosctl-v1.12.8 version --client
 ```
 
 Determine the current leader:
 
 ```bash
-mise exec aqua:siderolabs/talos@1.12.8 -- \
-  talosctl --talosconfig talos/clusterconfig/talosconfig \
+/tmp/talosctl-v1.12.8 --talosconfig talos/clusterconfig/talosconfig \
   -n 10.0.40.90,10.0.40.91,10.0.40.92 etcd status
 ```
 
 Upgrade both followers first, one at a time:
 
 ```bash
-mise exec aqua:siderolabs/talos@1.12.8 -- \
-  task talos:upgrade-node IP=<follower-ip> VERSION=v1.12.8
+task talos:upgrade-node IP=<follower-ip> VERSION=v1.12.8
 ```
 
 After each node:
 
 ```bash
-mise exec aqua:siderolabs/talos@1.12.8 -- \
-  talosctl --talosconfig talos/clusterconfig/talosconfig \
+/tmp/talosctl-v1.12.8 --talosconfig talos/clusterconfig/talosconfig \
   -n <node-ip> health
 kubectl get nodes
 ```
@@ -157,7 +155,7 @@ Re-check leadership and upgrade the remaining controller last. Then verify all n
 Use the repository-pinned client:
 
 ```bash
-mise exec -- talosctl version --client
+talosctl version --client
 ```
 
 Expected: `v1.13.4`.
@@ -220,8 +218,7 @@ talosctl --talosconfig talos/clusterconfig/talosconfig \
 For **Route A**, use the v1.12.8 client to apply only the etcd timeout:
 
 ```bash
-mise exec aqua:siderolabs/talos@1.12.8 -- \
-  talosctl --talosconfig talos/clusterconfig/talosconfig \
+/tmp/talosctl-v1.12.8 --talosconfig talos/clusterconfig/talosconfig \
   -n <follower-ip> patch machineconfig --mode=auto \
   --patch '{"cluster":{"etcd":{"extraArgs":{"election-timeout":"3000"}}}}'
 ```
@@ -304,8 +301,7 @@ Confirm health, repeat for the second follower, then run on the leader last. Def
 For Route A, remove only the added argument, follower-first:
 
 ```bash
-mise exec aqua:siderolabs/talos@1.12.8 -- \
-  talosctl --talosconfig talos/clusterconfig/talosconfig \
+/tmp/talosctl-v1.12.8 --talosconfig talos/clusterconfig/talosconfig \
   -n <node-ip> patch machineconfig --mode=auto \
   --patch '[{"op":"remove","path":"/cluster/etcd/extraArgs/election-timeout"}]'
 ```

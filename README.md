@@ -23,10 +23,9 @@ Host-level Docker services moved to `/Users/fs/Documents/repositories/infrastruc
 
 ## Core Tasks
 
-Ensure `mise` is installed, then:
+Use the devcontainer, then:
 
 ```bash
-mise install
 task deps
 ```
 
@@ -44,7 +43,7 @@ task apps:bootstrap
 task verify:cluster
 ```
 
-Task execution now lives in structured files under `.taskfiles/`. `mise.toml` remains the source of truth for tool installation and environment setup.
+Task execution lives in structured files under `.taskfiles/`. Tooling is defined in `.devcontainer/` for repeatable local or Codespaces-style shells.
 
 ## Repository Notes
 

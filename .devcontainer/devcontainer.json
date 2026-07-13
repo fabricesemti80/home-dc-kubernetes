@@ -1,0 +1,22 @@
+{
+  "name": "home-dc-kubernetes",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+  "remoteUser": "vscode",
+  "containerEnv": {
+    "KUBECONFIG": "${containerWorkspaceFolder}/kubeconfig",
+    "SOPS_AGE_KEY_FILE": "${containerWorkspaceFolder}/age.key",
+    "TALOSCONFIG": "${containerWorkspaceFolder}/talos/clusterconfig/talosconfig"
+  },
+  "postCreateCommand": "task deps || true",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "redhat.vscode-yaml",
+        "hashicorp.terraform",
+        "timonwong.shellcheck"
+      ]
+    }
+  }
+}
