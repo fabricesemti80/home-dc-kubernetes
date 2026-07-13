@@ -1,0 +1,119 @@
+---
+global:
+  createDefaultServiceAccount: false
+
+defaultPodOptions:
+  automountServiceAccountToken: true
+  annotations:
+    reloader.stakater.com/auto: "true"
+  securityContext:
+    runAsNonRoot: false
+    runAsUser: 0
+    runAsGroup: 0
+    fsGroup: 0
+
+controllers:
+  code-server:
+    replicas: 1
+    strategy: RollingUpdate
+    serviceAccount:
+      name: code-server
+    containers:
+      app:
+        image:
+          repository: ghcr.io/coder/code-server
+          tag: 4.104.2
+        command:
+          - /bin/sh
+          - -ec
+        args:
+          - |
+            export DEBIAN_FRONTEND=noninteractive
+
+            if ! command -v curl >/dev/null 2>&1 || ! command -v git >/dev/null 2>&1 || ! command -v npm >/dev/null 2>&1; then
+              apt-get update
+              apt-get install -y --no-install-recommends ca-certificates curl git gnupg npm openssh-client
+              rm -rf /var/lib/apt/lists/*
+            fi
+
+            if ! command -v kubectl >/dev/null 2>&1; then
+              curl -fsSL -o /usr/local/bin/kubectl https://dl.k8s.io/release/v1.35.1/bin/linux/amd64/kubectl
+              chmod +x /usr/local/bin/kubectl
+            fi
+
+            if ! command -v doppler >/dev/null 2>&1; then
+              curl -Ls --tlsv1.2 --proto '=https' https://cli.doppler.com/install.sh | sh
+            fi
+
+            if ! command -v codex >/dev/null 2>&1; then
+              npm install -g @openai/codex
+            fi
+
+            mkdir -p /workspace
+            exec code-server --auth password --bind-addr 0.0.0.0:8080 /workspace
+        env:
+          TZ: Europe/London
+          PASSWORD:
+            valueFrom:
+              secretKeyRef:
+                name: code-server-secrets
+                key: CODE_SERVER_PASSWORD
+        probes:
+          liveness: &probes
+            enabled: true
+            custom: true
+            spec:
+              httpGet:
+                path: /healthz
+                port: &port 8080
+              initialDelaySeconds: 60
+              periodSeconds: 15
+              timeoutSeconds: 5
+              failureThreshold: 8
+          readiness: *probes
+          startup:
+            enabled: true
+            custom: true
+            spec:
+              httpGet:
+                path: /healthz
+                port: *port
+              initialDelaySeconds: 10
+              periodSeconds: 15
+              timeoutSeconds: 5
+              failureThreshold: 80
+        resources:
+          requests:
+            cpu: 250m
+            memory: 1Gi
+          limits:
+            ephemeral-storage: 3Gi
+            memory: 4Gi
+
+service:
+  app:
+    controller: code-server
+    ports:
+      http:
+        port: 80
+        targetPort: *port
+
+persistence:
+  home:
+    type: persistentVolumeClaim
+    accessMode: ReadWriteMany
+    storageClass: cephfs
+    size: 10Gi
+    globalMounts:
+      - path: /root
+  workspace:
+    type: persistentVolumeClaim
+    accessMode: ReadWriteMany
+    storageClass: cephfs
+    size: 20Gi
+    globalMounts:
+      - path: /workspace
+  tmp:
+    type: emptyDir
+    globalMounts:
+      - path: /tmp

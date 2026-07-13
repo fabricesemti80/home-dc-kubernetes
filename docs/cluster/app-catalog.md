@@ -7,7 +7,7 @@ This document provides an index of all applications deployed in the Kubernetes c
 | Namespace               | App Count | Description                                             |
 | ----------------------- | --------- | ------------------------------------------------------- |
 | media                   | 10        | Media management stack (Jellyfin, Sonarr, Radarr, etc.) |
-| productivity            | 2         | Linkwarden, Sterling PDF                                |
+| productivity            | 3         | Linkwarden, Code Server, Sterling PDF                   |
 | monitoring              | 1         | Prometheus/Grafana stack                                |
 | network                 | 2         | Cloudflare DNS and Tunnel                               |
 | web                     | 1         | Glance dashboard                                        |
@@ -37,10 +37,11 @@ This document provides an index of all applications deployed in the Kubernetes c
 
 ### productivity
 
-| App          | Type             | Image                                | Port | Domain                  | Notes                            |
-| ------------ | ---------------- | ------------------------------------ | ---- | ----------------------- | -------------------------------- |
-| linkwarden   | Bookmark Manager | ghcr.io/linkwarden/linkwarden        | 3000 | linkwarden.krapulax.dev | Self-hosted bookmark manager     |
-| sterling-pdf | PDF Tools        | docker.io/stirlingtools/stirling-pdf | 8080 | pdf.krapulax.dev        | PDF editor and manipulation tool |
+| App          | Type             | Image                                | Port | Domain                  | Notes                             |
+| ------------ | ---------------- | ------------------------------------ | ---- | ----------------------- | --------------------------------- |
+| code-server  | Browser IDE      | ghcr.io/coder/code-server            | 8080 | code.krapulax.dev       | Browser editor with cluster tools |
+| linkwarden   | Bookmark Manager | ghcr.io/linkwarden/linkwarden        | 3000 | linkwarden.krapulax.dev | Self-hosted bookmark manager      |
+| sterling-pdf | PDF Tools        | docker.io/stirlingtools/stirling-pdf | 8080 | pdf.krapulax.dev        | PDF editor and manipulation tool  |
 
 ### monitoring
 
@@ -100,6 +101,7 @@ This document provides an index of all applications deployed in the Kubernetes c
 
 ### GHCR.IO
 
+-   coder/code-server
 -   immich-app/immich-server, immich-app/immich-machine-learning
 -   linkwarden/linkwarden
 -   glanceapp/glance
