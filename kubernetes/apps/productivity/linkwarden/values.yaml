@@ -32,7 +32,7 @@ controllers:
           - sh
           - -c
         args:
-          - yarn prisma:deploy && yarn concurrently:start
+          - corepack yarn prisma:deploy && corepack yarn concurrently:start
         env:
           NEXT_PUBLIC_DISABLE_REGISTRATION: "false"
           STORAGE_FOLDER: /app/data
