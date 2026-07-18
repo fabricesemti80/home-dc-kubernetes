@@ -2,7 +2,7 @@
 fullnameOverride: coredns
 image:
   repository: registry.k8s.io/coredns/coredns
-  tag: v1.14.4
+  tag: v1.14.6
 k8sAppLabelOverride: kube-dns
 serviceAccount:
   create: true
