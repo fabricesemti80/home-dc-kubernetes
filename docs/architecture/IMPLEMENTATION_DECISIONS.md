@@ -100,6 +100,34 @@ Rollback:
 
 -   Remove the Linkwarden-specific package rule from `.renovaterc.json5` after a newer image is manually tested and rolled out successfully.
 
+### App rollout fixes for July 2026 image updates
+
+Decision:
+
+-   Keep the July 22, 2026 image updates for `code-server`, `n8n`, and Immich.
+-   Change `n8n` to `Recreate` deployments because it uses a single SQLite database on one PVC and cannot safely run old and new pods at the same time.
+-   Install Doppler in `code-server` through the Doppler apt repository instead of the installer script because the script fails signature verification on the Debian 13 base used by `code-server` 4.129.0.
+
+Assumptions:
+
+-   Immich `v3.0.3` is healthy after its normal machine-learning readiness delay.
+-   `n8n` remains a single-replica SQLite deployment.
+-   Runtime installation is still acceptable for code-server until a custom image is justified.
+
+Validation checks:
+
+-   `kubectl get application -n argo-system code-server n8n immich`
+-   `kubectl rollout status deploy/code-server -n productivity`
+-   `kubectl rollout status deploy/n8n -n productivity`
+-   `kubectl rollout status deploy/immich -n media`
+-   `kubectl logs -n productivity deploy/code-server --tail=100`
+-   `kubectl logs -n productivity deploy/n8n --tail=100`
+
+Rollback:
+
+-   Revert the strategy and startup install changes if the updated images still fail after investigation.
+-   Pin the affected image only after collecting pod logs and events for the failing rollout.
+
 ### Monitoring Slack notifications via Alertmanager
 
 Decision:

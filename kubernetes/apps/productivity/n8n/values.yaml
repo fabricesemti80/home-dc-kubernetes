@@ -5,7 +5,7 @@ global:
 controllers:
   n8n:
     replicas: 1
-    strategy: RollingUpdate
+    strategy: Recreate
     containers:
       app:
         image:

@@ -32,7 +32,7 @@ controllers:
 
             if ! command -v curl >/dev/null 2>&1 || ! command -v git >/dev/null 2>&1 || ! command -v npm >/dev/null 2>&1; then
               apt-get update
-              apt-get install -y --no-install-recommends ca-certificates curl git gnupg npm openssh-client
+              apt-get install -y --no-install-recommends apt-transport-https ca-certificates curl git gnupg npm openssh-client
               rm -rf /var/lib/apt/lists/*
             fi
 
@@ -42,7 +42,12 @@ controllers:
             fi
 
             if ! command -v doppler >/dev/null 2>&1; then
-              curl -Ls --tlsv1.2 --proto '=https' https://cli.doppler.com/install.sh | sh
+              install -d -m 0755 /etc/apt/keyrings
+              curl -fsSL https://packages.doppler.com/public/cli/gpg.DE2A7741A397C129.key | gpg --dearmor -o /etc/apt/keyrings/doppler.gpg
+              echo "deb [signed-by=/etc/apt/keyrings/doppler.gpg] https://packages.doppler.com/public/cli/deb/debian any-version main" > /etc/apt/sources.list.d/doppler-cli.list
+              apt-get update
+              apt-get install -y --no-install-recommends doppler
+              rm -rf /var/lib/apt/lists/*
             fi
 
             if ! command -v codex >/dev/null 2>&1; then
