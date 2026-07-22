@@ -100,6 +100,34 @@ Rollback:
 
 -   Remove the Linkwarden-specific package rule from `.renovaterc.json5` after a newer image is manually tested and rolled out successfully.
 
+### Renovate hold for progressing app rollouts
+
+Decision:
+
+-   Roll back `code-server`, `n8n`, and Immich image bumps merged on July 22, 2026 after the affected Argo CD apps remained stuck in `Progressing`.
+-   Disable Renovate updates for those app images until each update is manually validated.
+
+Assumptions:
+
+-   The previous image tags were the last known-good deployed versions.
+-   The stuck `Progressing` state started after the image-only Renovate merges.
+-   Holding these images is preferable to repeated automated roll-forward and rollback cycles.
+
+Validation checks:
+
+-   `kustomize build kubernetes/apps/productivity/code-server`
+-   `kustomize build kubernetes/apps/productivity/n8n`
+-   `kustomize build kubernetes/apps/media/immich`
+-   `kubectl rollout status deploy/code-server -n productivity`
+-   `kubectl rollout status deploy/n8n -n productivity`
+-   `kubectl rollout status deploy/immich -n media`
+-   `kubectl rollout status deploy/immich-machine-learning -n media`
+
+Rollback:
+
+-   Remove the affected package names from `.renovaterc.json5` after testing each newer image.
+-   Re-apply one image update at a time and watch the Argo CD app and deployment rollout before merging another app update.
+
 ### Monitoring Slack notifications via Alertmanager
 
 Decision:
