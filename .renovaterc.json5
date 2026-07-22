@@ -36,17 +36,6 @@
       enabled: false,
     },
     {
-      description: "Hold app image updates that left Argo apps progressing on 2026-07-22",
-      matchDatasources: ["docker"],
-      matchPackageNames: [
-        "ghcr.io/coder/code-server",
-        "docker.io/n8nio/n8n",
-        "ghcr.io/immich-app/immich-server",
-        "ghcr.io/immich-app/immich-machine-learning",
-      ],
-      enabled: false,
-    },
-    {
       description: "Override Helmfile Dependency Name",
       matchDatasources: ["docker"],
       matchManagers: ["helmfile"],
