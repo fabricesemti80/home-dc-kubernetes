@@ -80,6 +80,26 @@ Rollback:
 -   Remove the Doppler-managed Linkwarden secrets after the application is decommissioned.
 -   Keep the CephFS PVCs intact until data export or cleanup is explicitly confirmed.
 
+### Linkwarden Renovate hold
+
+Decision:
+
+-   Disable Renovate updates for `ghcr.io/linkwarden/linkwarden` until the `v2.15.1` crashloop is understood and validated outside an automated merge path.
+
+Assumptions:
+
+-   `v2.14.1` is the last known-good Linkwarden image in this cluster.
+-   Other container updates should continue normally.
+
+Validation checks:
+
+-   `rg -n "ghcr.io/linkwarden/linkwarden|Linkwarden image" .renovaterc.json5`
+-   Confirm the Renovate dashboard no longer proposes Linkwarden image PRs.
+
+Rollback:
+
+-   Remove the Linkwarden-specific package rule from `.renovaterc.json5` after a newer image is manually tested and rolled out successfully.
+
 ### Monitoring Slack notifications via Alertmanager
 
 Decision:

@@ -30,6 +30,12 @@
   },
   packageRules: [
     {
+      description: "Hold Linkwarden image updates until the v2.15.1 crashloop is resolved",
+      matchDatasources: ["docker"],
+      matchPackageNames: ["ghcr.io/linkwarden/linkwarden"],
+      enabled: false,
+    },
+    {
       description: "Override Helmfile Dependency Name",
       matchDatasources: ["docker"],
       matchManagers: ["helmfile"],

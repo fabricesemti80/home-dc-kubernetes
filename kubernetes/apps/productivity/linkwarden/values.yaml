@@ -27,7 +27,7 @@ controllers:
       app:
         image:
           repository: ghcr.io/linkwarden/linkwarden
-          tag: v2.15.1
+          tag: v2.14.1
         command:
           - sh
           - -c
