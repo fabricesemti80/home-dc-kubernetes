@@ -11,6 +11,9 @@ controllers:
           tag: latest
         env:
           TZ: Europe/London
+          HTTP_ALLOWED: "true"
+          ALLOW_UNAUTHENTICATED: "true"
+          JWT_SECRET: "" # lets it generate random UUID
         resources:
           requests:
             cpu: 100m
