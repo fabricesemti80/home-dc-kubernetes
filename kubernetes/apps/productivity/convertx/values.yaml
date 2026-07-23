@@ -1,0 +1,44 @@
+---
+# ConvertX - Self-hosted online file converter.
+# Using bjw-s-labs/app-template pattern.
+
+controllers:
+  convertx:
+    containers:
+      app:
+        image:
+          repository: c4illin/convertx
+          tag: latest
+        env:
+          TZ: Europe/London
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            cpu: 1000m
+            memory: 1Gi
+
+defaultPodOptions:
+  automountServiceAccountToken: false
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+    runAsGroup: 1000
+    fsGroup: 1000
+
+service:
+  app:
+    controller: convertx
+    ports:
+      http:
+        port: 3000
+
+persistence:
+  data:
+    type: persistentVolumeClaim
+    accessMode: ReadWriteOnce
+    storageClass: cephfs
+    size: 1Gi
+    globalMounts:
+      - path: /app/data
