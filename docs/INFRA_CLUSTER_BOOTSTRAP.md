@@ -94,9 +94,9 @@ argocd cluster list
 argocd cluster add infra-cluster --name infra-cluster
 
 # OR via kubeconfig file:
-argocd cluster add --kubeconfig ./infra-cluster/kubeconfig \
-  --name infra-cluster \
-  --kube-context admin@infra-cluster
+argocd cluster add admin@infra-cluster \
+  --kubeconfig ./infra-cluster/kubeconfig \
+  --name infra-cluster
 ```
 
 **Verify registration:**

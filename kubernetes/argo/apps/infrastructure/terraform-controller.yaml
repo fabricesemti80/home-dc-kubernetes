@@ -8,15 +8,24 @@ metadata:
     argocd.argoproj.io/sync-wave: '0'
 spec:
   project: kubernetes
-  source:
-    repoURL: https://github.com/fabricesemti80/home-dc-kubernetes.git
-    targetRevision: main
-    path: kubernetes/apps/infrastructure/terraform-controller
+  sources:
+    - repoURL: "https://github.com/fabricesemti80/home-dc-kubernetes.git"
+      path: kubernetes/apps/infrastructure/terraform-controller
+      targetRevision: main
+      ref: repo
+    - repoURL: https://flux-iac.github.io/tofu-controller
+      chart: tofu-controller
+      targetRevision: 0.16.4
+      helm:
+        releaseName: tf-controller
+        valueFiles:
+          - $repo/kubernetes/apps/infrastructure/terraform-controller/values.yaml
   destination:
     name: infra-cluster
     namespace: infrastructure
   syncPolicy:
     automated:
+      allowEmpty: true
       prune: true
       selfHeal: true
     retry:

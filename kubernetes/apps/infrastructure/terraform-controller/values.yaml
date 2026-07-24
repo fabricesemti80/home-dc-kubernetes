@@ -3,8 +3,9 @@
 # Placeholder: fill in values once infra-cluster is running.
 # After Step 4 in INFRA_CLUSTER_BOOTSTRAP.md, uncomment and adjust.
 #
-# Expected chart: https://github.com/weaveworks/tf-controller
-# Docs: https://weaveworks.github.io/tf-controller/
+# Chart: https://flux-iac.github.io/tofu-controller (tofu-controller@0.16.4)
+# Docs: https://flux-iac.github.io/tofu-controller/
+# Upstream: https://github.com/flux-iac/tofu-controller
 #
 # Prerequisites:
 #   - infra-cluster registered in ArgoCD (see docs/INFRA_CLUSTER_BOOTSTRAP.md)
