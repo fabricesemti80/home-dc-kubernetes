@@ -21,7 +21,7 @@ spec:
         valueFiles:
           - $repo/kubernetes/apps/kube-system/metrics-server/values.yaml
   destination:
-    name: in-cluster
+    name: app-cluster
     namespace: kube-system
   syncPolicy:
     automated:

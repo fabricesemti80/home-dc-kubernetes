@@ -21,7 +21,7 @@ spec:
         valueFiles:
           - $repo/kubernetes/apps/doppler-operator-system/doppler-operator/values.yaml
   destination:
-    name: in-cluster
+    name: app-cluster
     namespace: doppler-operator-system
   syncPolicy:
     automated:

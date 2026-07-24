@@ -64,12 +64,29 @@ kubectl --kubeconfig ./infra-cluster/kubeconfig label node <worker-name> \
   node-role.kubernetes.io/worker=""
 ```
 
+## Step 3b: Rename the Current Cluster to "app-cluster"
+
+The default ArgoCD in-cluster is named `in-cluster`. To match this repo, rename it:
+
+```bash
+# Get the ArgoCD cluster server URL for the in-cluster
+argocd cluster list
+
+# Rename it
+argocd cluster update https://kubernetes.default.svc --name app-cluster
+
+# Verify
+argocd cluster list
+```
+
+All 39 ArgoCD Application manifests in this repo now reference `destination.name: app-cluster`.
+
 ## Step 4: Register Infra-Cluster in ArgoCD (Hub)
 
 On the **hub cluster** (app-cluster):
 
 ```bash
-# List current clusters
+# List current clusters (should show app-cluster + in-cluster)
 argocd cluster list
 
 # Add the infra-cluster
@@ -85,7 +102,7 @@ argocd cluster add --kubeconfig ./infra-cluster/kubeconfig \
 **Verify registration:**
 ```bash
 argocd cluster list
-# Expected: in-cluster (app-cluster, already named), infra-cluster
+# Expected: app-cluster (current), in-cluster (default), infra-cluster (new)
 ```
 
 ## Step 5: Install Ceph-CSI on Infra-Cluster
