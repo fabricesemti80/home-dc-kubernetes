@@ -1,0 +1,43 @@
+{
+  "title": "Infrastructure Overview",
+  "uid": "infra-overview",
+  "panels": [
+    {
+      "title": "Cluster CPU Usage",
+      "type": "gauge",
+      "gridPos": { "x": 0, "y": 0, "w": 6, "h": 4 },
+      "targets": [{ "expr": "sum(node_cpu_seconds_total{mode=\"idle\"}) / sum(node_cpu_seconds_total)" }]
+    },
+    {
+      "title": "Cluster RAM Usage",
+      "type": "gauge",
+      "gridPos": { "x": 6, "y": 0, "w": 6, "h": 4 },
+      "targets": [{ "expr": "1 - (node_memory_MemFree_bytes + node_memory_Cached_bytes + node_memory_Buffers_bytes) / node_memory_MemTotal_bytes" }]
+    },
+    {
+      "title": "Pod Health (Non-Running)",
+      "type": "stat",
+      "gridPos": { "x": 12, "y": 0, "w": 6, "h": 4 },
+      "targets": [{ "expr": "sum(kube_pod_status_phase{phase!=\"Running\"})" }]
+    },
+    {
+      "title": "Node Status",
+      "type": "table",
+      "gridPos": { "x": 0, "y": 4, "w": 12, "h": 6 },
+      "targets": [{ "expr": "kube_node_status_condition{condition=\"Ready\",status=\"true\"}" }]
+    },
+    {
+      "title": "Storage Saturation (CephFS)",
+      "type": "gauge",
+      "gridPos": { "x": 12, "y": 4, "w": 6, "h": 6 },
+      "targets": [{ "expr": "sum(kubelet_volume_stats_available_bytes) / sum(kubelet_volume_stats_capacity_bytes)" }]
+    },
+    {
+      "title": "Top Memory Consumers (Pods)",
+      "type": "barchart",
+      "gridPos": { "x": 0, "y": 10, "w": 18, "h": 6 },
+      "targets": [{ "expr": "sum by (pod) (container_memory_working_set_bytes)" }]
+    }
+  ],
+  "schemaVersion": 38
+}
