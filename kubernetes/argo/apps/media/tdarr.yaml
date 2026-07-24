@@ -21,7 +21,7 @@ spec:
         valueFiles:
           - $repo/kubernetes/apps/media/tdarr/values.yaml
   destination:
-    name: in-cluster
+    name: app-cluster
     namespace: media
   syncPolicy:
     automated:

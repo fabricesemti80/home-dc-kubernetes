@@ -13,7 +13,7 @@ spec:
     path: kubernetes/apps/kube-system/ceph-csi
     targetRevision: main
   destination:
-    name: in-cluster
+    name: app-cluster
     namespace: kube-system
   syncPolicy:
     automated:

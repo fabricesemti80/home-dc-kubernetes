@@ -13,7 +13,7 @@ spec:
     path: kubernetes/apps/monitoring/beszel-agent
     targetRevision: main
   destination:
-    name: in-cluster
+    name: app-cluster
     namespace: monitoring
   syncPolicy:
     automated:

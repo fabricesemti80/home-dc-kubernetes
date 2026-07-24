@@ -13,7 +13,7 @@ spec:
     path: kubernetes/apps/storage
     targetRevision: main
   destination:
-    name: in-cluster
+    name: app-cluster
     namespace: storage
   syncPolicy:
     automated:

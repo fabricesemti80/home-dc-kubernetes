@@ -22,7 +22,7 @@ spec:
           - $repo/kubernetes/apps/default/echo/values.yaml
           - $repo/kubernetes/apps/default/echo/values.sops.yaml
   destination:
-    name: in-cluster
+    name: app-cluster
     namespace: default
   syncPolicy:
     automated:

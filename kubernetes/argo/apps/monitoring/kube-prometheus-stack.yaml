@@ -22,7 +22,7 @@ spec:
           - $repo/kubernetes/apps/monitoring/kube-prometheus-stack/values.yaml
           - $repo/kubernetes/apps/monitoring/kube-prometheus-stack/values.sops.yaml
   destination:
-    name: in-cluster
+    name: app-cluster
     namespace: monitoring
   ignoreDifferences:
     - group: admissionregistration.k8s.io

@@ -21,7 +21,7 @@ spec:
         valueFiles:
           - $repo/kubernetes/apps/network/k8s-gateway/values.sops.yaml
   destination:
-    name: in-cluster
+    name: app-cluster
     namespace: network
   syncPolicy:
     automated:
