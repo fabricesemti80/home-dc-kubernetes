@@ -1,0 +1,59 @@
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: pulse-agent
+  namespace: monitoring
+  labels:
+    app: pulse-agent
+spec:
+  selector:
+    matchLabels:
+      app: pulse-agent
+  template:
+    metadata:
+      labels:
+        app: pulse-agent
+    spec:
+      serviceAccountName: pulse-agent-sa
+      containers:
+        - name: agent
+          image: rcourtman/pulse-agent:latest
+          env:
+            - name: PULSE_SERVER_URL
+              value: "http://pulse.monitoring.svc.cluster.local:8080"
+            - name: PULSE_API_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: pulse-secrets
+                  key: api-token
+          volumeMounts:
+            - name: proc
+              mountPath: /host/proc
+              readOnly: true
+            - name: sys
+              mountPath: /host/sys
+              readOnly: true
+      volumes:
+        - name: proc
+          hostPath:
+            path: /proc
+        - name: sys
+          hostPath:
+            path: /sys
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: pulse-agent-sa
+  namespace: monitoring
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: pulse-secrets
+  namespace: monitoring
+type: Opaque
+data:
+  # To be populated via DopplerSecret for the actual token
+  api-token: placeholder
