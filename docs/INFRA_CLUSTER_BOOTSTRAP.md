@@ -50,43 +50,110 @@ cd ~/clusters/infra-cluster
 
 ---
 
-# Phase 0: rename the existing Argo CD cluster before merging
+# Phase 0: prepare the app-cluster Argo CD CLI
 
-Complete this phase **before merging this PR**. The manifests in this PR target `app-cluster`; merging before the rename would temporarily leave the Applications with an unknown destination.
+Complete this phase **before merging this PR**. The manifests in this PR target `app-cluster`; merging before the live Argo CD cluster is renamed can leave Applications with an unknown destination.
 
-Log in to the existing Argo CD instance and inspect the current entry:
-
-```bash
-argocd cluster list
-```
-
-Rename the local cluster:
+Use the repository checkout that will reconcile the app cluster:
 
 ```bash
-argocd cluster set in-cluster --name app-cluster
+cd /Users/fs/orca/workspaces/home-dc-kubernetes/kittiwake
+cp /Users/fs/Documents/repositories/infrastructure/home-dc-kubernetes/kubeconfig ./kubeconfig
 ```
 
-If the CLI cannot rename the special local-cluster entry, use the Argo CD UI:
+Create a kubeconfig context that points at the Argo CD namespace. `argocd --core` reads Argo CD resources from the current kube context namespace, so the namespace must be `argo-system`.
+
+```bash
+kubectl config set-context argocd \
+  --cluster=kubernetes \
+  --user=admin@kubernetes \
+  --namespace=argo-system
+kubectl config use-context argocd
+```
+
+If direnv is available, keep the local credentials wired on directory entry:
+
+```bash
+cat > .envrc <<'EOF'
+export KUBECONFIG="$PWD/kubeconfig"
+export TALOSCONFIG="$PWD/talos/clusterconfig/talosconfig"
+export SOPS_AGE_KEY_FILE="$PWD/age.key"
+EOF
+direnv allow .
+```
+
+Verify local access:
+
+```bash
+kubectl get nodes
+argocd cluster list --core
+```
+
+Expected current Argo CD cluster before the rename:
+
+```text
+SERVER                          NAME        STATUS
+https://kubernetes.default.svc  in-cluster  Successful
+```
+
+If the cluster is already named `app-cluster`, leave it as-is and continue with the pre-merge checks below.
+
+---
+
+# Phase 1: rename the existing Argo CD cluster before merging
+
+Rename the local cluster from `in-cluster` to `app-cluster`:
+
+```bash
+argocd cluster set in-cluster --name app-cluster --core
+argocd cluster list --core
+```
+
+Expected result:
+
+```text
+SERVER                          NAME         STATUS
+https://kubernetes.default.svc  app-cluster  Successful
+```
+
+If the CLI cannot rename the special local-cluster entry, use the Argo CD UI instead:
 
 1. Open **Settings → Clusters**.
 2. Open `in-cluster`.
 3. Edit its name to `app-cluster`.
 4. Save and verify with `argocd cluster list`.
 
-Expected result:
+Do not proceed until the live Argo CD cluster entry is named `app-cluster`.
 
-```text
-NAME         SERVER
-app-cluster  https://kubernetes.default.svc
+At this point the live Applications may still show `CLUSTER` as `in-cluster` until this PR is merged and reconciled. That is acceptable if they remain `Synced` and `Healthy`; do not force-sync Applications just to change the displayed destination before the manifest change exists on `main`.
+
+Merge this PR only after the rename is done. Then pull `main` and verify that every named destination has moved off `in-cluster`:
+
+```bash
+git checkout main
+git pull
+rg "name: in-cluster" kubernetes/argo kubernetes/components templates/config/kubernetes/components
+argocd app get apps --core
+argocd app list --core
 ```
 
-Do not proceed until existing Applications remain healthy when addressed through `app-cluster`.
+Expected checks:
 
-After the rename is confirmed, merge this PR and verify that Argo CD reconciles the renamed Application destinations successfully.
+- `rg "name: in-cluster" ...` returns no matches.
+- `argocd app list --core` shows Applications targeting `app-cluster`.
+- `argocd cluster list --core` still shows `app-cluster` as `Successful`.
+
+Rollback before adding `infra-cluster`:
+
+```bash
+argocd cluster set app-cluster --name in-cluster --core
+```
+
+Only use the rollback if the PR is not merged or is reverted. Once manifests target `app-cluster`, keep the live Argo CD cluster name as `app-cluster`.
 
 ---
 
-# Phase 1: boot Talos maintenance mode on both mini PCs
+# Phase 2: boot Talos maintenance mode on both mini PCs
 
 1. Download the current stable Talos `metal-amd64.iso` from the Talos release or Image Factory page.
 2. Write it to a USB drive.
@@ -106,7 +173,7 @@ Record the installation disk shown by both machines. The examples below assume `
 
 ---
 
-# Phase 2: generate Talos configuration
+# Phase 3: generate Talos configuration
 
 Cilium will provide the CNI and replace kube-proxy. Create `cilium-patch.yaml`:
 
@@ -160,7 +227,7 @@ talosctl validate --config ./generated/worker.yaml --mode metal
 
 ---
 
-# Phase 3: install Talos to the physical nodes
+# Phase 4: install Talos to the physical nodes
 
 Apply the control-plane configuration:
 
@@ -199,7 +266,7 @@ The health command may wait for CNI-related checks until Cilium is installed.
 
 ---
 
-# Phase 4: bootstrap Kubernetes and install Cilium
+# Phase 5: bootstrap Kubernetes and install Cilium
 
 Bootstrap etcd exactly once:
 
@@ -268,21 +335,36 @@ kubectl label node infra-wk-01 node-role.kubernetes.io/worker=''
 
 ---
 
-# Phase 5: register infra-cluster in the existing Argo CD hub
+# Phase 6: register infra-cluster in the existing Argo CD hub
 
 Argo CD remains hosted on `app-cluster` and manages both clusters.
 
-First confirm the kubeconfig context:
+Keep two kubeconfigs distinct:
+
+- app-cluster kubeconfig: repository-local `./kubeconfig`, current context `argocd`, namespace `argo-system`
+- infra-cluster kubeconfig: `~/clusters/infra-cluster/kubeconfig`, context `infra-cluster`
+
+From the repository checkout, verify Argo CD still sees the renamed app cluster:
 
 ```bash
+cd /Users/fs/orca/workspaces/home-dc-kubernetes/kittiwake
+argocd cluster list --core
+```
+
+From the infra working directory, confirm the target kubeconfig context:
+
+```bash
+cd ~/clusters/infra-cluster
 kubectl --kubeconfig ./kubeconfig config get-contexts
 ```
 
-Register the exact context shown by that command:
+Register that exact context in the existing Argo CD hub. The command talks to Argo CD through the app-cluster repo kubeconfig and installs management credentials into the infra-cluster kubeconfig context:
 
 ```bash
-argocd cluster add infra-cluster \
-  --kubeconfig ./kubeconfig \
+KUBECONFIG=/Users/fs/orca/workspaces/home-dc-kubernetes/kittiwake/kubeconfig \
+  argocd cluster add infra-cluster \
+  --core \
+  --kubeconfig ~/clusters/infra-cluster/kubeconfig \
   --name infra-cluster
 ```
 
@@ -291,8 +373,9 @@ Argo CD creates its management ServiceAccount and credentials on the target clus
 Verify registration:
 
 ```bash
-argocd cluster list
-argocd cluster get infra-cluster
+cd /Users/fs/orca/workspaces/home-dc-kubernetes/kittiwake
+argocd cluster list --core
+argocd cluster get infra-cluster --core
 ```
 
 Expected managed clusters:
@@ -306,7 +389,7 @@ Do not merge any Application targeting `infra-cluster` until this registration i
 
 ---
 
-# Phase 6: storage and service placement decisions
+# Phase 7: storage and service placement decisions
 
 The initial infra cluster must not depend on storage hosted inside `app-cluster` or on the Proxmox nodes it is intended to monitor.
 
@@ -327,7 +410,7 @@ Technitium DNS needs special planning:
 
 ---
 
-# Phase 7: deploy the core applications through a follow-up PR
+# Phase 8: deploy the core applications through a follow-up PR
 
 After `infra-cluster` is registered and storage is ready, add separate Argo CD Applications targeting:
 
@@ -348,14 +431,14 @@ Do not move the existing `technitium-dns` Application blindly: the current repos
 Validate each application before proceeding:
 
 ```bash
-argocd app get <application-name>
-argocd app sync <application-name>
+argocd app get <application-name> --core
+argocd app sync <application-name> --core
 kubectl --context infra-cluster get pods -A
 ```
 
 ---
 
-# Phase 8: maintenance test
+# Phase 9: maintenance test
 
 Prove that the design meets its purpose:
 
