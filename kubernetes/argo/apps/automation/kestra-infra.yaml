@@ -15,7 +15,7 @@ spec:
       helm:
         releaseName: kestra
         valueFiles:
-          - $repo/kubernetes/apps/automation/kestra-infra/kestra-values.yaml
+          - $repo/kubernetes/apps/automation/kestra-infra/values.yaml
     - repoURL: https://groundhog2k.github.io/helm-charts/
       chart: postgres
       targetRevision: 1.5.7
