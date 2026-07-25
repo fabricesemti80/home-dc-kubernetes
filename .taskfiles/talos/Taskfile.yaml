@@ -1,7 +1,98 @@
 ---
 version: '3'
 
+vars:
+  INFRA_DIR: '{{.ROOT_DIR}}/.private/infra-cluster'
+  INFRA_TALOSCONFIG: '{{.INFRA_DIR}}/generated/talosconfig'
+  INFRA_KUBECONFIG: '{{.INFRA_DIR}}/kubeconfig'
+  INFRA_ENDPOINT: 10.0.40.31
+  INFRA_NODES: 10.0.40.31,10.0.40.32
+  INFRA_CILIUM_VERSION:
+    sh: yq -r '.spec.sources[] | select(.chart == "cilium") | .targetRevision' {{.ROOT_DIR}}/kubernetes/argo/apps/kube-system/cilium.yaml
+
 tasks:
+
+  app:generate-config:
+    desc: Generate Talos configuration for app-cluster
+    cmd: task talos:generate-config
+
+  app:bootstrap:
+    desc: Bootstrap app-cluster Talos and write kubeconfig
+    cmd: task bootstrap:talos
+
+  app:apply-node:
+    desc: Apply app-cluster Talos config to a node [IP=required]
+    cmd: task talos:apply-node IP={{.IP}} MODE={{.MODE | default "auto"}}
+    requires:
+      vars: [IP]
+
+  app:upgrade-node:
+    desc: Upgrade Talos on an app-cluster node [IP=required, VERSION=optional]
+    cmd: task talos:upgrade-node IP={{.IP}} {{if .VERSION}}VERSION={{.VERSION}}{{end}}
+    requires:
+      vars: [IP]
+
+  infra:bootstrap:
+    desc: Bootstrap infra-cluster Kubernetes and write kubeconfig
+    prompt: Bootstrap infra-cluster etcd on {{.INFRA_ENDPOINT}}? Run this only once per cluster.
+    cmds:
+      - talosctl --talosconfig {{.INFRA_TALOSCONFIG}} --nodes {{.INFRA_ENDPOINT}} --endpoints {{.INFRA_ENDPOINT}} bootstrap
+      - task: infra:kubeconfig
+    preconditions:
+      - test -f {{.INFRA_TALOSCONFIG}}
+      - which talosctl
+
+  infra:kubeconfig:
+    desc: Fetch infra-cluster kubeconfig into .private
+    cmds:
+      - mkdir -p {{.INFRA_DIR}}
+      - talosctl --talosconfig {{.INFRA_TALOSCONFIG}} --nodes {{.INFRA_ENDPOINT}} --endpoints {{.INFRA_ENDPOINT}} kubeconfig {{.INFRA_KUBECONFIG}} --force
+      - |
+        kubectl --kubeconfig {{.INFRA_KUBECONFIG}} config get-contexts infra-cluster >/dev/null 2>&1 ||
+          kubectl --kubeconfig {{.INFRA_KUBECONFIG}} config rename-context admin@infra-cluster infra-cluster
+      - kubectl --kubeconfig {{.INFRA_KUBECONFIG}} config use-context infra-cluster
+    preconditions:
+      - test -f {{.INFRA_TALOSCONFIG}}
+      - which talosctl kubectl
+
+  infra:cilium:
+    desc: Install Cilium into infra-cluster
+    cmds:
+      - helm repo add cilium https://helm.cilium.io/ --force-update
+      - helm repo update cilium
+      - |
+        helm upgrade --install cilium cilium/cilium \
+          --version {{.INFRA_CILIUM_VERSION}} \
+          --namespace kube-system \
+          --kubeconfig {{.INFRA_KUBECONFIG}} \
+          --values {{.ROOT_DIR}}/kubernetes/apps/kube-system/cilium/values.yaml \
+          --set operator.replicas=1 \
+          --set ipv4NativeRoutingCIDR=10.244.0.0/16
+    preconditions:
+      - test -f {{.INFRA_KUBECONFIG}}
+      - test -f {{.ROOT_DIR}}/kubernetes/apps/kube-system/cilium/values.yaml
+      - which helm yq
+
+  infra:verify:
+    desc: Verify infra-cluster Talos, Kubernetes nodes, and pods
+    cmds:
+      - talosctl --talosconfig {{.INFRA_TALOSCONFIG}} --nodes {{.INFRA_NODES}} --endpoints {{.INFRA_ENDPOINT}} get members
+      - kubectl --kubeconfig {{.INFRA_KUBECONFIG}} get nodes -o wide
+      - kubectl --kubeconfig {{.INFRA_KUBECONFIG}} get pods -A
+    preconditions:
+      - test -f {{.INFRA_TALOSCONFIG}}
+      - test -f {{.INFRA_KUBECONFIG}}
+      - which talosctl kubectl
+
+  infra:status:
+    desc: Show infra-cluster Talos and Kubernetes status
+    cmds:
+      - talosctl --talosconfig {{.INFRA_TALOSCONFIG}} --nodes {{.INFRA_NODES}} --endpoints {{.INFRA_ENDPOINT}} version
+      - kubectl --kubeconfig {{.INFRA_KUBECONFIG}} get nodes -o wide
+    preconditions:
+      - test -f {{.INFRA_TALOSCONFIG}}
+      - test -f {{.INFRA_KUBECONFIG}}
+      - which talosctl kubectl
 
   generate-config:
     desc: Generate Talos configuration
