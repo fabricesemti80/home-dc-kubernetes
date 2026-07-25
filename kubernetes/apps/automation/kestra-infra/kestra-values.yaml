@@ -1,0 +1,83 @@
+---
+# Pin all Kestra pods to the single infra worker so local-path volumes stay
+# on the same node.
+fullnameOverride: kestra
+
+common:
+  nodeSelector:
+    kubernetes.io/hostname: infra-wk-01
+  tolerations: []
+  affinity: {}
+  extraEnvFrom:
+    - secretRef:
+        name: kestra-basic-auth
+    - secretRef:
+        name: kestra-postgres
+    - secretRef:
+        name: versitygw-root
+  initContainers:
+    - name: ensure-kestra-bucket
+      image: amazon/aws-cli:2.15.57
+      command:
+        - sh
+        - -lc
+      env:
+        - name: AWS_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: versitygw-root
+              key: ROOT_ACCESS_KEY
+        - name: AWS_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: versitygw-root
+              key: ROOT_SECRET_KEY
+        - name: AWS_DEFAULT_REGION
+          value: eu-west-1
+        - name: S3_ENDPOINT_URL
+          value: http://versitygw:7070
+        - name: BUCKET
+          value: kestra
+      args:
+        - |
+          set -euo pipefail
+          for i in $(seq 1 60); do
+            aws --endpoint-url "$S3_ENDPOINT_URL" s3api list-buckets >/dev/null 2>&1 && break
+            sleep 2
+          done
+          aws --endpoint-url "$S3_ENDPOINT_URL" s3api head-bucket --bucket "$BUCKET" >/dev/null 2>&1 \
+            || aws --endpoint-url "$S3_ENDPOINT_URL" s3 mb "s3://$BUCKET"
+
+dind:
+  enabled: true
+  mode: insecure
+
+configurations:
+  application:
+    kestra:
+      tutorialFlows:
+        enabled: false
+      server:
+        basic-auth:
+          enabled: true
+          username: ${KESTRA_BASIC_AUTH_USERNAME}
+          password: ${KESTRA_BASIC_AUTH_PASSWORD}
+      queue:
+        type: postgres
+      repository:
+        type: postgres
+      storage:
+        type: s3
+        s3:
+          endpoint: "http://versitygw:7070"
+          region: "eu-west-1"
+          bucket: "kestra"
+          access-key: ${ROOT_ACCESS_KEY}
+          secret-key: ${ROOT_SECRET_KEY}
+          force-path-style: true
+    datasources:
+      postgres:
+        url: "jdbc:postgresql://kestra-postgres:5432/kestra"
+        driverClassName: org.postgresql.Driver
+        username: ${USERDB_USER}
+        password: ${USERDB_PASSWORD}

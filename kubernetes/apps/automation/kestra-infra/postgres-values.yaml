@@ -1,0 +1,17 @@
+---
+fullnameOverride: kestra-postgres
+useDeployment: true
+nodeSelector:
+  kubernetes.io/hostname: infra-wk-01
+tolerations: []
+affinity: {}
+settings:
+  existingSecret: kestra-postgres
+userDatabase:
+  existingSecret: kestra-postgres
+storage:
+  className: local-path
+  requestedSize: 10Gi
+  accessModes:
+    - ReadWriteOnce
+  keepPvc: true

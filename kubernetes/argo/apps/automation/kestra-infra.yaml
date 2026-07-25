@@ -1,0 +1,49 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: kestra-infra
+  namespace: argo-system
+  annotations:
+    argocd.argoproj.io/sync-wave: '1'
+spec:
+  project: kubernetes
+  sources:
+    - repoURL: https://helm.kestra.io
+      chart: kestra
+      targetRevision: 1.3.29
+      helm:
+        releaseName: kestra
+        valueFiles:
+          - $repo/kubernetes/apps/automation/kestra-infra/kestra-values.yaml
+    - repoURL: https://groundhog2k.github.io/helm-charts/
+      chart: postgres
+      targetRevision: 1.5.7
+      helm:
+        releaseName: kestra-postgres
+        valueFiles:
+          - $repo/kubernetes/apps/automation/kestra-infra/postgres-values.yaml
+    - repoURL: "https://github.com/fabricesemti80/home-dc-kubernetes.git"
+      path: kubernetes/apps/automation/kestra-infra
+      targetRevision: main
+      ref: repo
+  destination:
+    name: infra-cluster
+    namespace: kestra
+  syncPolicy:
+    automated:
+      allowEmpty: true
+      prune: true
+      selfHeal: true
+    retry:
+      limit: 2
+      backoff:
+        duration: 10s
+        factor: 2
+        maxDuration: 3m
+    syncOptions:
+      - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true
+      - ServerSideApply=true
+      - PruneLast=true
+      - RespectIgnoreDifferences=true
