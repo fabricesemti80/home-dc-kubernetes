@@ -1,0 +1,68 @@
+---
+# Pin all Kestra pods to the single infra worker so local-path volumes stay
+# on the same node.
+kestra:
+  fullnameOverride: kestra
+  common:
+    nodeSelector:
+      kubernetes.io/hostname: infra-wk-01
+    tolerations: []
+    affinity: {}
+    extraEnvFrom:
+      - secretRef:
+          name: kestra-basic-auth
+
+  dind:
+    enabled: true
+    mode: insecure
+
+  configurations:
+    application:
+      kestra:
+        tutorialFlows:
+          enabled: false
+        server:
+          basic-auth:
+            enabled: true
+            username: ${KESTRA_BASIC_AUTH_USERNAME}
+            password: ${KESTRA_BASIC_AUTH_PASSWORD}
+        queue:
+          type: postgres
+        repository:
+          type: postgres
+        storage:
+          type: s3
+          s3:
+            endpoint: "http://versitygw:7070"
+            region: "eu-west-1"
+            bucket: "kestra"
+            access-key: "kestra"
+            secret-key: "ChangeMe#1234"
+            force-path-style: true
+      datasources:
+        postgres:
+          url: "jdbc:postgresql://kestra-starter-postgres:5432/kestra"
+          driverClassName: org.postgresql.Driver
+          username: "kestra"
+          password: "ChangeMe#1234"
+
+postgres:
+  fullnameOverride: kestra-starter-postgres
+  useDeployment: true
+  nodeSelector:
+    kubernetes.io/hostname: infra-wk-01
+  tolerations: []
+  affinity: {}
+  storage:
+    className: local-path
+    volumeName: postgres-data
+    requestedSize: 10Gi
+    accessModes:
+      - ReadWriteOnce
+    keepPvc: true
+
+s3Emulator:
+  storage:
+    size: 20Gi
+  sidecar:
+    enabled: false
