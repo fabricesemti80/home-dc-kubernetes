@@ -1,0 +1,13 @@
+---
+apiVersion: tailscale.com/v1alpha1
+kind: Connector
+metadata:
+  name: infra-router
+spec:
+  replicas: 2
+  hostnamePrefix: infra-router
+  subnetRouter:
+    advertiseRoutes:
+      - 10.0.0.0/16
+      - 192.168.0.0/16
+  exitNode: true

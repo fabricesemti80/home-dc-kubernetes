@@ -8,13 +8,19 @@ metadata:
     argocd.argoproj.io/sync-wave: '1'
 spec:
   project: kubernetes
-  source:
-    repoURL: "https://github.com/fabricesemti80/home-dc-kubernetes.git"
-    path: kubernetes/apps/network/tailscale-infra
-    targetRevision: main
+  sources:
+    - repoURL: "https://github.com/fabricesemti80/home-dc-kubernetes.git"
+      path: kubernetes/apps/network/tailscale-infra
+      targetRevision: main
+      ref: repo
+    - repoURL: https://pkgs.tailscale.com/helmcharts
+      chart: tailscale-operator
+      targetRevision: 1.98.9
+      helm:
+        releaseName: tailscale-operator
   destination:
     name: infra-cluster
-    namespace: network
+    namespace: tailscale
   syncPolicy:
     automated:
       allowEmpty: true
