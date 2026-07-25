@@ -506,7 +506,7 @@ Deploy in this order:
 
 1. Doppler secret operator (`doppler-operator-infra`)
 2. storage prerequisites
-3. Pulse
+3. Pulse (`pulse-infra`) — pinned to `infra-wk-01` with `hostPath` storage for the first pass
 4. Uptime Kuma
 5. Technitium DNS
 

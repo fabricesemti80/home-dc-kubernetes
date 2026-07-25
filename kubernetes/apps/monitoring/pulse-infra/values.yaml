@@ -1,0 +1,86 @@
+---
+global:
+  createDefaultServiceAccount: false
+
+controllers:
+  pulse:
+    replicas: 1
+    strategy: Recreate
+    containers:
+      app:
+        image:
+          repository: docker.io/rcourtman/pulse
+          tag: "6"
+        env:
+          TZ: Europe/London
+          NODE_NAME: pulse-server
+          PULSE_DEPLOYMENT_METHOD: kubernetes
+          FRONTEND_PORT: &port 7655
+          PULSE_TELEMETRY: "false"
+          PULSE_PUBLIC_URL: https://pulse.krapulax.home
+        envFrom:
+          - secretRef:
+              name: pulse-secrets
+        probes:
+          liveness: &probes
+            enabled: true
+            custom: true
+            spec:
+              tcpSocket:
+                port: *port
+              initialDelaySeconds: 30
+              periodSeconds: 15
+              timeoutSeconds: 5
+              failureThreshold: 6
+          readiness: *probes
+          startup:
+            enabled: true
+            custom: true
+            spec:
+              tcpSocket:
+                port: *port
+              initialDelaySeconds: 10
+              periodSeconds: 10
+              timeoutSeconds: 3
+              failureThreshold: 30
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: false
+          capabilities: {drop: ["ALL"]}
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            memory: 1Gi
+
+defaultPodOptions:
+  automountServiceAccountToken: false
+  nodeSelector:
+    kubernetes.io/hostname: infra-wk-01
+  securityContext:
+    runAsNonRoot: false
+    runAsUser: 0
+    runAsGroup: 0
+    fsGroup: 0
+
+service:
+  app:
+    controller: pulse
+    ports:
+      http:
+        port: 7655
+
+persistence:
+  data:
+    type: custom
+    volumeSpec:
+      hostPath:
+        path: /var/pulse/data
+        type: DirectoryOrCreate
+    globalMounts:
+      - path: /data
+  tmp:
+    type: emptyDir
+    globalMounts:
+      - path: /tmp
