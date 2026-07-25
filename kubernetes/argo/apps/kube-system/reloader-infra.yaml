@@ -20,6 +20,7 @@ spec:
         releaseName: reloader
         valueFiles:
           - $repo/kubernetes/apps/kube-system/reloader/values.yaml
+          - $repo/kubernetes/apps/kube-system/reloader/values.infra.yaml
   destination:
     name: infra-cluster
     namespace: kube-system
