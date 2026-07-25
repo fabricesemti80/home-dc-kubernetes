@@ -48,7 +48,7 @@ tasks:
       - mkdir -p {{.INFRA_DIR}}
       - talosctl --talosconfig {{.INFRA_TALOSCONFIG}} --nodes {{.INFRA_ENDPOINT}} --endpoints {{.INFRA_ENDPOINT}} kubeconfig {{.INFRA_KUBECONFIG}} --force
       - |
-        kubectl --kubeconfig {{.INFRA_KUBECONFIG}} config get-contexts infra-cluster >/dev/null 2>&1 ||
+        test "$(kubectl --kubeconfig {{.INFRA_KUBECONFIG}} config current-context)" = infra-cluster ||
           kubectl --kubeconfig {{.INFRA_KUBECONFIG}} config rename-context admin@infra-cluster infra-cluster
       - kubectl --kubeconfig {{.INFRA_KUBECONFIG}} config use-context infra-cluster
     preconditions:
