@@ -44,6 +44,7 @@ serviceAccount:
 defaultPodOptions:
   hostNetwork: true
   hostPID: true
+  dnsPolicy: ClusterFirstWithHostNet
   automountServiceAccountToken: true
   annotations:
     reloader.stakater.com/auto: "true"
