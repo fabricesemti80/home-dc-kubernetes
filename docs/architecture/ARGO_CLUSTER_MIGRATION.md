@@ -47,7 +47,7 @@ The imported Terraform module originally forced every Talos VM to `started = tru
 
 -   `task tf:plan`
 -   `kubectl get nodes -o wide`
--   `talosctl --talosconfig talos/clusterconfig/talosconfig health`
+-   `talosctl --talosconfig talos/app/clusterconfig/talosconfig health`
 -   `kubectl get applications -n argo-system`
 -   `task sync-argo-bootstrap`
 

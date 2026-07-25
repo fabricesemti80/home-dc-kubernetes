@@ -39,7 +39,7 @@ Operate the Talos/Kubernetes homelab from this repository while Docker-host serv
 -   `task tf:cloudflare:plan`
 -   `task tf:localdns:plan`
 -   `kubectl get nodes`
--   `talosctl --talosconfig talos/clusterconfig/talosconfig config info`
+-   `talosctl --talosconfig talos/app/clusterconfig/talosconfig config info`
 -   `task sync-argo-bootstrap`
 
 ## Rollback
@@ -48,5 +48,5 @@ Operate the Talos/Kubernetes homelab from this repository while Docker-host serv
 -   Continue operating from the original repo because its state and files remain untouched.
 -   Continue operating Docker from the previous repo revision until the Docker repo is validated and deployed.
 -   Restore any copied local-only runtime files from the old workspace if the new one is discarded.
--   Reintroduce worker nodes by restoring them to `nodes.yaml`, regenerating `talos/talconfig.yaml`, and re-running Talos config generation.
+-   Reintroduce worker nodes by restoring them to `nodes.yaml`, regenerating `talos/app/talconfig.yaml`, and re-running Talos config generation.
 -   If the OpenTofu stack split needs to be reversed before apply, move the directories and local state files back to the previous layout.

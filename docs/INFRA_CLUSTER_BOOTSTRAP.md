@@ -90,7 +90,7 @@ If direnv is available, keep the local credentials wired on directory entry:
 ```bash
 cat > .envrc <<'EOF'
 export KUBECONFIG="$PWD/kubeconfig"
-export TALOSCONFIG="$PWD/talos/clusterconfig/talosconfig"
+export TALOSCONFIG="$PWD/talos/app/clusterconfig/talosconfig"
 export SOPS_AGE_KEY_FILE="$PWD/age.key"
 EOF
 direnv allow .
@@ -244,100 +244,29 @@ If DHCP is not available, set a temporary static address from the Talos boot med
 
 # Phase 3: generate Talos configuration from the workstation
 
-Run this phase from the workstation, not on the Talos console:
+Run this phase from the repository checkout on the workstation, not on the Talos console:
 
 ```bash
-mkdir -p ~/clusters/infra-cluster
-cd ~/clusters/infra-cluster
+cd /Users/fs/orca/workspaces/home-dc-kubernetes/kittiwake
+mkdir -p .private/infra-cluster/generated
 ```
 
-Cilium will provide the CNI and replace kube-proxy. Create `cilium-patch.yaml`:
+The committed infra Talos source patches live in `talos/infra/`:
 
-```yaml
-cluster:
-  network:
-    cni:
-      name: none
-  proxy:
-    disabled: true
-```
+- `talos/infra/cilium-patch.yaml`
+- `talos/infra/controlplane-patch.yaml`
+- `talos/infra/worker-patch.yaml`
 
-Create machine patches that select the installation disk, set the permanent static IP configuration, and permit scheduling on the single control-plane node. This allows core workloads to continue on the control-plane node if the worker is unavailable.
-
-Create `controlplane-patch.yaml`:
-
-```yaml
-machine:
-  install:
-    disk: /dev/nvme0n1
-  network:
-    disableSearchDomain: true
-    nameservers:
-      - 1.1.1.1
-      - 1.0.0.1
-    interfaces:
-      - deviceSelector:
-          hardwareAddr: "<cp-primary-mac>"
-        dhcp: false
-        addresses:
-          - 10.0.40.31/24
-        routes:
-          - network: 0.0.0.0/0
-            gateway: 10.0.40.1
-        mtu: 1500
-cluster:
-  allowSchedulingOnControlPlanes: true
-```
-
-Create `worker-patch.yaml`:
-
-```yaml
-machine:
-  install:
-    disk: /dev/nvme0n1
-  network:
-    disableSearchDomain: true
-    nameservers:
-      - 1.1.1.1
-      - 1.0.0.1
-    interfaces:
-      - deviceSelector:
-          hardwareAddr: "<worker-primary-mac>"
-        dhcp: false
-        addresses:
-          - 10.0.40.32/24
-        routes:
-          - network: 0.0.0.0/0
-            gateway: 10.0.40.1
-        mtu: 1500
-```
-
-Replace placeholders before generating:
-
-```bash
-sed -i.bak \
-  -e 's/<cp-primary-mac>/<actual-control-plane-mac>/g' \
-  controlplane-patch.yaml
-
-sed -i.bak \
-  -e 's/<worker-primary-mac>/<actual-worker-mac>/g' \
-  worker-patch.yaml
-```
-
-Remove the `.bak` files if the patched files are correct:
-
-```bash
-rm controlplane-patch.yaml.bak worker-patch.yaml.bak
-```
+Before generating, confirm these match the recorded NIC MAC addresses and install disks. Update the patch files first if the hardware changes.
 
 Generate the cluster configuration:
 
 ```bash
 talosctl gen config infra-cluster https://10.0.40.31:6443 \
-  --output-dir ./generated \
-  --config-patch @cilium-patch.yaml \
-  --config-patch-control-plane @controlplane-patch.yaml \
-  --config-patch-worker @worker-patch.yaml
+  --output-dir .private/infra-cluster/generated \
+  --config-patch @talos/infra/cilium-patch.yaml \
+  --config-patch-control-plane @talos/infra/controlplane-patch.yaml \
+  --config-patch-worker @talos/infra/worker-patch.yaml
 ```
 
 The generated secrets are the identity of this cluster. Keep the directory private and backed up; do not commit it.
@@ -345,16 +274,16 @@ The generated secrets are the identity of this cluster. Keep the directory priva
 Confirm the generated machine configs contain the intended static addresses before applying them:
 
 ```bash
-grep -n "10.0.40.31/24" ./generated/controlplane.yaml
-grep -n "10.0.40.32/24" ./generated/worker.yaml
-grep -n "hardwareAddr" ./generated/controlplane.yaml ./generated/worker.yaml
+grep -n "10.0.40.31/24" .private/infra-cluster/generated/controlplane.yaml
+grep -n "10.0.40.32/24" .private/infra-cluster/generated/worker.yaml
+grep -n "hardwareAddr" .private/infra-cluster/generated/controlplane.yaml .private/infra-cluster/generated/worker.yaml
 ```
 
 Optionally inspect the generated files before applying them:
 
 ```bash
-talosctl validate --config ./generated/controlplane.yaml --mode metal
-talosctl validate --config ./generated/worker.yaml --mode metal
+talosctl validate --config .private/infra-cluster/generated/controlplane.yaml --mode metal
+talosctl validate --config .private/infra-cluster/generated/worker.yaml --mode metal
 ```
 
 ---
@@ -382,7 +311,7 @@ Apply the control-plane configuration after the wipe completes:
 ```bash
 talosctl apply-config --insecure \
   --nodes "$CP_NODE" \
-  --file ./generated/controlplane.yaml
+  --file .private/infra-cluster/generated/controlplane.yaml
 ```
 
 The node writes Talos to the selected disk and reboots. Remove the USB media when the machine restarts so it boots from the internal disk.
@@ -393,7 +322,7 @@ Wait until the control-plane node answers on its permanent static IP:
 until talosctl version --insecure --nodes 10.0.40.31; do sleep 10; done
 ```
 
-Now boot the second mini PC from the Talos USB and stop at the maintenance screen. Record its temporary IP, NIC MAC, and install disk as in Phase 2. If the worker MAC or disk differs from `worker-patch.yaml`, update the patch and rerun `talosctl gen config` before applying the worker config.
+Now boot the second mini PC from the Talos USB and stop at the maintenance screen. Record its temporary IP, NIC MAC, and install disk as in Phase 2. If the worker MAC or disk differs from `talos/infra/worker-patch.yaml`, update the patch and rerun `talosctl gen config` before applying the worker config.
 
 Install the worker:
 
@@ -414,7 +343,7 @@ Apply the worker configuration after the wipe completes:
 ```bash
 talosctl apply-config --insecure \
   --nodes "$WK_NODE" \
-  --file ./generated/worker.yaml
+  --file .private/infra-cluster/generated/worker.yaml
 ```
 
 Remove the USB media when the worker restarts. Wait until it answers on its permanent static IP:
@@ -426,7 +355,7 @@ until talosctl version --insecure --nodes 10.0.40.32; do sleep 10; done
 Configure `talosctl` to use the new cluster credentials:
 
 ```bash
-export TALOSCONFIG=$PWD/generated/talosconfig
+export TALOSCONFIG=$PWD/.private/infra-cluster/generated/talosconfig
 talosctl config endpoint 10.0.40.31
 talosctl config node 10.0.40.31
 ```
@@ -447,53 +376,31 @@ The health command may wait for CNI-related checks until Cilium is installed.
 Bootstrap etcd exactly once:
 
 ```bash
-talosctl bootstrap --nodes 10.0.40.31
+task talos:infra:bootstrap
 ```
 
 Retrieve kubeconfig and give the context an explicit name:
 
 ```bash
-talosctl kubeconfig ./kubeconfig --nodes 10.0.40.31
-kubectl --kubeconfig ./kubeconfig config rename-context admin@infra-cluster infra-cluster
-export KUBECONFIG=$PWD/kubeconfig
+task talos:infra:kubeconfig
 ```
 
 Confirm the API responds. Nodes may remain `NotReady` until Cilium is installed:
 
 ```bash
-kubectl get nodes -o wide
+kubectl --kubeconfig .private/infra-cluster/kubeconfig get nodes -o wide
 ```
 
 Install Cilium using the Talos-compatible settings. Keep the chart version aligned with the version used by the repository/app cluster rather than blindly using `latest`.
 
 ```bash
-helm repo add cilium https://helm.cilium.io/
-helm repo update
-
-CILIUM_VERSION='<repository-cilium-version>'
-
-helm upgrade --install cilium cilium/cilium \
-  --version "$CILIUM_VERSION" \
-  --namespace kube-system \
-  --set operator.replicas=1 \
-  --set ipam.mode=kubernetes \
-  --set kubeProxyReplacement=true \
-  --set securityContext.capabilities.ciliumAgent='{CHOWN,KILL,NET_ADMIN,NET_RAW,IPC_LOCK,SYS_ADMIN,SYS_RESOURCE,DAC_OVERRIDE,FOWNER,SETGID,SETUID}' \
-  --set securityContext.capabilities.cleanCiliumState='{NET_ADMIN,SYS_ADMIN,SYS_RESOURCE}' \
-  --set cgroup.autoMount.enabled=false \
-  --set cgroup.hostRoot=/sys/fs/cgroup \
-  --set k8sServiceHost=localhost \
-  --set k8sServicePort=7445 \
-  --set bpf.hostLegacyRouting=true
+task talos:infra:cilium
 ```
 
 Verify networking and node readiness:
 
 ```bash
-cilium status --wait
-cilium connectivity test
-kubectl get nodes -o wide
-kubectl get pods -A
+task talos:infra:verify
 ```
 
 Expected node roles:

@@ -60,7 +60,8 @@ Legacy app-cluster task names still exist for compatibility, but new docs should
 
 Current source layout:
 
-- `talos/`: existing app-cluster Talos source and generated app-cluster Talos config
+- `talos/app/`: app-cluster Talos source and generated app-cluster Talos config
+- `talos/infra/`: infra-cluster Talos source patches
 - `.private/infra-cluster/`: generated infra-cluster Talos config, talosconfig, and kubeconfig
 - `kubernetes/argo/apps/*/*-infra.yaml`: Argo Applications targeting `infra-cluster`
 - `kubernetes/apps/**/values.infra.yaml`: infra-cluster Helm values overrides

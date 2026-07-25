@@ -327,7 +327,7 @@ Validation checks:
 -   `task tf:proxmox:plan`
 -   `task tf:proxmox:apply`
 -   `kubectl get nodes`
--   `talosctl --talosconfig talos/clusterconfig/talosconfig health`
+-   `talosctl --talosconfig talos/app/clusterconfig/talosconfig health`
 -   `kubectl -n productivity get pods`
 
 Rollback:
@@ -397,8 +397,8 @@ Security and resilience impact:
 
 Validation checks:
 
--   `talosctl --talosconfig talos/clusterconfig/talosconfig health`.
--   `talosctl --talosconfig talos/clusterconfig/talosconfig -n 10.0.40.90,10.0.40.91,10.0.40.92 etcd status`.
+-   `talosctl --talosconfig talos/app/clusterconfig/talosconfig health`.
+-   `talosctl --talosconfig talos/app/clusterconfig/talosconfig -n 10.0.40.90,10.0.40.91,10.0.40.92 etcd status`.
 -   Confirm the rendered controller configuration contains only `election-timeout: "3000"` in addition to the existing metrics listener.
 -   Compare leader-election churn before and after the rolling apply.
 -   Confirm all nodes report Talos v1.13.4 only if the optional OS upgrade is performed.

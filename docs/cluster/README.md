@@ -22,7 +22,8 @@ This section covers the Talos, Argo CD, and Kubernetes-side configuration that n
 
 -   `kubernetes/`: Argo application definitions and workload manifests
 -   `bootstrap/`: bootstrap ordering and initial Helmfile installs
--   `talos/`: app-cluster Talos configuration and patches
+-   `talos/app/`: app-cluster Talos configuration and patches
+-   `talos/infra/`: infra-cluster Talos source patches
 -   `.private/infra-cluster/`: local-only infra-cluster generated Talos config and kubeconfig
 -   `clusters/`: lightweight cluster ownership notes
 -   `infra/terraform_proxmox/`: imported cluster OpenTofu stack

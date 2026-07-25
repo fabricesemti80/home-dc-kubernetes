@@ -88,4 +88,4 @@ infra/docker/data/
 scratch/
 cluster.yaml
 nodes.yaml
-talos/clusterconfig/*.yaml
+talos/**/clusterconfig/*.yaml

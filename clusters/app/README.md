@@ -2,7 +2,7 @@
 
 `app-cluster` is the existing Talos VM cluster on Proxmox. It hosts Argo CD and general workloads.
 
-Current app-cluster Talos source remains in `talos/` for compatibility with the existing bootstrap flow. Use the explicit wrapper tasks for new docs:
+App-cluster Talos source lives in `talos/app/`. Use the explicit wrapper tasks:
 
 ```bash
 task talos:app:generate-config

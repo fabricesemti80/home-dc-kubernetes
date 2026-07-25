@@ -129,7 +129,7 @@ talosctl -n 10.0.40.90 etcd status
 talosctl -n 10.0.40.90 etcd members
 ```
 
-**Fix:** Usually the VIP recovers on its own once etcd stabilises. Wait a minute and retry. If the VIP stays down, check that the `vip` configuration in `talos/talconfig.yaml` is correct and that no other device on the network is using the same IP.
+**Fix:** Usually the VIP recovers on its own once etcd stabilises. Wait a minute and retry. If the VIP stays down, check that the `vip` configuration in `talos/app/talconfig.yaml` is correct and that no other device on the network is using the same IP.
 
 ---
 

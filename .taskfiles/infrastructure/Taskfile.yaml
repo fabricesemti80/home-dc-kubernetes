@@ -56,10 +56,10 @@ tasks:
     desc: Run post-bootstrap verification checks
     cmds:
       - kubectl get nodes -o wide
-      - talosctl --talosconfig {{.ROOT_DIR}}/talos/clusterconfig/talosconfig health
+      - talosctl --talosconfig {{.TALOSCONFIG}} health
     preconditions:
       - test -f {{.KUBECONFIG}}
-      - test -f {{.ROOT_DIR}}/talos/clusterconfig/talosconfig
+      - test -f {{.TALOSCONFIG}}
       - which kubectl talosctl
 
   tf-init:

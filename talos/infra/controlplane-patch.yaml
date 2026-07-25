@@ -1,0 +1,21 @@
+---
+machine:
+  install:
+    disk: /dev/nvme0n1
+  network:
+    disableSearchDomain: true
+    nameservers:
+      - 1.1.1.1
+      - 1.0.0.1
+    interfaces:
+      - deviceSelector:
+          hardwareAddr: "e4:54:e8:75:1b:34"
+        dhcp: false
+        addresses:
+          - 10.0.40.31/24
+        routes:
+          - network: 0.0.0.0/0
+            gateway: 10.0.40.1
+        mtu: 1500
+cluster:
+  allowSchedulingOnControlPlanes: true

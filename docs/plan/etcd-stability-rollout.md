@@ -53,7 +53,7 @@ The Talos-only change cannot reduce storage latency. It can reduce unnecessary e
 3. Confirm the repository targets Talos v1.13.4 and Kubernetes v1.35.1:
 
     ```bash
-    yq -r '.talosVersion, .kubernetesVersion' talos/talenv.yaml
+    yq -r '.talosVersion, .kubernetesVersion' talos/app/talenv.yaml
     ```
 
 4. Confirm generated secrets and machine configs remain ignored:
@@ -69,13 +69,13 @@ Record the output in the change log or terminal transcript:
 ```bash
 kubectl get nodes -o wide
 kubectl top nodes
-talosctl --talosconfig talos/clusterconfig/talosconfig \
+talosctl --talosconfig talos/app/clusterconfig/talosconfig \
   -n 10.0.40.90,10.0.40.91,10.0.40.92 version
-talosctl --talosconfig talos/clusterconfig/talosconfig \
+talosctl --talosconfig talos/app/clusterconfig/talosconfig \
   -n 10.0.40.90,10.0.40.91,10.0.40.92 etcd status
-talosctl --talosconfig talos/clusterconfig/talosconfig \
+talosctl --talosconfig talos/app/clusterconfig/talosconfig \
   -n 10.0.40.90,10.0.40.91,10.0.40.92 etcd members
-talosctl --talosconfig talos/clusterconfig/talosconfig \
+talosctl --talosconfig talos/app/clusterconfig/talosconfig \
   -n 10.0.40.90,10.0.40.91,10.0.40.92 etcd alarm list
 ```
 
@@ -83,7 +83,7 @@ Also capture recent slow-operation and election warnings:
 
 ```bash
 for ip in 10.0.40.90 10.0.40.91 10.0.40.92; do
-  talosctl --talosconfig talos/clusterconfig/talosconfig \
+  talosctl --talosconfig talos/app/clusterconfig/talosconfig \
     -n "$ip" logs etcd --tail 500 |
     rg 'leader failed|election|took too long|slow'
 done
@@ -97,7 +97,7 @@ Take a fresh etcd snapshot:
 
 ```bash
 mkdir -p backups/etcd
-talosctl --talosconfig talos/clusterconfig/talosconfig \
+talosctl --talosconfig talos/app/clusterconfig/talosconfig \
   -n 10.0.40.90 etcd snapshot \
   backups/etcd/etcd-before-stability-$(date +%Y%m%d-%H%M%S).snapshot
 ```
@@ -128,7 +128,7 @@ Determine the current leader:
 
 ```bash
 mise exec aqua:siderolabs/talos@1.12.8 -- \
-  talosctl --talosconfig talos/clusterconfig/talosconfig \
+  talosctl --talosconfig talos/app/clusterconfig/talosconfig \
   -n 10.0.40.90,10.0.40.91,10.0.40.92 etcd status
 ```
 
@@ -143,7 +143,7 @@ After each node:
 
 ```bash
 mise exec aqua:siderolabs/talos@1.12.8 -- \
-  talosctl --talosconfig talos/clusterconfig/talosconfig \
+  talosctl --talosconfig talos/app/clusterconfig/talosconfig \
   -n <node-ip> health
 kubectl get nodes
 ```
@@ -173,9 +173,9 @@ The omitted `VERSION` defaults to `talosVersion: v1.13.4`.
 After each node:
 
 ```bash
-talosctl --talosconfig talos/clusterconfig/talosconfig \
+talosctl --talosconfig talos/app/clusterconfig/talosconfig \
   -n <node-ip> health
-talosctl --talosconfig talos/clusterconfig/talosconfig \
+talosctl --talosconfig talos/app/clusterconfig/talosconfig \
   -n 10.0.40.90,10.0.40.91,10.0.40.92 etcd status
 kubectl get nodes
 ```
@@ -197,7 +197,7 @@ Check that the generated control-plane configuration keeps Kubernetes at v1.35.1
 
 ```bash
 rg 'kubelet:v1.35.1|kube-apiserver:v1.35.1|installer:v1.13.4' \
-  talos/clusterconfig/controlplane.yaml
+  talos/app/clusterconfig/controlplane.yaml
 ```
 
 Confirm generated files remain ignored:
@@ -213,7 +213,7 @@ Applying machine configuration is separate from upgrading the Talos image. Use o
 Determine the current leader, then apply both followers first:
 
 ```bash
-talosctl --talosconfig talos/clusterconfig/talosconfig \
+talosctl --talosconfig talos/app/clusterconfig/talosconfig \
   -n 10.0.40.90,10.0.40.91,10.0.40.92 etcd status
 ```
 
@@ -221,7 +221,7 @@ For **Route A**, use the v1.12.8 client to apply only the etcd timeout:
 
 ```bash
 mise exec aqua:siderolabs/talos@1.12.8 -- \
-  talosctl --talosconfig talos/clusterconfig/talosconfig \
+  talosctl --talosconfig talos/app/clusterconfig/talosconfig \
   -n <follower-ip> patch machineconfig --mode=auto \
   --patch '{"cluster":{"etcd":{"extraArgs":{"election-timeout":"3000"}}}}'
 ```
@@ -235,7 +235,7 @@ task talos:apply-node IP=<follower-ip>
 After either command:
 
 ```bash
-talosctl --talosconfig talos/clusterconfig/talosconfig \
+talosctl --talosconfig talos/app/clusterconfig/talosconfig \
   -n <follower-ip> health
 ```
 
@@ -244,7 +244,7 @@ Repeat the selected route for the second follower. Re-check leadership and apply
 Verify the effective configuration:
 
 ```bash
-talosctl --talosconfig talos/clusterconfig/talosconfig \
+talosctl --talosconfig talos/app/clusterconfig/talosconfig \
   -n 10.0.40.90,10.0.40.91,10.0.40.92 get etcdconfig -o yaml
 ```
 
@@ -260,10 +260,10 @@ election-timeout: "3000"
 Immediately validate:
 
 ```bash
-talosctl --talosconfig talos/clusterconfig/talosconfig health
-talosctl --talosconfig talos/clusterconfig/talosconfig \
+talosctl --talosconfig talos/app/clusterconfig/talosconfig health
+talosctl --talosconfig talos/app/clusterconfig/talosconfig \
   -n 10.0.40.90,10.0.40.91,10.0.40.92 etcd status
-talosctl --talosconfig talos/clusterconfig/talosconfig \
+talosctl --talosconfig talos/app/clusterconfig/talosconfig \
   -n 10.0.40.90,10.0.40.91,10.0.40.92 etcd alarm list
 kubectl get nodes
 kubectl get pods -A --field-selector=status.phase!=Running,status.phase!=Succeeded
@@ -284,14 +284,14 @@ Success means election churn is reduced without worse API responsiveness. Slow t
 Do not run defrag on a fixed schedule. Check backend size first:
 
 ```bash
-talosctl --talosconfig talos/clusterconfig/talosconfig \
+talosctl --talosconfig talos/app/clusterconfig/talosconfig \
   -n 10.0.40.90,10.0.40.91,10.0.40.92 etcd status
 ```
 
 Run defrag only when database size is materially larger than in-use size and a maintenance window is available:
 
 ```bash
-talosctl --talosconfig talos/clusterconfig/talosconfig \
+talosctl --talosconfig talos/app/clusterconfig/talosconfig \
   -n <follower-ip> etcd defrag
 ```
 
@@ -305,7 +305,7 @@ For Route A, remove only the added argument, follower-first:
 
 ```bash
 mise exec aqua:siderolabs/talos@1.12.8 -- \
-  talosctl --talosconfig talos/clusterconfig/talosconfig \
+  talosctl --talosconfig talos/app/clusterconfig/talosconfig \
   -n <node-ip> patch machineconfig --mode=auto \
   --patch '[{"op":"remove","path":"/cluster/etcd/extraArgs/election-timeout"}]'
 ```
@@ -317,7 +317,7 @@ For Route B, remove `election-timeout` from the controller template, regenerate 
 Roll back exactly one node at a time:
 
 ```bash
-talosctl --talosconfig talos/clusterconfig/talosconfig \
+talosctl --talosconfig talos/app/clusterconfig/talosconfig \
   -n <node-ip> rollback
 ```
 

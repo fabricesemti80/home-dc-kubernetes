@@ -2,6 +2,8 @@
 
 `infra-cluster` is the physical mini-PC Talos cluster.
 
+Source patches live in `talos/infra/`.
+
 Local generated credentials and machine configs live under:
 
 ```text
