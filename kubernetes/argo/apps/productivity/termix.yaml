@@ -21,7 +21,7 @@ spec:
         valueFiles:
           - $repo/kubernetes/apps/productivity/termix/values.yaml
   destination:
-    name: in-cluster
+    name: app-cluster
     namespace: productivity
   syncPolicy:
     automated:

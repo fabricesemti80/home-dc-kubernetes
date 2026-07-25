@@ -21,7 +21,7 @@ spec:
         valueFiles:
           - $repo/kubernetes/apps/storage/ceph-csi/values.sops.yaml
   destination:
-    name: in-cluster
+    name: app-cluster
     namespace: storage
   syncPolicy:
     automated:

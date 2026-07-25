@@ -22,7 +22,7 @@ spec:
           - $repo/kubernetes/apps/argo-system/argo-cd/values.yaml
           - $repo/kubernetes/apps/argo-system/argo-cd/values.sops.yaml
   destination:
-    name: in-cluster
+    name: app-cluster
     namespace: argo-system
   syncPolicy:
     automated:

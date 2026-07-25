@@ -22,7 +22,7 @@ backups/
 *.key
 *.p12
 *.kubeconfig
-kubeconfig
+kubeconfig*
 age.key
 cloudflare-tunnel.json
 github-deploy.key

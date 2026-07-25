@@ -13,7 +13,7 @@ spec:
     path: kubernetes/argo/repositories
     targetRevision: #{ repository_branch }#
   destination:
-    name: in-cluster
+    name: app-cluster
     namespace: argo-system
   syncPolicy:
     automated:

@@ -21,7 +21,7 @@ spec:
         valueFiles:
           - $repo/kubernetes/apps/kube-system/cilium/values.yaml
   destination:
-    name: in-cluster
+    name: app-cluster
     namespace: kube-system
   syncPolicy:
     automated:

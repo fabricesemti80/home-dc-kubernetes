@@ -19,7 +19,7 @@ spec:
       helm:
         releaseName: envoy-gateway
   destination:
-    name: in-cluster
+    name: app-cluster
     namespace: network
   syncPolicy:
     automated:
