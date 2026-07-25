@@ -1,0 +1,25 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: pulse-agent
+rules:
+  - apiGroups: [""]
+    resources: ["nodes", "pods", "namespaces", "services", "events"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["apps"]
+    resources: ["deployments", "replicasets", "daemonsets", "statefulsets"]
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: pulse-agent
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: pulse-agent
+subjects:
+  - kind: ServiceAccount
+    name: pulse-agent
+    namespace: monitoring

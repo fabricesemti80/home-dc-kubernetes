@@ -11,6 +11,7 @@ spec:
       sectionName: http
   hostnames:
     - pulse.krapulax.home
+    - pulse-infra.monitoring.svc.cluster.local
   rules:
     - backendRefs:
         - name: pulse
