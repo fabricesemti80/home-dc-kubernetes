@@ -11,6 +11,7 @@ This section covers the Talos, Argo CD, and Kubernetes-side configuration that n
 
 ## Day-to-Day Guides
 
+-   [Dual Cluster Management](dual-cluster-management.md)
 -   [Adding Applications](adding-applications.md)
 -   [App Catalog](app-catalog.md)
 -   [Domain Configuration](domains.md)
@@ -21,6 +22,8 @@ This section covers the Talos, Argo CD, and Kubernetes-side configuration that n
 
 -   `kubernetes/`: Argo application definitions and workload manifests
 -   `bootstrap/`: bootstrap ordering and initial Helmfile installs
--   `talos/`: Talos cluster configuration and patches
+-   `talos/`: app-cluster Talos configuration and patches
+-   `.private/infra-cluster/`: local-only infra-cluster generated Talos config and kubeconfig
+-   `clusters/`: lightweight cluster ownership notes
 -   `infra/terraform_proxmox/`: imported cluster OpenTofu stack
 -   `cluster.yaml` and `nodes.yaml`: local template inputs still used by the current config-generation workflow

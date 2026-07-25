@@ -1,0 +1,37 @@
+---
+version: '3'
+
+vars:
+  CLUSTERS_APP_KUBECONFIG: ./kubeconfig
+  CLUSTERS_INFRA_KUBECONFIG: ./.private/infra-cluster/kubeconfig
+  CLUSTERS_LENS_KUBECONFIG: ./.private/lens.kubeconfig
+
+tasks:
+
+  lens-kubeconfig:
+    desc: Write a flattened kubeconfig for Lens containing app-cluster and infra-cluster
+    cmds:
+      - mkdir -p ./.private
+      - |
+        KUBECONFIG={{.CLUSTERS_APP_KUBECONFIG}}:{{.CLUSTERS_INFRA_KUBECONFIG}} \
+          kubectl config view --flatten > {{.CLUSTERS_LENS_KUBECONFIG}}
+      - kubectl --kubeconfig {{.CLUSTERS_LENS_KUBECONFIG}} config set-context app-cluster --cluster=kubernetes --user=admin@kubernetes --namespace=default
+      - kubectl --kubeconfig {{.CLUSTERS_LENS_KUBECONFIG}} config delete-context admin@kubernetes >/dev/null 2>&1 || true
+      - kubectl --kubeconfig {{.CLUSTERS_LENS_KUBECONFIG}} config delete-context argocd >/dev/null 2>&1 || true
+      - kubectl --kubeconfig {{.CLUSTERS_LENS_KUBECONFIG}} config use-context app-cluster
+      - kubectl --kubeconfig {{.CLUSTERS_LENS_KUBECONFIG}} config get-contexts
+    preconditions:
+      - test -f {{.CLUSTERS_APP_KUBECONFIG}}
+      - test -f {{.CLUSTERS_INFRA_KUBECONFIG}}
+      - which kubectl
+
+  status:
+    desc: Show app-cluster, infra-cluster, and Argo cluster status
+    cmds:
+      - kubectl --kubeconfig {{.CLUSTERS_APP_KUBECONFIG}} get nodes -o wide
+      - kubectl --kubeconfig {{.CLUSTERS_INFRA_KUBECONFIG}} get nodes -o wide
+      - argocd cluster list --core
+    preconditions:
+      - test -f {{.CLUSTERS_APP_KUBECONFIG}}
+      - test -f {{.CLUSTERS_INFRA_KUBECONFIG}}
+      - which argocd kubectl

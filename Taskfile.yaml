@@ -22,6 +22,7 @@ env:
 
 includes:
   bootstrap: .taskfiles/bootstrap
+  clusters: .taskfiles/clusters
   infrastructure: .taskfiles/infrastructure
   talos: .taskfiles/talos
   template: .taskfiles/template
