@@ -30,6 +30,7 @@ github-deploy.key.pub
 github-push-token.txt
 secrets/
 **/secrets/**
+.private/
 *.age
 sops.*
 *.enc
