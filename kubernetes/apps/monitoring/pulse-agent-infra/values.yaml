@@ -13,7 +13,7 @@ controllers:
           - /usr/local/bin/pulse-agent
         args:
           - --enable-kubernetes
-          - --enable-host=false
+          - --enable-host
           - --insecure
         env:
           TZ: Europe/London
@@ -21,6 +21,8 @@ controllers:
           PULSE_AGENT_ID: "infra-cluster"
           PULSE_KUBE_INCLUDE_ALL_PODS: "true"
           PULSE_KUBE_INCLUDE_ALL_DEPLOYMENTS: "true"
+        securityContext:
+          privileged: true
         envFrom:
           - secretRef:
               name: pulse-agent-token
@@ -40,6 +42,8 @@ serviceAccount:
     enabled: true
 
 defaultPodOptions:
+  hostNetwork: true
+  hostPID: true
   automountServiceAccountToken: true
   annotations:
     reloader.stakater.com/auto: "true"
