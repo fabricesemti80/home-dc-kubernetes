@@ -67,6 +67,8 @@ tasks:
           --kubeconfig {{.INFRA_KUBECONFIG}} \
           --values {{.ROOT_DIR}}/kubernetes/apps/kube-system/cilium/values.yaml \
           --set operator.replicas=1 \
+          --set operator.prometheus.serviceMonitor.enabled=false \
+          --set prometheus.serviceMonitor.enabled=false \
           --set ipv4NativeRoutingCIDR=10.244.0.0/16
     preconditions:
       - test -f {{.INFRA_KUBECONFIG}}
