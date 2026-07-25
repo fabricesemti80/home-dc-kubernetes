@@ -483,6 +483,34 @@ Rollback:
 -   Delete the Argo Application `doppler-operator-infra` to remove the operator from `infra-cluster`.
 -   Remove any `DopplerSecret` resources and their managed Kubernetes secrets from `infra-cluster` if the operator is rolled back.
 
+### Pulse monitoring on infra-cluster
+
+Decision:
+
+-   Deploy Pulse on `infra-cluster` in the `monitoring` namespace as `pulse-infra`.
+-   Use the `rcourtman/pulse:6` image and the app-template chart.
+-   Pin the workload to `infra-wk-01` with a `hostPath` volume at `/var/pulse/data` for the initial rollout.
+-   Use the Doppler operator to sync `PULSE_AUTH_USER` and `PULSE_AUTH_PASS` from `project-homelab/dev_homelab`.
+-   Expose Pulse only on the internal Envoy gateway at `pulse.krapulax.home`.
+
+Assumptions:
+
+-   `infra-wk-01` has enough local disk for the `hostPath` volume.
+-   `hostPath` is acceptable until a proper storage class is available on `infra-cluster`.
+-   The initial admin credentials will be added to the `project-homelab/dev_homelab` Doppler config before the app is needed in production.
+
+Validation checks:
+
+-   `argocd app get pulse-infra --core`
+-   `kubectl --kubeconfig .private/infra-cluster/kubeconfig get pods -n monitoring`
+-   `kubectl --kubeconfig .private/infra-cluster/kubeconfig get secret -n monitoring pulse-secrets`
+-   `curl -fsSL https://pulse.krapulax.home`
+
+Rollback:
+
+-   Delete the Argo Application `pulse-infra` to remove Pulse from `infra-cluster`.
+-   Remove the `PULSE_AUTH_USER` and `PULSE_AUTH_PASS` secrets from Doppler if they are no longer needed.
+
 ## Pending final user confirmation
 
 -   Initial 5 application services to onboard after platform baseline.
