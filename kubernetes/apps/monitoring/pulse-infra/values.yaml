@@ -6,6 +6,20 @@ controllers:
   pulse:
     replicas: 1
     strategy: Recreate
+    initContainers:
+      fix-perms:
+        image:
+          repository: docker.io/library/busybox
+          tag: "1.37"
+        command:
+          - /bin/sh
+          - -c
+        args:
+          - chown -R 1000:1000 /data
+        securityContext:
+          runAsUser: 0
+          runAsGroup: 0
+          runAsNonRoot: false
     containers:
       app:
         image:
@@ -59,10 +73,10 @@ defaultPodOptions:
   nodeSelector:
     kubernetes.io/hostname: infra-wk-01
   securityContext:
-    runAsNonRoot: false
-    runAsUser: 0
-    runAsGroup: 0
-    fsGroup: 0
+    runAsNonRoot: true
+    runAsUser: 1000
+    runAsGroup: 1000
+    fsGroup: 1000
 
 service:
   app:
