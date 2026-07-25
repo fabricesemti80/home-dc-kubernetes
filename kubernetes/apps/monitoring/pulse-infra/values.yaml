@@ -17,7 +17,7 @@ controllers:
           PULSE_DEPLOYMENT_METHOD: kubernetes
           FRONTEND_PORT: &port 7655
           PULSE_TELEMETRY: "false"
-          PULSE_PUBLIC_URL: https://pulse.krapulax.home
+          PULSE_PUBLIC_URL: https://pulse.krapulax.dev
         envFrom:
           - secretRef:
               name: pulse-secrets

@@ -1,0 +1,21 @@
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: pulse
+  namespace: monitoring
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: pulse.krapulax.dev
+    external-dns.alpha.kubernetes.io/target: external.krapulax.dev
+spec:
+  parentRefs:
+    - name: envoy-external
+      namespace: network
+      sectionName: http
+  hostnames:
+    - pulse.krapulax.dev
+  rules:
+    - backendRefs:
+        - name: pulse
+          namespace: monitoring
+          port: 7655
