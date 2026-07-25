@@ -504,10 +504,11 @@ destination:
 
 Deploy in this order:
 
-1. storage prerequisites and any required secret operator
-2. Pulse
-3. Uptime Kuma
-4. Technitium DNS
+1. Doppler secret operator (`doppler-operator-infra`)
+2. storage prerequisites
+3. Pulse
+4. Uptime Kuma
+5. Technitium DNS
 
 Do not move the existing `technitium-dns` Application blindly: the current repository object is an ExternalDNS webhook integration, not necessarily the Technitium DNS server itself. Create or migrate the actual DNS-server workload deliberately and keep app-cluster-specific integrations separate where required.
 

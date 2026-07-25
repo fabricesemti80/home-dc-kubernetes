@@ -15,6 +15,7 @@ This document provides an index of all applications deployed in the Kubernetes c
 | kube-system             | 5         | System components (Cilium, CoreDNS, etc.)               |
 | default                 | 1         | Echo (test app)                                         |
 | doppler-operator-system | 1         | Doppler operator                                        |
+| infra-cluster           | 2         | Infra workloads managed by the app-cluster Argo hub     |
 
 ---
 
@@ -90,6 +91,15 @@ This document provides an index of all applications deployed in the Kubernetes c
 | App              | Type    | Image                                       | Notes            |
 | ---------------- | ------- | ------------------------------------------- | ---------------- |
 | doppler-operator | Secrets | mirror.gcr.io/dopplerhq/kubernetes-operator | Doppler operator |
+
+### infra-cluster
+
+Argo CD on `app-cluster` also deploys these `infra-cluster` workloads:
+
+| App                  | Type    | Image                                       | Notes                  |
+| -------------------- | ------- | ------------------------------------------- | ---------------------- |
+| reloader-infra       | Reloader | stakater/reloader                          | Config reload watcher  |
+| doppler-operator-infra | Secrets | mirror.gcr.io/dopplerhq/kubernetes-operator | Doppler operator       |
 
 ---
 

@@ -1,0 +1,7 @@
+---
+# Doppler Kubernetes Operator Helm values (infra-cluster)
+# https://github.com/DopplerHQ/kubernetes-operator
+
+doppler-kubernetes-operator:
+  image:
+    repository: mirror.gcr.io/dopplerhq/kubernetes-operator

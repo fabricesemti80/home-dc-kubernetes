@@ -63,8 +63,10 @@ Current source layout:
 - `talos/app/`: app-cluster Talos source and generated app-cluster Talos config
 - `talos/infra/`: infra-cluster Talos source patches
 - `.private/infra-cluster/`: generated infra-cluster Talos config, talosconfig, and kubeconfig
+- `kubernetes/argo/apps/*/*.yaml`: Argo Applications targeting `app-cluster`
 - `kubernetes/argo/apps/*/*-infra.yaml`: Argo Applications targeting `infra-cluster`
-- `kubernetes/apps/**/values.infra.yaml`: infra-cluster Helm values overrides
+- `kubernetes/apps/<namespace>/<app>/`: app-cluster workload manifests and values
+- `kubernetes/apps/<namespace>/<app>-infra/`: infra-cluster workload manifests and values
 - `docs/INFRA_CLUSTER_BOOTSTRAP.md`: physical infra-cluster build runbook
 
 Keep kubeconfigs, Talos generated configs, and private keys under `.private/` or ignored local files.
@@ -85,7 +87,7 @@ destination:
   name: infra-cluster
 ```
 
-Infra-cluster apps should start with small, dependency-light services. Avoid moving DNS, monitoring, or storage until a simple app has synced and stayed healthy.
+Infra-cluster apps should start with small, dependency-light services. The Doppler operator and Reloader are good initial candidates because later infra workloads can reuse the same secret and reload patterns. Avoid moving DNS, monitoring, or storage until a simple app has synced and stayed healthy.
 
 ## Validation
 
