@@ -22,14 +22,28 @@ A two-control-plane layout must not be used: etcd needs a majority, so two contr
 
 Use VLAN 40 (`10.0.40.0/24`) unless there is a specific reason to isolate the cluster on VLAN 30. VLAN 40 already represents infrastructure and avoids making the core monitoring stack depend on routing between an application VLAN and the infrastructure it monitors.
 
-Create DHCP reservations before installation. Example values used below:
+Use static node addresses in the Talos machine configs. DHCP may still be useful briefly while the machines are booted from the Talos ISO in maintenance mode, but the installed cluster should not depend on DHCP for node identity.
+
+Example values used below:
 
 ```text
-infra-cp-01    10.0.40.31
-infra-wk-01    10.0.40.32
+infra-cp-01    10.0.40.31/24
+infra-wk-01    10.0.40.32/24
+gateway        10.0.40.1
+nameservers    1.1.1.1, 1.0.0.1
 ```
 
-Replace these addresses everywhere if different reservations are selected. The nodes need working DNS, NTP, internet access for images, and routed access to the app cluster and monitored devices.
+Replace these addresses everywhere if different static addresses are selected. The nodes need working DNS, NTP, internet access for images, and routed access to the app cluster and monitored devices.
+
+Before reinstalling, record for each mini PC:
+
+```text
+hostname       target IP      primary NIC MAC        install disk
+infra-cp-01    10.0.40.31     <cp-primary-mac>       /dev/nvme0n1
+infra-wk-01    10.0.40.32     <worker-primary-mac>   /dev/nvme0n1
+```
+
+Prefer static DHCP reservations as a backup if the router supports them, but do not rely on reservations alone. The Talos configs below set `dhcp: false` and bind each address to the selected NIC MAC address.
 
 ## Required workstation tools
 
@@ -160,16 +174,20 @@ Only use the rollback if the PR is not merged or is reverted. Once manifests tar
 3. Boot each mini PC from USB in UEFI mode.
 4. Disable Secure Boot unless a Talos Secure Boot image has deliberately been prepared.
 5. Leave each node at the Talos maintenance-mode console.
-6. Confirm the DHCP reservations were assigned.
+6. Confirm each node is reachable on the network.
 
-From the workstation, verify each machine responds:
+If DHCP is available, use it only to reach maintenance mode and discover hardware details:
 
 ```bash
 talosctl get disks --insecure --nodes 10.0.40.31
 talosctl get disks --insecure --nodes 10.0.40.32
+talosctl get links --insecure --nodes 10.0.40.31
+talosctl get links --insecure --nodes 10.0.40.32
 ```
 
-Record the installation disk shown by both machines. The examples below assume `/dev/nvme0n1`; change it if the hardware reports a different device.
+Record the primary NIC MAC address and installation disk shown by both machines. The examples below assume `/dev/nvme0n1`; change it if the hardware reports a different device.
+
+If DHCP is not available, set a temporary static address from the Talos boot media or firmware/network console if supported, then apply the permanent static network config in the next phase. Do not hand-edit network state after installation; Talos should receive the final network state through machine config.
 
 ---
 
@@ -186,7 +204,7 @@ cluster:
     disabled: true
 ```
 
-Create a machine patch that selects the installation disk and permits scheduling on the single control-plane node. This allows core workloads to continue on the control-plane node if the worker is unavailable.
+Create machine patches that select the installation disk, set the permanent static IP configuration, and permit scheduling on the single control-plane node. This allows core workloads to continue on the control-plane node if the worker is unavailable.
 
 Create `controlplane-patch.yaml`:
 
@@ -194,6 +212,21 @@ Create `controlplane-patch.yaml`:
 machine:
   install:
     disk: /dev/nvme0n1
+  network:
+    disableSearchDomain: true
+    nameservers:
+      - 1.1.1.1
+      - 1.0.0.1
+    interfaces:
+      - deviceSelector:
+          hardwareAddr: "<cp-primary-mac>"
+        dhcp: false
+        addresses:
+          - 10.0.40.31/24
+        routes:
+          - network: 0.0.0.0/0
+            gateway: 10.0.40.1
+        mtu: 1500
 cluster:
   allowSchedulingOnControlPlanes: true
 ```
@@ -204,6 +237,21 @@ Create `worker-patch.yaml`:
 machine:
   install:
     disk: /dev/nvme0n1
+  network:
+    disableSearchDomain: true
+    nameservers:
+      - 1.1.1.1
+      - 1.0.0.1
+    interfaces:
+      - deviceSelector:
+          hardwareAddr: "<worker-primary-mac>"
+        dhcp: false
+        addresses:
+          - 10.0.40.32/24
+        routes:
+          - network: 0.0.0.0/0
+            gateway: 10.0.40.1
+        mtu: 1500
 ```
 
 Generate the cluster configuration:
@@ -217,6 +265,14 @@ talosctl gen config infra-cluster https://10.0.40.31:6443 \
 ```
 
 The generated secrets are the identity of this cluster. Keep the directory private and backed up; do not commit it.
+
+Confirm the generated machine configs contain the intended static addresses before applying them:
+
+```bash
+grep -n "10.0.40.31/24" ./generated/controlplane.yaml
+grep -n "10.0.40.32/24" ./generated/worker.yaml
+grep -n "hardwareAddr" ./generated/controlplane.yaml ./generated/worker.yaml
+```
 
 Optionally inspect the generated files before applying them:
 
