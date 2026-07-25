@@ -41,20 +41,20 @@ API_SERVER="https://${KUBERNETES_SERVICE_HOST}:${KUBERNETES_SERVICE_PORT_HTTPS:-
 echo "Generating temporary kubeconfig..."
 
 kubectl config set-cluster kubernetes \
-    --server="${API_SERVER}" \
-    --certificate-authority="${SA_DIR}/ca.crt" \
-    --embed-certs=true \
-    >/dev/null
+  --server="${API_SERVER}" \
+  --certificate-authority="${SA_DIR}/ca.crt" \
+  --embed-certs=true \
+  >/dev/null
 
 kubectl config set-credentials code-server \
-    --token="$(<"${SA_DIR}/token")" \
-    >/dev/null
+  --token="$(<"${SA_DIR}/token")" \
+  >/dev/null
 
 kubectl config set-context code-server \
-    --cluster=kubernetes \
-    --user=code-server \
-    --namespace=argo-system \
-    >/dev/null
+  --cluster=kubernetes \
+  --user=code-server \
+  --namespace=argo-system \
+  >/dev/null
 
 kubectl config use-context code-server >/dev/null
 

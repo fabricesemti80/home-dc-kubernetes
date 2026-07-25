@@ -455,6 +455,34 @@ Rollback:
 -   Remove the localdns resources from `infra/terraform_localdns/` and return ownership to `/Users/fs/Documents/repositories/terraform/homelab-terraform-unifi` only if UniFi DNS ownership needs to move back.
 -   If state was moved, move the relevant `unifi_dns_record.*` addresses back before applying the old UniFi repo.
 
+### Doppler operator on infra-cluster
+
+Decision:
+
+-   Deploy the Doppler Kubernetes operator into `infra-cluster` via the existing Argo CD hub on `app-cluster`.
+-   Keep the Doppler operator isolated by cluster: `doppler-operator` lives under `kubernetes/apps/doppler-operator-system/doppler-operator/` and `doppler-operator-infra` lives under `kubernetes/apps/doppler-operator-system/doppler-operator-infra/`.
+-   Each cluster has its own encrypted service token secret, Helm values, and Argo Application.
+-   Reuse the same chart version and token value from the app-cluster deployment.
+
+Assumptions:
+
+-   The Doppler operator is not designed to manage secrets across clusters; the supported and simplest pattern is one operator per cluster.
+-   The same Doppler service token has access to the `project-homelab/dev_homelab` config and can be used safely in both clusters.
+-   `infra-cluster` is already registered as an Argo destination before this Application is applied.
+-   Other `infra-cluster` workloads that need runtime secrets will be onboarded after the operator is healthy.
+
+Validation checks:
+
+-   `argocd app get doppler-operator-infra --core`
+-   `kubectl --kubeconfig .private/infra-cluster/kubeconfig get pods -n doppler-operator-system`
+-   `kubectl --kubeconfig .private/infra-cluster/kubeconfig get secret -n doppler-operator-system doppler-token-secret`
+-   `kubectl --kubeconfig .private/infra-cluster/kubeconfig get crd dopplersecrets.secrets.doppler.com`
+
+Rollback:
+
+-   Delete the Argo Application `doppler-operator-infra` to remove the operator from `infra-cluster`.
+-   Remove any `DopplerSecret` resources and their managed Kubernetes secrets from `infra-cluster` if the operator is rolled back.
+
 ## Pending final user confirmation
 
 -   Initial 5 application services to onboard after platform baseline.

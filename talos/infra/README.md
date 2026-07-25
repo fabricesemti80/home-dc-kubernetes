@@ -4,9 +4,9 @@
 
 Committed files in this directory are source inputs only:
 
-- `cilium-patch.yaml`
-- `controlplane-patch.yaml`
-- `worker-patch.yaml`
+-   `cilium-patch.yaml`
+-   `controlplane-patch.yaml`
+-   `worker-patch.yaml`
 
 Local generated files:
 

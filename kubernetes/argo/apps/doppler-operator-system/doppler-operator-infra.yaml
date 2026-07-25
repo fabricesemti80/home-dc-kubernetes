@@ -2,7 +2,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: reloader-infra
+  name: doppler-operator-infra
   namespace: argo-system
   annotations:
     argocd.argoproj.io/sync-wave: '0'
@@ -10,19 +10,19 @@ spec:
   project: kubernetes
   sources:
     - repoURL: "https://github.com/fabricesemti80/home-dc-kubernetes.git"
-      path: kubernetes/apps/kube-system/reloader-infra
+      path: kubernetes/apps/doppler-operator-system/doppler-operator-infra
       targetRevision: main
       ref: repo
-    - repoURL: ghcr.io/stakater/charts
-      chart: reloader
-      targetRevision: 2.2.14
+    - repoURL: https://helm.doppler.com
+      chart: doppler-kubernetes-operator
+      targetRevision: 1.7.1
       helm:
-        releaseName: reloader
+        releaseName: doppler-operator
         valueFiles:
-          - $repo/kubernetes/apps/kube-system/reloader-infra/values.yaml
+          - $repo/kubernetes/apps/doppler-operator-system/doppler-operator-infra/values.yaml
   destination:
     name: infra-cluster
-    namespace: kube-system
+    namespace: doppler-operator-system
   syncPolicy:
     automated:
       allowEmpty: true

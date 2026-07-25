@@ -4,17 +4,17 @@ This runbook creates a small bare-metal Talos cluster for services that should r
 
 ## Target state
 
-| Argo CD name | Platform | Role |
-|---|---|---|
-| `app-cluster` | Talos VMs on Proxmox | General workloads |
+| Argo CD name    | Platform              | Role                               |
+| --------------- | --------------------- | ---------------------------------- |
+| `app-cluster`   | Talos VMs on Proxmox  | General workloads                  |
 | `infra-cluster` | Two physical mini PCs | Pulse, Uptime Kuma, Technitium DNS |
 
 Initial infra topology:
 
-- mini PC 1: one Talos control-plane node; workloads may also run here if needed
-- mini PC 2: one Talos worker node
-- control-plane HA is **not** provided or expected
-- a third control-plane node can be added later
+-   mini PC 1: one Talos control-plane node; workloads may also run here if needed
+-   mini PC 2: one Talos worker node
+-   control-plane HA is **not** provided or expected
+-   a third control-plane node can be added later
 
 A two-control-plane layout must not be used: etcd needs a majority, so two control-plane nodes do not provide useful failure tolerance.
 
@@ -49,11 +49,11 @@ Prefer static DHCP reservations as a backup if the router supports them, but do 
 
 Install current stable versions of:
 
-- `talosctl`
-- `kubectl`
-- `helm`
-- `cilium`
-- `argocd`
+-   `talosctl`
+-   `kubectl`
+-   `helm`
+-   `cilium`
+-   `argocd`
 
 Create a working directory:
 
@@ -153,9 +153,9 @@ argocd app list --core
 
 Expected checks:
 
-- `rg "name: in-cluster" ...` returns no matches.
-- `argocd app list --core` shows Applications targeting `app-cluster`.
-- `argocd cluster list --core` still shows `app-cluster` as `Successful`.
+-   `rg "name: in-cluster" ...` returns no matches.
+-   `argocd app list --core` shows Applications targeting `app-cluster`.
+-   `argocd cluster list --core` still shows `app-cluster` as `Successful`.
 
 Rollback before adding `infra-cluster`:
 
@@ -253,9 +253,9 @@ mkdir -p .private/infra-cluster/generated
 
 The committed infra Talos source patches live in `talos/infra/`:
 
-- `talos/infra/cilium-patch.yaml`
-- `talos/infra/controlplane-patch.yaml`
-- `talos/infra/worker-patch.yaml`
+-   `talos/infra/cilium-patch.yaml`
+-   `talos/infra/controlplane-patch.yaml`
+-   `talos/infra/worker-patch.yaml`
 
 Before generating, confirm these match the recorded NIC MAC addresses and install disks. Update the patch files first if the hardware changes.
 
@@ -424,8 +424,8 @@ Argo CD remains hosted on `app-cluster` and manages both clusters.
 
 Keep two kubeconfigs distinct:
 
-- app-cluster kubeconfig: repository-local `./kubeconfig`, current context `argocd`, namespace `argo-system`
-- infra-cluster kubeconfig: `~/clusters/infra-cluster/kubeconfig`, context `infra-cluster`
+-   app-cluster kubeconfig: repository-local `./kubeconfig`, current context `argocd`, namespace `argo-system`
+-   infra-cluster kubeconfig: `~/clusters/infra-cluster/kubeconfig`, context `infra-cluster`
 
 From the repository checkout, verify Argo CD still sees the renamed app cluster:
 
@@ -486,10 +486,10 @@ For this small core cluster, external NAS-backed storage or explicitly node-pinn
 
 Technitium DNS needs special planning:
 
-- expose DNS on stable LAN addresses using the existing load-balancer approach or dedicated node addresses
-- do not switch DHCP clients to the new resolver until the deployment is tested
-- retain the existing DNS server as a rollback path during migration
-- consider running a second Technitium instance outside this cluster if DNS availability must survive loss of the control-plane node
+-   expose DNS on stable LAN addresses using the existing load-balancer approach or dedicated node addresses
+-   do not switch DHCP clients to the new resolver until the deployment is tested
+-   retain the existing DNS server as a rollback path during migration
+-   consider running a second Technitium instance outside this cluster if DNS availability must survive loss of the control-plane node
 
 ---
 
@@ -499,15 +499,16 @@ After `infra-cluster` is registered and storage is ready, add separate Argo CD A
 
 ```yaml
 destination:
-  name: infra-cluster
+    name: infra-cluster
 ```
 
 Deploy in this order:
 
-1. storage prerequisites and any required secret operator
-2. Pulse
-3. Uptime Kuma
-4. Technitium DNS
+1. Doppler secret operator (`doppler-operator-infra`)
+2. storage prerequisites
+3. Pulse
+4. Uptime Kuma
+5. Technitium DNS
 
 Do not move the existing `technitium-dns` Application blindly: the current repository object is an ExternalDNS webhook integration, not necessarily the Technitium DNS server itself. Create or migrate the actual DNS-server workload deliberately and keep app-cluster-specific integrations separate where required.
 
@@ -535,10 +536,10 @@ Prove that the design meets its purpose:
 
 Back up these items outside both clusters:
 
-- `generated/talosconfig`
-- Talos machine configuration/secrets
-- `infra-cluster` kubeconfig
-- application data for Pulse, Uptime Kuma, and Technitium
-- the Argo CD registration and deployment instructions in this repository
+-   `generated/talosconfig`
+-   Talos machine configuration/secrets
+-   `infra-cluster` kubeconfig
+-   application data for Pulse, Uptime Kuma, and Technitium
+-   the Argo CD registration and deployment instructions in this repository
 
 Because the initial cluster has one control-plane node, losing `infra-cp-01` makes the Kubernetes API unavailable. Existing workloads on the worker may continue running, but scheduling and reconciliation stop until the control-plane node is restored. This is an accepted initial limitation.
