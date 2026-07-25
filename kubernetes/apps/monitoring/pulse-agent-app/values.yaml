@@ -1,0 +1,45 @@
+---
+controllers:
+  pulse-agent:
+    type: daemonset
+    serviceAccount:
+      identifier: main
+    containers:
+      app:
+        image:
+          repository: docker.io/rcourtman/pulse
+          tag: "6"
+        command:
+          - /usr/local/bin/pulse-agent
+        args:
+          - --enable-kubernetes
+          - --enable-host=false
+          - --insecure
+        env:
+          TZ: Europe/London
+          PULSE_URL: "http://pulse-infra.monitoring.svc.cluster.local:80"
+          PULSE_AGENT_ID: "app-cluster"
+          PULSE_KUBE_INCLUDE_ALL_PODS: "true"
+          PULSE_KUBE_INCLUDE_ALL_DEPLOYMENTS: "true"
+        envFrom:
+          - secretRef:
+              name: pulse-agent-token
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
+            memory: 256Mi
+
+service:
+  main:
+    enabled: false
+
+serviceAccount:
+  main:
+    enabled: true
+
+defaultPodOptions:
+  automountServiceAccountToken: true
+  annotations:
+    reloader.stakater.com/auto: "true"
