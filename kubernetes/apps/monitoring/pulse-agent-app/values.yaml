@@ -21,11 +21,13 @@ controllers:
           PULSE_AGENT_ID: "app-cluster"
           PULSE_KUBE_INCLUDE_ALL_PODS: "true"
           PULSE_KUBE_INCLUDE_ALL_DEPLOYMENTS: "true"
+          PULSE_TOKEN:
+            valueFrom:
+              secretKeyRef:
+                name: pulse-agent-token
+                key: PULSE_APP_TOKEN
         securityContext:
           privileged: true
-        envFrom:
-          - secretRef:
-              name: pulse-agent-token
         resources:
           requests:
             cpu: 50m
