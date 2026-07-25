@@ -5,4 +5,3 @@ resources:
   - ./config.yaml
   - ./dnsendpoint.yaml
   - ./doppler-secret.yaml
-  - ./podmonitor.yaml
