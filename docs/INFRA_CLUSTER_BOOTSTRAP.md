@@ -167,14 +167,65 @@ Only use the rollback if the PR is not merged or is reverted. Once manifests tar
 
 ---
 
-# Phase 2: boot Talos maintenance mode on both mini PCs
+# Phase 2: boot the first mini PC into Talos maintenance mode
+
+Do one node at a time. Start with the node that will become `infra-cp-01`.
 
 1. Download the current stable Talos `metal-amd64.iso` from the Talos release or Image Factory page.
 2. Write it to a USB drive.
-3. Boot each mini PC from USB in UEFI mode.
+3. Boot the mini PC from USB in UEFI mode.
 4. Disable Secure Boot unless a Talos Secure Boot image has deliberately been prepared.
-5. Leave each node at the Talos maintenance-mode console.
-6. Confirm each node is reachable on the network.
+5. Stop at the Talos maintenance-mode screen. Do not install from the screen.
+6. Note the IP address shown on the Talos screen. This is only the temporary maintenance address.
+
+From the workstation, set a variable for that temporary address:
+
+```bash
+NODE=10.0.40.31
+```
+
+If the Talos screen shows a different temporary address, use that value instead:
+
+```bash
+NODE=<temporary-address-shown-on-screen>
+```
+
+Confirm the node answers the maintenance API:
+
+```bash
+talosctl version --insecure --nodes "$NODE"
+```
+
+Discover disks and network links:
+
+```bash
+talosctl get disks --insecure --nodes "$NODE"
+talosctl get links --insecure --nodes "$NODE"
+```
+
+Record:
+
+```text
+role            hostname       temporary IP     target IP      primary NIC MAC        install disk
+control-plane   infra-cp-01    <screen-ip>      10.0.40.31     <cp-primary-mac>       /dev/nvme0n1
+```
+
+Pick the normal LAN NIC MAC address, not loopback, bridge, VLAN, or virtual interfaces. The install disk is usually the internal SSD, for example `/dev/nvme0n1`; verify it from size/model before wiping.
+
+For `talosctl wipe disk`, use the disk name without `/dev/`. Example:
+
+```text
+machine config install disk    talosctl wipe disk argument
+/dev/nvme0n1                   nvme0n1
+/dev/sda                       sda
+```
+
+Repeat this phase for the worker after the control-plane machine config has been prepared:
+
+```text
+role     hostname       temporary IP     target IP      primary NIC MAC        install disk
+worker   infra-wk-01    <screen-ip>      10.0.40.32     <worker-primary-mac>   /dev/nvme0n1
+```
 
 If DHCP is available, use it only to reach maintenance mode and discover hardware details:
 
@@ -191,7 +242,14 @@ If DHCP is not available, set a temporary static address from the Talos boot med
 
 ---
 
-# Phase 3: generate Talos configuration
+# Phase 3: generate Talos configuration from the workstation
+
+Run this phase from the workstation, not on the Talos console:
+
+```bash
+mkdir -p ~/clusters/infra-cluster
+cd ~/clusters/infra-cluster
+```
 
 Cilium will provide the CNI and replace kube-proxy. Create `cilium-patch.yaml`:
 
@@ -254,6 +312,24 @@ machine:
         mtu: 1500
 ```
 
+Replace placeholders before generating:
+
+```bash
+sed -i.bak \
+  -e 's/<cp-primary-mac>/<actual-control-plane-mac>/g' \
+  controlplane-patch.yaml
+
+sed -i.bak \
+  -e 's/<worker-primary-mac>/<actual-worker-mac>/g' \
+  worker-patch.yaml
+```
+
+Remove the `.bak` files if the patched files are correct:
+
+```bash
+rm controlplane-patch.yaml.bak worker-patch.yaml.bak
+```
+
 Generate the cluster configuration:
 
 ```bash
@@ -285,23 +361,67 @@ talosctl validate --config ./generated/worker.yaml --mode metal
 
 # Phase 4: install Talos to the physical nodes
 
-Apply the control-plane configuration:
+Install the control-plane node first. Use the temporary maintenance IP shown on the Talos screen as `--nodes`; the static IP from the generated config takes effect after Talos installs and reboots.
+
+```bash
+CP_NODE=<temporary-control-plane-address-shown-on-screen>
+CP_DISK=nvme0n1
+```
+
+Confirm the disk one more time, then wipe it:
+
+```bash
+talosctl get disks --insecure --nodes "$CP_NODE"
+talosctl wipe disk "$CP_DISK" --insecure --nodes "$CP_NODE"
+```
+
+This destroys data on the selected disk. Stop if the disk name does not match the internal SSD selected in `controlplane-patch.yaml`.
+
+Apply the control-plane configuration after the wipe completes:
 
 ```bash
 talosctl apply-config --insecure \
-  --nodes 10.0.40.31 \
+  --nodes "$CP_NODE" \
   --file ./generated/controlplane.yaml
 ```
 
-Apply the worker configuration:
+The node writes Talos to the selected disk and reboots. Remove the USB media when the machine restarts so it boots from the internal disk.
+
+Wait until the control-plane node answers on its permanent static IP:
+
+```bash
+until talosctl version --insecure --nodes 10.0.40.31; do sleep 10; done
+```
+
+Now boot the second mini PC from the Talos USB and stop at the maintenance screen. Record its temporary IP, NIC MAC, and install disk as in Phase 2. If the worker MAC or disk differs from `worker-patch.yaml`, update the patch and rerun `talosctl gen config` before applying the worker config.
+
+Install the worker:
+
+```bash
+WK_NODE=<temporary-worker-address-shown-on-screen>
+WK_DISK=nvme0n1
+```
+
+Confirm the disk one more time, then wipe it:
+
+```bash
+talosctl get disks --insecure --nodes "$WK_NODE"
+talosctl wipe disk "$WK_DISK" --insecure --nodes "$WK_NODE"
+```
+
+Apply the worker configuration after the wipe completes:
 
 ```bash
 talosctl apply-config --insecure \
-  --nodes 10.0.40.32 \
+  --nodes "$WK_NODE" \
   --file ./generated/worker.yaml
 ```
 
-Remove the USB media when the machines restart and ensure they boot from their internal disks.
+Remove the USB media when the worker restarts. Wait until it answers on its permanent static IP:
+
+```bash
+until talosctl version --insecure --nodes 10.0.40.32; do sleep 10; done
+```
 
 Configure `talosctl` to use the new cluster credentials:
 
