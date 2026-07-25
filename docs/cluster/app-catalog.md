@@ -96,10 +96,10 @@ This document provides an index of all applications deployed in the Kubernetes c
 
 Argo CD on `app-cluster` also deploys these `infra-cluster` workloads:
 
-| App                  | Type    | Image                                       | Notes                  |
-| -------------------- | ------- | ------------------------------------------- | ---------------------- |
-| reloader-infra       | Reloader | stakater/reloader                          | Config reload watcher  |
-| doppler-operator-infra | Secrets | mirror.gcr.io/dopplerhq/kubernetes-operator | Doppler operator       |
+| App                    | Type     | Image                                       | Notes                 |
+| ---------------------- | -------- | ------------------------------------------- | --------------------- |
+| reloader-infra         | Reloader | stakater/reloader                           | Config reload watcher |
+| doppler-operator-infra | Secrets  | mirror.gcr.io/dopplerhq/kubernetes-operator | Doppler operator      |
 
 ---
 

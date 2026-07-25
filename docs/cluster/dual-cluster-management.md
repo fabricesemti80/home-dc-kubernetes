@@ -2,9 +2,9 @@
 
 This repository now treats the Kubernetes estate as two clusters managed by one Argo CD hub.
 
-| Cluster | Argo name | Kubeconfig | Role |
-|---|---|---|---|
-| App cluster | `app-cluster` | `./kubeconfig` | General workloads and Argo CD hub |
+| Cluster       | Argo name       | Kubeconfig                            | Role                                                |
+| ------------- | --------------- | ------------------------------------- | --------------------------------------------------- |
+| App cluster   | `app-cluster`   | `./kubeconfig`                        | General workloads and Argo CD hub                   |
 | Infra cluster | `infra-cluster` | `./.private/infra-cluster/kubeconfig` | Small physical cluster for infrastructure workloads |
 
 Argo CD runs on `app-cluster` and manages both clusters. Do not install a second Argo CD on `infra-cluster` unless this hub model is deliberately replaced.
@@ -60,14 +60,14 @@ Legacy app-cluster task names still exist for compatibility, but new docs should
 
 Current source layout:
 
-- `talos/app/`: app-cluster Talos source and generated app-cluster Talos config
-- `talos/infra/`: infra-cluster Talos source patches
-- `.private/infra-cluster/`: generated infra-cluster Talos config, talosconfig, and kubeconfig
-- `kubernetes/argo/apps/*/*.yaml`: Argo Applications targeting `app-cluster`
-- `kubernetes/argo/apps/*/*-infra.yaml`: Argo Applications targeting `infra-cluster`
-- `kubernetes/apps/<namespace>/<app>/`: app-cluster workload manifests and values
-- `kubernetes/apps/<namespace>/<app>-infra/`: infra-cluster workload manifests and values
-- `docs/INFRA_CLUSTER_BOOTSTRAP.md`: physical infra-cluster build runbook
+-   `talos/app/`: app-cluster Talos source and generated app-cluster Talos config
+-   `talos/infra/`: infra-cluster Talos source patches
+-   `.private/infra-cluster/`: generated infra-cluster Talos config, talosconfig, and kubeconfig
+-   `kubernetes/argo/apps/*/*.yaml`: Argo Applications targeting `app-cluster`
+-   `kubernetes/argo/apps/*/*-infra.yaml`: Argo Applications targeting `infra-cluster`
+-   `kubernetes/apps/<namespace>/<app>/`: app-cluster workload manifests and values
+-   `kubernetes/apps/<namespace>/<app>-infra/`: infra-cluster workload manifests and values
+-   `docs/INFRA_CLUSTER_BOOTSTRAP.md`: physical infra-cluster build runbook
 
 Keep kubeconfigs, Talos generated configs, and private keys under `.private/` or ignored local files.
 
@@ -77,14 +77,14 @@ For an app-cluster workload:
 
 ```yaml
 destination:
-  name: app-cluster
+    name: app-cluster
 ```
 
 For an infra-cluster workload:
 
 ```yaml
 destination:
-  name: infra-cluster
+    name: infra-cluster
 ```
 
 Infra-cluster apps should start with small, dependency-light services. The Doppler operator and Reloader are good initial candidates because later infra workloads can reuse the same secret and reload patterns. Avoid moving DNS, monitoring, or storage until a simple app has synced and stayed healthy.

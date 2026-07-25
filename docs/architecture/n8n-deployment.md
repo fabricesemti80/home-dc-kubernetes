@@ -4,35 +4,35 @@ Deploys [n8n](https://n8n.io/) — a workflow automation platform — to the Tal
 
 ## Architecture
 
-- **Namespace:** `productivity`
-- **Chart:** `bjw-s-labs/app-template` (v5.0.1)
-- **Image:** `docker.io/n8nio/n8n:2.25.5`
-- **Database:** SQLite (embedded, stored on CephFS PVC)
-- **Replicas:** 1 (stateful — SQLite doesn't support multi-replica)
+-   **Namespace:** `productivity`
+-   **Chart:** `bjw-s-labs/app-template` (v5.0.1)
+-   **Image:** `docker.io/n8nio/n8n:2.25.5`
+-   **Database:** SQLite (embedded, stored on CephFS PVC)
+-   **Replicas:** 1 (stateful — SQLite doesn't support multi-replica)
 
 ## Networking
 
-| Route | Hostname | Purpose |
-|-------|----------|---------|
-| External | `n8n.krapulax.dev` | Public access via Cloudflare Tunnel |
+| Route    | Hostname            | Purpose                               |
+| -------- | ------------------- | ------------------------------------- |
+| External | `n8n.krapulax.dev`  | Public access via Cloudflare Tunnel   |
 | Internal | `n8n.krapulax.home` | LAN access via Envoy internal gateway |
 
-- **Authentication:** Cloudflare Access (email-based, 24h session, auto-redirect)
-- **Webhook bypass:** Two Cloudflare Access Applications bypass auth for `/webhook` and `/webhook-test` paths so external services can trigger workflows.
+-   **Authentication:** Cloudflare Access (email-based, 24h session, auto-redirect)
+-   **Webhook bypass:** Two Cloudflare Access Applications bypass auth for `/webhook` and `/webhook-test` paths so external services can trigger workflows.
 
 ## Storage
 
-- **5Gi CephFS PVC** at `/home/node/.n8n` — holds SQLite DB, execution data, and n8n config.
-- Ephemeral storage limit of 2Gi for temp data.
+-   **5Gi CephFS PVC** at `/home/node/.n8n` — holds SQLite DB, execution data, and n8n config.
+-   Ephemeral storage limit of 2Gi for temp data.
 
 ## Secrets
 
-- `N8N_ENCRYPTION_KEY` synced from Doppler (`project-homelab/dev_homelab`) via `DopplerSecret` CRD.
+-   `N8N_ENCRYPTION_KEY` synced from Doppler (`project-homelab/dev_homelab`) via `DopplerSecret` CRD.
 
 ## Scalability & Limitations
 
-- Single-replica only (SQLite backend). Scaling to HA requires migrating to PostgreSQL.
-- Execution data pruned after 168h (7 days) to keep PVC usage bounded.
+-   Single-replica only (SQLite backend). Scaling to HA requires migrating to PostgreSQL.
+-   Execution data pruned after 168h (7 days) to keep PVC usage bounded.
 
 ## Rollback
 
