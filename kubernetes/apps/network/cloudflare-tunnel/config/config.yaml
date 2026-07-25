@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cloudflare-tunnel-configmap
+data:
+  config.yaml: |
+    ingress:
+      - hostname: pulse.krapulax.dev
+        service: http://10.0.40.105:80
+      - hostname: krapulax.dev
+        service: https://envoy-external.network.svc.cluster.local
+        originRequest:
+          originServerName: external.krapulax.dev
+      - hostname: "*.krapulax.dev"
+        service: https://envoy-external.network.svc.cluster.local
+        originRequest:
+          originServerName: external.krapulax.dev
+      - service: http_status:404
+        originRequest:
+          originServerName: external.krapulax.dev

@@ -1,0 +1,22 @@
+apiVersion: externaldns.k8s.io/v1alpha1
+kind: DNSEndpoint
+metadata:
+  name: cloudflare-tunnel
+spec:
+  endpoints:
+    - dnsName: external.krapulax.dev
+      recordType: CNAME
+      targets:
+        - c153a412-005f-4c07-8b89-34ec5628005a.cfargotunnel.com
+    - dnsName: nginx-test.krapulax.dev
+      recordType: CNAME
+      targets:
+        - c153a412-005f-4c07-8b89-34ec5628005a.cfargotunnel.com
+    - dnsName: pulse.krapulax.dev
+      recordType: CNAME
+      targets:
+        - c153a412-005f-4c07-8b89-34ec5628005a.cfargotunnel.com
+    - dnsName: grafana.krapulax.dev
+      recordType: CNAME
+      targets:
+        - external.krapulax.dev

@@ -2,15 +2,18 @@
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
-  name: pulse-internal
+  name: pulse
   namespace: monitoring
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: pulse.krapulax.dev
+    external-dns.alpha.kubernetes.io/target: external.krapulax.dev
 spec:
   parentRefs:
-    - name: envoy-internal
+    - name: envoy-external
       namespace: network
       sectionName: http
   hostnames:
-    - pulse.krapulax.home
+    - pulse.krapulax.dev
   rules:
     - backendRefs:
         - name: pulse
