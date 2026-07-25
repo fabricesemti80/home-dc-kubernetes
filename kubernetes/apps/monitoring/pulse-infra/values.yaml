@@ -32,6 +32,7 @@ controllers:
           FRONTEND_PORT: &port 7655
           PULSE_TELEMETRY: "false"
           PULSE_PUBLIC_URL: https://pulse.krapulax.dev
+          PULSE_AGENT_CONNECT_URL: http://pulse.krapulax.home
         envFrom:
           - secretRef:
               name: pulse-secrets
