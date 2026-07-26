@@ -511,6 +511,32 @@ Rollback:
 -   Delete the Argo Application `pulse-infra` to remove Pulse from `infra-cluster`.
 -   Remove the `PULSE_AUTH_USER` and `PULSE_AUTH_PASS` secrets from Doppler if they are no longer needed.
 
+### Pulse app-cluster agent removal
+
+Decision:
+
+-   Remove the `pulse-agent-app` Argo Application and app-cluster agent manifests.
+-   Keep `pulse-infra` and `pulse-agent-infra` so the infra cluster remains observable while app-cluster monitoring load is reduced.
+
+Assumptions:
+
+-   Pulse UI instability started after app-cluster pod/deployment reporting was enabled.
+-   Removing the app-cluster DaemonSet is the smallest reversible change to reduce browser-side Pulse load.
+-   The live `pulse-agent-app` Argo Application must be deleted manually once because the app-of-apps uses `Prune=false`.
+
+Validation checks:
+
+-   `kubectl --kubeconfig kubeconfig -n argo-system delete application pulse-agent-app`
+-   `kubectl --kubeconfig kubeconfig -n monitoring get daemonset,serviceaccount,clusterrole,clusterrolebinding,dopplersecret | rg pulse-agent`
+-   `kubectl --kubeconfig .private/infra-cluster/kubeconfig get pods -n monitoring`
+-   Open Pulse and confirm the UI remains stable without the `app-cluster` agent.
+
+Rollback:
+
+-   Restore the deleted `pulse-agent-app` Argo Application and app manifests from Git history.
+-   Re-sync the app-of-apps or apply the restored Application.
+-   Remove stale app-cluster agent entries from Pulse only if they do not disappear after the agent is removed.
+
 ## Pending final user confirmation
 
 -   Initial 5 application services to onboard after platform baseline.
