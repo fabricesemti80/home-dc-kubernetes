@@ -18,6 +18,11 @@ common:
         name: kestra-postgres
     - secretRef:
         name: versitygw-root
+    - secretRef:
+        name: kestra-homelab-ops
+  extraEnv:
+    - name: DOCKER_HOST
+      value: unix:///dind/docker.sock
   initContainers:
     - name: ensure-kestra-bucket
       image: amazon/aws-cli:2.15.57
