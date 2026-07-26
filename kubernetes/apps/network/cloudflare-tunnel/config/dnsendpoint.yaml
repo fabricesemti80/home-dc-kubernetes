@@ -15,7 +15,7 @@ spec:
     - dnsName: pulse.krapulax.dev
       recordType: CNAME
       targets:
-        - c153a412-005f-4c07-8b89-34ec5628005a.cfargotunnel.com
+        - 406a2618-549e-432b-8e52-473938713a8c.cfargotunnel.com
     - dnsName: grafana.krapulax.dev
       recordType: CNAME
       targets:

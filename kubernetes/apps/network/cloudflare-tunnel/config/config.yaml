@@ -5,8 +5,6 @@ metadata:
 data:
   config.yaml: |
     ingress:
-      - hostname: pulse.krapulax.dev
-        service: http://10.0.40.105:80
       - hostname: krapulax.dev
         service: https://envoy-external.network.svc.cluster.local
         originRequest:
