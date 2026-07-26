@@ -49,9 +49,9 @@ Centralized documentation for external and internal DNS hostnames in the cluster
 
 ### Automation
 
-| App    | Hostname               | Config                                                           |
-| ------ | ---------------------- | ---------------------------------------------------------------- |
-| Kestra | `kestra.krapulax.home` | `kubernetes/apps/automation/kestra-infra/config/http-route.yaml` |
+| App    | Hostname                                      | Config                                                                                                                                 |
+| ------ | --------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| Kestra | `kestra.krapulax.dev`, `kestra.krapulax.home` | `kubernetes/apps/automation/kestra-infra/config/http-route.yaml`, `kubernetes/apps/network/cloudflare-tunnel-infra/config/config.yaml` |
 
 ### Web
 
