@@ -29,7 +29,11 @@ spec:
         app.kubernetes.io/name: versitygw
     spec:
       nodeSelector:
-        kubernetes.io/hostname: infra-wk-01
+        kubernetes.io/hostname: infra-cp-01
+      tolerations:
+        - key: node-role.kubernetes.io/control-plane
+          operator: Exists
+          effect: NoSchedule
       containers:
         - name: versitygw
           image: versity/versitygw:v1.1.0

@@ -2,8 +2,11 @@
 fullnameOverride: kestra-postgres
 useDeployment: true
 nodeSelector:
-  kubernetes.io/hostname: infra-wk-01
-tolerations: []
+  kubernetes.io/hostname: infra-cp-01
+tolerations:
+  - key: node-role.kubernetes.io/control-plane
+    operator: Exists
+    effect: NoSchedule
 affinity: {}
 settings:
   existingSecret: kestra-postgres

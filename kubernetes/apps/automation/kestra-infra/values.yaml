@@ -1,12 +1,15 @@
 ---
-# Pin all Kestra pods to the single infra worker so local-path volumes stay
+# Pin all Kestra pods to the infra control node so local-path volumes stay
 # on the same node.
 fullnameOverride: kestra
 
 common:
   nodeSelector:
-    kubernetes.io/hostname: infra-wk-01
-  tolerations: []
+    kubernetes.io/hostname: infra-cp-01
+  tolerations:
+    - key: node-role.kubernetes.io/control-plane
+      operator: Exists
+      effect: NoSchedule
   affinity: {}
   extraEnvFrom:
     - secretRef:

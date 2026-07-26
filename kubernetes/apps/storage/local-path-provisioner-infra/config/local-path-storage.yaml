@@ -88,7 +88,11 @@ spec:
     spec:
       serviceAccountName: local-path-provisioner-service-account
       nodeSelector:
-        kubernetes.io/hostname: infra-wk-01
+        kubernetes.io/hostname: infra-cp-01
+      tolerations:
+        - key: node-role.kubernetes.io/control-plane
+          operator: Exists
+          effect: NoSchedule
       containers:
         - name: local-path-provisioner
           image: rancher/local-path-provisioner:v0.0.30
@@ -156,12 +160,15 @@ data:
       name: helper-pod
     spec:
       nodeSelector:
-        kubernetes.io/hostname: infra-wk-01
-      priorityClassName: system-node-critical
+        kubernetes.io/hostname: infra-cp-01
       tolerations:
+        - key: node-role.kubernetes.io/control-plane
+          operator: Exists
+          effect: NoSchedule
         - key: node.kubernetes.io/disk-pressure
           operator: Exists
           effect: NoSchedule
+      priorityClassName: system-node-critical
       containers:
         - name: helper-pod
           image: busybox
