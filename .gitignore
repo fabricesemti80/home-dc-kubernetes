@@ -89,3 +89,5 @@ scratch/
 cluster.yaml
 nodes.yaml
 talos/**/clusterconfig/*.yaml
+cloudflare-tunnel-infra.json
+talos/clusterconfig/talosconfig
