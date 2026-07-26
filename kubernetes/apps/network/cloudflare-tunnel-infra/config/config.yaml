@@ -1,0 +1,11 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cloudflare-tunnel-infra-configmap
+data:
+  config.yaml: |
+    ingress:
+      - hostname: pulse.krapulax.dev
+        service: http://pulse.monitoring.svc.cluster.local:7655
+      - service: http_status:404

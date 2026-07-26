@@ -39,7 +39,7 @@ resource "doppler_secret" "kubernetes_tunnel_credentials" {
 
   config     = "dev_homelab"
   project    = "project-homelab"
-  name       = "TUNNEL_CREDENTIALS"
+  name       = "TUNNEL_CREDENTIALS_APPS"
   value      = local.kubernetes_tunnel_credentials_json
   value_type = "json"
 }
@@ -49,7 +49,7 @@ resource "doppler_secret" "kubernetes_tunnel_id" {
 
   config  = "dev_homelab"
   project = "project-homelab"
-  name    = "TUNNEL_ID"
+  name    = "TUNNEL_ID_APPS"
   value   = local.kubernetes_tunnel_id
 }
 
@@ -58,8 +58,63 @@ resource "doppler_secret" "kubernetes_tunnel_token" {
 
   config  = "dev_homelab"
   project = "project-homelab"
-  name    = "TUNNEL_TOKEN"
+  name    = "TUNNEL_TOKEN_APPS"
   value   = local.kubernetes_tunnel_token
+}
+
+resource "random_id" "kubernetes_infra_tunnel_secret" {
+  byte_length = 35
+}
+
+resource "cloudflare_zero_trust_tunnel_cloudflared" "kubernetes_infra" {
+  account_id    = var.cloudflare_account_id
+  name          = var.kubernetes_infra_tunnel_name
+  tunnel_secret = local.kubernetes_infra_tunnel_secret
+}
+
+resource "local_file" "kubernetes_infra_tunnel_credentials" {
+  count = var.doppler_token != "" ? 1 : 0
+
+  content = jsonencode({
+    AccountTag   = var.cloudflare_account_id
+    TunnelID     = local.kubernetes_infra_tunnel_id
+    TunnelSecret = local.kubernetes_infra_tunnel_secret
+    TunnelName   = var.kubernetes_infra_tunnel_name
+  })
+  filename = pathexpand("${path.module}/../../cloudflare-tunnel-infra.json")
+}
+
+resource "doppler_secret" "kubernetes_infra_tunnel_credentials" {
+  count = var.doppler_token != "" ? 1 : 0
+
+  config  = "dev_homelab"
+  project = "project-homelab"
+  name    = "TUNNEL_CREDENTIALS_INFRA"
+  value = jsonencode({
+    AccountTag   = var.cloudflare_account_id
+    TunnelID     = local.kubernetes_infra_tunnel_id
+    TunnelSecret = local.kubernetes_infra_tunnel_secret
+    TunnelName   = var.kubernetes_infra_tunnel_name
+  })
+  value_type = "json"
+}
+
+resource "doppler_secret" "kubernetes_infra_tunnel_id" {
+  count = var.doppler_token != "" ? 1 : 0
+
+  config  = "dev_homelab"
+  project = "project-homelab"
+  name    = "TUNNEL_ID_INFRA"
+  value   = local.kubernetes_infra_tunnel_id
+}
+
+resource "doppler_secret" "kubernetes_infra_tunnel_token" {
+  count = var.doppler_token != "" ? 1 : 0
+
+  config  = "dev_homelab"
+  project = "project-homelab"
+  name    = "TUNNEL_TOKEN_INFRA"
+  value   = local.kubernetes_infra_tunnel_token
 }
 
 resource "cloudflare_zero_trust_access_policy" "argo_webhook_bypass" {
