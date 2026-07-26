@@ -36,7 +36,7 @@ spec:
           effect: NoSchedule
       containers:
         - name: versitygw
-          image: versity/versitygw:v1.1.0
+          image: versity/versitygw:v1.7.0
           args:
             - --port
             - 0.0.0.0:7070
