@@ -76,3 +76,9 @@ resource "unifi_dns_record" "n8n_internal" {
   type   = "CNAME"
   record = unifi_dns_record.kubernetes_internal_gateway.name
 }
+
+resource "unifi_dns_record" "kestra_internal" {
+  name   = "kestra.${local.internal_domain}"
+  type   = "A"
+  record = local.infra_internal_gateway_ip
+}

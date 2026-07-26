@@ -1,0 +1,13 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cloudflare-tunnel-infra-configmap
+data:
+  config.yaml: |
+    ingress:
+      - hostname: kestra.krapulax.dev
+        service: http://kestra.kestra.svc.cluster.local:8080
+      - hostname: pulse.krapulax.dev
+        service: http://pulse.monitoring.svc.cluster.local:7655
+      - service: http_status:404

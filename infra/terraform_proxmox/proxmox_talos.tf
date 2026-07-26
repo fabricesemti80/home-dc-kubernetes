@@ -7,13 +7,17 @@ provider "proxmox" {
   api_token = "${var.proxmox_token_id}=${var.proxmox_token_secret}"
 }
 
+locals {
+  active_talos_nodes = [for node in var.nodes : node if node.controller]
+}
+
 module "talos" {
   source = "./modules/talos"
 
   cluster_name       = var.cluster_name
   talos_version      = var.talos_version
   kubernetes_version = var.kubernetes_version
-  nodes              = var.nodes
+  nodes              = local.active_talos_nodes
   cluster_endpoint   = var.cluster_api_addr
   gateway            = var.gateway
   cidr_prefix        = var.cidr_prefix

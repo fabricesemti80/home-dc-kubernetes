@@ -19,7 +19,13 @@ variable "cloudflare_zone_id" {
 variable "kubernetes_tunnel_name" {
   description = "Cloudflare tunnel name used by the Kubernetes cloudflared deployment."
   type        = string
-  default     = "kubernetes"
+  default     = "kubernetes-apps"
+}
+
+variable "kubernetes_infra_tunnel_name" {
+  description = "Cloudflare tunnel name used by the infra-cluster cloudflared deployment."
+  type        = string
+  default     = "kubernetes-infra"
 }
 
 variable "tunnel_secret" {
@@ -53,6 +59,14 @@ locals {
     TunnelSecret = local.kubernetes_tunnel_secret
     TunnelName   = var.kubernetes_tunnel_name
   })
+
+  kubernetes_infra_tunnel_secret = random_id.kubernetes_infra_tunnel_secret.b64_std
+  kubernetes_infra_tunnel_id     = cloudflare_zero_trust_tunnel_cloudflared.kubernetes_infra.id
+  kubernetes_infra_tunnel_token = base64encode(jsonencode({
+    a = var.cloudflare_account_id
+    t = local.kubernetes_infra_tunnel_id
+    s = local.kubernetes_infra_tunnel_secret
+  }))
 
   zero_trust_apps = {
     "jellyfin" = {

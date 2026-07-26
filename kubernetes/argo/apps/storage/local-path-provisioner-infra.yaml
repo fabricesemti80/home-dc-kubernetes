@@ -2,27 +2,19 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: technitium-dns
+  name: local-path-provisioner-infra
   namespace: argo-system
   annotations:
     argocd.argoproj.io/sync-wave: '0'
 spec:
   project: kubernetes
-  sources:
-    - repoURL: "https://github.com/fabricesemti80/home-dc-kubernetes.git"
-      path: kubernetes/apps/network/technitium-dns
-      targetRevision: main
-      ref: repo
-    - repoURL: https://kubernetes-sigs.github.io/external-dns
-      chart: external-dns
-      targetRevision: 1.21.1
-      helm:
-        releaseName: technitium-dns
-        valueFiles:
-          - $repo/kubernetes/apps/network/technitium-dns/values.yaml
+  source:
+    repoURL: "https://github.com/fabricesemti80/home-dc-kubernetes.git"
+    path: kubernetes/apps/storage/local-path-provisioner-infra
+    targetRevision: main
   destination:
-    name: app-cluster
-    namespace: network
+    name: infra-cluster
+    namespace: local-path-storage
   syncPolicy:
     automated:
       allowEmpty: true

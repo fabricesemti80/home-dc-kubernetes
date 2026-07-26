@@ -28,9 +28,9 @@ while read -r name mac ip; do
     # Check if node exists in yaml
     if yq ".nodes[] | select(.name == \"$name\")" "$NODES_YAML" >/dev/null 2>&1; then
       # Update MAC
-      yq -i "(.nodes[] | select(.name == \"$name\")).mac_addr = \"$mac\"" "$NODES_YAML"
+      yq -y -i "(.nodes[] | select(.name == \"$name\")).mac_addr = \"$mac\"" "$NODES_YAML"
       # Update IP
-      yq -i "(.nodes[] | select(.name == \"$name\")).address = \"$ip\"" "$NODES_YAML"
+      yq -y -i "(.nodes[] | select(.name == \"$name\")).address = \"$ip\"" "$NODES_YAML"
       echo "Updated $name: IP=$ip, MAC=$mac"
     else
       echo "Node $name not found in nodes.yaml, skipping update."
