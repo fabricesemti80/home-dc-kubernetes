@@ -3,9 +3,9 @@
 This repository is the main source of truth for the homelab. It manages:
 
 -   the imported Talos / Argo cluster workflow at the repo root
--   the Kubernetes/Talos OpenTofu stacks under `infra/terraform_*`
+-   the Kubernetes/Talos and service-host OpenTofu stacks under `infra/terraform_*`
 
-Host-level Docker services moved to `/Users/fs/Documents/repositories/infrastructure/home-dc-docker`.
+Host-level Docker containers moved to `/Users/fs/Documents/repositories/infrastructure/home-dc-docker`.
 
 ## Start Here
 

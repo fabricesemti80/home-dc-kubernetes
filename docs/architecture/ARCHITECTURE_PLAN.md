@@ -2,11 +2,12 @@
 
 ## Objective
 
-Operate the Talos/Kubernetes homelab from this repository while Docker-host services live in their own management repository.
+Operate the Talos/Kubernetes homelab and supporting service hosts from this repository while Docker containers live in their own management repository.
 
 ## Active Structure
 
 -   `infra/terraform_proxmox/`: Proxmox VMs and Talos cluster infrastructure.
+-   `infra/terraform_service_hosts/`: standalone service guests and Tailscale tailnet policy.
 -   `infra/terraform_cloudflare/`: Kubernetes Cloudflare tunnel, DNS, Access resources, and tunnel credentials.
 -   `infra/terraform_localdns/`: Kubernetes local DNS OpenTofu stack.
 -   `talos/`, `kubernetes/`, `bootstrap/`, and `.taskfiles/`: Talos, Argo CD, and Kubernetes workspace migrated from the legacy cluster repo.
@@ -20,7 +21,7 @@ Operate the Talos/Kubernetes homelab from this repository while Docker-host serv
 -   Argo CD will be repointed to `project-homelab`.
 -   The active Talos cluster is now modeled as three control-plane nodes only.
 -   Historical worker VMs remain infrastructure artifacts for rollback or later reuse, but are no longer part of the committed Talos node inventory.
--   Host-level Docker services are moving to `home-DC-docker`; Kubernetes resources must be unaffected by this split.
+-   Host-level Docker containers are moving to `home-DC-docker`; Kubernetes and service-host resources must be unaffected by this split.
 
 ## Assumptions
 
@@ -36,6 +37,7 @@ Operate the Talos/Kubernetes homelab from this repository while Docker-host serv
 -   `task tf:init`
 -   `task tf:plan`
 -   `task tf:proxmox:plan`
+-   `task tf:service-hosts:plan`
 -   `task tf:cloudflare:plan`
 -   `task tf:localdns:plan`
 -   `kubectl get nodes`

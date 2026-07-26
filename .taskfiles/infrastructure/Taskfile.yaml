@@ -5,6 +5,7 @@ vars:
   TF_PROXMOX_DIR: '{{.ROOT_DIR}}/infra/terraform_proxmox'
   TF_CLOUDFLARE_DIR: '{{.ROOT_DIR}}/infra/terraform_cloudflare'
   TF_LOCALDNS_DIR: '{{.ROOT_DIR}}/infra/terraform_localdns'
+  TF_SERVICE_HOSTS_DIR: '{{.ROOT_DIR}}/infra/terraform_service_hosts'
 
 tasks:
 
@@ -66,6 +67,7 @@ tasks:
     desc: Initialize all OpenTofu stacks in execution order
     cmds:
       - task: tf-proxmox-init
+      - task: tf-service-hosts-init
       - task: tf-cloudflare-init
       - task: tf-localdns-init
 
@@ -73,6 +75,7 @@ tasks:
     desc: Plan all OpenTofu stacks in execution order
     cmds:
       - task: tf-proxmox-plan
+      - task: tf-service-hosts-plan
       - task: tf-cloudflare-plan
       - task: tf-localdns-plan
 
@@ -80,6 +83,7 @@ tasks:
     desc: Apply all OpenTofu stacks in execution order
     cmds:
       - task: tf-proxmox-apply
+      - task: tf-service-hosts-apply
       - task: tf-cloudflare-apply
       - task: tf-localdns-apply
 
@@ -88,6 +92,7 @@ tasks:
     cmds:
       - task: tf-localdns-destroy
       - task: tf-cloudflare-destroy
+      - task: tf-service-hosts-destroy
       - task: tf-proxmox-destroy
 
   tf-proxmox-init:
@@ -147,6 +152,35 @@ tasks:
     preconditions:
       - which doppler tofu
       - test -d {{.TF_CLOUDFLARE_DIR}}/.terraform
+
+  tf-service-hosts-init:
+    desc: Initialize the service hosts OpenTofu stack
+    cmd: doppler run --project project-homelab --config dev_homelab --name-transformer tf-var -- tofu -chdir={{.TF_SERVICE_HOSTS_DIR}} init -upgrade
+    preconditions:
+      - which doppler tofu
+
+  tf-service-hosts-plan:
+    desc: Plan the service hosts OpenTofu stack
+    cmd: doppler run --project project-homelab --config dev_homelab --name-transformer tf-var -- tofu -chdir={{.TF_SERVICE_HOSTS_DIR}} plan -out=tfplan
+    preconditions:
+      - which doppler tofu
+      - test -d {{.TF_SERVICE_HOSTS_DIR}}/.terraform
+
+  tf-service-hosts-apply:
+    desc: Apply the service hosts OpenTofu stack
+    cmds:
+      - doppler run --project project-homelab --config dev_homelab --name-transformer tf-var -- tofu -chdir={{.TF_SERVICE_HOSTS_DIR}} plan -out=tfplan
+      - doppler run --project project-homelab --config dev_homelab --name-transformer tf-var -- tofu -chdir={{.TF_SERVICE_HOSTS_DIR}} apply tfplan
+    preconditions:
+      - which doppler tofu
+      - test -d {{.TF_SERVICE_HOSTS_DIR}}/.terraform
+
+  tf-service-hosts-destroy:
+    desc: Destroy the service hosts OpenTofu stack
+    cmd: doppler run --project project-homelab --config dev_homelab --name-transformer tf-var -- tofu -chdir={{.TF_SERVICE_HOSTS_DIR}} destroy -auto-approve
+    preconditions:
+      - which doppler tofu
+      - test -d {{.TF_SERVICE_HOSTS_DIR}}/.terraform
 
   tf-localdns-init:
     desc: Initialize the local DNS OpenTofu stack when populated

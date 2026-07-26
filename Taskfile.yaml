@@ -14,6 +14,7 @@ vars:
   TF_PROXMOX_DIR: '{{.ROOT_DIR}}/infra/terraform_proxmox'
   TF_CLOUDFLARE_DIR: '{{.ROOT_DIR}}/infra/terraform_cloudflare'
   TF_LOCALDNS_DIR: '{{.ROOT_DIR}}/infra/terraform_localdns'
+  TF_SERVICE_HOSTS_DIR: '{{.ROOT_DIR}}/infra/terraform_service_hosts'
 
 env:
   KUBECONFIG: '{{.ROOT_DIR}}/kubeconfig'
@@ -70,6 +71,7 @@ tasks:
     cmds:
       - tofu -chdir={{.TF_PROXMOX_DIR}} fmt -recursive
       - tofu -chdir={{.TF_CLOUDFLARE_DIR}} fmt -recursive
+      - tofu -chdir={{.TF_SERVICE_HOSTS_DIR}} fmt -recursive
       - |
         if find {{.TF_LOCALDNS_DIR}} -maxdepth 1 -name '*.tf' | grep -q .; then
           tofu -chdir={{.TF_LOCALDNS_DIR}} fmt -recursive
@@ -186,6 +188,22 @@ tasks:
   tf:localdns:destroy:
     desc: Destroy the local DNS OpenTofu stack when populated
     cmd: task infrastructure:tf-localdns-destroy
+
+  tf:service-hosts:init:
+    desc: Initialize the service hosts OpenTofu stack
+    cmd: task infrastructure:tf-service-hosts-init
+
+  tf:service-hosts:plan:
+    desc: Plan the service hosts OpenTofu stack
+    cmd: task infrastructure:tf-service-hosts-plan
+
+  tf:service-hosts:apply:
+    desc: Apply the service hosts OpenTofu stack
+    cmd: task infrastructure:tf-service-hosts-apply
+
+  tf:service-hosts:destroy:
+    desc: Destroy the service hosts OpenTofu stack
+    cmd: task infrastructure:tf-service-hosts-destroy
 
   cluster:sync-argo:
     desc: Apply the Argo bootstrap resources from this repo
