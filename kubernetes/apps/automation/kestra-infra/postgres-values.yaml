@@ -10,8 +10,18 @@ tolerations:
 affinity: {}
 settings:
   existingSecret: kestra-postgres
+  superuser:
+    secretKey: POSTGRES_USER
+  superuserPassword:
+    secretKey: POSTGRES_PASSWORD
 userDatabase:
   existingSecret: kestra-postgres
+  name:
+    secretKey: POSTGRES_DB
+  user:
+    secretKey: USERDB_USER
+  password:
+    secretKey: USERDB_PASSWORD
 storage:
   className: local-path
   requestedSize: 10Gi
