@@ -11,6 +11,7 @@ Centralized documentation for external and internal DNS hostnames in the cluster
 | `internal.krapulax.dev`    | -             | Internal routing              |
 | `krapulax.home`            | -             | Internal Technitium zone      |
 | `kubernetes.krapulax.home` | `10.0.40.102` | Internal gateway target       |
+| `kestra.krapulax.home`     | `10.0.40.106` | Infra-cluster internal Kestra |
 
 ## Application Hostnames
 
@@ -45,6 +46,12 @@ Centralized documentation for external and internal DNS hostnames in the cluster
 | ------------ | --------------------------- | ------------------------------------------------------------------------- |
 | Grafana      | `grafana.krapulax.dev`      | `kubernetes/apps/monitoring/kube-prometheus-stack/config/http-route.yaml` |
 | Alertmanager | `alertmanager.krapulax.dev` | `kubernetes/apps/monitoring/kube-prometheus-stack/values.yaml`            |
+
+### Automation
+
+| App    | Hostname               | Config                                                           |
+| ------ | ---------------------- | ---------------------------------------------------------------- |
+| Kestra | `kestra.krapulax.home` | `kubernetes/apps/automation/kestra-infra/config/http-route.yaml` |
 
 ### Web
 
