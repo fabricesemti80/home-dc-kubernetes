@@ -7,3 +7,6 @@ Terraform creates the separate tunnel and writes `TUNNEL_TOKEN_INFRA` to
 Doppler. After Terraform applies, update the Cloudflare DNS target for
 infra hostnames to the new tunnel ID before removing matching routes from the
 app-cluster tunnel.
+
+Until infra-cluster has its own Cloudflare external-dns controller, those public
+DNS records are declared in `kubernetes/apps/network/cloudflare-tunnel`.
