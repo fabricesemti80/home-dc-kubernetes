@@ -14,6 +14,7 @@ Host-level Docker services are managed from `/Users/fs/Documents/repositories/in
 3. **Small, reversible changes**: keep PRs scoped; include migration/rollback notes for impactful changes.
 4. **Document assumptions**: every design decision should list assumptions and validation checks.
 5. **Use explicit environments**: `dev`, `stage`, and `prod` (or `lab`) should be modeled separately.
+6. **Branch policy**: minor fixes may be made directly on `main`; larger or risky changes need a separate branch and PR.
 
 ## Repository conventions
 
