@@ -508,9 +508,9 @@ Deploy in this order:
 2. storage prerequisites
 3. Pulse (`pulse-infra`) — pinned to `infra-wk-01` with `hostPath` storage for the first pass
 4. Uptime Kuma
-5. Technitium DNS
+5. Technitium DNS (future deployment)
 
-Do not move the existing `technitium-dns` Application blindly: the current repository object is an ExternalDNS webhook integration, not necessarily the Technitium DNS server itself. Create or migrate the actual DNS-server workload deliberately and keep app-cluster-specific integrations separate where required.
+The old `technitium-dns` Application was an ExternalDNS webhook integration, not the DNS server itself, and is intentionally removed for now. Create or migrate the actual DNS-server workload deliberately and keep app-cluster-specific integrations separate where required.
 
 Validate each application before proceeding:
 
@@ -526,7 +526,7 @@ kubectl --context infra-cluster get pods -A
 
 Prove that the design meets its purpose:
 
-1. Confirm Pulse, Uptime Kuma, and Technitium are healthy on `infra-cluster`.
+1. Confirm Pulse, Uptime Kuma, and any future Technitium deployment are healthy on `infra-cluster`.
 2. Shut down or pause the app-cluster VMs during a maintenance window.
 3. Confirm the infra services remain reachable.
 4. Confirm they correctly report the app cluster as unavailable.
