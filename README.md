@@ -23,10 +23,10 @@ Host-level Docker services moved to `/Users/fs/Documents/repositories/infrastruc
 
 ## Core Tasks
 
-Ensure `mise` is installed, then:
+Enter the Nix dev shell, then install Helm plugins:
 
 ```bash
-mise install
+nix develop
 task deps
 ```
 
@@ -44,7 +44,7 @@ task apps:bootstrap
 task verify:cluster
 ```
 
-Task execution now lives in structured files under `.taskfiles/`. `mise.toml` remains the source of truth for tool installation and environment setup.
+Task execution now lives in structured files under `.taskfiles/`. `flake.nix` is the source of truth for repo-local tooling.
 
 ## Repository Notes
 
