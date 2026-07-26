@@ -20,7 +20,7 @@ common:
         name: versitygw-root
   initContainers:
     - name: ensure-kestra-bucket
-      image: amazon/aws-cli:2.15.57
+      image: amazon/aws-cli:2.36.8
       command:
         - sh
         - -lc
