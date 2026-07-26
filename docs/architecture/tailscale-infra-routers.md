@@ -6,6 +6,7 @@ Deploy Tailscale routing through the Kubernetes Operator on `infra-cluster`.
 
 -   The Tailscale Operator manages a Connector with two replicas.
 -   Each Connector replica is an ephemeral Tailscale device managed by the Operator.
+-   Connector pods use a ProxyClass that tolerates the infra control-plane taint and spreads replicas across hostnames.
 -   Advertised subnet routes: `10.0.0.0/16` and `192.168.0.0/16`.
 -   Both Connector replicas advertise themselves as exit nodes.
 

@@ -37,3 +37,4 @@ spec:
       - ApplyOutOfSyncOnly=true
       - ServerSideApply=true
       - PruneLast=true
+      - SkipDryRunOnMissingResource=true
