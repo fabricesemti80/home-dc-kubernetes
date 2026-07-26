@@ -11,6 +11,9 @@ common:
       operator: Exists
       effect: NoSchedule
   affinity: {}
+  podSecurityContext:
+    supplementalGroups:
+      - 2375
   extraEnvFrom:
     - secretRef:
         name: kestra-basic-auth
