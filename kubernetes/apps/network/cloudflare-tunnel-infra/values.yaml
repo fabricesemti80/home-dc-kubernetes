@@ -55,12 +55,6 @@ service:
       http:
         port: *port
 
-serviceMonitor:
-  app:
-    serviceName: cloudflare-tunnel-infra
-    endpoints:
-      - port: http
-
 persistence:
   config-file:
     type: configMap
