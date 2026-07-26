@@ -1,0 +1,23 @@
+---
+apiVersion: tailscale.com/v1alpha1
+kind: ProxyClass
+metadata:
+  name: infra-router
+  annotations:
+    argocd.argoproj.io/sync-wave: '1'
+spec:
+  statefulSet:
+    pod:
+      labels:
+        krapulax.dev/tailscale-router: infra
+      tolerations:
+        - key: node-role.kubernetes.io/control-plane
+          operator: Exists
+          effect: NoSchedule
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: DoNotSchedule
+          labelSelector:
+            matchLabels:
+              krapulax.dev/tailscale-router: infra
