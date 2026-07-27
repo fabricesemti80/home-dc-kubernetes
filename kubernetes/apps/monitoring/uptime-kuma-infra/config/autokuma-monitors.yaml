@@ -29,3 +29,179 @@ data:
       "interval": 60,
       "max_retries": 3
     }
+  prometheus.json: |-
+    {
+      "type": "http",
+      "name": "Prometheus",
+      "url": "https://prometheus.krapulax.dev",
+      "interval": 60,
+      "max_retries": 3
+    }
+  alertmanager.json: |-
+    {
+      "type": "http",
+      "name": "Alertmanager",
+      "url": "https://alertmanager.krapulax.dev",
+      "interval": 60,
+      "max_retries": 3
+    }
+  pulse.json: |-
+    {
+      "type": "http",
+      "name": "Pulse",
+      "url": "https://pulse.krapulax.dev",
+      "interval": 60,
+      "max_retries": 3
+    }
+  glance.json: |-
+    {
+      "type": "http",
+      "name": "Glance",
+      "url": "https://glance.krapulax.dev",
+      "interval": 60,
+      "max_retries": 3
+    }
+  homepage.json: |-
+    {
+      "type": "http",
+      "name": "Homepage",
+      "url": "https://homepage.krapulax.dev",
+      "interval": 60,
+      "max_retries": 3
+    }
+  echo.json: |-
+    {
+      "type": "http",
+      "name": "Echo",
+      "url": "https://echo.krapulax.dev",
+      "interval": 60,
+      "max_retries": 3
+    }
+  jellyfin.json: |-
+    {
+      "type": "http",
+      "name": "Jellyfin",
+      "url": "https://jelly.krapulax.dev",
+      "interval": 60,
+      "max_retries": 3
+    }
+  jellyseerr.json: |-
+    {
+      "type": "http",
+      "name": "Jellyseerr",
+      "url": "https://requests.krapulax.dev",
+      "interval": 60,
+      "max_retries": 3
+    }
+  sonarr.json: |-
+    {
+      "type": "http",
+      "name": "Sonarr",
+      "url": "https://sonarr.krapulax.dev",
+      "interval": 60,
+      "max_retries": 3
+    }
+  radarr.json: |-
+    {
+      "type": "http",
+      "name": "Radarr",
+      "url": "https://radarr.krapulax.dev",
+      "interval": 60,
+      "max_retries": 3
+    }
+  prowlarr.json: |-
+    {
+      "type": "http",
+      "name": "Prowlarr",
+      "url": "https://prowlarr.krapulax.dev",
+      "interval": 60,
+      "max_retries": 3
+    }
+  sabnzbd.json: |-
+    {
+      "type": "http",
+      "name": "SABnzbd",
+      "url": "https://sabnzbd.krapulax.dev",
+      "interval": 60,
+      "max_retries": 3
+    }
+  qbittorrent.json: |-
+    {
+      "type": "http",
+      "name": "qBittorrent",
+      "url": "https://qbittorrent.krapulax.dev",
+      "interval": 60,
+      "max_retries": 3
+    }
+  tdarr.json: |-
+    {
+      "type": "http",
+      "name": "Tdarr",
+      "url": "https://tdarr.krapulax.dev",
+      "interval": 60,
+      "max_retries": 3
+    }
+  immich.json: |-
+    {
+      "type": "http",
+      "name": "Immich",
+      "url": "https://photos.krapulax.dev",
+      "interval": 60,
+      "max_retries": 3
+    }
+  linkwarden.json: |-
+    {
+      "type": "http",
+      "name": "Linkwarden",
+      "url": "https://linkwarden.krapulax.dev",
+      "interval": 60,
+      "max_retries": 3
+    }
+  n8n.json: |-
+    {
+      "type": "http",
+      "name": "n8n",
+      "url": "https://n8n.krapulax.dev",
+      "interval": 60,
+      "max_retries": 3
+    }
+  code-server.json: |-
+    {
+      "type": "http",
+      "name": "Code Server",
+      "url": "https://code.krapulax.dev",
+      "interval": 60,
+      "max_retries": 3
+    }
+  termix.json: |-
+    {
+      "type": "http",
+      "name": "Termix",
+      "url": "https://termix.krapulax.dev",
+      "interval": 60,
+      "max_retries": 3
+    }
+  sterling-pdf.json: |-
+    {
+      "type": "http",
+      "name": "Stirling PDF",
+      "url": "https://pdf.krapulax.dev",
+      "interval": 60,
+      "max_retries": 3
+    }
+  convertx.json: |-
+    {
+      "type": "http",
+      "name": "ConvertX",
+      "url": "https://convertx.krapulax.dev",
+      "interval": 60,
+      "max_retries": 3
+    }
+  nginx-test.json: |-
+    {
+      "type": "http",
+      "name": "NGINX Test",
+      "url": "https://nginx-test.krapulax.dev",
+      "interval": 60,
+      "max_retries": 3
+    }
