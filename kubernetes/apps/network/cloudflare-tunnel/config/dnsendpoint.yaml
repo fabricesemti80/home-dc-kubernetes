@@ -8,6 +8,10 @@ spec:
       recordType: CNAME
       targets:
         - c153a412-005f-4c07-8b89-34ec5628005a.cfargotunnel.com
+    - dnsName: external-apps.krapulax.dev
+      recordType: CNAME
+      targets:
+        - c153a412-005f-4c07-8b89-34ec5628005a.cfargotunnel.com
     - dnsName: external-infra.krapulax.dev
       recordType: CNAME
       targets:
