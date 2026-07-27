@@ -39,7 +39,7 @@ The generated output is:
 kubernetes/apps/monitoring/uptime-kuma-infra/config/autokuma-monitors.yaml
 ```
 
-Do not edit that file manually. When a pull request changes Kubernetes route manifests, `.github/workflows/generate-autokuma-monitors.yaml` automatically:
+Do not edit that file manually. After this workflow has been merged to the default branch, pull requests that change Kubernetes route manifests automatically run `.github/workflows/generate-autokuma-monitors.yaml`, which:
 
 1. checks out the pull request's head branch;
 2. runs `scripts/generate-autokuma-monitors.py`;
@@ -130,6 +130,7 @@ Some authenticated applications may return redirects, 401, or 403 responses. Tho
 
 Check the `Generate AutoKuma Monitors` workflow run for the pull request. Confirm that:
 
+- the workflow is already present on the default branch;
 - the pull request branch belongs to this repository rather than a fork;
 - Actions has permission to write repository contents;
 - the changed route file matches the workflow path filters;
