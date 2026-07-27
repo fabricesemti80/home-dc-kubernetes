@@ -1,0 +1,12 @@
+---
+apiVersion: externaldns.k8s.io/v1alpha1
+kind: DNSEndpoint
+metadata:
+  name: uptime-kuma-cloudflare-tunnel
+spec:
+  endpoints:
+    - dnsName: uptime.krapulax.dev
+      recordType: CNAME
+      recordTTL: 1
+      targets:
+        - external-infra.krapulax.dev
