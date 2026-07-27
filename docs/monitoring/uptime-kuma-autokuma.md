@@ -42,10 +42,11 @@ kubernetes/apps/monitoring/uptime-kuma-infra/config/autokuma-monitors.yaml
 Do not edit that file manually. After this workflow has been merged to the default branch, pull requests that change Kubernetes route manifests automatically run `.github/workflows/generate-autokuma-monitors.yaml`, which:
 
 1. checks out the pull request's head branch;
-2. runs `scripts/generate-autokuma-monitors.py`;
-3. detects whether the generated ConfigMap changed;
-4. commits and pushes the generated output back to the same branch when required;
-5. exits without a commit when the inventory is already current.
+2. installs the pinned Mike Farah `yq` binary used by the generator;
+3. runs `scripts/generate-autokuma-monitors.py`;
+4. detects whether the generated ConfigMap changed;
+5. commits and pushes the generated output back to the same branch when required;
+6. exits without a commit when the inventory is already current.
 
 The workflow uses a concurrency group per pull request and the bot-generated commit does not create an endless workflow loop.
 
@@ -134,7 +135,7 @@ Check the `Generate AutoKuma Monitors` workflow run for the pull request. Confir
 - the pull request branch belongs to this repository rather than a fork;
 - Actions has permission to write repository contents;
 - the changed route file matches the workflow path filters;
-- the generator completed without YAML parsing errors;
+- the generator completed without `yq` or YAML parsing errors;
 - branch protection permits the GitHub Actions bot to push to the pull-request branch.
 
 The workflow deliberately does not push to pull requests originating from forks because their token is read-only.
