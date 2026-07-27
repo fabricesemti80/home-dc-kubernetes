@@ -4,12 +4,15 @@
 
 Uptime Kuma provides external availability checks, response-time history, certificate expiry visibility, and status pages for services exposed under `*.krapulax.dev`.
 
-AutoKuma makes the monitor inventory declarative. Public Kubernetes HTTPRoutes are scanned by a repository generator, the generated monitor ConfigMap is committed to Git, Argo CD deploys it, and AutoKuma reconciles the definitions into Uptime Kuma.
+AutoKuma makes the monitor inventory declarative. Public Kubernetes HTTPRoutes are scanned by a repository generator, a GitHub Action commits the generated monitor ConfigMap to the pull-request branch, Argo CD deploys it, and AutoKuma reconciles the definitions into Uptime Kuma.
 
 ## Architecture
 
 ```text
 Kubernetes HTTPRoutes
+        |
+        v
+GitHub Action
         |
         v
 scripts/generate-autokuma-monitors.py
@@ -28,7 +31,7 @@ Uptime Kuma and AutoKuma run as separate controllers in the same app-template He
 
 The UI is exposed at `https://uptime.krapulax.dev` through the infra-cluster Cloudflare Tunnel.
 
-## Generated monitor inventory
+## Automatic monitor generation
 
 The generated output is:
 
@@ -36,23 +39,25 @@ The generated output is:
 kubernetes/apps/monitoring/uptime-kuma-infra/config/autokuma-monitors.yaml
 ```
 
-Do not edit that file manually. Generate it with:
+Do not edit that file manually. When a pull request changes Kubernetes route manifests, `.github/workflows/generate-autokuma-monitors.yaml` automatically:
+
+1. checks out the pull request's head branch;
+2. runs `scripts/generate-autokuma-monitors.py`;
+3. detects whether the generated ConfigMap changed;
+4. commits and pushes the generated output back to the same branch when required;
+5. exits without a commit when the inventory is already current.
+
+The workflow uses a concurrency group per pull request and the bot-generated commit does not create an endless workflow loop.
+
+Manual commands remain available for local verification or troubleshooting, but are not part of the normal application-creation workflow:
 
 ```bash
 task monitoring:generate-autokuma
-```
-
-Verify that it is current with:
-
-```bash
 task monitoring:check-autokuma
-```
-
-The normal repository validation also runs the drift check:
-
-```bash
 task validate
 ```
+
+Repository validation also runs the generator in `--check` mode, preventing stale generated output from being merged.
 
 The generator:
 
@@ -68,14 +73,9 @@ Each generated monitor uses HTTPS, a 60-second interval, and three retries.
 
 ## Adding or removing monitoring
 
-A public service becomes monitored through its route definition:
+A public service becomes monitored by adding or changing its public `HTTPRoute` in a pull request. No separate monitor-maintenance step is required.
 
-1. add or update the application's public `HTTPRoute`;
-2. run `task monitoring:generate-autokuma`;
-3. review the generated ConfigMap change;
-4. commit the route and generated output together.
-
-Removing the public route and regenerating removes the corresponding monitor. AutoKuma deletes missing Git-managed monitors because `AUTOKUMA__ON_DELETE` is set to `delete`.
+The GitHub Action updates the generated ConfigMap on that same branch, leaving the generated diff visible for review before merge. Removing the public route causes the generated monitor to disappear. AutoKuma then deletes the missing Git-managed monitor because `AUTOKUMA__ON_DELETE` is set to `delete`.
 
 For a friendly monitor name, prefer the route annotation:
 
@@ -89,11 +89,12 @@ The generator also contains a small set of hostname-based display-name overrides
 
 ## Reconciliation flow
 
-1. Argo CD synchronizes the generated ConfigMap.
-2. Reloader restarts AutoKuma when the mounted ConfigMap changes.
-3. AutoKuma reads JSON monitor files from `/config/monitors`.
-4. AutoKuma creates, updates, or deletes its managed monitors in Uptime Kuma.
-5. Uptime Kuma performs the external HTTPS checks and stores heartbeats and response-time history.
+1. The GitHub Action keeps the committed monitor inventory synchronized with public routes.
+2. Argo CD synchronizes the generated ConfigMap.
+3. Reloader restarts AutoKuma when the mounted ConfigMap changes.
+4. AutoKuma reads JSON monitor files from `/config/monitors`.
+5. AutoKuma creates, updates, or deletes its managed monitors in Uptime Kuma.
+6. Uptime Kuma performs the external HTTPS checks and stores heartbeats and response-time history.
 
 Do not manually edit an AutoKuma-managed monitor in the Uptime Kuma UI. A later reconciliation may overwrite the change.
 
@@ -125,15 +126,23 @@ Some authenticated applications may return redirects, 401, or 403 responses. Tho
 
 ## Troubleshooting
 
-### Generated inventory is stale
+### The workflow did not update the inventory
 
-Run:
+Check the `Generate AutoKuma Monitors` workflow run for the pull request. Confirm that:
+
+- the pull request branch belongs to this repository rather than a fork;
+- Actions has permission to write repository contents;
+- the changed route file matches the workflow path filters;
+- the generator completed without YAML parsing errors;
+- branch protection permits the GitHub Actions bot to push to the pull-request branch.
+
+The workflow deliberately does not push to pull requests originating from forks because their token is read-only.
+
+For a local fallback, run:
 
 ```bash
 task monitoring:generate-autokuma
 ```
-
-Then review and commit the ConfigMap diff. `task validate` fails while generated output differs from route discovery.
 
 ### Monitor does not appear
 
