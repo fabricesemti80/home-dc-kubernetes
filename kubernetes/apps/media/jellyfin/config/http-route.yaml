@@ -6,7 +6,7 @@ metadata:
   namespace: media
   annotations:
     external-dns.alpha.kubernetes.io/hostname: jelly.krapulax.dev
-    external-dns.alpha.kubernetes.io/target: external.krapulax.dev
+    external-dns.alpha.kubernetes.io/target: external-apps.krapulax.dev
     gethomepage.dev/enabled: "true"
     gethomepage.dev/group: Media
     gethomepage.dev/name: Jellyfin
