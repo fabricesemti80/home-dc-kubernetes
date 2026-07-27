@@ -24,10 +24,6 @@ spec:
       recordType: CNAME
       targets:
         - external-infra.krapulax.dev
-    - dnsName: uptime.krapulax.dev
-      recordType: CNAME
-      targets:
-        - external-infra.krapulax.dev
     - dnsName: grafana.krapulax.dev
       recordType: CNAME
       targets:
