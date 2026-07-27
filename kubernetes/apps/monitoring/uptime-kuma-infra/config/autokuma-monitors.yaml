@@ -78,14 +78,6 @@ data:
       "interval": 60,
       "max_retries": 3
     }
-  kestra.json: |-
-    {
-      "type": "http",
-      "name": "Kestra",
-      "url": "https://kestra.krapulax.dev",
-      "interval": 60,
-      "max_retries": 3
-    }
   linkwarden.json: |-
     {
       "type": "http",
