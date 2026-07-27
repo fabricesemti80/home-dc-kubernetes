@@ -64,8 +64,52 @@ controllers:
           limits:
             memory: 512Mi
 
+  autokuma:
+    replicas: 1
+    strategy: Recreate
+    containers:
+      app:
+        image:
+          repository: ghcr.io/bigboot/autokuma
+          tag: "2.0.0"
+        env:
+          TZ: Europe/London
+          AUTOKUMA__KUMA__URL: http://uptime-kuma.monitoring.svc.cluster.local:3001
+          AUTOKUMA__KUMA__USERNAME:
+            valueFrom:
+              secretKeyRef:
+                name: uptime-kuma-credentials
+                key: UPTIME_KUMA_USERNAME
+          AUTOKUMA__KUMA__PASSWORD:
+            valueFrom:
+              secretKeyRef:
+                name: uptime-kuma-credentials
+                key: UPTIME_KUMA_PASSWORD
+          AUTOKUMA__DOCKER__ENABLED: "false"
+          AUTOKUMA__KUBERNETES__ENABLED: "false"
+          AUTOKUMA__STATIC_MONITORS: /config/monitors
+          AUTOKUMA__FILES__FOLLOW_SYMLINKS: "true"
+          AUTOKUMA__ON_DELETE: delete
+          AUTOKUMA__TAG_NAME: AutoKuma
+          AUTOKUMA__TAG_COLOR: "#42C0FB"
+          AUTOKUMA__DEFAULT_SETTINGS: |-
+            *.interval: 60
+            *.max_retries: 3
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: false
+          capabilities: {drop: ["ALL"]}
+        resources:
+          requests:
+            cpu: 25m
+            memory: 64Mi
+          limits:
+            memory: 256Mi
+
 defaultPodOptions:
   automountServiceAccountToken: false
+  annotations:
+    reloader.stakater.com/auto: "true"
   nodeSelector:
     kubernetes.io/hostname: infra-wk-01
   securityContext:
@@ -88,9 +132,34 @@ persistence:
       hostPath:
         path: /var/uptime-kuma/data
         type: DirectoryOrCreate
-    globalMounts:
-      - path: /app/data
+    advancedMounts:
+      uptime-kuma:
+        app:
+          - path: /app/data
+  autokuma-data:
+    type: custom
+    volumeSpec:
+      hostPath:
+        path: /var/autokuma/data
+        type: DirectoryOrCreate
+    advancedMounts:
+      autokuma:
+        app:
+          - path: /data
+  monitors:
+    type: configMap
+    name: autokuma-monitors
+    advancedMounts:
+      autokuma:
+        app:
+          - path: /config/monitors
+            readOnly: true
   tmp:
     type: emptyDir
-    globalMounts:
-      - path: /tmp
+    advancedMounts:
+      uptime-kuma:
+        app:
+          - path: /tmp
+      autokuma:
+        app:
+          - path: /tmp
