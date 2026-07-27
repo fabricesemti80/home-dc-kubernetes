@@ -14,4 +14,6 @@ for f in "${required[@]}"; do
   }
 done
 
-echo "Validation passed: required files present."
+python3 scripts/generate-autokuma-monitors.py --check
+
+echo "Validation passed: required files and generated outputs are current."
