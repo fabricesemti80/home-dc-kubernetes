@@ -32,8 +32,20 @@ tasks:
   default: task --list
 
   validate:
-    desc: Validate repository structure and required files
+    desc: Validate repository structure and generated files
     cmd: bash {{.ROOT_DIR}}/scripts/validate.sh
+
+  monitoring:generate-autokuma:
+    desc: Generate AutoKuma monitors from public HTTPRoutes
+    cmd: python3 {{.SCRIPTS_DIR}}/generate-autokuma-monitors.py
+    preconditions:
+      - which python3 yq
+
+  monitoring:check-autokuma:
+    desc: Verify the committed AutoKuma inventory matches public HTTPRoutes
+    cmd: python3 {{.SCRIPTS_DIR}}/generate-autokuma-monitors.py --check
+    preconditions:
+      - which python3 yq
 
   deps:
     desc: Install Helm dependencies for the cluster workflow
