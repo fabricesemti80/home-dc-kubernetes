@@ -17,7 +17,7 @@ data:
     {
       "type": "http",
       "name": "Argo CD",
-      "url": "https://argocd.krapulax.dev",
+      "url": "https://argo.krapulax.dev",
       "interval": 60,
       "max_retries": 3
     }
