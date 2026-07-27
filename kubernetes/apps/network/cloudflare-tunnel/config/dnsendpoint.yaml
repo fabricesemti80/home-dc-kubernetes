@@ -20,6 +20,10 @@ spec:
       recordType: CNAME
       targets:
         - 406a2618-549e-432b-8e52-473938713a8c.cfargotunnel.com
+    - dnsName: uptime.krapulax.dev
+      recordType: CNAME
+      targets:
+        - 406a2618-549e-432b-8e52-473938713a8c.cfargotunnel.com
     - dnsName: grafana.krapulax.dev
       recordType: CNAME
       targets:

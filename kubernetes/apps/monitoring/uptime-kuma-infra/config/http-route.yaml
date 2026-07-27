@@ -6,7 +6,7 @@ metadata:
   namespace: monitoring
   annotations:
     external-dns.alpha.kubernetes.io/hostname: uptime.krapulax.dev
-    external-dns.alpha.kubernetes.io/target: external.krapulax.dev
+    external-dns.alpha.kubernetes.io/target: 406a2618-549e-432b-8e52-473938713a8c.cfargotunnel.com
 spec:
   parentRefs:
     - name: envoy-external
