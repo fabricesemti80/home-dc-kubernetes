@@ -1,0 +1,31 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: autokuma-monitors
+  namespace: monitoring
+data:
+  uptime-kuma.json: |-
+    {
+      "type": "http",
+      "name": "Uptime Kuma",
+      "url": "https://uptime.krapulax.dev",
+      "interval": 60,
+      "max_retries": 3
+    }
+  argo-cd.json: |-
+    {
+      "type": "http",
+      "name": "Argo CD",
+      "url": "https://argo.krapulax.dev",
+      "interval": 60,
+      "max_retries": 3
+    }
+  grafana.json: |-
+    {
+      "type": "http",
+      "name": "Grafana",
+      "url": "https://grafana.krapulax.dev",
+      "interval": 60,
+      "max_retries": 3
+    }
