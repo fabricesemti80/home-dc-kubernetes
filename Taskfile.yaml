@@ -33,19 +33,17 @@ tasks:
 
   validate:
     desc: Validate repository structure and generated files
-    cmd: bash {{.ROOT_DIR}}/scripts/validate.sh
+    cmds:
+      - bash {{.ROOT_DIR}}/scripts/validate.sh
+      - python3 {{.ROOT_DIR}}/scripts/generate-autokuma-monitors.py --check
 
   monitoring:generate-autokuma:
-    desc: Generate AutoKuma monitors from public HTTPRoutes
-    cmd: python3 {{.SCRIPTS_DIR}}/generate-autokuma-monitors.py
-    preconditions:
-      - which python3 yq
+    desc: Manually regenerate AutoKuma monitors (normally handled by GitHub Actions)
+    cmd: python3 {{.ROOT_DIR}}/scripts/generate-autokuma-monitors.py
 
   monitoring:check-autokuma:
-    desc: Verify the committed AutoKuma inventory matches public HTTPRoutes
-    cmd: python3 {{.SCRIPTS_DIR}}/generate-autokuma-monitors.py --check
-    preconditions:
-      - which python3 yq
+    desc: Check generated AutoKuma monitor inventory for drift
+    cmd: python3 {{.ROOT_DIR}}/scripts/generate-autokuma-monitors.py --check
 
   deps:
     desc: Install Helm dependencies for the cluster workflow
