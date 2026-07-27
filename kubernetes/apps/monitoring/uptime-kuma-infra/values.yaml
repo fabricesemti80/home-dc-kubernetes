@@ -1,0 +1,96 @@
+---
+global:
+  createDefaultServiceAccount: false
+
+controllers:
+  uptime-kuma:
+    replicas: 1
+    strategy: Recreate
+    initContainers:
+      fix-perms:
+        image:
+          repository: docker.io/library/busybox
+          tag: "1.37"
+        command:
+          - /bin/sh
+          - -c
+        args:
+          - chown -R 1000:1000 /app/data
+        securityContext:
+          runAsUser: 0
+          runAsGroup: 0
+          runAsNonRoot: false
+    containers:
+      app:
+        image:
+          repository: docker.io/louislam/uptime-kuma
+          tag: "2.3.2"
+        env:
+          TZ: Europe/London
+          UPTIME_KUMA_PORT: &port 3001
+          DATA_DIR: /app/data
+        probes:
+          liveness: &probes
+            enabled: true
+            custom: true
+            spec:
+              httpGet:
+                path: /
+                port: *port
+              initialDelaySeconds: 30
+              periodSeconds: 15
+              timeoutSeconds: 5
+              failureThreshold: 6
+          readiness: *probes
+          startup:
+            enabled: true
+            custom: true
+            spec:
+              httpGet:
+                path: /
+                port: *port
+              initialDelaySeconds: 10
+              periodSeconds: 10
+              timeoutSeconds: 3
+              failureThreshold: 30
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: false
+          capabilities: {drop: ["ALL"]}
+        resources:
+          requests:
+            cpu: 50m
+            memory: 128Mi
+          limits:
+            memory: 512Mi
+
+defaultPodOptions:
+  automountServiceAccountToken: false
+  nodeSelector:
+    kubernetes.io/hostname: infra-wk-01
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+    runAsGroup: 1000
+    fsGroup: 1000
+
+service:
+  app:
+    controller: uptime-kuma
+    ports:
+      http:
+        port: 3001
+
+persistence:
+  data:
+    type: custom
+    volumeSpec:
+      hostPath:
+        path: /var/uptime-kuma/data
+        type: DirectoryOrCreate
+    globalMounts:
+      - path: /app/data
+  tmp:
+    type: emptyDir
+    globalMounts:
+      - path: /tmp
