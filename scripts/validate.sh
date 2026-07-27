@@ -5,6 +5,8 @@ required=(
   "docs/architecture/ARCHITECTURE_PLAN.md"
   "docs/architecture/PHASE_0_1_BLUEPRINT.md"
   "flake.nix"
+  "scripts/generate-autokuma-monitors.py"
+  ".github/workflows/generate-autokuma-monitors.yaml"
 )
 
 for f in "${required[@]}"; do
