@@ -37,8 +37,15 @@ jobs:
         with:
           python-version: "3.13"
 
-      - name: Install generator dependencies
-        run: python -m pip install --disable-pip-version-check PyYAML
+      - name: Install yq
+        env:
+          YQ_VERSION: v4.45.4
+        run: |
+          sudo wget --quiet \
+            "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_amd64" \
+            -O /usr/local/bin/yq
+          sudo chmod +x /usr/local/bin/yq
+          yq --version
 
       - name: Generate AutoKuma monitors
         run: python scripts/generate-autokuma-monitors.py
