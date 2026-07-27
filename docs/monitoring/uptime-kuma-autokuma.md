@@ -4,142 +4,158 @@
 
 Uptime Kuma provides external availability checks, response-time history, certificate expiry visibility, and status pages for services exposed under `*.krapulax.dev`.
 
-AutoKuma makes the monitor inventory declarative. Monitor definitions live in Git, Argo CD deploys them as a ConfigMap, and AutoKuma reconciles them into Uptime Kuma automatically.
+AutoKuma makes the monitor inventory declarative. Public Kubernetes HTTPRoutes are scanned by a repository generator, the generated monitor ConfigMap is committed to Git, Argo CD deploys it, and AutoKuma reconciles the definitions into Uptime Kuma.
 
 ## Architecture
 
 ```text
-Git repository
-  kubernetes/apps/monitoring/uptime-kuma-infra/
-    values.yaml
-    config/autokuma-monitors.yaml
-          |
-          v
-Argo CD application: uptime-kuma-infra
-          |
-          v
-infra-cluster / monitoring namespace
-  Uptime Kuma  <---- AutoKuma
-       ^              |
-       |              +-- reads monitor JSON files from /config/monitors
-       +-- credentials supplied by uptime-kuma-credentials Secret
+Kubernetes HTTPRoutes
+        |
+        v
+scripts/generate-autokuma-monitors.py
+        |
+        v
+config/autokuma-monitors.yaml
+        |
+        v
+Git -> Argo CD -> ConfigMap -> AutoKuma -> Uptime Kuma
 ```
 
-Uptime Kuma and AutoKuma run as separate controllers in the same app-template Helm release. Both are pinned to `infra-wk-01` and use hostPath persistence:
+Uptime Kuma and AutoKuma run as separate controllers in the same app-template Helm release on the infra cluster. Both are pinned to `infra-wk-01` and use hostPath persistence:
 
 - Uptime Kuma: `/var/uptime-kuma/data`
 - AutoKuma: `/var/autokuma/data`
 
-The Uptime Kuma UI is exposed at `https://uptime.krapulax.dev` through the infra-cluster Cloudflare Tunnel.
+The UI is exposed at `https://uptime.krapulax.dev` through the infra-cluster Cloudflare Tunnel.
 
-## Declarative monitor flow
+## Generated monitor inventory
 
-The monitor inventory is defined in:
+The generated output is:
 
 ```text
 kubernetes/apps/monitoring/uptime-kuma-infra/config/autokuma-monitors.yaml
 ```
 
-Each ConfigMap entry is one AutoKuma JSON monitor:
+Do not edit that file manually. Generate it with:
 
-```yaml
-example.json: |-
-  {
-    "type": "http",
-    "name": "Example",
-    "url": "https://example.krapulax.dev",
-    "interval": 60,
-    "max_retries": 3
-  }
+```bash
+task monitoring:generate-autokuma
 ```
 
-The ConfigMap is mounted into AutoKuma at `/config/monitors`. A change follows this path:
+Verify that it is current with:
 
-1. A monitor definition is added, updated, or removed in Git.
-2. Argo CD synchronizes the ConfigMap.
-3. Reloader restarts AutoKuma when the mounted configuration changes.
-4. AutoKuma reconciles Uptime Kuma to the desired state.
-5. Removed Git-managed monitors are deleted because `AUTOKUMA__ON_DELETE` is set to `delete`.
+```bash
+task monitoring:check-autokuma
+```
 
-Do not manually edit an AutoKuma-managed monitor in the Uptime Kuma UI. The next reconciliation may overwrite that change.
+The normal repository validation also runs the drift check:
+
+```bash
+task validate
+```
+
+The generator:
+
+1. scans YAML files under `kubernetes/` whose filenames contain `http-route` or `httproute`;
+2. selects resources with `kind: HTTPRoute`;
+3. reads public hostnames matching `*.krapulax.dev`;
+4. ignores internal `*.krapulax.home` and non-public hostnames;
+5. de-duplicates hostnames;
+6. sorts the resulting monitors deterministically;
+7. writes one AutoKuma JSON document per hostname into the ConfigMap.
+
+Each generated monitor uses HTTPS, a 60-second interval, and three retries.
+
+## Adding or removing monitoring
+
+A public service becomes monitored through its route definition:
+
+1. add or update the application's public `HTTPRoute`;
+2. run `task monitoring:generate-autokuma`;
+3. review the generated ConfigMap change;
+4. commit the route and generated output together.
+
+Removing the public route and regenerating removes the corresponding monitor. AutoKuma deletes missing Git-managed monitors because `AUTOKUMA__ON_DELETE` is set to `delete`.
+
+For a friendly monitor name, prefer the route annotation:
+
+```yaml
+metadata:
+  annotations:
+    gethomepage.dev/name: Example Service
+```
+
+The generator also contains a small set of hostname-based display-name overrides for names such as Argo CD, qBittorrent, SABnzbd, and Stirling PDF.
+
+## Reconciliation flow
+
+1. Argo CD synchronizes the generated ConfigMap.
+2. Reloader restarts AutoKuma when the mounted ConfigMap changes.
+3. AutoKuma reads JSON monitor files from `/config/monitors`.
+4. AutoKuma creates, updates, or deletes its managed monitors in Uptime Kuma.
+5. Uptime Kuma performs the external HTTPS checks and stores heartbeats and response-time history.
+
+Do not manually edit an AutoKuma-managed monitor in the Uptime Kuma UI. A later reconciliation may overwrite the change.
 
 ## Credentials
 
-AutoKuma authenticates to Uptime Kuma using the Kubernetes Secret:
+AutoKuma authenticates with the `uptime-kuma-credentials` Kubernetes Secret. The Doppler operator populates it from `project-homelab` / `dev_homelab` using:
 
 ```text
-uptime-kuma-credentials
+UPTIME_KUMA_USERNAME
+UPTIME_KUMA_PASSWORD
 ```
 
-The Secret is populated by the Doppler operator from:
+The initial Uptime Kuma administrator account must use the same credentials.
 
-```text
-project: project-homelab
-config:  dev_homelab
-keys:
-  UPTIME_KUMA_USERNAME
-  UPTIME_KUMA_PASSWORD
-```
+## Scope and limitations
 
-The initial Uptime Kuma administrator account must use the same credentials. After that one-time bootstrap, AutoKuma can connect and provision monitors.
+The generator intentionally includes only repository-managed public HTTPS routes under `*.krapulax.dev`.
 
-## Monitor inclusion policy
-
-For now, the inventory includes services that have a repository-managed HTTPS route using a public `*.krapulax.dev` hostname.
-
-Excluded by default:
+It excludes:
 
 - internal-only `*.krapulax.home` routes;
-- raw ClusterIP or node endpoints;
-- services without a public HTTPS hostname;
-- legacy Docker-hosted records not represented by the Kubernetes route inventory.
+- raw ClusterIP, node, or IP endpoints;
+- services without a public route;
+- legacy Docker-hosted DNS records not represented by Kubernetes HTTPRoutes.
 
-An HTTP monitor validates the complete external path, including public DNS, Cloudflare, the appropriate Cloudflare Tunnel, the Kubernetes service, and the application response. This is intentionally different from a Kubernetes readiness probe, which only validates the workload from inside the cluster.
+An HTTP monitor validates the full user-visible path: public DNS, Cloudflare, the selected tunnel, Kubernetes routing, the service, the application response, and TLS certificate validity. It complements rather than replaces readiness probes, Prometheus, Grafana, Alertmanager, or Pulse.
 
-## Adding a monitor
+Some authenticated applications may return redirects, 401, or 403 responses. Those services may need a dedicated health path or an explicit AutoKuma override in a future extension. The generated inventory currently uses the standard HTTP monitor defaults.
 
-When a new public HTTPS route is introduced:
+## Troubleshooting
 
-1. Confirm the hostname resolves through the correct cluster endpoint.
-2. Add a JSON entry to `autokuma-monitors.yaml`.
-3. Use a stable, user-facing monitor name.
-4. Start with a 60-second interval and three retries unless the service needs different behaviour.
-5. Merge and allow Argo CD and AutoKuma to reconcile it.
+### Generated inventory is stale
 
-For services that return an expected non-2xx response, require authentication, or expose a dedicated health endpoint, extend the monitor definition rather than accepting a permanently failing default check.
+Run:
 
-## Operations and troubleshooting
+```bash
+task monitoring:generate-autokuma
+```
+
+Then review and commit the ConfigMap diff. `task validate` fails while generated output differs from route discovery.
 
 ### Monitor does not appear
 
-Check:
+Check that:
 
-- the `autokuma-monitors` ConfigMap exists in `monitoring`;
-- AutoKuma has restarted after the ConfigMap update;
-- the AutoKuma pod can read `/config/monitors`;
-- the credential Secret exists and matches the Uptime Kuma account;
-- AutoKuma logs for JSON parsing or authentication errors.
+- the generated hostname exists in `autokuma-monitors.yaml`;
+- Argo CD synchronized the `uptime-kuma-infra` application;
+- the ConfigMap exists in the `monitoring` namespace;
+- AutoKuma restarted after the ConfigMap changed;
+- AutoKuma can authenticate to Uptime Kuma;
+- AutoKuma logs contain no JSON parsing or API errors.
 
 ### Monitor is down but the pod is healthy
 
-The public HTTP monitor covers more dependencies than the pod probe. Verify in order:
+Verify in order:
 
 1. public DNS target;
-2. Cloudflare Tunnel status and hostname ingress;
-3. Gateway or route attachment;
+2. Cloudflare Tunnel connection and hostname ingress;
+3. Gateway and HTTPRoute attachment;
 4. Kubernetes Service and endpoints;
-5. application response and authentication behaviour.
+5. application response or authentication behaviour.
 
 ### Cloudflare error 1033
 
-Error 1033 normally means Cloudflare resolved the hostname to a tunnel that is not connected or does not own that hostname. Verify that application services point to the apps-cluster endpoint and infra services point to the infra-cluster endpoint.
-
-## Relationship to other monitoring
-
-Uptime Kuma complements rather than replaces Prometheus, Grafana, Alertmanager, Pulse, readiness probes, and liveness probes:
-
-- probes determine whether Kubernetes should route traffic or restart a workload;
-- Prometheus and Grafana provide metrics and internal observability;
-- Alertmanager handles metric-based alerting;
-- Pulse provides infrastructure visibility;
-- Uptime Kuma validates user-visible external reachability and TLS certificates.
+Error 1033 normally indicates that the hostname resolves to a tunnel that is not connected or does not own that hostname. Application services should resolve through the apps-cluster endpoint, while infra services should resolve through the infra-cluster endpoint.
