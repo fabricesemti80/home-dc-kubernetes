@@ -33,8 +33,8 @@ function apply_namespaces() {
     log error "Directory does not exist" "directory=${apps_dir}"
   fi
 
-  for app in "${apps_dir}"/*/; do
-    namespace=$(basename "${app}")
+  while IFS= read -r namespace; do
+    [[ -n ${namespace} ]] || continue
 
     # Check if the namespace resources are up-to-date
     if kubectl get namespace "${namespace}" &>/dev/null; then
@@ -49,7 +49,20 @@ function apply_namespaces() {
     else
       log error "Failed to apply namespace resource" "resource=${namespace}"
     fi
-  done
+  done < <(
+    {
+      for app in "${apps_dir}"/*/; do
+        namespace=$(basename "${app}")
+        [[ ${namespace} == "app-cluster" || ${namespace} == "infra-cluster" ]] && continue
+        printf '%s\n' "${namespace}"
+      done
+
+      for app in "${apps_dir}/app-cluster"/*/; do
+        [[ -d ${app} ]] || continue
+        printf '%s\n' "$(basename "${app}")"
+      done
+    } | sort -u
+  )
 }
 
 # SOPS secrets to be applied before the helmfile charts are installed

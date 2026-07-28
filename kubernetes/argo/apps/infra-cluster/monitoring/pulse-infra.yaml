@@ -2,27 +2,27 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: convertx
+  name: pulse-infra
   namespace: argo-system
   annotations:
-    argocd.argoproj.io/sync-wave: '0'
+    argocd.argoproj.io/sync-wave: '1'
 spec:
   project: kubernetes
   sources:
     - repoURL: "https://github.com/fabricesemti80/home-dc-kubernetes.git"
-      path: kubernetes/apps/productivity/convertx
+      path: kubernetes/apps/infra-cluster/monitoring/pulse-infra
       targetRevision: main
       ref: repo
     - repoURL: ghcr.io/bjw-s-labs/helm
       chart: app-template
       targetRevision: 5.0.1
       helm:
-        releaseName: convertx
+        releaseName: pulse
         valueFiles:
-          - $repo/kubernetes/apps/productivity/convertx/values.yaml
+          - $repo/kubernetes/apps/infra-cluster/monitoring/pulse-infra/values.yaml
   destination:
-    name: app-cluster
-    namespace: productivity
+    name: infra-cluster
+    namespace: monitoring
   syncPolicy:
     automated:
       allowEmpty: true

@@ -37,10 +37,10 @@ The migration from `external.krapulax.dev` is complete:
 
 ### Productivity
 
-| App        | Hostname                  | Config                                                           |
-| ---------- | ------------------------- | ---------------------------------------------------------------- |
-| Linkwarden | `linkwarden.krapulax.dev` | `kubernetes/apps/productivity/linkwarden/config/http-route.yaml` |
-| ConvertX   | `convertx.krapulax.dev`   | `kubernetes/apps/productivity/convertx/config/http-route.yaml`   |
+| App        | Hostname                  | Config                                                                     |
+| ---------- | ------------------------- | -------------------------------------------------------------------------- |
+| Linkwarden | `linkwarden.krapulax.dev` | `kubernetes/apps/productivity/linkwarden/config/http-route.yaml`           |
+| ConvertX   | `convertx.krapulax.dev`   | `kubernetes/apps/app-cluster/productivity/convertx/config/http-route.yaml` |
 
 ### Media
 
@@ -58,12 +58,12 @@ The migration from `external.krapulax.dev` is complete:
 
 ### Monitoring
 
-| App          | Hostname                    | Cluster | Config                                                                    |
-| ------------ | --------------------------- | ------- | ------------------------------------------------------------------------- |
-| Grafana      | `grafana.krapulax.dev`      | apps    | `kubernetes/apps/monitoring/kube-prometheus-stack/config/http-route.yaml` |
-| Alertmanager | `alertmanager.krapulax.dev` | apps    | `kubernetes/apps/monitoring/kube-prometheus-stack/values.yaml`            |
-| Pulse        | `pulse.krapulax.dev`        | infra   | `kubernetes/apps/monitoring/pulse-infra/config/http-route.yaml`           |
-| Uptime Kuma  | `uptime.krapulax.dev`       | infra   | `kubernetes/apps/monitoring/uptime-kuma-infra/config/http-route.yaml`     |
+| App          | Hostname                    | Cluster | Config                                                                        |
+| ------------ | --------------------------- | ------- | ----------------------------------------------------------------------------- |
+| Grafana      | `grafana.krapulax.dev`      | apps    | `kubernetes/apps/monitoring/kube-prometheus-stack/config/http-route.yaml`     |
+| Alertmanager | `alertmanager.krapulax.dev` | apps    | `kubernetes/apps/monitoring/kube-prometheus-stack/values.yaml`                |
+| Pulse        | `pulse.krapulax.dev`        | infra   | `kubernetes/apps/infra-cluster/monitoring/pulse-infra/config/http-route.yaml` |
+| Uptime Kuma  | `uptime.krapulax.dev`       | infra   | `kubernetes/apps/monitoring/uptime-kuma-infra/config/http-route.yaml`         |
 
 ### Automation
 
