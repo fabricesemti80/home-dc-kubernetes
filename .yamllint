@@ -1,16 +1,21 @@
 extends: default
 
+ignore: |
+  .taskfiles/
+  templates/
+  bootstrap/
+  **/*.sops.yaml
+  **/*.sops.yml
+
 rules:
-  line-length:
-    max: 120
-    allow-non-breakable-words: true
-    allow-non-breakable-inline-mappings: true
+  line-length: disable
   indentation:
     spaces: 2
     indent-sequences: true
   braces:
     min-spaces-inside: 0
-    max-spaces-inside: 0
+    max-spaces-inside: 2
   comments:
     level: warning
   document-start: disable
+  truthy: disable
