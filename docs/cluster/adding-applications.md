@@ -6,23 +6,24 @@ This guide walks you through adding a new application to your Kubernetes cluster
 
 Applications in this cluster are managed through Argo CD and usually consist of these components:
 
-1. **Helm Values** - Configuration for the Helm chart (`kubernetes/apps/<namespace>/<app>/values.yaml`)
+1. **Helm Values** - Configuration for the Helm chart (`kubernetes/apps/<cluster>/<namespace>/<app>/values.yaml`)
 2. **Secrets** - Either encrypted values in Git (`values.sops.yaml`) or a Doppler-backed `DopplerSecret`
 3. **Workload Manifests** - Optional raw Kubernetes manifests under `config/` for apps that are better modeled with kustomize
-4. **Argo Application** - Tells Argo CD how to deploy (`kubernetes/argo/apps/<namespace>/<app>.yaml`)
+4. **Argo Application** - Tells Argo CD how to deploy (`kubernetes/argo/apps/<cluster>/<namespace>/<app>.yaml`)
 
 ## Step-by-Step Guide
 
 ### 1. Create the Application Directory
 
-Create a new directory for your application under `kubernetes/apps/<namespace>/`:
+Create a new directory for your application under the target cluster folder:
 
 ```sh
-mkdir -p kubernetes/apps/<namespace>/<app>
+mkdir -p kubernetes/apps/<cluster>/<namespace>/<app>
 ```
 
 Where:
 
+-   `<cluster>` is either `app-cluster` or `infra-cluster`
 -   `<namespace>` is the Kubernetes namespace (e.g., `default`, `monitoring`, `media`)
 -   `<app>` is your application name (e.g., `echo`, `prometheus`, `vault`)
 
@@ -126,7 +127,7 @@ If your application needs secrets, create a `values.sops.yaml` file:
 
 ```sh
 # Decrypt an existing sops file to get the format
-sops -d kubernetes/apps/default/echo/values.sops.yaml
+sops -d kubernetes/apps/app-cluster/default/echo/values.sops.yaml
 ```
 
 Then create your encrypted version:
@@ -147,13 +148,13 @@ Encrypt it:
 sops --encrypt --age age1saea3t7l67lavg0ardepzys6egp50g82uvks98pk53xdlj57uf8sa2arcs \
   --encrypted-regex '^(data|stringData)$' \
   --input-type yaml \
-  --output kubernetes/apps/<namespace>/<app>/values.sops.yaml \
-  kubernetes/apps/<namespace>/<app>/values.sops.yaml
+  --output kubernetes/apps/<cluster>/<namespace>/<app>/values.sops.yaml \
+  kubernetes/apps/<cluster>/<namespace>/<app>/values.sops.yaml
 ```
 
 ### 4. Create the Argo Application Manifest
 
-Create `kubernetes/argo/apps/<namespace>/<app>.yaml`:
+Create `kubernetes/argo/apps/<cluster>/<namespace>/<app>.yaml`:
 
 ```yaml
 ---
@@ -168,7 +169,7 @@ spec:
     project: kubernetes
     sources:
         - repoURL: "https://github.com/<your-org>/<your-repo>.git"
-          path: kubernetes/apps/<namespace>/<app>
+          path: kubernetes/apps/<cluster>/<namespace>/<app>
           targetRevision: main
           ref: repo
         - repoURL: ghcr.io/bjw-s-labs/helm
@@ -177,10 +178,10 @@ spec:
           helm:
               releaseName: <app>
               valueFiles:
-                  - $repo/kubernetes/apps/<namespace>/<app>/values.yaml
-                  - $repo/kubernetes/apps/<namespace>/<app>/values.sops.yaml
+                  - $repo/kubernetes/apps/<cluster>/<namespace>/<app>/values.yaml
+                  - $repo/kubernetes/apps/<cluster>/<namespace>/<app>/values.sops.yaml
     destination:
-        name: in-cluster
+        name: app-cluster
         namespace: <namespace>
     syncPolicy:
         automated:
@@ -279,11 +280,11 @@ Here's a complete example of adding a simple echo application:
 
 ```sh
 # 1. Create directory
-mkdir -p kubernetes/apps/default/myapp
+mkdir -p kubernetes/apps/app-cluster/default/myapp
 
 # 2. Create values.yaml (copy from echo example and modify)
 # 3. Create values.sops.yaml if needed
-# 4. Create kubernetes/argo/apps/default/myapp.yaml
+# 4. Create kubernetes/argo/apps/app-cluster/default/myapp.yaml
 # 5. Commit and push
 ```
 

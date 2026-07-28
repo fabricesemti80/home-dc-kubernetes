@@ -33,50 +33,50 @@ The migration from `external.krapulax.dev` is complete:
 ### Argo CD
 
 -   **URL:** `https://argo.krapulax.dev`
--   **Config:** `kubernetes/argo/apps/argo-system/argo-cd/config/http-route.yaml`
+-   **Config:** `kubernetes/apps/app-cluster/argo-system/argo-cd/config/http-route.yaml`
 
 ### Productivity
 
-| App        | Hostname                  | Config                                                                     |
-| ---------- | ------------------------- | -------------------------------------------------------------------------- |
-| Linkwarden | `linkwarden.krapulax.dev` | `kubernetes/apps/productivity/linkwarden/config/http-route.yaml`           |
-| ConvertX   | `convertx.krapulax.dev`   | `kubernetes/apps/app-cluster/productivity/convertx/config/http-route.yaml` |
+| App        | Hostname                  | Config                                                                       |
+| ---------- | ------------------------- | ---------------------------------------------------------------------------- |
+| Linkwarden | `linkwarden.krapulax.dev` | `kubernetes/apps/app-cluster/productivity/linkwarden/config/http-route.yaml` |
+| ConvertX   | `convertx.krapulax.dev`   | `kubernetes/apps/app-cluster/productivity/convertx/config/http-route.yaml`   |
 
 ### Media
 
-| App         | Hostname                   | Config                                                     |
-| ----------- | -------------------------- | ---------------------------------------------------------- |
-| Jellyfin    | `jelly.krapulax.dev`       | `kubernetes/apps/media/jellyfin/config/http-route.yaml`    |
-| SABnzbd     | `sabnzbd.krapulax.dev`     | `kubernetes/apps/media/sabnzbd/config/http-route.yaml`     |
-| qBittorrent | `qbittorrent.krapulax.dev` | `kubernetes/apps/media/qbittorrent/config/http-route.yaml` |
-| Sonarr      | `sonarr.krapulax.dev`      | `kubernetes/apps/media/sonarr/config/http-route.yaml`      |
-| Radarr      | `radarr.krapulax.dev`      | `kubernetes/apps/media/radarr/config/http-route.yaml`      |
-| Prowlarr    | `prowlarr.krapulax.dev`    | `kubernetes/apps/media/prowlarr/config/http-route.yaml`    |
-| Jellyseerr  | `requests.krapulax.dev`    | `kubernetes/apps/media/jellyseerr/config/http-route.yaml`  |
-| Tdarr       | `tdarr.krapulax.dev`       | `kubernetes/apps/media/tdarr/config/http-route.yaml`       |
-| Immich      | `photos.krapulax.dev`      | `kubernetes/apps/media/immich/config/http-route.yaml`      |
+| App         | Hostname                   | Config                                                                 |
+| ----------- | -------------------------- | ---------------------------------------------------------------------- |
+| Jellyfin    | `jelly.krapulax.dev`       | `kubernetes/apps/app-cluster/media/jellyfin/config/http-route.yaml`    |
+| SABnzbd     | `sabnzbd.krapulax.dev`     | `kubernetes/apps/app-cluster/media/sabnzbd/config/http-route.yaml`     |
+| qBittorrent | `qbittorrent.krapulax.dev` | `kubernetes/apps/app-cluster/media/qbittorrent/config/http-route.yaml` |
+| Sonarr      | `sonarr.krapulax.dev`      | `kubernetes/apps/app-cluster/media/sonarr/config/http-route.yaml`      |
+| Radarr      | `radarr.krapulax.dev`      | `kubernetes/apps/app-cluster/media/radarr/config/http-route.yaml`      |
+| Prowlarr    | `prowlarr.krapulax.dev`    | `kubernetes/apps/app-cluster/media/prowlarr/config/http-route.yaml`    |
+| Jellyseerr  | `requests.krapulax.dev`    | `kubernetes/apps/app-cluster/media/jellyseerr/config/http-route.yaml`  |
+| Tdarr       | `tdarr.krapulax.dev`       | `kubernetes/apps/app-cluster/media/tdarr/config/http-route.yaml`       |
+| Immich      | `photos.krapulax.dev`      | `kubernetes/apps/app-cluster/media/immich/config/http-route.yaml`      |
 
 ### Monitoring
 
-| App          | Hostname                    | Cluster | Config                                                                        |
-| ------------ | --------------------------- | ------- | ----------------------------------------------------------------------------- |
-| Grafana      | `grafana.krapulax.dev`      | apps    | `kubernetes/apps/monitoring/kube-prometheus-stack/config/http-route.yaml`     |
-| Alertmanager | `alertmanager.krapulax.dev` | apps    | `kubernetes/apps/monitoring/kube-prometheus-stack/values.yaml`                |
-| Pulse        | `pulse.krapulax.dev`        | infra   | `kubernetes/apps/infra-cluster/monitoring/pulse-infra/config/http-route.yaml` |
-| Uptime Kuma  | `uptime.krapulax.dev`       | infra   | `kubernetes/apps/monitoring/uptime-kuma-infra/config/http-route.yaml`         |
+| App          | Hostname                    | Cluster | Config                                                                                |
+| ------------ | --------------------------- | ------- | ------------------------------------------------------------------------------------- |
+| Grafana      | `grafana.krapulax.dev`      | apps    | `kubernetes/apps/app-cluster/monitoring/kube-prometheus-stack/config/http-route.yaml` |
+| Alertmanager | `alertmanager.krapulax.dev` | apps    | `kubernetes/apps/app-cluster/monitoring/kube-prometheus-stack/values.yaml`            |
+| Pulse        | `pulse.krapulax.dev`        | infra   | `kubernetes/apps/infra-cluster/monitoring/pulse-infra/config/http-route.yaml`         |
+| Uptime Kuma  | `uptime.krapulax.dev`       | infra   | `kubernetes/apps/infra-cluster/monitoring/uptime-kuma-infra/config/http-route.yaml`   |
 
 ### Automation
 
-| App    | Hostname                                      | Cluster | Config                                                                                                                                                                                                             |
-| ------ | --------------------------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Kestra | `kestra.krapulax.dev`, `kestra.krapulax.home` | infra   | `kubernetes/apps/network/cloudflare-tunnel/config/kestra-dnsendpoint.yaml`, `kubernetes/apps/automation/kestra-infra/config/http-route.yaml`, `kubernetes/apps/network/cloudflare-tunnel-infra/config/config.yaml` |
+| App    | Hostname                                      | Cluster | Config                                                                                                                                                                                                                                                     |
+| ------ | --------------------------------------------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Kestra | `kestra.krapulax.dev`, `kestra.krapulax.home` | infra   | `kubernetes/apps/app-cluster/network/cloudflare-tunnel/config/kestra-dnsendpoint.yaml`, `kubernetes/apps/infra-cluster/automation/kestra-infra/config/http-route.yaml`, `kubernetes/apps/infra-cluster/network/cloudflare-tunnel-infra/config/config.yaml` |
 
 ### Web
 
-| App    | Hostname              | Config                                              |
-| ------ | --------------------- | --------------------------------------------------- |
-| Glance | `glance.krapulax.dev` | `kubernetes/apps/web/glance/config/http-route.yaml` |
-| Echo   | `echo.krapulax.dev`   | `kubernetes/apps/default/echo/values.sops.yaml`     |
+| App    | Hostname              | Config                                                          |
+| ------ | --------------------- | --------------------------------------------------------------- |
+| Glance | `glance.krapulax.dev` | `kubernetes/apps/app-cluster/web/glance/config/http-route.yaml` |
+| Echo   | `echo.krapulax.dev`   | `kubernetes/apps/app-cluster/default/echo/values.sops.yaml`     |
 
 ## Deprecated / Inactive
 

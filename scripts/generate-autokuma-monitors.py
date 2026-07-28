@@ -15,7 +15,7 @@ ROOT = Path(__file__).resolve().parents[1]
 KUBERNETES_DIR = ROOT / "kubernetes"
 OUTPUT = (
     ROOT
-    / "kubernetes/apps/monitoring/uptime-kuma-infra/config/autokuma-monitors.yaml"
+    / "kubernetes/apps/infra-cluster/monitoring/uptime-kuma-infra/config/autokuma-monitors.yaml"
 )
 PUBLIC_HOST_RE = re.compile(r"^[a-z0-9][a-z0-9.-]*\.krapulax\.dev$")
 

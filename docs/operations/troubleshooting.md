@@ -143,7 +143,7 @@ exec: "-conf": executable file not found in $PATH
 
 Both CoreDNS pods enter `CrashLoopBackOff`.
 
-**Cause:** The `image.repository` in `kubernetes/apps/kube-system/coredns/values.yaml` was set to the Helm **chart** OCI artifact (`ghcr.io/coredns/charts/coredns`) instead of the actual CoreDNS **container** image. The chart artifact contains no `/coredns` binary, so the container args `["-conf", "/etc/coredns/Corefile"]` fail because there's no command to run.
+**Cause:** The `image.repository` in `kubernetes/apps/app-cluster/kube-system/coredns/values.yaml` was set to the Helm **chart** OCI artifact (`ghcr.io/coredns/charts/coredns`) instead of the actual CoreDNS **container** image. The chart artifact contains no `/coredns` binary, so the container args `["-conf", "/etc/coredns/Corefile"]` fail because there's no command to run.
 
 **Diagnosis:**
 
@@ -155,7 +155,7 @@ kubectl -n kube-system get deploy coredns -o jsonpath='{.spec.template.spec.cont
 # If it shows ghcr.io/coredns/charts/coredns:*, that's the chart image, not the runtime image
 ```
 
-**Fix:** Update `kubernetes/apps/kube-system/coredns/values.yaml`:
+**Fix:** Update `kubernetes/apps/app-cluster/kube-system/coredns/values.yaml`:
 
 ```yaml
 image:

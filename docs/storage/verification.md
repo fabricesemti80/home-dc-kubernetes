@@ -31,8 +31,8 @@ kubectl get applications -n argo-system | grep storage
 
 #### 2. **Ceph-CSI Secret** ✅
 
--   **Source**: `kubernetes/apps/kube-system/ceph-csi/`
--   **Template**: `templates/config/kubernetes/apps/kube-system/ceph-csi/secret.sops.yaml.j2`
+-   **Source**: `kubernetes/apps/app-cluster/kube-system/ceph-csi/`
+-   **Template**: `templates/config/kubernetes/apps/app-cluster/kube-system/ceph-csi/secret.sops.yaml.j2`
 -   **Integration**: Pulls `CEPH_KEYRING` from Doppler during `task configure`
 -   **Deployment**: ArgoCD syncs encrypted secret to `kube-system` namespace
 
@@ -45,7 +45,7 @@ kubectl describe secret csi-cephfs-secret -n kube-system
 
 #### 3. **StorageClass** ✅
 
--   **File**: `kubernetes/apps/storage/cephfs-sc.yaml`
+-   **File**: `kubernetes/apps/app-cluster/storage/cephfs-sc.yaml`
 -   **Configuration**:
     ```yaml
     provisioner: cephfs.csi.ceph.com
@@ -64,7 +64,7 @@ kubectl describe storageclass cephfs
 
 #### 4. **Test Deployment (nginx-test)** ✅
 
--   **Location**: `kubernetes/storage/nginx-test/`
+-   **Location**: `kubernetes/apps/app-cluster/storage/nginx-test/`
 -   **Components**:
     -   **PVC**: `nginx-test-pvc` (1Gi, ReadWriteMany)
     -   **Deployment**: Single nginx pod using the PVC
@@ -186,13 +186,13 @@ Common causes:
 
 ### Kubernetes Files
 
-| File                                                     | Purpose                      |
-| -------------------------------------------------------- | ---------------------------- |
-| `kubernetes/apps/storage/cephfs-sc.yaml`                 | StorageClass definition      |
-| `kubernetes/storage/nginx-test/`                         | Test deployment manifests    |
-| `kubernetes/apps/kube-system/ceph-csi/`                  | Secret kustomization         |
-| `kubernetes/argo/apps/storage/`                          | ArgoCD Applications          |
-| `templates/config/kubernetes/apps/kube-system/ceph-csi/` | Secret template with Doppler |
+| File                                                                 | Purpose                      |
+| -------------------------------------------------------------------- | ---------------------------- |
+| `kubernetes/apps/app-cluster/storage/cephfs-sc.yaml`                 | StorageClass definition      |
+| `kubernetes/apps/app-cluster/storage/nginx-test/`                    | Test deployment manifests    |
+| `kubernetes/apps/app-cluster/kube-system/ceph-csi/`                  | Secret kustomization         |
+| `kubernetes/argo/apps/app-cluster/storage/`                          | ArgoCD Applications          |
+| `templates/config/kubernetes/apps/app-cluster/kube-system/ceph-csi/` | Secret template with Doppler |
 
 ### Ansible Automation
 
