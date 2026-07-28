@@ -6,7 +6,7 @@ metadata:
   namespace: web
   annotations:
     external-dns.alpha.kubernetes.io/hostname: homepage.krapulax.dev
-    external-dns.alpha.kubernetes.io/target: external.krapulax.dev
+    external-dns.alpha.kubernetes.io/target: external-apps.krapulax.dev
     gethomepage.dev/enabled: "true"
     gethomepage.dev/group: Dashboards
     gethomepage.dev/name: Homepage
