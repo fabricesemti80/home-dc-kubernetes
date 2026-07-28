@@ -129,7 +129,8 @@ If your application needs secrets, create a `values.sops.yaml` file:
 
 ```sh
 # Decrypt an existing sops file to get the format
-sops -d kubernetes/apps/app-cluster/default/echo/values.sops.yaml
+sops -d kubernetes/apps/default/echo/values.sops.yaml
+# (Note: Targets move to kubernetes/apps/app-cluster/default/echo/values.sops.yaml once PR #211 lands)
 ```
 
 Then create your encrypted version:
