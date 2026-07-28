@@ -46,6 +46,11 @@ kubernetes/
 
 The final structure should follow the actual responsibilities of each cluster rather than this example mechanically.
 
+Canary migration state:
+
+-   `convertx` is the app-cluster path canary.
+-   `pulse-infra` is the infra-cluster path canary.
+
 ### Completion criteria
 
 -   define and document the target folder convention;

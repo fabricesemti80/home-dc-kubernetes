@@ -30,7 +30,9 @@ Host-level Docker services are managed from `/Users/fs/Documents/repositories/in
 
 ### Structure
 
--   All apps should follow the established directory structure: `kubernetes/apps/<category>/<app>/`
+-   All apps should follow the established cluster-aware directory structure:
+    -   `kubernetes/apps/app-cluster/<namespace>/<app>/` for app-cluster workloads
+    -   `kubernetes/apps/infra-cluster/<namespace>/<app>/` for infra-cluster workloads
 -   Each app should have: `values.yaml`, `kustomization.yaml`, and `config/` subdirectory
 -   Use the app-template chart pattern for new apps
 

@@ -63,10 +63,12 @@ Current source layout:
 -   `talos/app/`: app-cluster Talos source and generated app-cluster Talos config
 -   `talos/infra/`: infra-cluster Talos source patches
 -   `.private/infra-cluster/`: generated infra-cluster Talos config, talosconfig, and kubeconfig
--   `kubernetes/argo/apps/*/*.yaml`: Argo Applications targeting `app-cluster`
--   `kubernetes/argo/apps/*/*-infra.yaml`: Argo Applications targeting `infra-cluster`
--   `kubernetes/apps/<namespace>/<app>/`: app-cluster workload manifests and values
--   `kubernetes/apps/<namespace>/<app>-infra/`: infra-cluster workload manifests and values
+-   `kubernetes/argo/apps/app-cluster/<namespace>/*.yaml`: Argo Applications targeting `app-cluster`
+-   `kubernetes/argo/apps/infra-cluster/<namespace>/*.yaml`: Argo Applications targeting `infra-cluster`
+-   `kubernetes/apps/app-cluster/<namespace>/<app>/`: app-cluster workload manifests and values
+-   `kubernetes/apps/infra-cluster/<namespace>/<app>/`: infra-cluster workload manifests and values
+-   Unmigrated Applications still live under `kubernetes/argo/apps/<namespace>/` during the canary migration.
+-   Unmigrated workloads still live under `kubernetes/apps/<namespace>/<app>/` during the canary migration.
 -   `docs/INFRA_CLUSTER_BOOTSTRAP.md`: physical infra-cluster build runbook
 
 Keep kubeconfigs, Talos generated configs, and private keys under `.private/` or ignored local files.
