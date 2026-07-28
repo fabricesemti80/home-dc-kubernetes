@@ -46,18 +46,10 @@ kubernetes/
 
 The final structure should follow the actual responsibilities of each cluster rather than this example mechanically.
 
-Canary migration state:
-
--   `convertx` is the app-cluster path canary.
--   `pulse-infra` is the infra-cluster path canary.
-
 ### Completion criteria
 
--   define and document the target folder convention;
--   migrate resources without changing their effective runtime configuration;
--   update Argo CD Application and ApplicationSet source paths;
--   update scripts, validation, documentation, and generators that reference the old paths;
--   verify both clusters reconcile successfully after migration.
+-   verify both clusters reconcile successfully after the full migration;
+-   add validation that prevents new app manifests from using the legacy mixed folders.
 
 ## Separate app-cluster and infra-cluster DNS validation
 

@@ -7,7 +7,7 @@ creation_rules:
     encrypted_regex: "^(data|stringData)$"
     mac_only_encrypted: true
     age: "age1saea3t7l67lavg0ardepzys6egp50g82uvks98pk53xdlj57uf8sa2arcs"
-  - path_regex: kubernetes/apps/kube-system/ceph-csi/.*\.sops\.ya?ml
+  - path_regex: kubernetes/apps/app-cluster/kube-system/ceph-csi/.*\.sops\.ya?ml
     encrypted_regex: "^(adminKey|userKey|.*Key)$"
     mac_only_encrypted: true
     age: "age1saea3t7l67lavg0ardepzys6egp50g82uvks98pk53xdlj57uf8sa2arcs"

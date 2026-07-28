@@ -1,0 +1,42 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: doppler-operator
+  namespace: argo-system
+  annotations:
+    argocd.argoproj.io/sync-wave: '0'
+spec:
+  project: kubernetes
+  sources:
+    - repoURL: "https://github.com/#{ repository_name }#.git"
+      path: kubernetes/apps/app-cluster/doppler-operator-system/doppler-operator
+      targetRevision: #{ repository_branch }#
+      ref: repo
+    - repoURL: https://helm.doppler.com
+      chart: doppler-kubernetes-operator
+      targetRevision: 1.7.1
+      helm:
+        releaseName: doppler-operator
+        valueFiles:
+          - $repo/kubernetes/apps/app-cluster/doppler-operator-system/doppler-operator/values.yaml
+  destination:
+    name: in-cluster
+    namespace: doppler-operator-system
+  syncPolicy:
+    automated:
+      allowEmpty: true
+      prune: true
+      selfHeal: true
+    retry:
+      limit: 1
+      backoff:
+        duration: 10s
+        factor: 2
+        maxDuration: 3m
+    syncOptions:
+      - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true
+      - ServerSideApply=true
+      - PruneLast=true
+      - RespectIgnoreDifferences=true

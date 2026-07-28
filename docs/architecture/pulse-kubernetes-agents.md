@@ -24,7 +24,7 @@ Deploy the Pulse agent only into the infra cluster so the infra Pulse server can
 
 ## Validation
 
-1. `kubectl kustomize kubernetes/apps/monitoring/pulse-agent-infra`
+1. `kubectl kustomize kubernetes/apps/infra-cluster/monitoring/pulse-agent-infra`
 2. Delete the live app-cluster agent Application:
    `kubectl --kubeconfig kubeconfig -n argo-system delete application pulse-agent-app`
 3. Confirm app-cluster agent resources are gone:

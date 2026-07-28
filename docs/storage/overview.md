@@ -74,13 +74,13 @@ task configure
 # 1. Read CEPH_KEYRING from Doppler
 # 2. Render templates with makejinja
 # 3. Encrypt secrets with sops
-# 4. Create kubernetes/apps/kube-system/ceph-csi/secret.sops.yaml
+# 4. Create kubernetes/apps/app-cluster/kube-system/ceph-csi/secret.sops.yaml
 ```
 
 **Deploy the secret:**
 
 ```bash
-sops -d kubernetes/apps/kube-system/ceph-csi/secret.sops.yaml | kubectl apply -f -
+sops -d kubernetes/apps/app-cluster/kube-system/ceph-csi/secret.sops.yaml | kubectl apply -f -
 
 # Verify:
 kubectl get secret csi-cephfs-secret -n kube-system
@@ -89,7 +89,7 @@ kubectl get secret csi-cephfs-secret -n kube-system
 ### Step 4: Create StorageClass
 
 ```bash
-kubectl apply -f kubernetes/apps/storage/cephfs-sc.yaml
+kubectl apply -f kubernetes/apps/app-cluster/storage/cephfs-sc.yaml
 
 # Verify:
 kubectl get storageclass cephfs
@@ -210,7 +210,7 @@ kubectl get --raw=/readyz
 
 Rollback:
 
--   Increase `provisioner.replicaCount` in `kubernetes/apps/storage/ceph-csi/values.sops.yaml` and allow Argo CD to resync `ceph-csi`.
+-   Increase `provisioner.replicaCount` in `kubernetes/apps/app-cluster/storage/ceph-csi/values.sops.yaml` and allow Argo CD to resync `ceph-csi`.
 
 ---
 
@@ -246,7 +246,7 @@ Kubernetes storage is managed via ArgoCD:
 ### Deploy Test Workload
 
 ```bash
-kubectl apply -k kubernetes/storage/nginx-test/
+kubectl apply -k kubernetes/apps/app-cluster/storage/nginx-test/
 
 # Verify PVC is bound:
 kubectl get pvc -n storage
@@ -309,7 +309,7 @@ ceph fs subvolume snapshot rm cephfs-vm csi snapshot-name
 -   [Ceph CephFS Documentation](https://docs.ceph.com/en/latest/cephfs/)
 -   [Ceph-CSI Driver](https://github.com/ceph/ceph-csi)
 -   [Proxmox Ceph Integration](https://pve.proxmox.com/pve-docs/chapter-pveceph.html)
--   Kubernetes Repository: `kubernetes/apps/storage/`
+-   Kubernetes Repository: `kubernetes/apps/app-cluster/storage/`
 -   Ansible Repository: `infra-ansible-home-proxmoxhosts/`
 
 ---

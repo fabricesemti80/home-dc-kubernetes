@@ -8,7 +8,7 @@ vars:
   INFRA_ENDPOINT: 10.0.40.31
   INFRA_NODES: 10.0.40.31,10.0.40.32
   INFRA_CILIUM_VERSION:
-    sh: yq -r '.spec.sources[] | select(.chart == "cilium") | .targetRevision' {{.ROOT_DIR}}/kubernetes/argo/apps/kube-system/cilium.yaml
+    sh: yq -r '.spec.sources[] | select(.chart == "cilium") | .targetRevision' {{.ROOT_DIR}}/kubernetes/argo/apps/app-cluster/kube-system/cilium.yaml
 
 tasks:
 
@@ -67,14 +67,14 @@ tasks:
           --version {{.INFRA_CILIUM_VERSION}} \
           --namespace kube-system \
           --kubeconfig {{.INFRA_KUBECONFIG}} \
-          --values {{.ROOT_DIR}}/kubernetes/apps/kube-system/cilium/values.yaml \
+          --values {{.ROOT_DIR}}/kubernetes/apps/app-cluster/kube-system/cilium/values.yaml \
           --set operator.replicas=1 \
           --set operator.prometheus.serviceMonitor.enabled=false \
           --set prometheus.serviceMonitor.enabled=false \
           --set ipv4NativeRoutingCIDR=10.244.0.0/16
     preconditions:
       - test -f {{.INFRA_KUBECONFIG}}
-      - test -f {{.ROOT_DIR}}/kubernetes/apps/kube-system/cilium/values.yaml
+      - test -f {{.ROOT_DIR}}/kubernetes/apps/app-cluster/kube-system/cilium/values.yaml
       - which helm yq
 
   infra:verify:

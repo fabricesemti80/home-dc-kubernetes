@@ -18,7 +18,7 @@ Deploy Tailscale routing through the Kubernetes Operator on `infra-cluster`.
 
 ## Validation
 
-1. `kubectl kustomize kubernetes/apps/network/tailscale-infra`
+1. `kubectl kustomize kubernetes/apps/infra-cluster/network/tailscale-infra`
 2. Confirm Operator and Connector status: `kubectl -n tailscale get pods` and `kubectl get connector infra-router`
 3. Confirm routes and exit nodes in the Tailscale admin UI.
 4. Test LAN reachability through Tailscale to both advertised ranges.

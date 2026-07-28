@@ -10,7 +10,7 @@ Operate the Talos/Kubernetes homelab from this repository while Docker-host serv
 -   `infra/terraform_cloudflare/`: Kubernetes Cloudflare tunnel, DNS, Access resources, and tunnel credentials.
 -   `infra/terraform_localdns/`: Kubernetes local DNS OpenTofu stack.
 -   `talos/`, `kubernetes/`, `bootstrap/`, and `.taskfiles/`: Talos, Argo CD, and Kubernetes workspace migrated from the legacy cluster repo.
--   `kubernetes/apps/default/`: lightweight default-namespace apps used for baseline GitOps validation and small utility workloads.
+-   `kubernetes/apps/app-cluster/default/`: lightweight default-namespace apps used for baseline GitOps validation and small utility workloads.
 -   `/Users/fs/Documents/repositories/infrastructure/home-DC-docker`: host-level Docker Compose, Docker Cloudflare resources, and Docker local DNS records.
 
 ## Current Migration Direction
