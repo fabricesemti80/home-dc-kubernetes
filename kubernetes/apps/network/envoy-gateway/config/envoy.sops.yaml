@@ -77,7 +77,7 @@ kind: Gateway
 metadata:
   name: envoy-external
   annotations:
-    external-dns.alpha.kubernetes.io/target: external.krapulax.dev
+    external-dns.alpha.kubernetes.io/target: external-apps.krapulax.dev
 spec:
   gatewayClassName: envoy
   infrastructure:

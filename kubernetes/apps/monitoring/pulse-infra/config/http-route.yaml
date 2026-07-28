@@ -6,7 +6,7 @@ metadata:
   namespace: monitoring
   annotations:
     external-dns.alpha.kubernetes.io/hostname: pulse.krapulax.dev
-    external-dns.alpha.kubernetes.io/target: external.krapulax.dev
+    external-dns.alpha.kubernetes.io/target: external-infra.krapulax.dev
 spec:
   parentRefs:
     - name: envoy-external

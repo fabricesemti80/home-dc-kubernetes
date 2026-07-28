@@ -5,12 +5,21 @@ metadata:
   name: cloudflare-tunnel
 spec:
   endpoints:
-    - dnsName: "external.#{ cloudflare_domain }#"
+    - dnsName: "external-apps.#{ cloudflare_domain }#"
       recordType: CNAME
       targets: ["#{ cloudflare_tunnel_id() }#.cfargotunnel.com"]
+    - dnsName: "external-infra.#{ cloudflare_domain }#"
+      recordType: CNAME
+      targets: ["#{ cloudflare_tunnel_id('cloudflare-tunnel-infra.json') }#.cfargotunnel.com"]
     - dnsName: "nginx-test.#{ cloudflare_domain }#"
       recordType: CNAME
-      targets: ["#{ cloudflare_tunnel_id() }#.cfargotunnel.com"]
+      targets: ["external-apps.#{ cloudflare_domain }#"]
+    - dnsName: "pulse.#{ cloudflare_domain }#"
+      recordType: CNAME
+      targets: ["external-infra.#{ cloudflare_domain }#"]
+    - dnsName: "kestra.#{ cloudflare_domain }#"
+      recordType: CNAME
+      targets: ["external-infra.#{ cloudflare_domain }#"]
     - dnsName: "grafana.#{ cloudflare_domain }#"
       recordType: CNAME
-      targets: ["external.#{ cloudflare_domain }#"]
+      targets: ["external-apps.#{ cloudflare_domain }#"]

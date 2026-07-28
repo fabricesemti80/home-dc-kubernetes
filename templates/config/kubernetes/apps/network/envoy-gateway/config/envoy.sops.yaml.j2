@@ -46,7 +46,7 @@ kind: Gateway
 metadata:
   name: envoy-external
   annotations:
-    external-dns.alpha.kubernetes.io/target: "external.#{ cloudflare_domain }#"
+    external-dns.alpha.kubernetes.io/target: "external-apps.#{ cloudflare_domain }#"
 spec:
   gatewayClassName: envoy
   infrastructure:

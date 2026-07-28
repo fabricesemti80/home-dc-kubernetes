@@ -4,6 +4,8 @@ kind: HTTPRoute
 metadata:
   name: nginx-test-route
   namespace: storage
+  annotations:
+    external-dns.alpha.kubernetes.io/target: external-apps.krapulax.dev
 spec:
   parentRefs:
     - name: envoy-internal
