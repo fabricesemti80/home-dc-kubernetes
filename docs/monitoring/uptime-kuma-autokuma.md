@@ -26,8 +26,8 @@ Git -> Argo CD -> ConfigMap -> AutoKuma -> Uptime Kuma
 
 Uptime Kuma and AutoKuma run as separate controllers in the same app-template Helm release on the infra cluster. Both are pinned to `infra-wk-01` and use hostPath persistence:
 
-- Uptime Kuma: `/var/uptime-kuma/data`
-- AutoKuma: `/var/autokuma/data`
+-   Uptime Kuma: `/var/uptime-kuma/data`
+-   AutoKuma: `/var/autokuma/data`
 
 The UI is exposed at `https://uptime.krapulax.dev` through the infra-cluster Cloudflare Tunnel.
 
@@ -36,7 +36,7 @@ The UI is exposed at `https://uptime.krapulax.dev` through the infra-cluster Clo
 The generated output is:
 
 ```text
-kubernetes/apps/monitoring/uptime-kuma-infra/config/autokuma-monitors.yaml
+kubernetes/apps/infra-cluster/monitoring/uptime-kuma-infra/config/autokuma-monitors.yaml
 ```
 
 Do not edit that file manually. After this workflow has been merged to the default branch, pull requests that change Kubernetes route manifests automatically run `.github/workflows/generate-autokuma-monitors.yaml`, which:
@@ -82,8 +82,8 @@ For a friendly monitor name, prefer the route annotation:
 
 ```yaml
 metadata:
-  annotations:
-    gethomepage.dev/name: Example Service
+    annotations:
+        gethomepage.dev/name: Example Service
 ```
 
 The generator also contains a small set of hostname-based display-name overrides for names such as Argo CD, qBittorrent, SABnzbd, and Stirling PDF.
@@ -116,10 +116,10 @@ The generator intentionally includes only repository-managed public HTTPS routes
 
 It excludes:
 
-- internal-only `*.krapulax.home` routes;
-- raw ClusterIP, node, or IP endpoints;
-- services without a public route;
-- legacy Docker-hosted DNS records not represented by Kubernetes HTTPRoutes.
+-   internal-only `*.krapulax.home` routes;
+-   raw ClusterIP, node, or IP endpoints;
+-   services without a public route;
+-   legacy Docker-hosted DNS records not represented by Kubernetes HTTPRoutes.
 
 An HTTP monitor validates the full user-visible path: public DNS, Cloudflare, the selected tunnel, Kubernetes routing, the service, the application response, and TLS certificate validity. It complements rather than replaces readiness probes, Prometheus, Grafana, Alertmanager, or Pulse.
 
@@ -131,12 +131,12 @@ Some authenticated applications may return redirects, 401, or 403 responses. Tho
 
 Check the `Generate AutoKuma Monitors` workflow run for the pull request. Confirm that:
 
-- the workflow is already present on the default branch;
-- the pull request branch belongs to this repository rather than a fork;
-- Actions has permission to write repository contents;
-- the changed route file matches the workflow path filters;
-- the generator completed without `yq` or YAML parsing errors;
-- branch protection permits the GitHub Actions bot to push to the pull-request branch.
+-   the workflow is already present on the default branch;
+-   the pull request branch belongs to this repository rather than a fork;
+-   Actions has permission to write repository contents;
+-   the changed route file matches the workflow path filters;
+-   the generator completed without `yq` or YAML parsing errors;
+-   branch protection permits the GitHub Actions bot to push to the pull-request branch.
 
 The workflow deliberately does not push to pull requests originating from forks because their token is read-only.
 
@@ -150,12 +150,12 @@ task monitoring:generate-autokuma
 
 Check that:
 
-- the generated hostname exists in `autokuma-monitors.yaml`;
-- Argo CD synchronized the `uptime-kuma-infra` application;
-- the ConfigMap exists in the `monitoring` namespace;
-- AutoKuma restarted after the ConfigMap changed;
-- AutoKuma can authenticate to Uptime Kuma;
-- AutoKuma logs contain no JSON parsing or API errors.
+-   the generated hostname exists in `autokuma-monitors.yaml`;
+-   Argo CD synchronized the `uptime-kuma-infra` application;
+-   the ConfigMap exists in the `monitoring` namespace;
+-   AutoKuma restarted after the ConfigMap changed;
+-   AutoKuma can authenticate to Uptime Kuma;
+-   AutoKuma logs contain no JSON parsing or API errors.
 
 ### Monitor is down but the pod is healthy
 

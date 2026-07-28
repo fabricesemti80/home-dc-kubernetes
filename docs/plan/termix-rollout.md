@@ -27,8 +27,8 @@ Termix is a user-facing admin/productivity application, similar in placement to 
 
 ## Proposed Kubernetes Shape
 
--   Argo CD app: `kubernetes/argo/apps/productivity/termix.yaml`
--   App config: `kubernetes/apps/productivity/termix/`
+-   Argo CD app: `kubernetes/argo/apps/app-cluster/productivity/termix.yaml`
+-   App config: `kubernetes/apps/app-cluster/productivity/termix/`
 -   Helm chart: existing `app-template` pattern
 -   Main image: `ghcr.io/lukegus/termix:release-2.3.1`
 -   Main container port: `8080`

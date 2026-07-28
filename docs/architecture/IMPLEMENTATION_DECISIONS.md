@@ -460,7 +460,7 @@ Rollback:
 Decision:
 
 -   Deploy the Doppler Kubernetes operator into `infra-cluster` via the existing Argo CD hub on `app-cluster`.
--   Keep the Doppler operator isolated by cluster: `doppler-operator` lives under `kubernetes/apps/doppler-operator-system/doppler-operator/` and `doppler-operator-infra` lives under `kubernetes/apps/doppler-operator-system/doppler-operator-infra/`.
+-   Keep the Doppler operator isolated by cluster: `doppler-operator` lives under `kubernetes/apps/app-cluster/doppler-operator-system/doppler-operator/` and `doppler-operator-infra` lives under `kubernetes/apps/infra-cluster/doppler-operator-system/doppler-operator-infra/`.
 -   Each cluster has its own encrypted service token secret, Helm values, and Argo Application.
 -   Reuse the same chart version and token value from the app-cluster deployment.
 

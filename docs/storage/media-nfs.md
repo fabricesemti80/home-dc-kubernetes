@@ -67,7 +67,7 @@ If the hostname still returns `404`, confirm the DNS record resolves to `externa
 
 ## Rollback
 
--   Remove the external-dns annotations from `kubernetes/apps/media/jellyfin/config/http-route.yaml`
+-   Remove the external-dns annotations from `kubernetes/apps/app-cluster/media/jellyfin/config/http-route.yaml`
 -   Re-sync the Jellyfin Argo CD application so external-dns can withdraw the record
 -   Restore the prior DNS mapping only if a direct Cloudflare tunnel route is intentionally reintroduced
 -   Remove or tighten the `cloudflare_zero_trust_access_application.jellyfin` rule in `infra/terraform_cloudflare/main.tf` when you want Cloudflare Access enforcement back
