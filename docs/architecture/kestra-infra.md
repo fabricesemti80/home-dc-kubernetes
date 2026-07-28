@@ -28,8 +28,8 @@ Deploy Kestra on the infra cluster as the homelab automation service. It should 
 
 ## Validation
 
-1. `kubectl kustomize kubernetes/apps/automation/kestra-infra`
-2. `kubectl kustomize kubernetes/apps/storage/local-path-provisioner-infra`
+1. `kubectl kustomize kubernetes/apps/infra-cluster/automation/kestra-infra`
+2. `kubectl kustomize kubernetes/apps/infra-cluster/storage/local-path-provisioner-infra`
 3. Confirm Argo sync for `kestra-infra` and `local-path-provisioner-infra`.
 4. Check `kubectl -n kestra get pods,pvc,httproute`.
 5. Confirm Kestra pods are scheduled on `infra-cp-01`.

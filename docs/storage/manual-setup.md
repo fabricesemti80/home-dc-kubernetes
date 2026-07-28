@@ -170,14 +170,14 @@ kubectl logs -n storage -l app=ceph-csi-ceph-csi-cephfs-provisioner -c csi-provi
 # In the kubernetes repository:
 task configure
 
-# This should generate kubernetes/apps/kube-system/ceph-csi/secret.sops.yaml
-ls -la kubernetes/apps/kube-system/ceph-csi/secret.sops.yaml
+# This should generate kubernetes/apps/app-cluster/kube-system/ceph-csi/secret.sops.yaml
+ls -la kubernetes/apps/app-cluster/kube-system/ceph-csi/secret.sops.yaml
 ```
 
 **Manually decrypt and check:**
 
 ```bash
-sops -d kubernetes/apps/kube-system/ceph-csi/secret.sops.yaml
+sops -d kubernetes/apps/app-cluster/kube-system/ceph-csi/secret.sops.yaml
 ```
 
 ### Issue: CSI Provisioner Not Running
@@ -213,7 +213,7 @@ kubectl create namespace storage
 task configure
 
 # Then deploy the secret
-sops -d kubernetes/apps/kube-system/ceph-csi/secret.sops.yaml | kubectl apply -f -
+sops -d kubernetes/apps/app-cluster/kube-system/ceph-csi/secret.sops.yaml | kubectl apply -f -
 
 # Verify
 kubectl get secret csi-cephfs-secret -n kube-system
@@ -222,7 +222,7 @@ kubectl get secret csi-cephfs-secret -n kube-system
 ### 3. Create StorageClass
 
 ```bash
-kubectl apply -f kubernetes/apps/storage/cephfs-sc.yaml
+kubectl apply -f kubernetes/apps/app-cluster/storage/cephfs-sc.yaml
 
 # Verify
 kubectl get storageclass cephfs
@@ -232,7 +232,7 @@ kubectl get storageclass cephfs
 
 ```bash
 # First check values
-cat kubernetes/apps/storage/ceph-csi/values.sops.yaml
+cat kubernetes/apps/app-cluster/storage/ceph-csi/values.sops.yaml
 
 # Add the helm repo
 helm repo add ceph-csi https://ceph.github.io/ceph-csi
@@ -242,13 +242,13 @@ helm repo update
 helm install ceph-csi ceph-csi/ceph-csi-cephfs \
   -n storage \
   --create-namespace \
-  -f kubernetes/apps/storage/ceph-csi/values.sops.yaml
+  -f kubernetes/apps/app-cluster/storage/ceph-csi/values.sops.yaml
 ```
 
 ### 5. Deploy Test Application
 
 ```bash
-kubectl apply -k kubernetes/storage/nginx-test/
+kubectl apply -k kubernetes/apps/app-cluster/storage/nginx-test/
 
 # Watch it come up
 kubectl get pvc,pods -n storage -w
@@ -275,7 +275,7 @@ kubectl get pvc,pods -n storage -w
 
 ```bash
 # Delete test application
-kubectl delete -k kubernetes/storage/nginx-test/ 2>/dev/null || true
+kubectl delete -k kubernetes/apps/app-cluster/storage/nginx-test/ 2>/dev/null || true
 
 # Delete StorageClass (will orphan PVs)
 kubectl delete storageclass cephfs 2>/dev/null || true

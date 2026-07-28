@@ -18,8 +18,8 @@
 
 ## Removed Desired State
 
--   Argo CD app: `kubernetes/argo/apps/productivity/planka.yaml`
--   App config: `kubernetes/apps/productivity/planka/`
+-   Argo CD app: `kubernetes/argo/apps/app-cluster/productivity/planka.yaml`
+-   App config: `kubernetes/apps/app-cluster/productivity/planka/`
 -   Local DNS resource: `unifi_dns_record.planka_internal`
 -   Cloudflare Access app key: `planka`
 -   Dashboard link: `Planka`
@@ -55,8 +55,8 @@
 
 ## Rollback
 
--   [ ] Restore `kubernetes/argo/apps/productivity/planka.yaml` from Git history.
--   [ ] Restore `kubernetes/apps/productivity/planka/` from Git history.
+-   [ ] Restore `kubernetes/argo/apps/app-cluster/productivity/planka.yaml` from Git history.
+-   [ ] Restore `kubernetes/apps/app-cluster/productivity/planka/` from Git history.
 -   [ ] Restore the `planka` Cloudflare Access app entry and `planka.krapulax.home` local DNS resource from Git history.
 -   [ ] Re-sync the restored Argo CD application.
 -   [ ] Re-apply local DNS and Cloudflare Terraform plans.

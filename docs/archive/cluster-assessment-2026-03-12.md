@@ -78,13 +78,13 @@ Read-only assessment of the homelab Kubernetes cluster architecture, security, n
 
 #### 5. Unrendered template variable in internal Gateway
 
--   **Location:** `kubernetes/apps/network/envoy-gateway/config/envoy.sops.yaml`
+-   **Location:** `kubernetes/apps/app-cluster/network/envoy-gateway/config/envoy.sops.yaml`
 -   **Detail:** The `envoy-internal` Gateway annotation contains literal `${SECRET_DOMAIN}` instead of `krapulax.dev`. The external Gateway correctly uses the literal domain.
 -   **Action:** Investigate whether SOPS decryption or Argo templating resolves this, or fix the literal value.
 
 #### 6. LB IP pool overlaps with node addresses
 
--   **Location:** `kubernetes/apps/kube-system/cilium/config/networks.yaml`
+-   **Location:** `kubernetes/apps/app-cluster/kube-system/cilium/config/networks.yaml`
 -   **Detail:** `CiliumLoadBalancerIPPool` covers `10.0.40.0/24` which includes node IPs `.90–.95`. Nothing prevents Cilium from assigning a node IP to a LoadBalancer service.
 -   **Action:** Narrow the CIDR to exclude node addresses (e.g., `10.0.40.100/28`).
 
@@ -109,7 +109,7 @@ Read-only assessment of the homelab Kubernetes cluster architecture, security, n
 
 #### 10. No pod anti-affinity for CoreDNS
 
--   **Location:** `kubernetes/apps/kube-system/coredns/values.yaml`
+-   **Location:** `kubernetes/apps/app-cluster/kube-system/coredns/values.yaml`
 -   **Detail:** CoreDNS has node affinity (control-plane only) but no pod anti-affinity. Both replicas can land on the same node — DNS single point of failure.
 -   **Action:** Add `podAntiAffinity` preferring different nodes.
 
@@ -139,13 +139,13 @@ Read-only assessment of the homelab Kubernetes cluster architecture, security, n
 
 #### 15. Hubble disabled
 
--   **Location:** `kubernetes/apps/kube-system/cilium/values.yaml`
+-   **Location:** `kubernetes/apps/app-cluster/kube-system/cilium/values.yaml`
 -   **Detail:** `hubble.enabled: false` — missing free network observability. The `ignoreDifferences` block already references Hubble certificate secrets.
 -   **Action:** Consider enabling for network visibility.
 
 #### 16. Cilium operator single replica
 
--   **Location:** `kubernetes/apps/kube-system/cilium/values.yaml`
+-   **Location:** `kubernetes/apps/app-cluster/kube-system/cilium/values.yaml`
 -   **Detail:** `operator.replicas: 1` — if it crashes, new pods won't get IPs until recovery.
 -   **Action:** Set to 2 for a 6-node cluster.
 
@@ -157,7 +157,7 @@ Read-only assessment of the homelab Kubernetes cluster architecture, security, n
 
 #### 18. `imagePullPolicy: Always` on gitops-tools init container
 
--   **Location:** `kubernetes/apps/argo-system/argo-cd/values.yaml`
+-   **Location:** `kubernetes/apps/app-cluster/argo-system/argo-cd/values.yaml`
 -   **Detail:** Tag `2026.2.0` is pinned but `Always` means every repoServer restart triggers a registry pull. If ghcr.io is unavailable, repoServer fails to start.
 -   **Action:** Switch to `IfNotPresent`.
 
@@ -168,7 +168,7 @@ Read-only assessment of the homelab Kubernetes cluster architecture, security, n
 
 #### 20. cert-manager single replica
 
--   **Location:** `kubernetes/apps/cert-manager/cert-manager/values.yaml`
+-   **Location:** `kubernetes/apps/app-cluster/cert-manager/cert-manager/values.yaml`
 -   **Detail:** `replicaCount: 1` — outage during certificate renewal would cause TLS failures.
 -   **Action:** Consider increasing to 2.
 

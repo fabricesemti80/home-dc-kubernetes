@@ -52,7 +52,7 @@ jobs:
 
       - name: Commit generated inventory
         run: |
-          output="kubernetes/apps/monitoring/uptime-kuma-infra/config/autokuma-monitors.yaml"
+          output="kubernetes/apps/infra-cluster/monitoring/uptime-kuma-infra/config/autokuma-monitors.yaml"
 
           if git diff --quiet -- "$output"; then
             echo "AutoKuma monitor inventory is already current."
