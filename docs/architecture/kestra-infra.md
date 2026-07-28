@@ -10,7 +10,7 @@ Deploy Kestra on the infra cluster as the homelab automation service. It should 
 -   Object storage: in-cluster `versitygw` service backed by local-path storage.
 -   Storage bootstrap: infra local-path provisioner creates retained local PVs for Kestra support services.
 -   Placement: Kestra, PostgreSQL, VersityGW, and local-path helper pods are pinned to `infra-cp-01`.
--   Networking: internal HTTPRoute exposes Kestra through the infra Envoy gateway at `10.0.40.106`; `kestra.krapulax.dev` is routed by the infra Cloudflare Tunnel directly to the Kestra service.
+-   Networking: internal HTTPRoute exposes Kestra through the infra Envoy gateway at `10.0.40.106`; public DNS points `kestra.krapulax.dev` at `external-infra.krapulax.dev`, and the infra Cloudflare Tunnel routes that hostname directly to the Kestra service.
 
 ## Security
 
@@ -34,8 +34,9 @@ Deploy Kestra on the infra cluster as the homelab automation service. It should 
 4. Check `kubectl -n kestra get pods,pvc,httproute`.
 5. Confirm Kestra pods are scheduled on `infra-cp-01`.
 6. `dig +short kestra.krapulax.home` should return `10.0.40.106`.
-7. `curl -I https://kestra.krapulax.dev` should reach Kestra through Cloudflare Tunnel.
-8. Open the internal Kestra route and verify login.
+7. `dig +short kestra.krapulax.dev CNAME` should return `external-infra.krapulax.dev`.
+8. `curl -I https://kestra.krapulax.dev` should reach Kestra through Cloudflare Tunnel.
+9. Open the internal Kestra route and verify login.
 
 ## Rollback
 

@@ -26,6 +26,7 @@ The migration from `external.krapulax.dev` is complete:
 1. app-cluster routes target `external-apps.krapulax.dev`;
 2. infra-cluster public records target `external-infra.krapulax.dev`;
 3. `external.krapulax.dev` is not published as a Cloudflare DNS record.
+4. service records do not point directly at `*.cfargotunnel.com` tunnel IDs.
 
 ## Application Hostnames
 
@@ -66,9 +67,9 @@ The migration from `external.krapulax.dev` is complete:
 
 ### Automation
 
-| App    | Hostname                                      | Cluster | Config                                                                                                                                 |
-| ------ | --------------------------------------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| Kestra | `kestra.krapulax.dev`, `kestra.krapulax.home` | infra   | `kubernetes/apps/automation/kestra-infra/config/http-route.yaml`, `kubernetes/apps/network/cloudflare-tunnel-infra/config/config.yaml` |
+| App    | Hostname                                      | Cluster | Config                                                                                                                                                                                                             |
+| ------ | --------------------------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Kestra | `kestra.krapulax.dev`, `kestra.krapulax.home` | infra   | `kubernetes/apps/network/cloudflare-tunnel/config/kestra-dnsendpoint.yaml`, `kubernetes/apps/automation/kestra-infra/config/http-route.yaml`, `kubernetes/apps/network/cloudflare-tunnel-infra/config/config.yaml` |
 
 ### Web
 
@@ -86,6 +87,7 @@ The migration from `external.krapulax.dev` is complete:
 ## Notes
 
 -   External `krapulax.dev` records are managed by the app-cluster ExternalDNS deployment.
+-   Public infra service records target `external-infra.krapulax.dev`; only `external-infra.krapulax.dev` points at the infra tunnel ID.
 -   Internal `krapulax.home` DNS automation is currently inactive while the Technitium deployment is redesigned.
 -   Internal HTTPRoutes set `external-dns.alpha.kubernetes.io/target: kubernetes.krapulax.home`.
 -   Hostnames may be defined in both HTTPRoute annotations and central `DNSEndpoint` resources.

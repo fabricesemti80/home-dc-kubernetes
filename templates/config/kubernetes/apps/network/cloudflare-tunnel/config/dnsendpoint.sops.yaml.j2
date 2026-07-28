@@ -17,9 +17,6 @@ spec:
     - dnsName: "pulse.#{ cloudflare_domain }#"
       recordType: CNAME
       targets: ["external-infra.#{ cloudflare_domain }#"]
-    - dnsName: "kestra.#{ cloudflare_domain }#"
-      recordType: CNAME
-      targets: ["external-infra.#{ cloudflare_domain }#"]
     - dnsName: "grafana.#{ cloudflare_domain }#"
       recordType: CNAME
       targets: ["external-apps.#{ cloudflare_domain }#"]

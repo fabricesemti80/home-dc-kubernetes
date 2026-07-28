@@ -20,10 +20,6 @@ spec:
       recordType: CNAME
       targets:
         - external-infra.krapulax.dev
-    - dnsName: kestra.krapulax.dev
-      recordType: CNAME
-      targets:
-        - external-infra.krapulax.dev
     - dnsName: grafana.krapulax.dev
       recordType: CNAME
       targets:

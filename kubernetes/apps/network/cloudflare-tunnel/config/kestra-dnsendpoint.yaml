@@ -1,0 +1,10 @@
+apiVersion: externaldns.k8s.io/v1alpha1
+kind: DNSEndpoint
+metadata:
+  name: kestra-cloudflare-tunnel
+spec:
+  endpoints:
+    - dnsName: kestra.krapulax.dev
+      recordType: CNAME
+      targets:
+        - external-infra.krapulax.dev

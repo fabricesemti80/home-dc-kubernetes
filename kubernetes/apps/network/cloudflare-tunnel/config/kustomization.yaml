@@ -4,5 +4,6 @@ kind: Kustomization
 resources:
   - ./config.yaml
   - ./dnsendpoint.yaml
+  - ./kestra-dnsendpoint.yaml
   - ./uptime-kuma-dnsendpoint.yaml
   - ./doppler-secret.yaml
