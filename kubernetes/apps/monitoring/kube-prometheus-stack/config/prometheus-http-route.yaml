@@ -5,7 +5,7 @@ metadata:
   name: prometheus
   annotations:
     external-dns.alpha.kubernetes.io/hostname: prometheus.krapulax.dev
-    external-dns.alpha.kubernetes.io/target: external.krapulax.dev
+    external-dns.alpha.kubernetes.io/target: external-apps.krapulax.dev
     gethomepage.dev/enabled: "true"
     gethomepage.dev/group: Monitoring
     gethomepage.dev/name: Prometheus

@@ -4,7 +4,7 @@ metadata:
   name: cloudflare-tunnel
 spec:
   endpoints:
-    - dnsName: external.krapulax.dev
+    - dnsName: external-apps.krapulax.dev
       recordType: CNAME
       targets:
         - c153a412-005f-4c07-8b89-34ec5628005a.cfargotunnel.com
@@ -19,7 +19,7 @@ spec:
     - dnsName: nginx-test.krapulax.dev
       recordType: CNAME
       targets:
-        - external.krapulax.dev
+        - external-apps.krapulax.dev
     - dnsName: pulse.krapulax.dev
       recordType: CNAME
       targets:
@@ -31,4 +31,4 @@ spec:
     - dnsName: grafana.krapulax.dev
       recordType: CNAME
       targets:
-        - external.krapulax.dev
+        - external-apps.krapulax.dev
