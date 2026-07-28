@@ -4,12 +4,14 @@ This guide walks you through adding a new application to your Kubernetes cluster
 
 ## Overview
 
-Applications in this cluster are managed through Argo CD and usually consist of these components:
+Applications in this repository are managed through Argo CD using a cluster-split directory layout:
 
 1. **Helm Values** - Configuration for the Helm chart (`kubernetes/apps/<cluster>/<namespace>/<app>/values.yaml`)
 2. **Secrets** - Either encrypted values in Git (`values.sops.yaml`) or a Doppler-backed `DopplerSecret`
 3. **Workload Manifests** - Optional raw Kubernetes manifests under `config/` for apps that are better modeled with kustomize
 4. **Argo Application** - Tells Argo CD how to deploy (`kubernetes/argo/apps/<cluster>/<namespace>/<app>.yaml`)
+
+Where `<cluster>` is either `app-cluster` or `infra-cluster`.
 
 ## Step-by-Step Guide
 
@@ -168,7 +170,7 @@ metadata:
 spec:
     project: kubernetes
     sources:
-        - repoURL: "https://github.com/<your-org>/<your-repo>.git"
+        - repoURL: "https://github.com/fabricesemti80/home-dc-kubernetes.git"
           path: kubernetes/apps/<cluster>/<namespace>/<app>
           targetRevision: main
           ref: repo
@@ -181,7 +183,7 @@ spec:
                   - $repo/kubernetes/apps/<cluster>/<namespace>/<app>/values.yaml
                   - $repo/kubernetes/apps/<cluster>/<namespace>/<app>/values.sops.yaml
     destination:
-        name: app-cluster
+        name: <cluster>
         namespace: <namespace>
     syncPolicy:
         automated:
