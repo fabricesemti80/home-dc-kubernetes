@@ -126,8 +126,8 @@ doppler configs tokens create infra-cluster-operator \
 Store each token in the matching SOPS file:
 
 ```text
-kubernetes/apps/app-cluster/doppler-operator-system/doppler-operator/config/secret.sops.yaml
-kubernetes/apps/infra-cluster/doppler-operator-system/doppler-operator-infra/config/secret.sops.yaml
+kubernetes/apps/app-cluster/doppler-operator-system/doppler-operator/config/secret-apps.sops.yaml
+kubernetes/apps/infra-cluster/doppler-operator-system/doppler-operator-infra/config/secret-infra.sops.yaml
 ```
 
 Then verify:
@@ -171,11 +171,16 @@ Canary PR:
 
 1. Add `SLACK_WEBHOOK_MONITORING` to `home-dc-kubernetes/apps`.
 2. Add `UPTIME_KUMA_USERNAME` and `UPTIME_KUMA_PASSWORD` to `home-dc-kubernetes/infra`.
-3. Rotate app and infra Doppler operator service tokens into the matching SOPS bootstrap files.
+3. Rotate app and infra Doppler operator service tokens into the scoped SOPS token files:
+    - `kubernetes/apps/app-cluster/doppler-operator-system/doppler-operator/config/secret-apps.sops.yaml`
+    - `kubernetes/apps/infra-cluster/doppler-operator-system/doppler-operator-infra/config/secret-infra.sops.yaml`
 4. Retarget only these `DopplerSecret` resources:
     - `alertmanager-slack-webhook` to `home-dc-kubernetes/apps`
     - `uptime-kuma-credentials` to `home-dc-kubernetes/infra`
 5. Sync and verify:
+
+The canary migration PR implements step 4 only. Steps 1-3 must be completed by
+the operator before Argo syncs the canary manifests.
 
 ```bash
 argocd app get kube-prometheus-stack --core
