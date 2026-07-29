@@ -92,13 +92,13 @@ tasks:
 
   tf-proxmox-init:
     desc: Initialize the Proxmox/Talos OpenTofu stack
-    cmd: doppler run --project project-homelab --config dev_homelab --name-transformer tf-var -- tofu -chdir={{.TF_PROXMOX_DIR}} init -upgrade
+    cmd: doppler run --project home-dc-kubernetes --config infra --name-transformer tf-var -- tofu -chdir={{.TF_PROXMOX_DIR}} init -upgrade
     preconditions:
       - which doppler tofu
 
   tf-proxmox-plan:
     desc: Plan the Proxmox/Talos OpenTofu stack
-    cmd: doppler run --project project-homelab --config dev_homelab --name-transformer tf-var -- tofu -chdir={{.TF_PROXMOX_DIR}} plan -out=tfplan
+    cmd: doppler run --project home-dc-kubernetes --config infra --name-transformer tf-var -- tofu -chdir={{.TF_PROXMOX_DIR}} plan -out=tfplan
     preconditions:
       - which doppler tofu
       - test -d {{.TF_PROXMOX_DIR}}/.terraform
@@ -106,28 +106,28 @@ tasks:
   tf-proxmox-apply:
     desc: Apply the Proxmox/Talos OpenTofu stack
     cmds:
-      - doppler run --project project-homelab --config dev_homelab --name-transformer tf-var -- tofu -chdir={{.TF_PROXMOX_DIR}} plan -out=tfplan
-      - doppler run --project project-homelab --config dev_homelab --name-transformer tf-var -- tofu -chdir={{.TF_PROXMOX_DIR}} apply tfplan
+      - doppler run --project home-dc-kubernetes --config infra --name-transformer tf-var -- tofu -chdir={{.TF_PROXMOX_DIR}} plan -out=tfplan
+      - doppler run --project home-dc-kubernetes --config infra --name-transformer tf-var -- tofu -chdir={{.TF_PROXMOX_DIR}} apply tfplan
     preconditions:
       - which doppler tofu
       - test -d {{.TF_PROXMOX_DIR}}/.terraform
 
   tf-proxmox-destroy:
     desc: Destroy the Proxmox/Talos OpenTofu stack
-    cmd: doppler run --project project-homelab --config dev_homelab --name-transformer tf-var -- tofu -chdir={{.TF_PROXMOX_DIR}} destroy -auto-approve
+    cmd: doppler run --project home-dc-kubernetes --config infra --name-transformer tf-var -- tofu -chdir={{.TF_PROXMOX_DIR}} destroy -auto-approve
     preconditions:
       - which doppler tofu
       - test -d {{.TF_PROXMOX_DIR}}/.terraform
 
   tf-cloudflare-init:
     desc: Initialize the Cloudflare OpenTofu stack
-    cmd: doppler run --project project-homelab --config dev_homelab --name-transformer tf-var -- tofu -chdir={{.TF_CLOUDFLARE_DIR}} init -upgrade
+    cmd: doppler run --project home-dc-kubernetes --config infra --name-transformer tf-var -- tofu -chdir={{.TF_CLOUDFLARE_DIR}} init -upgrade
     preconditions:
       - which doppler tofu
 
   tf-cloudflare-plan:
     desc: Plan the Cloudflare OpenTofu stack
-    cmd: doppler run --project project-homelab --config dev_homelab --name-transformer tf-var -- tofu -chdir={{.TF_CLOUDFLARE_DIR}} plan -out=tfplan
+    cmd: doppler run --project home-dc-kubernetes --config infra --name-transformer tf-var -- tofu -chdir={{.TF_CLOUDFLARE_DIR}} plan -out=tfplan
     preconditions:
       - which doppler tofu
       - test -d {{.TF_CLOUDFLARE_DIR}}/.terraform
@@ -135,15 +135,15 @@ tasks:
   tf-cloudflare-apply:
     desc: Apply the Cloudflare OpenTofu stack
     cmds:
-      - doppler run --project project-homelab --config dev_homelab --name-transformer tf-var -- tofu -chdir={{.TF_CLOUDFLARE_DIR}} plan -out=tfplan
-      - doppler run --project project-homelab --config dev_homelab --name-transformer tf-var -- tofu -chdir={{.TF_CLOUDFLARE_DIR}} apply tfplan
+      - doppler run --project home-dc-kubernetes --config infra --name-transformer tf-var -- tofu -chdir={{.TF_CLOUDFLARE_DIR}} plan -out=tfplan
+      - doppler run --project home-dc-kubernetes --config infra --name-transformer tf-var -- tofu -chdir={{.TF_CLOUDFLARE_DIR}} apply tfplan
     preconditions:
       - which doppler tofu
       - test -d {{.TF_CLOUDFLARE_DIR}}/.terraform
 
   tf-cloudflare-destroy:
     desc: Destroy the Cloudflare OpenTofu stack
-    cmd: doppler run --project project-homelab --config dev_homelab --name-transformer tf-var -- tofu -chdir={{.TF_CLOUDFLARE_DIR}} destroy -auto-approve
+    cmd: doppler run --project home-dc-kubernetes --config infra --name-transformer tf-var -- tofu -chdir={{.TF_CLOUDFLARE_DIR}} destroy -auto-approve
     preconditions:
       - which doppler tofu
       - test -d {{.TF_CLOUDFLARE_DIR}}/.terraform
@@ -152,7 +152,7 @@ tasks:
     desc: Initialize the local DNS OpenTofu stack when populated
     cmd: |
       if find {{.TF_LOCALDNS_DIR}} -maxdepth 1 -name '*.tf' | grep -q .; then
-        doppler run --project project-homelab --config dev_homelab --name-transformer tf-var -- tofu -chdir={{.TF_LOCALDNS_DIR}} init -upgrade
+        doppler run --project home-dc-kubernetes --config infra --name-transformer tf-var -- tofu -chdir={{.TF_LOCALDNS_DIR}} init -upgrade
       else
         echo "No localdns OpenTofu files yet; skipping init."
       fi
@@ -163,7 +163,7 @@ tasks:
     desc: Plan the local DNS OpenTofu stack when populated
     cmd: |
       if find {{.TF_LOCALDNS_DIR}} -maxdepth 1 -name '*.tf' | grep -q .; then
-        doppler run --project project-homelab --config dev_homelab --name-transformer tf-var -- tofu -chdir={{.TF_LOCALDNS_DIR}} plan -out=tfplan
+        doppler run --project home-dc-kubernetes --config infra --name-transformer tf-var -- tofu -chdir={{.TF_LOCALDNS_DIR}} plan -out=tfplan
       else
         echo "No localdns OpenTofu files yet; skipping plan."
       fi
@@ -174,8 +174,8 @@ tasks:
     desc: Apply the local DNS OpenTofu stack when populated
     cmd: |
       if find {{.TF_LOCALDNS_DIR}} -maxdepth 1 -name '*.tf' | grep -q .; then
-        doppler run --project project-homelab --config dev_homelab --name-transformer tf-var -- tofu -chdir={{.TF_LOCALDNS_DIR}} plan -out=tfplan
-        doppler run --project project-homelab --config dev_homelab --name-transformer tf-var -- tofu -chdir={{.TF_LOCALDNS_DIR}} apply tfplan
+        doppler run --project home-dc-kubernetes --config infra --name-transformer tf-var -- tofu -chdir={{.TF_LOCALDNS_DIR}} plan -out=tfplan
+        doppler run --project home-dc-kubernetes --config infra --name-transformer tf-var -- tofu -chdir={{.TF_LOCALDNS_DIR}} apply tfplan
       else
         echo "No localdns OpenTofu files yet; skipping apply."
       fi
@@ -186,7 +186,7 @@ tasks:
     desc: Destroy the local DNS OpenTofu stack when populated
     cmd: |
       if find {{.TF_LOCALDNS_DIR}} -maxdepth 1 -name '*.tf' | grep -q .; then
-        doppler run --project project-homelab --config dev_homelab --name-transformer tf-var -- tofu -chdir={{.TF_LOCALDNS_DIR}} destroy -auto-approve
+        doppler run --project home-dc-kubernetes --config infra --name-transformer tf-var -- tofu -chdir={{.TF_LOCALDNS_DIR}} destroy -auto-approve
       else
         echo "No localdns OpenTofu files yet; skipping destroy."
       fi

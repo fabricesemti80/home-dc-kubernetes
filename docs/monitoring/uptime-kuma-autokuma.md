@@ -101,7 +101,7 @@ Do not manually edit an AutoKuma-managed monitor in the Uptime Kuma UI. A later 
 
 ## Credentials
 
-AutoKuma authenticates with the `uptime-kuma-credentials` Kubernetes Secret. The Doppler operator populates it from `project-homelab` / `dev_homelab` using:
+AutoKuma authenticates with the `uptime-kuma-credentials` Kubernetes Secret. The Doppler operator populates it from `home-dc-kubernetes` / `infra` using:
 
 ```text
 UPTIME_KUMA_USERNAME

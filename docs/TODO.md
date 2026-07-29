@@ -71,20 +71,20 @@ The design should also define ownership of internal DNS records and which cluste
 -   document internal DNS ownership boundaries;
 -   add validation that prevents new records from bypassing the canonical endpoints.
 
-## Separate app-cluster and infra-cluster Doppler projects
+## Separate app-cluster and infra-cluster Doppler configs
 
-Split shared Doppler configuration into independent projects or equivalent security boundaries for the application and infrastructure clusters.
+Split shared Doppler configuration into independent config boundaries for the application and infrastructure clusters.
 
 This should reduce secret exposure, clarify ownership, and allow credentials and service tokens to be rotated independently.
 
-A possible naming model is:
+The chosen naming model is:
 
 ```text
-project-homelab-apps
-project-homelab-infra
+home-dc-kubernetes/apps
+home-dc-kubernetes/infra
 ```
 
-The exact names and environment structure should be chosen during implementation.
+Canary and full migration PRs should move DopplerSecret manifests and local Doppler CLI tasks to these configs.
 
 ### Completion criteria
 

@@ -12,7 +12,7 @@ Deploy the Pulse agent only into the infra cluster so the infra Pulse server can
 
 ## Security
 
--   `PULSE_TOKEN` is synced from Doppler (`project-homelab/dev_homelab`) into the infra cluster with `DopplerSecret`.
+-   `PULSE_TOKEN` is synced from Doppler (`home-dc-kubernetes/infra`) into the infra cluster with `DopplerSecret`.
 -   Service account access is limited to the Pulse RBAC resources in the infra agent app.
 -   Privileged mode is limited to the Pulse infra agent DaemonSet because host metrics require access to node namespaces.
 
