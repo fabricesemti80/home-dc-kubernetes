@@ -24,6 +24,7 @@ includes:
   bootstrap: .taskfiles/bootstrap
   clusters: .taskfiles/clusters
   infrastructure: .taskfiles/infrastructure
+  secrets: .taskfiles/secrets
   talos: .taskfiles/talos
   template: .taskfiles/template
 
