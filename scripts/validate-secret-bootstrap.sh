@@ -37,6 +37,9 @@ required_files=(
   "kubernetes/argo/repositories/github.sops.yaml"
   "kubernetes/apps/app-cluster/argo-system/argo-cd/values.sops.yaml"
   "kubernetes/apps/app-cluster/doppler-operator-system/doppler-operator/config/secret.sops.yaml"
+  "kubernetes/apps/app-cluster/kube-system/ceph-csi/secret.sops.yaml"
+  "kubernetes/apps/app-cluster/kube-system/ceph-csi/values.sops.yaml"
+  "kubernetes/apps/app-cluster/storage/ceph-csi/values.sops.yaml"
   "kubernetes/apps/infra-cluster/doppler-operator-system/doppler-operator-infra/config/secret.sops.yaml"
 )
 
@@ -53,24 +56,20 @@ if [[ -f age.key && -f .sops.yaml ]]; then
   fi
 fi
 
-if command -v jq >/dev/null 2>&1; then
-  while IFS= read -r file; do
-    if [[ -z ${file} ]]; then
-      continue
-    fi
-    if ! sops filestatus "${file}" 2>/dev/null | jq -e '.encrypted == true' >/dev/null; then
-      fail "${file} is not encrypted according to sops filestatus"
-      continue
-    fi
-    if sops -d "${file}" >/dev/null 2>&1; then
-      ok "decryptable ${file}"
-    else
-      fail "cannot decrypt ${file}"
-    fi
-  done < <(find kubernetes talos -type f -name '*.sops.yaml' -print | sort)
-else
-  info "jq is unavailable; skipping sops filestatus encryption checks"
-fi
+while IFS= read -r file; do
+  if [[ -z ${file} ]]; then
+    continue
+  fi
+  if ! sops filestatus "${file}" 2>/dev/null | jq -e '.encrypted == true' >/dev/null; then
+    fail "${file} is not encrypted according to sops filestatus"
+    continue
+  fi
+  if sops -d "${file}" >/dev/null 2>&1; then
+    ok "decryptable ${file}"
+  else
+    fail "cannot decrypt ${file}"
+  fi
+done < <(find kubernetes talos -type f -name '*.sops.yaml' -print | sort)
 
 doppler_refs="$(grep -RhoE 'project: [^[:space:]]+|config: [^[:space:]]+' kubernetes/apps/*-cluster 2>/dev/null | sort | uniq -c || true)"
 if [[ -n ${doppler_refs} ]]; then
