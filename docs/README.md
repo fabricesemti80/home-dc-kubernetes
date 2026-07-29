@@ -15,6 +15,7 @@ This is the main documentation hub for `home-dc-kubernetes`.
 ## Cluster
 
 -   [Cluster Docs Overview](cluster/README.md)
+-   [Secret Strategy](cluster/secret-strategy.md)
 -   [Adding Applications](cluster/adding-applications.md)
 
 ## Storage
