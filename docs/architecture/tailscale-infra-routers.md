@@ -12,7 +12,7 @@ Deploy Tailscale routing through the Kubernetes Operator on `infra-cluster`.
 
 ## Security
 
--   `TAILSCALE_OAUTH_CLIENT_ID` and `TAILSCALE_OAUTH_CLIENT_SECRET` are synced from Doppler (`project-homelab/dev_homelab`) into the Operator's `operator-oauth` Secret.
+-   `TAILSCALE_OAUTH_CLIENT_ID` and `TAILSCALE_OAUTH_CLIENT_SECRET` are synced from Doppler (`home-dc-kubernetes/infra`) into the Operator's `operator-oauth` Secret.
 -   The OAuth client needs write access to `General/Services`, `Devices/Core`, and `Keys/Auth Keys`, with the `tag:k8s-operator` tag.
 -   Tailnet ACLs should make `tag:k8s-operator` an owner of `tag:k8s`, and auto-approve the `10.0.0.0/16`, `192.168.0.0/16`, and exit-node advertisements for `tag:k8s`.
 

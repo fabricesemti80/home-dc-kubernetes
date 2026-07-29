@@ -9,8 +9,8 @@ provider "doppler" {
 data "doppler_secrets" "cloudflare" {
   count = var.doppler_token != "" ? 1 : 0
 
-  config  = "dev_homelab"
-  project = "project-homelab"
+  config  = "infra"
+  project = "home-dc-kubernetes"
 }
 
 resource "random_id" "kubernetes_tunnel_secret" {
@@ -37,8 +37,8 @@ resource "local_file" "kubernetes_tunnel_credentials" {
 resource "doppler_secret" "kubernetes_tunnel_credentials" {
   count = var.doppler_token != "" ? 1 : 0
 
-  config     = "dev_homelab"
-  project    = "project-homelab"
+  config     = "apps"
+  project    = "home-dc-kubernetes"
   name       = "TUNNEL_CREDENTIALS_APPS"
   value      = local.kubernetes_tunnel_credentials_json
   value_type = "json"
@@ -47,8 +47,8 @@ resource "doppler_secret" "kubernetes_tunnel_credentials" {
 resource "doppler_secret" "kubernetes_tunnel_id" {
   count = var.doppler_token != "" ? 1 : 0
 
-  config  = "dev_homelab"
-  project = "project-homelab"
+  config  = "apps"
+  project = "home-dc-kubernetes"
   name    = "TUNNEL_ID_APPS"
   value   = local.kubernetes_tunnel_id
 }
@@ -56,8 +56,8 @@ resource "doppler_secret" "kubernetes_tunnel_id" {
 resource "doppler_secret" "kubernetes_tunnel_token" {
   count = var.doppler_token != "" ? 1 : 0
 
-  config  = "dev_homelab"
-  project = "project-homelab"
+  config  = "apps"
+  project = "home-dc-kubernetes"
   name    = "TUNNEL_TOKEN_APPS"
   value   = local.kubernetes_tunnel_token
 }
@@ -87,8 +87,8 @@ resource "local_file" "kubernetes_infra_tunnel_credentials" {
 resource "doppler_secret" "kubernetes_infra_tunnel_credentials" {
   count = var.doppler_token != "" ? 1 : 0
 
-  config  = "dev_homelab"
-  project = "project-homelab"
+  config  = "infra"
+  project = "home-dc-kubernetes"
   name    = "TUNNEL_CREDENTIALS_INFRA"
   value = jsonencode({
     AccountTag   = var.cloudflare_account_id
@@ -102,8 +102,8 @@ resource "doppler_secret" "kubernetes_infra_tunnel_credentials" {
 resource "doppler_secret" "kubernetes_infra_tunnel_id" {
   count = var.doppler_token != "" ? 1 : 0
 
-  config  = "dev_homelab"
-  project = "project-homelab"
+  config  = "infra"
+  project = "home-dc-kubernetes"
   name    = "TUNNEL_ID_INFRA"
   value   = local.kubernetes_infra_tunnel_id
 }
@@ -111,8 +111,8 @@ resource "doppler_secret" "kubernetes_infra_tunnel_id" {
 resource "doppler_secret" "kubernetes_infra_tunnel_token" {
   count = var.doppler_token != "" ? 1 : 0
 
-  config  = "dev_homelab"
-  project = "project-homelab"
+  config  = "infra"
+  project = "home-dc-kubernetes"
   name    = "TUNNEL_TOKEN_INFRA"
   value   = local.kubernetes_infra_tunnel_token
 }

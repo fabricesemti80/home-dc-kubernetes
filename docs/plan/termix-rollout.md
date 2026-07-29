@@ -102,7 +102,7 @@ Termix auto-generates those values on first startup and stores them in `{DATA_DI
 
 ## Validation
 
--   [ ] `doppler secrets get TERMIX_OIDC_CLIENT_ID --project project-homelab --config dev_homelab` if OIDC is enabled
+-   [ ] `doppler secrets get TERMIX_OIDC_CLIENT_ID --project home-dc-kubernetes --config apps` if OIDC is enabled
 -   [ ] `kubectl get application -n argo-system termix`
 -   [ ] `kubectl get deploy -n productivity termix`
 -   [ ] `kubectl get pvc -n productivity | rg termix`

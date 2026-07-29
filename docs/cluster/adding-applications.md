@@ -100,8 +100,8 @@ spec:
     tokenSecret:
         name: doppler-token-secret
         namespace: doppler-operator-system
-    project: project-homelab
-    config: dev_homelab
+    project: home-dc-kubernetes
+    config: apps
     managedSecret:
         name: <app>-secrets
         namespace: <namespace>

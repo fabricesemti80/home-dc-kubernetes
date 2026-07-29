@@ -27,7 +27,7 @@ Deploys [n8n](https://n8n.io/) — a workflow automation platform — to the Tal
 
 ## Secrets
 
--   `N8N_ENCRYPTION_KEY` synced from Doppler (`project-homelab/dev_homelab`) via `DopplerSecret` CRD.
+-   `N8N_ENCRYPTION_KEY` synced from Doppler (`home-dc-kubernetes/apps`) via `DopplerSecret` CRD.
 
 ## Scalability & Limitations
 

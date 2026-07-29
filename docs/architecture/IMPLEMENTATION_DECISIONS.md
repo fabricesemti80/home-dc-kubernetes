@@ -55,12 +55,12 @@ Assumptions:
 
 -   `linkwarden.krapulax.dev` will be the initial external hostname for the service.
 -   A single Linkwarden replica backed by a single PostgreSQL instance is acceptable for the first rollout.
--   The Doppler `project-homelab/dev_homelab` config is the correct source of truth for Linkwarden bootstrap secrets.
+-   The Doppler `home-dc-kubernetes/apps` config is the correct source of truth for Linkwarden bootstrap secrets.
 -   The Doppler config will be populated with `NEXTAUTH_URL=https://linkwarden.krapulax.dev` before the Kubernetes workload change is synced.
 
 Validation checks:
 
--   `doppler secrets get NEXTAUTH_URL --project project-homelab --config dev_homelab`
+-   `doppler secrets get NEXTAUTH_URL --project home-dc-kubernetes --config apps`
 -   `kubectl get dopplersecret -n doppler-operator-system linkwarden-secrets -o yaml`
 -   `kubectl get secret -n productivity linkwarden-secrets -o jsonpath='{.data.NEXTAUTH_URL}' | base64 -d`
 -   `kubectl get application -n argo-system linkwarden`
@@ -137,14 +137,14 @@ Decision:
 
 Assumptions:
 
--   The Doppler `project-homelab/dev_homelab` config is the correct source of truth for `SLACK_WEBHOOK_MONITORING`.
+-   The Doppler `home-dc-kubernetes/apps` config is the correct source of truth for `SLACK_WEBHOOK_MONITORING`.
 -   The intended Slack destination is the `#monitoring` channel.
 -   `https://alertmanager.krapulax.dev` is the intended external Alertmanager address.
 -   The initial routing policy should stay simple: send normal alerts to Slack and continue discarding the default `Watchdog` alert.
 
 Validation checks:
 
--   `doppler secrets get SLACK_WEBHOOK_MONITORING --project project-homelab --config dev_homelab`
+-   `doppler secrets get SLACK_WEBHOOK_MONITORING --project home-dc-kubernetes --config apps`
 -   `kubectl get dopplersecret -n doppler-operator-system alertmanager-slack-webhook -o yaml`
 -   `kubectl get secret -n monitoring alertmanager-slack-webhook -o jsonpath='{.data.SLACK_WEBHOOK_MONITORING}' | base64 -d`
 -   `kubectl get application -n argo-system kube-prometheus-stack`
@@ -216,7 +216,7 @@ Assumptions:
 
 Validation checks:
 
--   `doppler secrets get TERMIX_OIDC_CLIENT_ID --project project-homelab --config dev_homelab` if OIDC is enabled
+-   `doppler secrets get TERMIX_OIDC_CLIENT_ID --project home-dc-kubernetes --config apps` if OIDC is enabled
 -   `kubectl get application -n argo-system termix`
 -   `kubectl get deploy -n productivity termix`
 -   `kubectl get pvc -n productivity | rg termix`
@@ -283,14 +283,14 @@ Assumptions:
 
 -   `code.krapulax.dev` is the intended external hostname.
 -   External access is protected by code-server password auth and any Cloudflare-side access controls managed outside this Kubernetes repo.
--   The `project-homelab/dev_homelab` Doppler config will contain `CODE_SERVER_PASSWORD` before rollout.
+-   The `home-dc-kubernetes/apps` Doppler config will contain `CODE_SERVER_PASSWORD` before rollout.
 -   Codex, Doppler, and GitHub auth can be completed inside the IDE and then persists under the `/root` PVC.
 -   A privileged in-cluster IDE is acceptable for personal homelab administration.
 -   Startup-time CLI installation is acceptable initially; a custom image is only needed if startup time, availability, or upstream install drift becomes a problem.
 
 Validation checks:
 
--   `doppler secrets get CODE_SERVER_PASSWORD --project project-homelab --config dev_homelab`
+-   `doppler secrets get CODE_SERVER_PASSWORD --project home-dc-kubernetes --config apps`
 -   `kubectl get dopplersecret -n doppler-operator-system code-server-secrets -o yaml`
 -   `kubectl get secret -n productivity code-server-secrets`
 -   `kubectl get application -n argo-system code-server`
@@ -429,7 +429,7 @@ Assumptions:
 -   `kubernetes.krapulax.home` should continue to point at `10.0.40.102`.
 -   `photos.krapulax.home`, `jellyfin.krapulax.home`, `requests.krapulax.home`, `prowlarr.krapulax.home`, `qbittorrent.krapulax.home`, `radarr.krapulax.home`, `sabnzbd.krapulax.home`, `sonarr.krapulax.home`, `tdarr.krapulax.home`, and `termix.krapulax.home` should CNAME to `kubernetes.krapulax.home`.
 -   Recyclarr is not exposed through a local HTTPRoute because it has no existing external HTTPRoute or user-facing service in the current media namespace config.
--   Doppler `project-homelab/dev_homelab` will provide `UNIFI_USERNAME`, `UNIFI_PASSWORD`, `UNIFI_API_URL`, and optionally `UNIFI_ALLOW_INSECURE`.
+-   Doppler `home-dc-kubernetes/infra` will provide `UNIFI_USERNAME`, `UNIFI_PASSWORD`, `UNIFI_API_URL`, and optionally `UNIFI_ALLOW_INSECURE`.
 -   The UniFi API is reachable from operator workstations at `https://192.168.1.1`; the provider must allow its self-signed TLS certificate.
 
 Validation checks:
@@ -462,12 +462,12 @@ Decision:
 -   Deploy the Doppler Kubernetes operator into `infra-cluster` via the existing Argo CD hub on `app-cluster`.
 -   Keep the Doppler operator isolated by cluster: `doppler-operator` lives under `kubernetes/apps/app-cluster/doppler-operator-system/doppler-operator/` and `doppler-operator-infra` lives under `kubernetes/apps/infra-cluster/doppler-operator-system/doppler-operator-infra/`.
 -   Each cluster has its own encrypted service token secret, Helm values, and Argo Application.
--   Reuse the same chart version and token value from the app-cluster deployment.
+-   Reuse the same chart version as the app-cluster deployment, but use the infra-cluster Doppler service token.
 
 Assumptions:
 
 -   The Doppler operator is not designed to manage secrets across clusters; the supported and simplest pattern is one operator per cluster.
--   The same Doppler service token has access to the `project-homelab/dev_homelab` config and can be used safely in both clusters.
+-   The infra-cluster Doppler service token has access to the `home-dc-kubernetes/infra` config only.
 -   `infra-cluster` is already registered as an Argo destination before this Application is applied.
 -   Other `infra-cluster` workloads that need runtime secrets will be onboarded after the operator is healthy.
 
@@ -475,7 +475,7 @@ Validation checks:
 
 -   `argocd app get doppler-operator-infra --core`
 -   `kubectl --kubeconfig .private/infra-cluster/kubeconfig get pods -n doppler-operator-system`
--   `kubectl --kubeconfig .private/infra-cluster/kubeconfig get secret -n doppler-operator-system doppler-token-secret`
+-   `kubectl --kubeconfig .private/infra-cluster/kubeconfig get secret -n doppler-operator-system doppler-token-secret-infra`
 -   `kubectl --kubeconfig .private/infra-cluster/kubeconfig get crd dopplersecrets.secrets.doppler.com`
 
 Rollback:
@@ -490,14 +490,14 @@ Decision:
 -   Deploy Pulse on `infra-cluster` in the `monitoring` namespace as `pulse-infra`.
 -   Use the `rcourtman/pulse:6` image and the app-template chart.
 -   Pin the workload to `infra-wk-01` with a `hostPath` volume at `/var/pulse/data` for the initial rollout.
--   Use the Doppler operator to sync `PULSE_AUTH_USER` and `PULSE_AUTH_PASS` from `project-homelab/dev_homelab`.
+-   Use the Doppler operator to sync `PULSE_AUTH_USER` and `PULSE_AUTH_PASS` from `home-dc-kubernetes/infra`.
 -   Expose Pulse only on the internal Envoy gateway at `pulse.krapulax.home`.
 
 Assumptions:
 
 -   `infra-wk-01` has enough local disk for the `hostPath` volume.
 -   `hostPath` is acceptable until a proper storage class is available on `infra-cluster`.
--   The initial admin credentials will be added to the `project-homelab/dev_homelab` Doppler config before the app is needed in production.
+-   The initial admin credentials will be added to the `home-dc-kubernetes/infra` Doppler config before the app is needed in production.
 
 Validation checks:
 

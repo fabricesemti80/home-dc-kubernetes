@@ -14,7 +14,7 @@ Deploy Kestra on the infra cluster as the homelab automation service. It should 
 
 ## Security
 
--   Kestra basic auth, PostgreSQL credentials, and object-store credentials are synced from Doppler (`project-homelab/dev_homelab`).
+-   Kestra basic auth, PostgreSQL credentials, and object-store credentials are synced from Doppler (`home-dc-kubernetes/infra`).
 -   No secrets are committed to Git.
 -   External access is gated by Cloudflare Access before Kestra basic auth.
 -   Local storage is intentionally infra-cluster scoped; it should not be scheduled onto the app cluster.
