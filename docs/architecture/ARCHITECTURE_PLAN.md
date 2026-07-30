@@ -42,9 +42,9 @@ flowchart TD
 
 ## 🚧 Current Migration Direction
 
--   `project-homelab` becomes the main source of truth.
--   The old `home-argo-cluster-2025` repo stays intact during transition.
--   Argo CD will be repointed to `project-homelab`.
+-   `home-dc-kubernetes` is the active source of truth for the cluster.
+-   Argo CD targets this repository.
+-   The earlier migration toward `project-homelab` and the legacy `home-argo-cluster-2025` repo are historical; live cluster configuration is now owned and managed from this repo.
 -   The active Talos cluster is now modeled as three control-plane nodes only.
 -   Historical worker VMs remain infrastructure artifacts for rollback or later reuse, but are no longer part of the committed Talos node inventory.
 -   Former host-level Docker services are being retired or migrated into Kubernetes.
@@ -70,7 +70,7 @@ flowchart TD
 
 ## ↩️ Rollback
 
--   Repoint Argo CD back to `home-argo-cluster-2025`.
+-   Repoint Argo CD back to the previous repository if the current repository change has not been applied.
 -   Continue operating from the original repo because its state and files remain untouched.
 -   Restore any copied local-only runtime files from the old workspace if the new one is discarded.
 -   Reintroduce worker nodes by restoring them to `nodes.yaml`, regenerating `talos/app/talconfig.yaml`, and re-running Talos config generation.
