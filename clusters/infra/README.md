@@ -1,4 +1,4 @@
-# Infra Cluster
+# ☸️ Infra Cluster
 
 `infra-cluster` is the physical mini-PC Talos cluster.
 

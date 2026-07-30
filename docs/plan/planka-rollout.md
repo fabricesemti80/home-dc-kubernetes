@@ -1,6 +1,8 @@
-# Planka Decommission
+# 📋 Planka Decommission
 
-## Scope
+![📋 Planka Decommission](../img/plan-planka-rollout.svg)
+
+## 📌 Scope
 
 -   [x] Remove Planka from Argo CD desired state.
 -   [x] Remove Planka Kubernetes manifests from the repository.
@@ -10,13 +12,13 @@
 -   [x] Preserve live PVCs and Doppler secrets until data deletion is explicitly confirmed.
 -   [x] Add validation and rollback steps.
 
-## Non-Goals
+## 🚫 Non-Goals
 
 -   Do not delete live Planka PVCs.
 -   Do not delete Doppler Planka secrets.
 -   Do not create a replacement project-management app in this change.
 
-## Removed Desired State
+## 📌 Removed Desired State
 
 -   Argo CD app: `kubernetes/argo/apps/app-cluster/productivity/planka.yaml`
 -   App config: `kubernetes/apps/app-cluster/productivity/planka/`
@@ -24,27 +26,27 @@
 -   Cloudflare Access app key: `planka`
 -   Dashboard link: `Planka`
 
-## Secrets And Data
+## 🔐 Secrets And Data
 
 -   Keep existing Doppler Planka keys until the Planka data-retention decision is complete.
 -   Keep Planka PVCs until exported data and attachments are no longer needed.
 -   Delete Doppler keys only after confirming there is no rollback or export requirement.
 
-## Security Impact
+## 📌 Security Impact
 
 -   Removing the external route and Cloudflare Access entry reduces public exposure.
 -   Removing the internal route and local DNS entry reduces LAN-visible attack surface.
 -   Retained PVCs may still contain user data and should remain backup-sensitive.
 -   Retained Doppler secrets remain secret material and must not be committed.
 
-## Assumptions
+## 🤔 Assumptions
 
 -   Planka is no longer needed as an active service.
 -   Argo CD will prune resources for removed applications during sync.
 -   PVCs may remain in the cluster even after workload resources are removed.
 -   Cloudflare and local DNS Terraform state currently own the records being removed.
 
-## Validation
+## ✅ Validation
 
 -   [ ] `kubectl get application -n argo-system planka`
 -   [ ] `kubectl get deploy,statefulset,httproute -n productivity | rg planka`
@@ -53,7 +55,7 @@
 -   [ ] `task tf:cloudflare:plan`
 -   [ ] `dig +short planka.krapulax.home`
 
-## Rollback
+## ↩️ Rollback
 
 -   [ ] Restore `kubernetes/argo/apps/app-cluster/productivity/planka.yaml` from Git history.
 -   [ ] Restore `kubernetes/apps/app-cluster/productivity/planka/` from Git history.

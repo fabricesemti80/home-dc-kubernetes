@@ -1,8 +1,10 @@
-# Adding Applications
+# ➕ Adding Applications
+
+![➕ Adding Applications](../img/cluster-adding-applications.svg)
 
 This guide walks you through adding a new application to your Kubernetes cluster using GitOps with Argo CD.
 
-## Overview
+## 🗺️ Overview
 
 Applications in this repository are managed through Argo CD using a cluster-split directory layout:
 
@@ -13,9 +15,9 @@ Applications in this repository are managed through Argo CD using a cluster-spli
 
 Where `<cluster>` is either `app-cluster` or `infra-cluster`.
 
-## Step-by-Step Guide
+## 📌 Step-by-Step Guide
 
-### 1. Create the Application Directory
+### 📦 1. Create the Application Directory
 
 Create a new directory for your application under the target cluster folder:
 
@@ -29,7 +31,7 @@ Where:
 -   `<namespace>` is the Kubernetes namespace (e.g., `default`, `monitoring`, `media`)
 -   `<app>` is your application name (e.g., `echo`, `prometheus`, `vault`)
 
-### 2. Create Helm Values
+### 🔹 2. Create Helm Values
 
 Create a `values.yaml` file with your application configuration. Use the [app-template](https://github.com/bjw-s-labs/helm-charts/tree/main/charts/app-template) chart as a base:
 
@@ -84,11 +86,11 @@ service:
                 port: 8080
 ```
 
-### 3. Choose a Secret Source (Optional)
+### 🔐 3. Choose a Secret Source (Optional)
 
 For new apps, prefer Doppler via the Kubernetes operator when you only need runtime secrets in-cluster.
 
-#### Option A: Doppler Operator
+#### ▪️ Option A: Doppler Operator
 
 Create a `DopplerSecret` manifest and keep it in Git with the rest of the app:
 
@@ -123,7 +125,7 @@ env:
               key: MY_SECRET
 ```
 
-#### Option B: SOPS in Git
+#### ▪️ Option B: SOPS in Git
 
 If your application needs secrets, create a `values.sops.yaml` file:
 
@@ -155,7 +157,7 @@ sops --encrypt --age age1saea3t7l67lavg0ardepzys6egp50g82uvks98pk53xdlj57uf8sa2a
   kubernetes/apps/<cluster>/<namespace>/<app>/values.sops.yaml
 ```
 
-### 4. Create the Argo Application Manifest
+### 📦 4. Create the Argo Application Manifest
 
 Create `kubernetes/argo/apps/<cluster>/<namespace>/<app>.yaml`:
 
@@ -207,9 +209,9 @@ spec:
 
 For app-template v5, keep `global.createDefaultServiceAccount: false` unless the chart should create a Helm-managed ServiceAccount. Set `defaultPodOptions.automountServiceAccountToken: true` only for apps that need Kubernetes API access, and document the matching RBAC resources.
 
-### 5. Expose the Application (Optional)
+### 📦 5. Expose the Application (Optional)
 
-#### Internal Access Only
+#### ▪️ Internal Access Only
 
 To make the app accessible only within your network, create an HTTPRoute referencing the `envoy-internal` gateway:
 
@@ -235,7 +237,7 @@ spec:
                     value: /
 ```
 
-#### Public Access
+#### ▪️ Public Access
 
 To make the app publicly accessible via Cloudflare Tunnel, reference `envoy-external`:
 
@@ -263,7 +265,7 @@ spec:
 
 Add this HTTPRoute to your app's kustomization or include it in the Argo Application sources.
 
-### 6. Commit and Sync
+### 🔹 6. Commit and Sync
 
 ```sh
 git add -A
@@ -277,7 +279,7 @@ Argo CD will automatically detect the changes and deploy your application. To fo
 task reconcile
 ```
 
-## Example: Adding a Test Application
+## ➕ Example: Adding a Test Application
 
 Here's a complete example of adding a simple echo application:
 
@@ -291,14 +293,14 @@ mkdir -p kubernetes/apps/app-cluster/default/myapp
 # 5. Commit and push
 ```
 
-## Troubleshooting
+## 🚑 Troubleshooting
 
 -   **Application not syncing**: Run `argocd app list` to check status
 -   **Pod failing**: Check logs with `kubectl logs -n <namespace> <pod-name>`
 -   **Route not working**: Verify HTTPRoute is attached to the correct gateway
 -   **Secrets not decrypting**: Ensure you have the age key and sops is configured
 
-## Useful Commands
+## 📌 Useful Commands
 
 ```sh
 # List all applications

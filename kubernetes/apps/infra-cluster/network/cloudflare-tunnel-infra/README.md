@@ -1,4 +1,4 @@
-# Infra Cloudflare Tunnel
+# ☁️ Infra Cloudflare Tunnel
 
 This connector runs in `infra-cluster` and routes infra-owned public hostnames
 directly to local services.

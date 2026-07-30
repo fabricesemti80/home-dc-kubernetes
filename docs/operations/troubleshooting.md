@@ -1,8 +1,10 @@
 # 🔧 Troubleshooting
 
+![🔧 Troubleshooting](../img/operations-troubleshooting.svg)
+
 Common issues encountered during cluster bootstrap and their resolutions.
 
-## Helm 4 Post-Renderer Incompatibility
+## 📌 Helm 4 Post-Renderer Incompatibility
 
 **Symptom:**
 
@@ -16,7 +18,7 @@ Error: invalid argument "bash" for "--post-renderer" flag: plugin: {Name:bash Ty
 
 ---
 
-## Stuck Helm Releases (Another Operation in Progress)
+## 📌 Stuck Helm Releases (Another Operation in Progress)
 
 **Symptom:**
 
@@ -47,7 +49,7 @@ helm uninstall <release-name> -n <namespace> --no-hooks
 
 ---
 
-## Helm Release Timeout During Initial Bootstrap
+## 🥾 Helm Release Timeout During Initial Bootstrap
 
 **Symptom:**
 
@@ -84,7 +86,7 @@ After fixing, roll back any failed releases and re-run `task bootstrap:apps`.
 
 ---
 
-## Argo CD Server-Side Apply Conflict
+## 📌 Argo CD Server-Side Apply Conflict
 
 **Symptom:**
 
@@ -105,7 +107,7 @@ task bootstrap:apps
 
 ---
 
-## VIP (Virtual IP) Unreachable
+## 📌 VIP (Virtual IP) Unreachable
 
 **Symptom:**
 
@@ -133,7 +135,7 @@ talosctl -n 10.0.40.90 etcd members
 
 ---
 
-## CoreDNS CrashLoopBackOff — Wrong Container Image
+## 📌 CoreDNS CrashLoopBackOff — Wrong Container Image
 
 **Symptom:**
 
@@ -175,7 +177,7 @@ Then commit and push the values.yaml fix so ArgoCD keeps it in sync.
 
 ---
 
-## General Tips
+## 📌 General Tips
 
 -   **Always check release status first:** `helm list -A` shows the state of all releases.
 -   **Check pod status:** `kubectl get pods -A` gives a quick overview of what's running.

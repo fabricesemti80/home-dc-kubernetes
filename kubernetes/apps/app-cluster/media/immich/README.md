@@ -1,4 +1,4 @@
-# Immich Notes
+# 📸 Immich Notes
 
 This app is scaffolded for a non-destructive fresh rebuild from the legacy Docker Swarm Immich deployment.
 

@@ -1,13 +1,15 @@
-# Immich Migration
+# 📸 Immich Migration
 
-## Objective
+![📸 Immich Migration](../img/architecture-immich-migration.svg)
+
+## 🎯 Objective
 
 Bring Immich from the legacy Docker Swarm environment into Kubernetes while preserving:
 
 -   the existing NFS-backed photo and video files
 -   the original Swarm source as a fallback until Kubernetes has been validated
 
-## Source Inventory
+## 📌 Source Inventory
 
 Legacy Dockerlab layout:
 
@@ -22,7 +24,7 @@ Legacy Dockerlab layout:
 -   ML model cache:
     -   `/mnt/cephfs/docker-shared-data/immich/model-cache`
 
-## Migration Strategy
+## 🚚 Migration Strategy
 
 Use a non-destructive fresh-rebuild migration:
 
@@ -31,7 +33,7 @@ Use a non-destructive fresh-rebuild migration:
 
 The old Swarm storage paths remain untouched. No source directories are deleted or repurposed as part of this migration.
 
-## Database Decision
+## 🗄️ Database Decision
 
 This plan intentionally does **not** preserve the old Immich database.
 
@@ -41,7 +43,7 @@ Implication:
 
 This is acceptable for the current migration because the priority is to keep the media files in place and to keep the old Swarm source available as fallback.
 
-## Kubernetes Target Shape
+## 📌 Kubernetes Target Shape
 
 -   Namespace:
     -   `media`
@@ -58,7 +60,7 @@ This is acceptable for the current migration because the priority is to keep the
     -   NFS `media-library-pvc` reused with subpaths for Immich media
     -   CephFS PVCs for PostgreSQL, Redis, and ML cache
 
-## Storage Model
+## 💾 Storage Model
 
 -   `/data`
     -   NFS `media-library-pvc`
@@ -74,7 +76,7 @@ This is acceptable for the current migration because the priority is to keep the
 -   Machine learning cache
     -   CephFS PVC
 
-## Cutover Model
+## 📌 Cutover Model
 
 Kubernetes Immich now serves the public `photos.krapulax.dev` hostname directly.
 It also exposes an internal gateway hostname at `photos.krapulax.home`.
@@ -84,13 +86,13 @@ After validation:
 1. stop or disconnect the Swarm Immich app
 2. switch the public hostname to the Kubernetes route
 
-## Assumptions
+## 🤔 Assumptions
 
 -   The NFS export still contains the legacy Immich directory at `/media/immich`
 -   The cluster can mount the same NFS library currently used by Jellyfin
 -   the old Swarm service can be left available as a fallback, but not on the same active hostname
 
-## Validation
+## ✅ Validation
 
 -   Kubernetes Immich app starts on `photos.krapulax.dev`
 -   internal access works on `photos.krapulax.home`
@@ -99,7 +101,7 @@ After validation:
 -   the external library path is visible to Immich at `/external-library`
 -   source Swarm stack remains untouched and can still be used as fallback
 
-## Rollback
+## ↩️ Rollback
 
 -   do not delete or modify the source Swarm stack storage
 -   remove the Kubernetes Immich app from Argo if deployed

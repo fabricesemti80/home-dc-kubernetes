@@ -1,4 +1,4 @@
-# Infra Cluster Talos
+# ☸️ Infra Cluster Talos
 
 `infra-cluster` is generated outside Git into `.private/infra-cluster/`.
 

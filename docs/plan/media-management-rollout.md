@@ -1,13 +1,15 @@
-# Media Management Rollout
+# 🎬 Media Management Rollout
 
-## Phase 1
+![🎬 Media Management Rollout](../img/plan-media-management-rollout.svg)
+
+## 📌 Phase 1
 
 -   [x] Decide to reuse the `media` namespace for management services
 -   [x] Choose `sabnzbd` instead of `nzbget` for the first downloader rollout
 -   [x] Keep NFS for media paths and CephFS for app configs
 -   [x] Defer cross-app API-key automation until base services are stable
 
-## Implementation
+## 📌 Implementation
 
 -   [x] Add architecture notes for the media-management stack
 -   [x] Scaffold `sabnzbd` application manifests
@@ -20,7 +22,7 @@
 -   [x] Add Argo CD applications for the first services
 -   [ ] Sync Argo CD and verify workloads become healthy
 
-## Operator Steps
+## 📌 Operator Steps
 
 -   [ ] Confirm `/media/downloads/complete` exists on the NFS server
 -   [ ] Confirm `/media/downloads/incomplete` exists on the NFS server
@@ -43,7 +45,7 @@
 -   [ ] Open `https://requests.krapulax.dev`
 -   [ ] Connect Jellyseerr to Jellyfin, Sonarr, and Radarr
 
-## Validation
+## ✅ Validation
 
 -   [ ] `kubectl get pods -n media`
 -   [ ] `kubectl get pvc -n media`
@@ -64,6 +66,6 @@
 -   [ ] `curl -I https://requests.krapulax.dev/`
 -   [ ] `kubectl logs -n media deploy/recyclarr --tail=100`
 
-## Follow-Up
+## 📌 Follow-Up
 
 -   [ ] Design and implement API-key bootstrap automation

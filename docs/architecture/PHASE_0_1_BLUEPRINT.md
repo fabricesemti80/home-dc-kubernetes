@@ -1,10 +1,12 @@
-# Phase 0/1 Implementation Blueprint
+# 🏗️ Phase 0/1 Implementation Blueprint
 
-## Objective
+![🏗️ Phase 0/1 Implementation Blueprint](../img/architecture-phase-0-1-blueprint.svg)
+
+## 🎯 Objective
 
 Deliver a bootstrapped Talos Kubernetes cluster on Proxmox with private-only Tailscale access and GitOps baseline ready for Phase 2.
 
-## 1) Current VM matrix
+## 📌 1) Current VM matrix
 
 | Node        | Role          |  Target IP | VMID | vCPU |    RAM | OS Disk | Data Disk |
 | ----------- | ------------- | ---------: | ---: | ---: | -----: | ------: | --------: |
@@ -16,12 +18,12 @@ The current steady state favors control planes only. Historical worker VMs may r
 
 The control-plane sizing is intentionally increased to absorb ingress, storage, observability, and media-management workloads while the cluster continues to operate without active worker nodes.
 
-## 2) Placement strategy
+## 🧠 2) Placement strategy
 
 -   Place each control-plane VM on a different Proxmox node.
 -   Enable restart-on-boot and HA policy where available.
 
-## 3) Bootstrap order
+## 🥾 3) Bootstrap order
 
 1. Apply the cluster OpenTofu stack and power on the control planes.
 2. Generate Talos machine configs.
@@ -34,7 +36,7 @@ The control-plane sizing is intentionally increased to absorb ingress, storage, 
 9. Validate Ceph CSI and storage workloads.
 10. Validate observability baseline.
 
-## 4) Repository layout proposal
+## 📌 4) Repository layout proposal
 
 ```text
 infra/terraform_proxmox/     # Proxmox VMs and Talos cluster infrastructure
@@ -45,7 +47,7 @@ kubernetes/             # Argo apps and cluster manifests
 bootstrap/              # Helmfile-based cluster bootstrap
 ```
 
-## 5) Mise task skeleton (planned)
+## 📝 5) Mise task skeleton (planned)
 
 -   `task validate`
 -   `task infra:provision`
@@ -58,7 +60,7 @@ bootstrap/              # Helmfile-based cluster bootstrap
 -   `task platform:observability`
 -   `task verify:cluster`
 
-## 6) Exit criteria for Phase 1
+## 📌 6) Exit criteria for Phase 1
 
 -   Kubernetes API reachable privately.
 -   Control plane healthy and routable.

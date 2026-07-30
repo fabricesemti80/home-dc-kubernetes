@@ -1,4 +1,6 @@
-# Secret Strategy
+# 🔐 Secret Strategy
+
+![🔐 Secret Strategy](../img/cluster-secret-strategy.svg)
 
 This repository uses two secret layers:
 
@@ -9,7 +11,7 @@ Do not move bootstrap secrets into Doppler or another in-cluster operator. If th
 operator is unavailable during rebuild, those secrets must still be available
 from Git plus the local age key.
 
-## Bootstrap Setup
+## 🥾 Bootstrap Setup
 
 Run this from a fresh checkout before building or rebuilding the clusters:
 
@@ -29,7 +31,7 @@ The validator checks:
 
 It never prints decrypted secret values.
 
-### Age Key
+### 🔹 Age Key
 
 The age private key is local-only:
 
@@ -55,9 +57,9 @@ task secrets:validate-bootstrap
 Back up `age.key` in the primary human password manager. Losing it means the
 encrypted bootstrap material in Git cannot be recovered.
 
-## SOPS Inventory
+## 📌 SOPS Inventory
 
-### Must Remain In SOPS
+### 🔹 Must Remain In SOPS
 
 These are needed before or during cluster bootstrap:
 
@@ -77,7 +79,7 @@ These are needed before or during cluster bootstrap:
 If Doppler is replaced by another operator, the two Doppler token secrets should
 be replaced by the equivalent bootstrap token/credentials for that operator.
 
-### Candidates To Move Out Of SOPS
+### 🔹 Candidates To Move Out Of SOPS
 
 These are not required to create the cluster and can move to Doppler or another
 external secret manager later:
@@ -93,7 +95,7 @@ external secret manager later:
 
 Move these only after the Doppler project split has proven stable.
 
-## Doppler Target Layout
+## 📌 Doppler Target Layout
 
 The current desired Doppler project is:
 
@@ -136,9 +138,9 @@ Then verify:
 task secrets:validate-bootstrap
 ```
 
-## Doppler Inventory
+## 📌 Doppler Inventory
 
-### App Cluster
+### ☸️ App Cluster
 
 | Managed Secret               | Namespace      | Keys                                                                        |
 | ---------------------------- | -------------- | --------------------------------------------------------------------------- |
@@ -151,7 +153,7 @@ task secrets:validate-bootstrap
 | `linkwarden-secrets`         | `productivity` | `DATABASE_URL`, `NEXTAUTH_URL`, `NEXTAUTH_SECRET`, `LINKWARDEN_DB_PASSWORD` |
 | `n8n-secrets`                | `productivity` | `N8N_ENCRYPTION_KEY`                                                        |
 
-### Infra Cluster
+### ☸️ Infra Cluster
 
 | Managed Secret                   | Namespace    | Keys                                                                                  |
 | -------------------------------- | ------------ | ------------------------------------------------------------------------------------- |
@@ -165,7 +167,7 @@ task secrets:validate-bootstrap
 | `cloudflare-tunnel-infra-secret` | `network`    | `TUNNEL_TOKEN_INFRA` as `TUNNEL_TOKEN`                                                |
 | `operator-oauth`                 | `tailscale`  | `TAILSCALE_OAUTH_CLIENT_ID`, `TAILSCALE_OAUTH_CLIENT_SECRET`                          |
 
-## Canary Migration Plan
+## 🚚 Canary Migration Plan
 
 Canary PR:
 
@@ -197,7 +199,7 @@ Rollback:
 2. Restore the previous Doppler operator service tokens in SOPS if they were rotated.
 3. Confirm both `DopplerSecret` resources return to `project-homelab/dev_homelab`.
 
-## Full Migration Plan
+## 🚚 Full Migration Plan
 
 After the canary has synced and stayed healthy:
 
@@ -215,7 +217,7 @@ task secrets:validate-bootstrap
 task clusters:status
 ```
 
-## 1Password Operator Assessment
+## 📊 1Password Operator Assessment
 
 1Password remains a viable future target because it is the primary human secret
 manager. It is not a no-risk drop-in replacement for this repo yet:

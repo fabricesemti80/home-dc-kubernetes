@@ -1,8 +1,10 @@
-# n8n Deployment
+# 🤖 n8n Deployment
+
+![🤖 n8n Deployment](../img/architecture-n8n-deployment.svg)
 
 Deploys [n8n](https://n8n.io/) — a workflow automation platform — to the Talos Kubernetes cluster.
 
-## Architecture
+## 🏛️ Architecture
 
 -   **Namespace:** `productivity`
 -   **Chart:** `bjw-s-labs/app-template` (v5.0.1)
@@ -10,7 +12,7 @@ Deploys [n8n](https://n8n.io/) — a workflow automation platform — to the Tal
 -   **Database:** SQLite (embedded, stored on CephFS PVC)
 -   **Replicas:** 1 (stateful — SQLite doesn't support multi-replica)
 
-## Networking
+## 📌 Networking
 
 | Route    | Hostname            | Purpose                               |
 | -------- | ------------------- | ------------------------------------- |
@@ -20,21 +22,21 @@ Deploys [n8n](https://n8n.io/) — a workflow automation platform — to the Tal
 -   **Authentication:** Cloudflare Access (email-based, 24h session, auto-redirect)
 -   **Webhook bypass:** Two Cloudflare Access Applications bypass auth for `/webhook` and `/webhook-test` paths so external services can trigger workflows.
 
-## Storage
+## 💾 Storage
 
 -   **5Gi CephFS PVC** at `/home/node/.n8n` — holds SQLite DB, execution data, and n8n config.
 -   Ephemeral storage limit of 2Gi for temp data.
 
-## Secrets
+## 🔐 Secrets
 
 -   `N8N_ENCRYPTION_KEY` synced from Doppler (`home-dc-kubernetes/apps`) via `DopplerSecret` CRD.
 
-## Scalability & Limitations
+## 📌 Scalability & Limitations
 
 -   Single-replica only (SQLite backend). Scaling to HA requires migrating to PostgreSQL.
 -   Execution data pruned after 168h (7 days) to keep PVC usage bounded.
 
-## Rollback
+## ↩️ Rollback
 
 1. `gh pr revert <pr-number>` or `git revert <commit-hash>`
 2. Remove `n8n` from `dns_apps` and `zero_trust_apps` in `infra/terraform_cloudflare/variables.tf`
@@ -43,7 +45,7 @@ Deploys [n8n](https://n8n.io/) — a workflow automation platform — to the Tal
 5. Run `terraform apply` on both Cloudflare and localdns dirs
 6. Delete the `n8n` Application from ArgoCD (Argo will clean up the namespace resources)
 
-## Validation
+## ✅ Validation
 
 1. Verify pod is `Running` and ready: `kubectl -n productivity get pods -l app.kubernetes.io/name=n8n`
 2. Check HTTPRoute is accepted: `kubectl -n productivity get httproutes n8n`

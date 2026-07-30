@@ -1,8 +1,10 @@
-# App Catalog
+# 📚 App Catalog
+
+![📚 App Catalog](../img/cluster-app-catalog.svg)
 
 This document provides an index of all applications deployed in the Kubernetes cluster.
 
-## Cluster Overview
+## ☸️ Cluster Overview
 
 | Namespace               | App Count | Description                                             |
 | ----------------------- | --------- | ------------------------------------------------------- |
@@ -19,9 +21,9 @@ This document provides an index of all applications deployed in the Kubernetes c
 
 ---
 
-## Applications by Namespace
+## 📦 Applications by Namespace
 
-### media
+### 🎬 media
 
 | App         | Type             | Image                            | Port | Domain                   | Notes                    |
 | ----------- | ---------------- | -------------------------------- | ---- | ------------------------ | ------------------------ |
@@ -36,7 +38,7 @@ This document provides an index of all applications deployed in the Kubernetes c
 | recyclarr   | Sync Tool        | ghcr.io/recyclarr/recyclarr      | -    | -                        | Aria2/Radarr sync (cron) |
 | tdarr       | Transcoder       | ghcr.io/haveagitgat/tdarr        | 8265 | tdarr.krapulax.dev       | Media transcode checks   |
 
-### productivity
+### 🔹 productivity
 
 | App          | Type             | Image                                | Port | Domain                  | Notes                             |
 | ------------ | ---------------- | ------------------------------------ | ---- | ----------------------- | --------------------------------- |
@@ -44,13 +46,13 @@ This document provides an index of all applications deployed in the Kubernetes c
 | linkwarden   | Bookmark Manager | ghcr.io/linkwarden/linkwarden        | 3000 | linkwarden.krapulax.dev | Self-hosted bookmark manager      |
 | sterling-pdf | PDF Tools        | docker.io/stirlingtools/stirling-pdf | 8080 | pdf.krapulax.dev        | PDF editor and manipulation tool  |
 
-### monitoring
+### 📊 monitoring
 
 | App                   | Type       | Image                    | Port      | Domain               | Notes                |
 | --------------------- | ---------- | ------------------------ | --------- | -------------------- | -------------------- |
 | kube-prometheus-stack | Monitoring | prom/prometheus-operator | 9090/3000 | grafana.krapulax.dev | Prometheus + Grafana |
 
-### network
+### 🔹 network
 
 | App               | Type           | Image                     | Port | Notes             |
 | ----------------- | -------------- | ------------------------- | ---- | ----------------- |
@@ -58,19 +60,19 @@ This document provides an index of all applications deployed in the Kubernetes c
 | cloudflare-tunnel | Tunnel         | cloudflare/cloudflared    | -    | Cloudflare Tunnel |
 | k8s-gateway       | Gateway        | projectsorted/k8s-gateway | -    | DNS discovery     |
 
-### web
+### 🔹 web
 
 | App    | Type      | Image                    | Port | Domain              | Notes          |
 | ------ | --------- | ------------------------ | ---- | ------------------- | -------------- |
 | glance | Dashboard | ghcr.io/glanceapp/glance | 8080 | glance.krapulax.dev | Home dashboard |
 
-### argo-system
+### 🔹 argo-system
 
 | App     | Type   | Image            | Port | Domain            | Notes             |
 | ------- | ------ | ---------------- | ---- | ----------------- | ----------------- |
 | argo-cd | GitOps | argoproj/argo-cd | 8080 | argo.krapulax.dev | GitOps controller |
 
-### kube-system
+### 🔹 kube-system
 
 | App            | Type            | Image                          | Notes |
 | -------------- | --------------- | ------------------------------ | ----- |
@@ -80,19 +82,19 @@ This document provides an index of all applications deployed in the Kubernetes c
 | metrics-server | Metrics         | registry.k8s.io/metrics-server |
 | spegel         | Mirror          | ghcr.io/spegel/spegel          |
 
-### default
+### 🔹 default
 
 | App  | Type | Image               | Port | Domain            | Notes         |
 | ---- | ---- | ------------------- | ---- | ----------------- | ------------- |
 | echo | Test | hashicorp/http-echo | 5678 | echo.krapulax.dev | Test endpoint |
 
-### doppler-operator-system
+### 🔹 doppler-operator-system
 
 | App              | Type    | Image                                       | Notes            |
 | ---------------- | ------- | ------------------------------------------- | ---------------- |
 | doppler-operator | Secrets | mirror.gcr.io/dopplerhq/kubernetes-operator | Doppler operator |
 
-### infra-cluster
+### ☸️ infra-cluster
 
 Argo CD on `app-cluster` also deploys these `infra-cluster` workloads:
 
@@ -104,13 +106,13 @@ Argo CD on `app-cluster` also deploys these `infra-cluster` workloads:
 
 ---
 
-## Image Summary
+## 📝 Image Summary
 
-### LinuxServer.io (lscr.io)
+### 🔹 LinuxServer.io (lscr.io)
 
 -   jellyfin, jellyseerr, sonarr, radarr, prowlarr, qbittorrent, sabnzbd
 
-### GHCR.IO
+### 🔹 GHCR.IO
 
 -   coder/code-server
 -   immich-app/immich-server, immich-app/immich-machine-learning
@@ -119,11 +121,11 @@ Argo CD on `app-cluster` also deploys these `infra-cluster` workloads:
 -   recyclarr/recyclarr
 -   spegel/spegel
 
-### Docker Hub
+### 🐳 Docker Hub
 
 -   stirlingtools/stirling-pdf
 
-### Official
+### 🔹 Official
 
 -   argoproj/argo-cd, bitnami/k8s-sidecar, cloudflare/cloudflared, hashicorp/http-echo
 -   prom/prometheus-operator, stakater/reloader, cilium/cilium
@@ -131,6 +133,6 @@ Argo CD on `app-cluster` also deploys these `infra-cluster` workloads:
 
 ---
 
-## Adding New Apps
+## ➕ Adding New Apps
 
 See [Adding Applications](adding-applications.md) for the workflow.

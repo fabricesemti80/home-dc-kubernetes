@@ -1,12 +1,14 @@
-# Uptime Kuma and AutoKuma
+# ⏱️ Uptime Kuma and AutoKuma
 
-## Purpose
+![⏱️ Uptime Kuma and AutoKuma](../img/monitoring-uptime-kuma-autokuma.svg)
+
+## 📌 Purpose
 
 Uptime Kuma provides external availability checks, response-time history, certificate expiry visibility, and status pages for services exposed under `*.krapulax.dev`.
 
 AutoKuma makes the monitor inventory declarative. Public Kubernetes HTTPRoutes are scanned by a repository generator, a GitHub Action commits the generated monitor ConfigMap to the pull-request branch, Argo CD deploys it, and AutoKuma reconciles the definitions into Uptime Kuma.
 
-## Architecture
+## 🏛️ Architecture
 
 ```text
 Kubernetes HTTPRoutes
@@ -31,7 +33,7 @@ Uptime Kuma and AutoKuma run as separate controllers in the same app-template He
 
 The UI is exposed at `https://uptime.krapulax.dev` through the infra-cluster Cloudflare Tunnel.
 
-## Automatic monitor generation
+## 📌 Automatic monitor generation
 
 The generated output is:
 
@@ -72,7 +74,7 @@ The generator:
 
 Each generated monitor uses HTTPS, a 60-second interval, and three retries.
 
-## Adding or removing monitoring
+## ➕ Adding or removing monitoring
 
 A public service becomes monitored by adding or changing its public `HTTPRoute` in a pull request. No separate monitor-maintenance step is required.
 
@@ -88,7 +90,7 @@ metadata:
 
 The generator also contains a small set of hostname-based display-name overrides for names such as Argo CD, qBittorrent, SABnzbd, and Stirling PDF.
 
-## Reconciliation flow
+## 📌 Reconciliation flow
 
 1. The GitHub Action keeps the committed monitor inventory synchronized with public routes.
 2. Argo CD synchronizes the generated ConfigMap.
@@ -99,7 +101,7 @@ The generator also contains a small set of hostname-based display-name overrides
 
 Do not manually edit an AutoKuma-managed monitor in the Uptime Kuma UI. A later reconciliation may overwrite the change.
 
-## Credentials
+## 📌 Credentials
 
 AutoKuma authenticates with the `uptime-kuma-credentials` Kubernetes Secret. The Doppler operator populates it from `home-dc-kubernetes` / `infra` using:
 
@@ -110,7 +112,7 @@ UPTIME_KUMA_PASSWORD
 
 The initial Uptime Kuma administrator account must use the same credentials.
 
-## Scope and limitations
+## 📌 Scope and limitations
 
 The generator intentionally includes only repository-managed public HTTPS routes under `*.krapulax.dev`.
 
@@ -125,9 +127,9 @@ An HTTP monitor validates the full user-visible path: public DNS, Cloudflare, th
 
 Some authenticated applications may return redirects, 401, or 403 responses. Those services may need a dedicated health path or an explicit AutoKuma override in a future extension. The generated inventory currently uses the standard HTTP monitor defaults.
 
-## Troubleshooting
+## 🚑 Troubleshooting
 
-### The workflow did not update the inventory
+### 🔹 The workflow did not update the inventory
 
 Check the `Generate AutoKuma Monitors` workflow run for the pull request. Confirm that:
 
@@ -146,7 +148,7 @@ For a local fallback, run:
 task monitoring:generate-autokuma
 ```
 
-### Monitor does not appear
+### 🔹 Monitor does not appear
 
 Check that:
 
@@ -157,7 +159,7 @@ Check that:
 -   AutoKuma can authenticate to Uptime Kuma;
 -   AutoKuma logs contain no JSON parsing or API errors.
 
-### Monitor is down but the pod is healthy
+### 🔹 Monitor is down but the pod is healthy
 
 Verify in order:
 
@@ -167,6 +169,6 @@ Verify in order:
 4. Kubernetes Service and endpoints;
 5. application response or authentication behaviour.
 
-### Cloudflare error 1033
+### ☁️ Cloudflare error 1033
 
 Error 1033 normally indicates that the hostname resolves to a tunnel that is not connected or does not own that hostname. Application services should resolve through the apps-cluster endpoint, while infra services should resolve through the infra-cluster endpoint.

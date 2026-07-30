@@ -1,6 +1,8 @@
-# Implementation Decisions
+# ⚖️ Implementation Decisions
 
-## Confirmed
+![⚖️ Implementation Decisions](../img/architecture-implementation-decisions.svg)
+
+## 📌 Confirmed
 
 -   Network: VLAN30 (`10.0.30.0/24`).
 -   Access model: Tailscale for both node-level and subnet routing scenarios.
@@ -12,9 +14,9 @@
 -   Cluster relocation: keep the old `home-argo-cluster-2025` repo intact, but operate the migrated cluster directly from the `project-homelab` repo root with local state copied over.
 -   Worker handling during cutover: keep worker VMs represented in Terraform state, but allow them to remain provisioned and powered off by using per-node `started = false`.
 
-## Active Decisions
+## ⚖️ Active Decisions
 
-### Multi-replica control-plane and edge services
+### 📝 Multi-replica control-plane and edge services
 
 Decision:
 
@@ -42,7 +44,7 @@ Rollback:
 -   Reduce the replica counts back to `1` for the three scaled workloads if resource pressure, chart behavior, or failover behavior is not acceptable.
 -   Keep `cloudflare-dns` at a single replica until its deployed version gains a supported leader-election path.
 
-### Productivity namespace and Linkwarden deployment
+### 🔖 Productivity namespace and Linkwarden deployment
 
 Decision:
 
@@ -80,7 +82,7 @@ Rollback:
 -   Remove the Doppler-managed Linkwarden secrets after the application is decommissioned.
 -   Keep the CephFS PVCs intact until data export or cleanup is explicitly confirmed.
 
-### Linkwarden Renovate hold
+### 🔖 Linkwarden Renovate hold
 
 Decision:
 
@@ -100,7 +102,7 @@ Rollback:
 
 -   Remove the Linkwarden-specific package rule from `.renovaterc.json5` after a newer image is manually tested and rolled out successfully.
 
-### App rollout fixes for July 2026 image updates
+### 🚀 App rollout fixes for July 2026 image updates
 
 Decision:
 
@@ -128,7 +130,7 @@ Rollback:
 -   Revert the strategy and startup install changes if the updated images still fail after investigation.
 -   Pin the affected image only after collecting pod logs and events for the failing rollout.
 
-### Monitoring Slack notifications via Alertmanager
+### 📊 Monitoring Slack notifications via Alertmanager
 
 Decision:
 
@@ -158,7 +160,7 @@ Rollback:
 -   Remove the Slack route and receiver from the kube-prometheus-stack values file if notifications behave unexpectedly.
 -   Remove the Doppler-managed `alertmanager-slack-webhook` secret if Alertmanager Slack notifications are rolled back entirely.
 
-### Homepage dashboard deployment
+### 🏠 Homepage dashboard deployment
 
 Decision:
 
@@ -194,7 +196,7 @@ Rollback:
 -   Remove Homepage-specific `gethomepage.dev/*` annotations from `HTTPRoute` objects if discovery behavior is not acceptable.
 -   Remove any Doppler-managed Homepage widget secrets if API-backed widgets are rolled back.
 
-### Termix internal admin access
+### 📟 Termix internal admin access
 
 Decision:
 
@@ -235,7 +237,7 @@ Rollback:
 -   Remove the Termix DopplerSecret manifest if OIDC secrets were synced.
 -   Keep the Termix PVC until saved credentials, generated encryption material, and any exported host data have been backed up or intentionally destroyed.
 
-### Planka productivity decommission
+### 📋 Planka productivity decommission
 
 Decision:
 
@@ -268,7 +270,7 @@ Rollback:
 -   Re-apply local DNS and Cloudflare Terraform plans.
 -   Reuse preserved PVCs and Doppler secrets if they were intentionally retained.
 
-### Browser IDE for cluster administration
+### ☸️ Browser IDE for cluster administration
 
 Decision:
 
@@ -309,7 +311,7 @@ Rollback:
 -   Keep the `/root` and `/workspace` PVCs until checked-out repositories and auth state have been exported or intentionally destroyed.
 -   Recreate the Planka `HTTPRoute` objects from Git history only if Planka is restored.
 
-### Talos VM disk capacity increase
+### 🔶 Talos VM disk capacity increase
 
 Decision:
 
@@ -335,7 +337,7 @@ Rollback:
 -   Do not attempt to shrink disks in place from Terraform; rollback is operational, not declarative.
 -   If a node fails after expansion, recover it from Proxmox backup or rebuild it with the prior known-good configuration.
 
-### Talos worker VM boot policy
+### 🔶 Talos worker VM boot policy
 
 Decision:
 
@@ -361,7 +363,7 @@ Rollback:
 -   Set `on_boot = true` on selected worker entries in `infra/terraform_proxmox/nodes.auto.tfvars` if workers should start with Proxmox again.
 -   Set worker `started = true` only when intentionally reintroducing them as active cluster capacity.
 
-### Talos etcd stability on existing storage
+### ⚙️ Talos etcd stability on existing storage
 
 Decision:
 
@@ -414,7 +416,7 @@ Optional host recommendation:
 
 -   If Talos-only mitigation is insufficient, evaluate lower-latency storage for control-plane VM disks or dedicated workers to reduce I/O contention. This is outside the scope of this decision and must not be applied through this change.
 
-### Kubernetes local DNS in UniFi
+### 🔹 Kubernetes local DNS in UniFi
 
 Decision:
 
@@ -455,7 +457,7 @@ Rollback:
 -   Remove the localdns resources from `infra/terraform_localdns/` and return ownership to `/Users/fs/Documents/repositories/terraform/homelab-terraform-unifi` only if UniFi DNS ownership needs to move back.
 -   If state was moved, move the relevant `unifi_dns_record.*` addresses back before applying the old UniFi repo.
 
-### Doppler operator on infra-cluster
+### ☸️ Doppler operator on infra-cluster
 
 Decision:
 
@@ -483,7 +485,7 @@ Rollback:
 -   Delete the Argo Application `doppler-operator-infra` to remove the operator from `infra-cluster`.
 -   Remove any `DopplerSecret` resources and their managed Kubernetes secrets from `infra-cluster` if the operator is rolled back.
 
-### Pulse monitoring on infra-cluster
+### ☸️ Pulse monitoring on infra-cluster
 
 Decision:
 
@@ -511,7 +513,7 @@ Rollback:
 -   Delete the Argo Application `pulse-infra` to remove Pulse from `infra-cluster`.
 -   Remove the `PULSE_AUTH_USER` and `PULSE_AUTH_PASS` secrets from Doppler if they are no longer needed.
 
-### Pulse app-cluster agent removal
+### ☸️ Pulse app-cluster agent removal
 
 Decision:
 
@@ -537,7 +539,7 @@ Rollback:
 -   Re-sync the app-of-apps or apply the restored Application.
 -   Remove stale app-cluster agent entries from Pulse only if they do not disappear after the agent is removed.
 
-## Pending final user confirmation
+## 📌 Pending final user confirmation
 
 -   Initial 5 application services to onboard after platform baseline.
 -   RPO/RTO tier definitions for critical services.

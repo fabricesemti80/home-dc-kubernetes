@@ -1,8 +1,10 @@
-# Domain Configuration
+# ⚙️ Domain Configuration
+
+![⚙️ Domain Configuration](../img/cluster-domains.svg)
 
 Centralized documentation for external and internal DNS hostnames in the cluster.
 
-## Base Domains
+## 🌐 Base Domains
 
 | Domain                        | Target                    | Description                                          |
 | ----------------------------- | ------------------------- | ---------------------------------------------------- |
@@ -14,7 +16,7 @@ Centralized documentation for external and internal DNS hostnames in the cluster
 | `kubernetes.krapulax.home`    | `10.0.40.102`             | Internal gateway target                              |
 | `kestra.krapulax.home`        | `10.0.40.106`             | Infra-cluster internal Kestra                        |
 
-## External endpoint migration
+## 🚚 External endpoint migration
 
 The target architecture contains only two public cluster endpoints:
 
@@ -28,21 +30,21 @@ The migration from `external.krapulax.dev` is complete:
 3. `external.krapulax.dev` is not published as a Cloudflare DNS record.
 4. service records do not point directly at `*.cfargotunnel.com` tunnel IDs.
 
-## Application Hostnames
+## 📦 Application Hostnames
 
-### Argo CD
+### 🔹 Argo CD
 
 -   **URL:** `https://argo.krapulax.dev`
 -   **Config:** `kubernetes/apps/app-cluster/argo-system/argo-cd/config/http-route.yaml`
 
-### Productivity
+### 🔹 Productivity
 
 | App        | Hostname                  | Config                                                                       |
 | ---------- | ------------------------- | ---------------------------------------------------------------------------- |
 | Linkwarden | `linkwarden.krapulax.dev` | `kubernetes/apps/app-cluster/productivity/linkwarden/config/http-route.yaml` |
 | ConvertX   | `convertx.krapulax.dev`   | `kubernetes/apps/app-cluster/productivity/convertx/config/http-route.yaml`   |
 
-### Media
+### 🎬 Media
 
 | App         | Hostname                   | Config                                                                 |
 | ----------- | -------------------------- | ---------------------------------------------------------------------- |
@@ -56,7 +58,7 @@ The migration from `external.krapulax.dev` is complete:
 | Tdarr       | `tdarr.krapulax.dev`       | `kubernetes/apps/app-cluster/media/tdarr/config/http-route.yaml`       |
 | Immich      | `photos.krapulax.dev`      | `kubernetes/apps/app-cluster/media/immich/config/http-route.yaml`      |
 
-### Monitoring
+### 📊 Monitoring
 
 | App          | Hostname                    | Cluster | Config                                                                                |
 | ------------ | --------------------------- | ------- | ------------------------------------------------------------------------------------- |
@@ -65,26 +67,26 @@ The migration from `external.krapulax.dev` is complete:
 | Pulse        | `pulse.krapulax.dev`        | infra   | `kubernetes/apps/infra-cluster/monitoring/pulse-infra/config/http-route.yaml`         |
 | Uptime Kuma  | `uptime.krapulax.dev`       | infra   | `kubernetes/apps/infra-cluster/monitoring/uptime-kuma-infra/config/http-route.yaml`   |
 
-### Automation
+### 🔹 Automation
 
 | App    | Hostname                                      | Cluster | Config                                                                                                                                                                                                                                                     |
 | ------ | --------------------------------------------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Kestra | `kestra.krapulax.dev`, `kestra.krapulax.home` | infra   | `kubernetes/apps/app-cluster/network/cloudflare-tunnel/config/kestra-dnsendpoint.yaml`, `kubernetes/apps/infra-cluster/automation/kestra-infra/config/http-route.yaml`, `kubernetes/apps/infra-cluster/network/cloudflare-tunnel-infra/config/config.yaml` |
 
-### Web
+### 🔹 Web
 
 | App    | Hostname              | Config                                                          |
 | ------ | --------------------- | --------------------------------------------------------------- |
 | Glance | `glance.krapulax.dev` | `kubernetes/apps/app-cluster/web/glance/config/http-route.yaml` |
 | Echo   | `echo.krapulax.dev`   | `kubernetes/apps/app-cluster/default/echo/values.sops.yaml`     |
 
-## Deprecated / Inactive
+## 📌 Deprecated / Inactive
 
 -   `plex.krapulax.net` - External Plex server (not in this repo)
 -   `nginx-test.krapulax.dev` - Test endpoint
 -   `traefik.krapulax.dev` - Unused
 
-## Notes
+## 📝 Notes
 
 -   External `krapulax.dev` records are managed by the app-cluster ExternalDNS deployment.
 -   Public infra service records target `external-infra.krapulax.dev`; only `external-infra.krapulax.dev` points at the infra tunnel ID.

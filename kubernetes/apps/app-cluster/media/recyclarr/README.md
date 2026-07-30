@@ -1,4 +1,4 @@
-# Recyclarr Notes
+# ♻️ Recyclarr Notes
 
 Recyclarr syncs TRaSH-style quality settings into Sonarr and Radarr.
 

@@ -1,10 +1,12 @@
-# CephFS Storage Setup Guide
+# 💾 CephFS Storage Setup Guide
 
-## Architecture Overview
+![💾 CephFS Storage Setup Guide](../img/storage-overview.svg)
+
+## 🏛️ Architecture Overview
 
 This Kubernetes cluster uses **CephFS** storage provisioned from a **Ceph cluster running on Proxmox hypervisors**. The setup provides persistent storage for Kubernetes workloads via the **Ceph-CSI driver**.
 
-### Components
+### 🔹 Components
 
 -   **Ceph Cluster**: Running on Proxmox nodes (pve-0, pve-1, pve-2) at 10.0.70.x
 -   **CephFS Filesystem**: `cephfs-vm` for Kubernetes storage
@@ -14,16 +16,16 @@ This Kubernetes cluster uses **CephFS** storage provisioned from a **Ceph cluste
 
 ---
 
-## Prerequisites
+## 📋 Prerequisites
 
-### On Ceph Cluster (Proxmox)
+### ☸️ On Ceph Cluster (Proxmox)
 
 1. **Ceph version 19.2.3 (Squid)** or compatible
 2. **CephFS filesystem created**: `cephfs-vm`
 3. **CephFS subvolume group**: `csi` (for Kubernetes CSI driver)
 4. **Ceph admin credentials**: Available in `/etc/pve/priv/ceph.client.admin.keyring`
 
-### On Kubernetes Cluster
+### ☸️ On Kubernetes Cluster
 
 1. **Ceph-CSI Helm chart deployed** (v3.12.3)
 2. **Secret `csi-cephfs-secret`** in `kube-system` namespace
@@ -32,9 +34,9 @@ This Kubernetes cluster uses **CephFS** storage provisioned from a **Ceph cluste
 
 ---
 
-## Setup Instructions
+## 📌 Setup Instructions
 
-### Step 1: Create CephFS Subvolume Group (Proxmox)
+### 🔹 Step 1: Create CephFS Subvolume Group (Proxmox)
 
 SSH to any Proxmox node (pve-0, pve-1, or pve-2):
 
@@ -51,7 +53,7 @@ ceph fs subvolume-group ls cephfs-vm
 
 Expected output should show `csi` in the list.
 
-### Step 2: Deploy Ceph-CSI Helm Chart
+### 🔹 Step 2: Deploy Ceph-CSI Helm Chart
 
 The helm chart is deployed via ArgoCD application `ceph-csi` to the `storage` namespace.
 
@@ -62,7 +64,7 @@ kubectl get pod -n storage -l app=ceph-csi-ceph-csi-cephfs-provisioner
 kubectl get pod -n storage -l app=ceph-csi-ceph-csi-cephfs-nodeplugin
 ```
 
-### Step 3: Create Secret with Ceph Credentials
+### 🔐 Step 3: Create Secret with Ceph Credentials
 
 The secret is generated from **Doppler** during `task configure`:
 
@@ -86,7 +88,7 @@ sops -d kubernetes/apps/app-cluster/kube-system/ceph-csi/secret.sops.yaml | kube
 kubectl get secret csi-cephfs-secret -n kube-system
 ```
 
-### Step 4: Create StorageClass
+### 💾 Step 4: Create StorageClass
 
 ```bash
 kubectl apply -f kubernetes/apps/app-cluster/storage/cephfs-sc.yaml
@@ -97,9 +99,9 @@ kubectl get storageclass cephfs
 
 ---
 
-## Creating Persistent Volumes
+## 📌 Creating Persistent Volumes
 
-### Using PVC with cephfs StorageClass
+### 💾 Using PVC with cephfs StorageClass
 
 ```yaml
 ---
@@ -126,9 +128,9 @@ kubectl describe pvc my-storage -n my-app
 
 ---
 
-## Troubleshooting
+## 🚑 Troubleshooting
 
-### PVC Stuck in Pending
+### 🔹 PVC Stuck in Pending
 
 **Check provisioner logs:**
 
@@ -153,7 +155,7 @@ ceph fs ls
 ceph fs subvolume-group ls cephfs-vm
 ```
 
-### Pod Not Starting
+### 🔹 Pod Not Starting
 
 If pod is pending even after PVC is bound, check pod events:
 
@@ -169,9 +171,9 @@ Common causes:
 
 ---
 
-## Monitoring
+## 📊 Monitoring
 
-### Check Ceph Health
+### 🔹 Check Ceph Health
 
 ```bash
 # From Proxmox:
@@ -180,7 +182,7 @@ ceph df
 ceph osd pool ls detail
 ```
 
-### Monitor CSI Provisioner
+### 🔹 Monitor CSI Provisioner
 
 ```bash
 # Watch for provisioning events
@@ -190,7 +192,7 @@ kubectl logs -n storage -f -l app=ceph-csi-ceph-csi-cephfs-provisioner -c csi-pr
 kubectl get pvc -n storage -w
 ```
 
-### Provisioner Replica Count
+### 🔹 Provisioner Replica Count
 
 The CephFS CSI provisioner intentionally runs as a single replica in this lab cluster. The control-plane nodes are schedulable and the API server is fronted by the Talos VIP, so a single provisioner avoids unnecessary leader-election traffic during API or etcd latency while retaining the node plugin on every control-plane node.
 
@@ -214,9 +216,9 @@ Rollback:
 
 ---
 
-## Automation
+## 📌 Automation
 
-### Ansible Deployment
+### 🚀 Ansible Deployment
 
 The Proxmox setup is automated via Ansible in `infra-ansible-home-proxmoxhosts`:
 
@@ -231,7 +233,7 @@ The playbook includes:
 2. MDS (Metadata Server) creation
 3. **CephFS subvolume group creation** for CSI
 
-### Kubernetes Deployment
+### 🚀 Kubernetes Deployment
 
 Kubernetes storage is managed via ArgoCD:
 
@@ -241,9 +243,9 @@ Kubernetes storage is managed via ArgoCD:
 
 ---
 
-## Testing
+## 📌 Testing
 
-### Deploy Test Workload
+### 🔹 Deploy Test Workload
 
 ```bash
 kubectl apply -k kubernetes/apps/app-cluster/storage/nginx-test/
@@ -260,9 +262,9 @@ kubectl exec -it -n storage <pod-name> -- df -h /usr/share/nginx/html
 
 ---
 
-## Maintenance
+## 📌 Maintenance
 
-### Expand PVC
+### 🔹 Expand PVC
 
 ```yaml
 apiVersion: v1
@@ -285,7 +287,7 @@ Apply the change:
 kubectl apply -f updated-pvc.yaml
 ```
 
-### Backup CephFS
+### 💾 Backup CephFS
 
 CephFS backups are handled by Proxmox backup jobs (configured in Ansible).
 
@@ -304,7 +306,7 @@ ceph fs subvolume snapshot rm cephfs-vm csi snapshot-name
 
 ---
 
-## References
+## 📚 References
 
 -   [Ceph CephFS Documentation](https://docs.ceph.com/en/latest/cephfs/)
 -   [Ceph-CSI Driver](https://github.com/ceph/ceph-csi)
@@ -314,7 +316,7 @@ ceph fs subvolume snapshot rm cephfs-vm csi snapshot-name
 
 ---
 
-## Related Documentation
+## 📚 Related Documentation
 
 -   [Doppler Secrets Integration](./doppler.md)
 -   [ArgoCD Applications](./argocd.md)

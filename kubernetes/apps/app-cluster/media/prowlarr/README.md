@@ -1,4 +1,4 @@
-# Prowlarr Notes
+# 🎬 Prowlarr Notes
 
 Use the web UI at `https://prowlarr.krapulax.dev`.
 

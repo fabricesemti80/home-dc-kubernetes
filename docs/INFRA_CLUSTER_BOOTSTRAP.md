@@ -1,8 +1,10 @@
-# Infra-cluster build and migration runbook
+# ☸️ Infra-cluster build and migration runbook
+
+![☸️ Infra-cluster build and migration runbook](img/infra-cluster-bootstrap.svg)
 
 This runbook creates a small bare-metal Talos cluster for services that should remain available while the Proxmox-hosted application cluster is under maintenance.
 
-## Target state
+## 🎯 Target state
 
 | Argo CD name    | Platform              | Role                               |
 | --------------- | --------------------- | ---------------------------------- |
@@ -18,7 +20,7 @@ Initial infra topology:
 
 A two-control-plane layout must not be used: etcd needs a majority, so two control-plane nodes do not provide useful failure tolerance.
 
-## Network choice
+## 📌 Network choice
 
 Use VLAN 40 (`10.0.40.0/24`) unless there is a specific reason to isolate the cluster on VLAN 30. VLAN 40 already represents infrastructure and avoids making the core monitoring stack depend on routing between an application VLAN and the infrastructure it monitors.
 
@@ -45,7 +47,7 @@ infra-wk-01    10.0.40.32     <worker-primary-mac>   /dev/nvme0n1
 
 Prefer static DHCP reservations as a backup if the router supports them, but do not rely on reservations alone. The Talos configs below set `dhcp: false` and bind each address to the selected NIC MAC address.
 
-## Required workstation tools
+## 💻 Required workstation tools
 
 Install current stable versions of:
 
@@ -64,7 +66,7 @@ cd ~/clusters/infra-cluster
 
 ---
 
-# Phase 0: prepare the app-cluster Argo CD CLI
+# ☸️ Phase 0: prepare the app-cluster Argo CD CLI
 
 Complete this phase **before merging this PR**. The manifests in this PR target `app-cluster`; merging before the live Argo CD cluster is renamed can leave Applications with an unknown destination.
 
@@ -114,7 +116,7 @@ If the cluster is already named `app-cluster`, leave it as-is and continue with 
 
 ---
 
-# Phase 1: rename the existing Argo CD cluster before merging
+# ☸️ Phase 1: rename the existing Argo CD cluster before merging
 
 Rename the local cluster from `in-cluster` to `app-cluster`:
 
@@ -167,7 +169,7 @@ Only use the rollback if the PR is not merged or is reverted. Once manifests tar
 
 ---
 
-# Phase 2: boot the first mini PC into Talos maintenance mode
+# 🔶 Phase 2: boot the first mini PC into Talos maintenance mode
 
 Do one node at a time. Start with the node that will become `infra-cp-01`.
 
@@ -242,7 +244,7 @@ If DHCP is not available, set a temporary static address from the Talos boot med
 
 ---
 
-# Phase 3: generate Talos configuration from the workstation
+# 💻 Phase 3: generate Talos configuration from the workstation
 
 Run this phase from the repository checkout on the workstation, not on the Talos console:
 
@@ -288,7 +290,7 @@ talosctl validate --config .private/infra-cluster/generated/worker.yaml --mode m
 
 ---
 
-# Phase 4: install Talos to the physical nodes
+# 🔶 Phase 4: install Talos to the physical nodes
 
 Install the control-plane node first. Use the temporary maintenance IP shown on the Talos screen as `--nodes`; the static IP from the generated config takes effect after Talos installs and reboots.
 
@@ -371,7 +373,7 @@ The health command may wait for CNI-related checks until Cilium is installed.
 
 ---
 
-# Phase 5: bootstrap Kubernetes and install Cilium
+# 🥾 Phase 5: bootstrap Kubernetes and install Cilium
 
 Bootstrap etcd exactly once:
 
@@ -418,7 +420,7 @@ kubectl label node infra-wk-01 node-role.kubernetes.io/worker=''
 
 ---
 
-# Phase 6: register infra-cluster in the existing Argo CD hub
+# ☸️ Phase 6: register infra-cluster in the existing Argo CD hub
 
 Argo CD remains hosted on `app-cluster` and manages both clusters.
 
@@ -472,7 +474,7 @@ Do not merge any Application targeting `infra-cluster` until this registration i
 
 ---
 
-# Phase 7: storage and service placement decisions
+# 💾 Phase 7: storage and service placement decisions
 
 The initial infra cluster must not depend on storage hosted inside `app-cluster` or on the Proxmox nodes it is intended to monitor.
 
@@ -493,7 +495,7 @@ Technitium DNS needs special planning:
 
 ---
 
-# Phase 8: deploy the core applications through a follow-up PR
+# 📦 Phase 8: deploy the core applications through a follow-up PR
 
 After `infra-cluster` is registered and storage is ready, add separate Argo CD Applications targeting:
 
@@ -522,7 +524,7 @@ kubectl --context infra-cluster get pods -A
 
 ---
 
-# Phase 9: maintenance test
+# 📄 Phase 9: maintenance test
 
 Prove that the design meets its purpose:
 
@@ -532,7 +534,7 @@ Prove that the design meets its purpose:
 4. Confirm they correctly report the app cluster as unavailable.
 5. Restore the app cluster and confirm recovery is detected.
 
-## Recovery notes
+## 🔄 Recovery notes
 
 Back up these items outside both clusters:
 

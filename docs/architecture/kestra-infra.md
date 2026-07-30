@@ -1,8 +1,10 @@
-# Kestra Infra Deployment
+# ⚙️ Kestra Infra Deployment
+
+![⚙️ Kestra Infra Deployment](../img/architecture-kestra-infra.svg)
 
 Deploy Kestra on the infra cluster as the homelab automation service. It should stay available when the Proxmox-hosted app cluster is offline for maintenance.
 
-## Architecture
+## 🏛️ Architecture
 
 -   Namespace: `kestra`
 -   Runtime: upstream regular `kestra` Helm chart.
@@ -12,7 +14,7 @@ Deploy Kestra on the infra cluster as the homelab automation service. It should 
 -   Placement: Kestra, PostgreSQL, VersityGW, and local-path helper pods are pinned to `infra-cp-01`.
 -   Networking: internal HTTPRoute exposes Kestra through the infra Envoy gateway at `10.0.40.106`; public DNS points `kestra.krapulax.dev` at `external-infra.krapulax.dev`, and the infra Cloudflare Tunnel routes that hostname directly to the Kestra service.
 
-## Security
+## 📌 Security
 
 -   Kestra basic auth, PostgreSQL credentials, and object-store credentials are synced from Doppler (`home-dc-kubernetes/infra`).
 -   No secrets are committed to Git.
@@ -20,13 +22,13 @@ Deploy Kestra on the infra cluster as the homelab automation service. It should 
 -   Local storage is intentionally infra-cluster scoped; it should not be scheduled onto the app cluster.
 -   Kestra is intended to orchestrate clean Proxmox, Ceph, VM, Kubernetes, and cluster stop/start workflows.
 
-## Assumptions
+## 🤔 Assumptions
 
 -   `infra-cp-01` is the preferred node for critical automation because it should remain online while app-cluster VMs are restarted.
 -   Argo CD on `app-cluster` may continue syncing this app initially, but the runtime should not depend on app-cluster nodes after sync.
 -   `kestra.krapulax.home` should resolve directly to the infra-cluster internal Envoy gateway, not the app-cluster gateway.
 
-## Validation
+## ✅ Validation
 
 1. `kubectl kustomize kubernetes/apps/infra-cluster/automation/kestra-infra`
 2. `kubectl kustomize kubernetes/apps/infra-cluster/storage/local-path-provisioner-infra`
@@ -38,7 +40,7 @@ Deploy Kestra on the infra cluster as the homelab automation service. It should 
 8. `curl -I https://kestra.krapulax.dev` should reach Kestra through Cloudflare Tunnel.
 9. Open the internal Kestra route and verify login.
 
-## Rollback
+## ↩️ Rollback
 
 1. Revert the PR or delete the `kestra-infra` Argo Application.
 2. Argo prunes the chart resources and repo-managed manifests.

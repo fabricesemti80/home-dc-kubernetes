@@ -1,8 +1,10 @@
-# Cluster Documentation
+# 📚 Cluster Documentation
+
+![📚 Cluster Documentation](../img/cluster-readme.svg)
 
 This section covers the Talos, Argo CD, and Kubernetes-side configuration that now lives directly in this repository.
 
-## Core Documents
+## 📌 Core Documents
 
 -   [Installation & Deployment Guide](installation.md)
 -   [Architecture Plan](../architecture/ARCHITECTURE_PLAN.md)
@@ -10,7 +12,7 @@ This section covers the Talos, Argo CD, and Kubernetes-side configuration that n
 -   [Phase 0/1 Blueprint](../architecture/PHASE_0_1_BLUEPRINT.md)
 -   [Implementation Decisions](../architecture/IMPLEMENTATION_DECISIONS.md)
 
-## Day-to-Day Guides
+## 📌 Day-to-Day Guides
 
 -   [Root rebuild guide](../../README.md)
 -   [Dual Cluster Management](dual-cluster-management.md)
@@ -21,7 +23,7 @@ This section covers the Talos, Argo CD, and Kubernetes-side configuration that n
 -   [Database Backups](database-backups.md)
 -   [Troubleshooting](../operations/troubleshooting.md)
 
-## Source of Truth
+## 📌 Source of Truth
 
 -   `kubernetes/`: Argo application definitions and workload manifests
 -   `bootstrap/`: bootstrap ordering and initial Helmfile installs

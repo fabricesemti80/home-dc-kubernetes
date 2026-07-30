@@ -1,12 +1,14 @@
-# Etcd Stability And Talos Improvement Runbook
+# ⚙️ Etcd Stability And Talos Improvement Runbook
 
-## Objective
+![⚙️ Etcd Stability And Talos Improvement Runbook](../img/plan-etcd-stability-rollout.svg)
+
+## 🎯 Objective
 
 Improve etcd stability on the existing Proxmox and Ceph-backed control planes without changing Terraform, VM hardware, network devices, or disk placement.
 
 The mandatory change increases only the etcd election timeout. The Talos OS upgrade is optional in principle, but it is the recommended path because the repository now generates v1.13.4 machine configuration and the upgrade updates the kernel, container runtime, and etcd while preserving the deployed VM configuration.
 
-## Target State
+## 🎯 Target State
 
 | Component             | Current | Target  | Scope                |
 | --------------------- | ------- | ------- | -------------------- |
@@ -18,7 +20,7 @@ The mandatory change increases only the etcd election timeout. The Talos OS upgr
 | etcd backend quota    | 2 GiB   | 2 GiB   | No change            |
 | automatic defrag      | none    | none    | No scheduled job     |
 
-## Measured Findings
+## 📌 Measured Findings
 
 -   Each control plane has 8 vCPU and 16 GiB RAM with low current utilization.
 -   Inter-host RTT is below 0.5 ms.
@@ -28,7 +30,7 @@ The mandatory change increases only the etcd election timeout. The Talos OS upgr
 
 The Talos-only change cannot reduce storage latency. It can reduce unnecessary elections during short storage stalls. The optional Talos upgrade also moves etcd from v3.6.7 to v3.6.12.
 
-## Safety Rules
+## 📌 Safety Rules
 
 -   Operate on exactly one control-plane node at a time.
 -   Apply or upgrade etcd followers before the current leader.
@@ -38,7 +40,7 @@ The Talos-only change cannot reduce storage latency. It can reduce unnecessary e
 -   Do not run `task talos:upgrade-k8s` in this runbook.
 -   Keep the snapshot and generated configuration outside Git.
 
-## Phase 0: Prepare
+## 📌 Phase 0: Prepare
 
 1. Ensure the working tree is on the merged commit containing this runbook.
 2. Install the final repository tools:
@@ -62,7 +64,7 @@ The Talos-only change cannot reduce storage latency. It can reduce unnecessary e
     git status --short
     ```
 
-## Phase 1: Capture Baseline
+## 📌 Phase 1: Capture Baseline
 
 Record the output in the change log or terminal transcript:
 
@@ -91,7 +93,7 @@ done
 
 **Go gate:** three healthy non-learner members, no active etcd alarm, and all Kubernetes nodes `Ready`.
 
-## Phase 2: Back Up
+## 📌 Phase 2: Back Up
 
 Take a fresh etcd snapshot:
 
@@ -108,7 +110,7 @@ The `backups/` path is ignored. Confirm:
 git status --short
 ```
 
-## Phase 3: Optional Talos v1.12.4 To v1.12.8
+## 🔶 Phase 3: Optional Talos v1.12.4 To v1.12.8
 
 Choose one route before continuing:
 
@@ -152,7 +154,7 @@ Re-check leadership and upgrade the remaining controller last. Then verify all n
 
 **Stop gate:** do not begin v1.13.4 until all three nodes are v1.12.8 and healthy.
 
-## Phase 4: Optional Talos v1.12.8 To v1.13.4
+## 🔶 Phase 4: Optional Talos v1.12.8 To v1.13.4
 
 Use the repository-pinned client:
 
@@ -184,7 +186,7 @@ Re-check leadership before upgrading the final controller.
 
 **Go gate:** all three nodes report v1.13.4, all are `Ready`, and all etcd members are healthy.
 
-## Phase 5: Generate Final Machine Configuration For Route B
+## ⚙️ Phase 5: Generate Final Machine Configuration For Route B
 
 Generate configuration only after all nodes are on v1.13.4:
 
@@ -206,7 +208,7 @@ Confirm generated files remain ignored:
 git status --short
 ```
 
-## Phase 6: Apply Etcd Election Timeout
+## 📌 Phase 6: Apply Etcd Election Timeout
 
 Applying machine configuration is separate from upgrading the Talos image. Use only the route selected in Phase 3.
 
@@ -255,7 +257,7 @@ listen-metrics-urls: http://0.0.0.0:2381
 election-timeout: "3000"
 ```
 
-## Phase 7: Validate And Observe
+## 📌 Phase 7: Validate And Observe
 
 Immediately validate:
 
@@ -279,7 +281,7 @@ Observe for at least 24 hours. Compare with the baseline:
 
 Success means election churn is reduced without worse API responsiveness. Slow transactions may remain because the underlying storage is unchanged.
 
-## Phase 8: Conditional Defragmentation
+## 📌 Phase 8: Conditional Defragmentation
 
 Do not run defrag on a fixed schedule. Check backend size first:
 
@@ -297,9 +299,9 @@ talosctl --talosconfig talos/app/clusterconfig/talosconfig \
 
 Confirm health, repeat for the second follower, then run on the leader last. Defrag is resource-intensive and can block the member while it runs.
 
-## Rollback
+## ↩️ Rollback
 
-### Etcd Configuration
+### ⚙️ Etcd Configuration
 
 For Route A, remove only the added argument, follower-first:
 
@@ -312,7 +314,7 @@ talosctl \
 
 For Route B, remove `election-timeout` from the controller template, regenerate configuration, and apply follower-first using the Phase 6 sequence.
 
-### Talos OS
+### 🔶 Talos OS
 
 Roll back exactly one node at a time:
 
@@ -323,11 +325,11 @@ talosctl --talosconfig talos/app/clusterconfig/talosconfig \
 
 Wait for the node and etcd member to recover before another rollback. If automatic rollback already occurred after a failed boot, verify the running version and cluster health before proceeding.
 
-### Disaster Recovery
+### 🔄 Disaster Recovery
 
 If quorum is lost, stop routine changes. Preserve the snapshot and current machine configuration. Restore etcd only through the documented Talos recovery procedure; do not independently restore the same snapshot onto multiple members.
 
-## Deferred Work
+## 📌 Deferred Work
 
 The following changes may improve request latency but are intentionally outside this PR:
 

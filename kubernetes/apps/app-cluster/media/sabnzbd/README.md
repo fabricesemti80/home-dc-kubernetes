@@ -1,4 +1,4 @@
-# SABnzbd Notes
+# 📥 SABnzbd Notes
 
 Use the web UI at `https://sabnzbd.krapulax.dev`.
 

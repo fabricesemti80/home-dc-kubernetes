@@ -1,8 +1,10 @@
-# Media NFS Storage
+# 🗄️ Media NFS Storage
+
+![🗄️ Media NFS Storage](../img/storage-media-nfs.svg)
 
 This cluster can consume the existing media library over NFS for workloads such as Jellyfin.
 
-## Design
+## 📌 Design
 
 -   **Source of truth for media files**: existing NFS export at `10.0.40.2:/media`
 -   **Kubernetes access model**: static `PersistentVolume` plus namespace-local `PersistentVolumeClaim`
@@ -12,7 +14,7 @@ This cluster can consume the existing media library over NFS for workloads such 
     -   NFS is for the large retained media library mounted at `/data`
     -   CephFS remains the default for cluster-owned app state such as Jellyfin config and cache
 
-## Current Consumer
+## 📌 Current Consumer
 
 -   `media/jellyfin`
     -   mounts the static NFS library claim at `/data`
@@ -20,7 +22,7 @@ This cluster can consume the existing media library over NFS for workloads such 
     -   is exposed at `https://jelly.krapulax.dev` via the shared `external-apps.krapulax.dev` Cloudflare tunnel target and the `envoy-external` Gateway
     -   has a dedicated Cloudflare Access application configured for full bypass so Jellyfin handles authentication itself
 
-## Assumptions
+## 🤔 Assumptions
 
 -   The NFS server `10.0.40.2` is reachable from the cluster nodes
 -   The export path `/media` already exists and contains the current shared library
@@ -29,7 +31,7 @@ This cluster can consume the existing media library over NFS for workloads such 
 -   external-dns is reconciling `HTTPRoute` hostname annotations into Cloudflare DNS records
 -   `jelly.krapulax.dev` is intentionally bypassed at Cloudflare Access while other apps may still enforce Access policies
 
-## Validation
+## ✅ Validation
 
 After Argo syncs:
 
@@ -65,7 +67,7 @@ If the pod starts but libraries are empty, verify NFS connectivity and path cont
 
 If the hostname still returns `404`, confirm the DNS record resolves to `external-apps.krapulax.dev` rather than a stale direct tunnel target.
 
-## Rollback
+## ↩️ Rollback
 
 -   Remove the external-dns annotations from `kubernetes/apps/app-cluster/media/jellyfin/config/http-route.yaml`
 -   Re-sync the Jellyfin Argo CD application so external-dns can withdraw the record

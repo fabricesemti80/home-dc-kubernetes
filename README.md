@@ -1,4 +1,6 @@
-# home-dc-kubernetes
+# 🏠 home-dc-kubernetes
+
+![🏠 home-dc-kubernetes](docs/img/home-dc-kubernetes.svg)
 
 This repository is the rebuild source of truth for the Kubernetes homelab. It
 manages the Talos app cluster, the physical infra cluster, Argo CD GitOps, and
@@ -9,7 +11,7 @@ The rebuild flow is staged in the same spirit as the upstream
 prepare hardware, prepare the workstation, render configuration, bootstrap
 Talos, bootstrap Argo, then verify GitOps.
 
-## Target State
+## 🎯 Target State
 
 | Cluster       | Argo name       | Platform             | Role                              |
 | ------------- | --------------- | -------------------- | --------------------------------- |
@@ -26,7 +28,7 @@ kubernetes/apps/app-cluster/<namespace>/<app>/
 kubernetes/apps/infra-cluster/<namespace>/<app>/
 ```
 
-## Stage 0: Recovery Inputs
+## 🛤️ Stage 0: Recovery Inputs
 
 Before rebuilding, recover or recreate these local-only inputs. They must not be
 committed:
@@ -57,7 +59,7 @@ Also confirm access to:
 If state files are unavailable, treat the rebuild as new infrastructure and plan
 OpenTofu imports before applying.
 
-## Stage 1: Workstation
+## 🛤️ Stage 1: Workstation
 
 Clone the repo outside iCloud-synced folders, then install the pinned tools:
 
@@ -93,7 +95,7 @@ Useful docs:
 -   [docs/cluster/dual-cluster-management.md](docs/cluster/dual-cluster-management.md)
 -   [docs/cluster/secret-strategy.md](docs/cluster/secret-strategy.md)
 
-## Stage 2: Infrastructure
+## 🏗️ Stage 2: Infrastructure
 
 For VM-based app-cluster rebuilds, initialize and review OpenTofu first:
 
@@ -122,7 +124,7 @@ Useful docs:
 -   [talos/README.md](talos/README.md)
 -   [talos/infra/README.md](talos/infra/README.md)
 
-## Stage 3: App Cluster Talos
+## ☸️ Stage 3: App Cluster Talos
 
 Generate Talos machine config and bootstrap the app cluster:
 
@@ -150,7 +152,7 @@ kubectl --kubeconfig ./kubeconfig get nodes -o wide
 talosctl --talosconfig talos/app/clusterconfig/talosconfig get members
 ```
 
-## Stage 4: App Cluster GitOps
+## ☸️ Stage 4: App Cluster GitOps
 
 Bootstrap the base apps and Argo CD app-of-apps:
 
@@ -180,7 +182,7 @@ The root Argo app should be `Synced` and `Healthy`:
 kubectl get application apps -n argo-system
 ```
 
-## Stage 5: Infra Cluster
+## ☸️ Stage 5: Infra Cluster
 
 Build or recover the physical infra cluster using
 [docs/INFRA_CLUSTER_BOOTSTRAP.md](docs/INFRA_CLUSTER_BOOTSTRAP.md), then register
@@ -201,7 +203,7 @@ Generate a Lens kubeconfig when both clusters are reachable:
 task clusters:lens-kubeconfig
 ```
 
-## Stage 6: Storage, DNS, and Public Access
+## 💾 Stage 6: Storage, DNS, and Public Access
 
 Verify storage before restoring stateful workloads:
 
@@ -232,7 +234,7 @@ Useful docs:
 -   [docs/cluster/domains.md](docs/cluster/domains.md)
 -   [docs/monitoring/uptime-kuma-autokuma.md](docs/monitoring/uptime-kuma-autokuma.md)
 
-## Stage 7: Final Validation
+## ✅ Stage 7: Final Validation
 
 Run the repo checks and cluster checks:
 
@@ -251,7 +253,7 @@ Expected state:
 -   no application manifests target `in-cluster`
 -   no untracked duplicate `* 2` or `* 3` paths exist in `git status`
 
-## Rollback and Reset
+## ↩️ Rollback and Reset
 
 For GitOps changes, revert the PR and reconcile Argo:
 

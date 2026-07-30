@@ -1,17 +1,19 @@
-# Manual CephFS Setup Instructions
+# 🔧 Manual CephFS Setup Instructions
+
+![🔧 Manual CephFS Setup Instructions](../img/storage-manual-setup.svg)
 
 If you need to manually create the CephFS subvolume group or verify the setup, use these commands.
 
-## Proxmox Side (Ceph Cluster)
+## ☸️ Proxmox Side (Ceph Cluster)
 
-### 1. SSH to a Proxmox Node
+### 🔹 1. SSH to a Proxmox Node
 
 ```bash
 ssh root@pve-0
 # or pve-1 or pve-2
 ```
 
-### 2. Create CephFS Subvolume Group
+### 🔹 2. Create CephFS Subvolume Group
 
 **Create the group** (idempotent - safe to run multiple times):
 
@@ -35,7 +37,7 @@ Expected output:
 ]
 ```
 
-### 3. Verify Ceph Health
+### 🔹 3. Verify Ceph Health
 
 ```bash
 ceph status
@@ -45,9 +47,9 @@ ceph fs ls
 
 ---
 
-## Kubernetes Side (Verify Deployment)
+## 🚀 Kubernetes Side (Verify Deployment)
 
-### 1. Check ArgoCD Applications
+### 📦 1. Check ArgoCD Applications
 
 ```bash
 # List all storage-related applications
@@ -59,7 +61,7 @@ kubectl get applications -n argo-system storage -o jsonpath='{.status.sync.statu
 kubectl get applications -n argo-system nginx-test-storage -o jsonpath='{.status.sync.status}'
 ```
 
-### 2. Verify Secrets
+### 🔐 2. Verify Secrets
 
 ```bash
 # Check if csi-cephfs-secret exists
@@ -72,7 +74,7 @@ kubectl get secret csi-cephfs-secret -n kube-system -o jsonpath='{.data}' | jq '
 
 **Required keys**: `adminID`, `adminKey`, `userID`, `userKey`
 
-### 3. Verify StorageClass
+### 💾 3. Verify StorageClass
 
 ```bash
 # Check StorageClass
@@ -83,7 +85,7 @@ kubectl describe storageclass cephfs
 kubectl get storageclass cephfs -o jsonpath='{.parameters}'
 ```
 
-### 4. Check Ceph-CSI Deployment
+### 🚀 4. Check Ceph-CSI Deployment
 
 ```bash
 # Check if ceph-csi chart was deployed
@@ -97,7 +99,7 @@ kubectl logs -n storage -l app=ceph-csi-ceph-csi-cephfs-provisioner -c csi-provi
 kubectl logs -n storage -l app=ceph-csi-ceph-csi-cephfs-nodeplugin -c csi-nodeplugin --tail=50
 ```
 
-### 5. Check PVC Status
+### 📊 5. Check PVC Status
 
 ```bash
 # Create namespace if missing
@@ -111,7 +113,7 @@ kubectl describe pvc nginx-test-pvc -n storage
 kubectl get pvc -n storage -w
 ```
 
-### 6. Check nginx-test Pod
+### 🔹 6. Check nginx-test Pod
 
 ```bash
 # Check pod status
@@ -125,7 +127,7 @@ kubectl logs -n storage -l app=nginx-test
 kubectl get pods -n storage -l app=nginx-test -w
 ```
 
-### 7. Test Volume Mount (if pod is running)
+### 🔹 7. Test Volume Mount (if pod is running)
 
 ```bash
 # Get pod name
@@ -143,9 +145,9 @@ kubectl exec -it -n storage $POD -- mount | grep nginx
 
 ---
 
-## Troubleshooting Common Issues
+## 🚑 Troubleshooting Common Issues
 
-### Issue: PVC Stuck in Pending
+### 🔹 Issue: PVC Stuck in Pending
 
 **Check provisioner logs:**
 
@@ -162,7 +164,7 @@ kubectl logs -n storage -l app=ceph-csi-ceph-csi-cephfs-provisioner -c csi-provi
 | `pool does not exist`                  | Verify `cephfs-vm_data` pool on Ceph: `ceph osd pool ls`      |
 | `connection refused`                   | Verify Ceph cluster IP connectivity and firewall              |
 
-### Issue: Secret Not Deployed
+### 🔐 Issue: Secret Not Deployed
 
 **Verify secret was generated from Doppler:**
 
@@ -180,7 +182,7 @@ ls -la kubernetes/apps/app-cluster/kube-system/ceph-csi/secret.sops.yaml
 sops -d kubernetes/apps/app-cluster/kube-system/ceph-csi/secret.sops.yaml
 ```
 
-### Issue: CSI Provisioner Not Running
+### 🔹 Issue: CSI Provisioner Not Running
 
 ```bash
 # Check if storage namespace exists
@@ -196,17 +198,17 @@ kubectl describe pod -n storage -l app=ceph-csi-ceph-csi-cephfs-provisioner
 
 ---
 
-## Manual Testing Workflow
+## 🔧 Manual Testing Workflow
 
 If automated sync isn't working, deploy components manually:
 
-### 1. Create Namespace
+### 🔹 1. Create Namespace
 
 ```bash
 kubectl create namespace storage
 ```
 
-### 2. Create Secret
+### 🔐 2. Create Secret
 
 ```bash
 # First, ensure Doppler secret exists locally
@@ -219,7 +221,7 @@ sops -d kubernetes/apps/app-cluster/kube-system/ceph-csi/secret.sops.yaml | kube
 kubectl get secret csi-cephfs-secret -n kube-system
 ```
 
-### 3. Create StorageClass
+### 💾 3. Create StorageClass
 
 ```bash
 kubectl apply -f kubernetes/apps/app-cluster/storage/cephfs-sc.yaml
@@ -228,7 +230,7 @@ kubectl apply -f kubernetes/apps/app-cluster/storage/cephfs-sc.yaml
 kubectl get storageclass cephfs
 ```
 
-### 4. Deploy Ceph-CSI (if not using ArgoCD)
+### 🔹 4. Deploy Ceph-CSI (if not using ArgoCD)
 
 ```bash
 # First check values
@@ -245,7 +247,7 @@ helm install ceph-csi ceph-csi/ceph-csi-cephfs \
   -f kubernetes/apps/app-cluster/storage/ceph-csi/values.sops.yaml
 ```
 
-### 5. Deploy Test Application
+### 📦 5. Deploy Test Application
 
 ```bash
 kubectl apply -k kubernetes/apps/app-cluster/storage/nginx-test/
@@ -256,7 +258,7 @@ kubectl get pvc,pods -n storage -w
 
 ---
 
-## Verification Checklist
+## ✅ Verification Checklist
 
 -   [ ] Ceph subvolume group `csi` exists on Proxmox
 -   [ ] Secret `csi-cephfs-secret` exists in `kube-system` namespace
@@ -269,9 +271,9 @@ kubectl get pvc,pods -n storage -w
 
 ---
 
-## Recovery Steps
+## 🔄 Recovery Steps
 
-### Reset Everything and Start Over
+### 🔄 Reset Everything and Start Over
 
 ```bash
 # Delete test application
@@ -297,7 +299,7 @@ ssh root@pve-0 "ceph fs subvolume-group rm cephfs-vm csi" 2>/dev/null || true
 
 ---
 
-## See Also
+## 📌 See Also
 
 -   [Storage Setup Guide](./overview.md) - Complete architecture and setup guide
 -   [Storage Verification](./verification.md) - Verification checklist
