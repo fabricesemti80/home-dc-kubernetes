@@ -48,6 +48,14 @@ data:
       "interval": 60,
       "max_retries": 3
     }
+  files.json: |-
+    {
+      "type": "http",
+      "name": "Media Files",
+      "url": "https://files.krapulax.dev",
+      "interval": 60,
+      "max_retries": 3
+    }
   glance.json: |-
     {
       "type": "http",
