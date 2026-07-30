@@ -2,7 +2,7 @@
 
 ## Objective
 
-Operate the Talos/Kubernetes homelab from this repository while Docker-host services live in their own management repository.
+Operate the Talos/Kubernetes homelab from this repository as the active deployment home for applications and infrastructure services.
 
 ## Lineage & Origin
 
@@ -19,7 +19,6 @@ This codebase was originally bootstrapped using [ajaykumar4/cluster-template](ht
 -   `kubernetes/apps/app-cluster/default/`: lightweight default-namespace apps used for baseline GitOps validation and small utility workloads.
 -   `kubernetes/apps/app-cluster/` & `kubernetes/apps/infra-cluster/`: Workload manifests separated by destination cluster.
 -   `kubernetes/argo/apps/app-cluster/` & `kubernetes/argo/apps/infra-cluster/`: Argo CD Applications separated by destination cluster.
--   `/Users/fs/Documents/repositories/infrastructure/home-DC-docker`: host-level Docker Compose, Docker Cloudflare resources, and Docker local DNS records.
 
 ## Current Migration Direction
 
@@ -28,14 +27,13 @@ This codebase was originally bootstrapped using [ajaykumar4/cluster-template](ht
 -   Argo CD will be repointed to `project-homelab`.
 -   The active Talos cluster is now modeled as three control-plane nodes only.
 -   Historical worker VMs remain infrastructure artifacts for rollback or later reuse, but are no longer part of the committed Talos node inventory.
--   Host-level Docker services are moving to `home-DC-docker`; Kubernetes resources must be unaffected by this split.
+-   Former host-level Docker services are being retired or migrated into Kubernetes.
 
 ## Assumptions
 
 -   The imported cluster should keep using its current Proxmox IDs, node IPs, Talos secrets, and Terraform state.
 -   Secrets and runtime artifacts remain local-only and gitignored.
 -   Doppler project names and existing external integrations can stay unchanged during the repo migration.
--   Docker secrets may later move to a dedicated Doppler project/config after the repository cutover validates.
 -   Removing workers from Talos configuration does not require deleting the underlying VM definitions on the same change.
 -   Splitting OpenTofu directories must preserve Kubernetes resource addresses so existing tunnels, DNS records, and Access apps are not recreated.
 
@@ -54,7 +52,6 @@ This codebase was originally bootstrapped using [ajaykumar4/cluster-template](ht
 
 -   Repoint Argo CD back to `home-argo-cluster-2025`.
 -   Continue operating from the original repo because its state and files remain untouched.
--   Continue operating Docker from the previous repo revision until the Docker repo is validated and deployed.
 -   Restore any copied local-only runtime files from the old workspace if the new one is discarded.
 -   Reintroduce worker nodes by restoring them to `nodes.yaml`, regenerating `talos/app/talconfig.yaml`, and re-running Talos config generation.
 -   If the OpenTofu stack split needs to be reversed before apply, move the directories and local state files back to the previous layout.

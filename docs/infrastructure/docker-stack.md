@@ -1,5 +1,5 @@
 # Docker Stack
 
-Host-level Docker services moved to `/Users/fs/Documents/repositories/infrastructure/home-DC-docker`.
+Host-level Docker services are decommissioned as an active deployment target.
 
-This repository now owns Kubernetes/Talos resources only. Keep Docker Compose files, Docker runtime secrets, and Docker-specific Cloudflare/local DNS Terraform in the Docker repo.
+This repository owns the Talos clusters, Kubernetes workloads, Cloudflare resources, and local DNS resources for the homelab. Keep any Docker-only references as historical context only.

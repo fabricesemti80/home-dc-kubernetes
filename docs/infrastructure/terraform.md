@@ -42,7 +42,7 @@ task tf:localdns:plan
 
 -   Proxmox resource addresses remain unchanged, especially `module.talos.*`, so existing VMs stay attached to their current state.
 -   The former mixed root `terraform/` state was split locally into `infra/terraform_proxmox/terraform.tfstate` and `infra/terraform_cloudflare/terraform.tfstate`.
--   Docker-specific Cloudflare and local DNS resources moved to `/Users/fs/Documents/repositories/infrastructure/home-DC-docker`.
+-   Cloudflare and local DNS resources in this repository are Kubernetes-owned.
 -   Stale copied root outputs should be pruned by a scoped plan/apply after a stack split so each stack only reports its own outputs.
 -   Rollback is a directory/state-file move back to the previous layout before applying changes; no remote resources are changed by the split itself.
 
