@@ -1,0 +1,68 @@
+---
+name: CI Manifest Validation
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - "kubernetes/**"
+      - "talos/**"
+      - "cluster.yaml"
+      - "nodes.yaml"
+      - "templates/**"
+      - ".taskfiles/**"
+      - ".github/workflows/ci-manifest-and-schema-validation.yaml"
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-manifest-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate-manifests-and-schemas:
+    name: Validate Manifests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install Task
+        env:
+          TASK_VERSION: v3.48.0
+        run: |
+          wget --quiet "https://github.com/go-task/task/releases/download/${TASK_VERSION}/task_linux_amd64.tar.gz"
+          tar -xzf task_linux_amd64.tar.gz
+          sudo mv task /usr/local/bin/task
+          task --version
+
+      - name: Install kubeconform
+        env:
+          KUBECONFORM_VERSION: v0.6.7
+        run: |
+          wget --quiet "https://github.com/yannh/kubeconform/releases/download/${KUBECONFORM_VERSION}/kubeconform-linux-amd64.tar.gz"
+          tar -xzf kubeconform-linux-amd64.tar.gz
+          sudo mv kubeconform /usr/local/bin/
+          kubeconform -v
+
+      - name: Install Kustomize
+        uses: imranismail/setup-kustomize@v2
+
+      - name: Install talhelper
+        env:
+          TALHELPER_VERSION: v3.1.15
+        run: |
+          wget --quiet "https://github.com/budimanjojo/talhelper/releases/download/${TALHELPER_VERSION}/talhelper_linux_amd64.tar.gz"
+          tar -xzf talhelper_linux_amd64.tar.gz
+          sudo mv talhelper /usr/local/bin/
+          talhelper --version
+
+      - name: Validate Kubernetes Manifests (task template:validate-kubernetes-config)
+        run: bash .taskfiles/template/resources/kubeconform.sh kubernetes
+
+      - name: Validate Talos Config (task template:validate-talos-config)
+        working-directory: talos/app
+        run: talhelper validate talconfig talconfig.yaml

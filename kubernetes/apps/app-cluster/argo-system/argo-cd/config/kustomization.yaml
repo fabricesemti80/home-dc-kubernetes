@@ -4,4 +4,4 @@ kind: Kustomization
 resources:
   - ./http-route.yaml
 generators:
-- ./secret-generator.yaml
+  - ./secret-generator.yaml

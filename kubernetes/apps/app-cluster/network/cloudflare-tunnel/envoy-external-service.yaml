@@ -7,14 +7,14 @@ metadata:
     app.kubernetes.io/managed-by: Helm
 spec:
   ports:
-  - name: http
-    port: 80
-    protocol: TCP
-    targetPort: 10080
-  - name: https
-    port: 443
-    protocol: TCP
-    targetPort: 10443
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: 10080
+    - name: https
+      port: 443
+      protocol: TCP
+      targetPort: 10443
   selector:
     app.kubernetes.io/component: proxy
     app.kubernetes.io/managed-by: envoy-gateway
