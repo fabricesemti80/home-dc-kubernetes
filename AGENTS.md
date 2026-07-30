@@ -4,8 +4,7 @@
 
 This repository captures the design and implementation plan for a personal homelab.
 All automation, IaC, and documentation should optimize for **repeatability**, **security**, and **clear rollback paths**.
-This repository is the main deployment home for the Talos cluster and Kubernetes resources.
-Host-level Docker services are managed from `/Users/fs/Documents/repositories/infrastructure/home-DC-docker`.
+This repository is the main deployment home for the Talos clusters, Kubernetes resources, and homelab applications.
 
 ## Working rules for agents
 
@@ -22,8 +21,6 @@ Host-level Docker services are managed from `/Users/fs/Documents/repositories/in
 -   Implementation task breakdowns live under `docs/plan/`.
 -   Scripts should be idempotent where practical.
 -   Prefer Markdown checklists for progress tracking.
--   Host-level Docker services live in `/Users/fs/Documents/repositories/infrastructure/home-DC-docker`, not this repo.
--   Docker-specific Cloudflare and local DNS Terraform belongs in the Docker repo.
 -   Kubernetes resources must remain under `kubernetes/`, `bootstrap/`, `talos/`, and Kubernetes-specific Terraform stacks in this repo.
 -   Originally bootstrapped from [ajaykumar4/cluster-template](https://github.com/ajaykumar4/cluster-template) and evolved into a dual-cluster architecture.
 

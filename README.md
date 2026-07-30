@@ -4,8 +4,6 @@ This repository is the rebuild source of truth for the Kubernetes homelab. It
 manages the Talos app cluster, the physical infra cluster, Argo CD GitOps, and
 Kubernetes-specific OpenTofu stacks.
 
-Host-level Docker services live in `/Users/fs/Documents/repositories/infrastructure/home-dc-docker`.
-
 The rebuild flow is staged in the same spirit as the upstream
 [`ajaykumar4/cluster-template`](https://github.com/ajaykumar4/cluster-template):
 prepare hardware, prepare the workstation, render configuration, bootstrap

@@ -119,7 +119,7 @@ It excludes:
 -   internal-only `*.krapulax.home` routes;
 -   raw ClusterIP, node, or IP endpoints;
 -   services without a public route;
--   legacy Docker-hosted DNS records not represented by Kubernetes HTTPRoutes.
+-   non-Kubernetes DNS records not represented by Kubernetes HTTPRoutes.
 
 An HTTP monitor validates the full user-visible path: public DNS, Cloudflare, the selected tunnel, Kubernetes routing, the service, the application response, and TLS certificate validity. It complements rather than replaces readiness probes, Prometheus, Grafana, Alertmanager, or Pulse.
 
