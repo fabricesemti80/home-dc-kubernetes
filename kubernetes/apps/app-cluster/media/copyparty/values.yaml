@@ -23,6 +23,8 @@ controllers:
           - --no-robots
           - --xff-hdr
           - cf-connecting-ip
+          - --acao
+          - https://files.krapulax.dev
         env:
           TZ: Europe/London
           COPYPARTY_MEDIA_PASSWORD:
