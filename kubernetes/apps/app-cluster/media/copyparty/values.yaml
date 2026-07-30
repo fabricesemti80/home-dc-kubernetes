@@ -11,18 +11,18 @@ controllers:
         image:
           repository: docker.io/copyparty/ac
           tag: "1.20.19"
-        command:
-          - /bin/sh
-          - -ec
         args:
-          - >-
-            exec copyparty
-            -p 3923
-            -a "media:${COPYPARTY_MEDIA_PASSWORD:?}"
-            -v /media::rwmd,media
-            --hist /config/hists
-            --no-robots
-            --xff-hdr cf-connecting-ip
+          - -p
+          - "3923"
+          - -a
+          - media:$(COPYPARTY_MEDIA_PASSWORD)
+          - -v
+          - /media::rwmd,media
+          - --hist
+          - /config/hists
+          - --no-robots
+          - --xff-hdr
+          - cf-connecting-ip
         env:
           TZ: Europe/London
           COPYPARTY_MEDIA_PASSWORD:
