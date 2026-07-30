@@ -2,8 +2,8 @@
 name: Generate AutoKuma Monitors
 
 on:
-  pull_request:
-    types: [opened, synchronize, reopened]
+  push:
+    branches: [main]
     paths:
       - "kubernetes/**/*.yaml"
       - "kubernetes/**/*.yml"
@@ -21,16 +21,12 @@ concurrency:
 jobs:
   generate:
     name: Regenerate monitor inventory
-    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
     steps:
-      - name: Check out pull request branch
+      - name: Check out repository
         uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.pull_request.head.ref || github.ref_name }}
-          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v5
