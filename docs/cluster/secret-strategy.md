@@ -173,56 +173,6 @@ task secrets:validate-bootstrap
 | `cloudflare-tunnel-infra-secret` | `network`    | `TUNNEL_TOKEN_INFRA` as `TUNNEL_TOKEN`                                                |
 | `operator-oauth`                 | `tailscale`  | `TAILSCALE_OAUTH_CLIENT_ID`, `TAILSCALE_OAUTH_CLIENT_SECRET`                          |
 
-## 🚚 Canary Migration Plan
-
-Canary PR:
-
-1. Add `SLACK_WEBHOOK_MONITORING` to `home-dc-kubernetes/apps`.
-2. Add `UPTIME_KUMA_USERNAME` and `UPTIME_KUMA_PASSWORD` to `home-dc-kubernetes/infra`.
-3. Rotate app and infra Doppler operator service tokens into the scoped SOPS token files:
-    - `kubernetes/apps/app-cluster/doppler-operator-system/doppler-operator/config/secret-apps.sops.yaml`
-    - `kubernetes/apps/infra-cluster/doppler-operator-system/doppler-operator-infra/config/secret-infra.sops.yaml`
-4. Retarget only these `DopplerSecret` resources:
-    - `alertmanager-slack-webhook` to `home-dc-kubernetes/apps`
-    - `uptime-kuma-credentials` to `home-dc-kubernetes/infra`
-5. Sync and verify:
-
-The canary migration PR implements step 4 only. Steps 1-3 must be completed by
-the operator before Argo syncs the canary manifests.
-
-```bash
-argocd app get kube-prometheus-stack --core
-argocd app get uptime-kuma-infra --core
-kubectl get dopplersecret -n doppler-operator-system alertmanager-slack-webhook
-kubectl get secret -n monitoring alertmanager-slack-webhook
-kubectl --kubeconfig .private/infra-cluster/kubeconfig get dopplersecret -n doppler-operator-system uptime-kuma-credentials
-kubectl --kubeconfig .private/infra-cluster/kubeconfig get secret -n monitoring uptime-kuma-credentials
-```
-
-Rollback:
-
-1. Revert the canary PR.
-2. Restore the previous Doppler operator service tokens in SOPS if they were rotated.
-3. Confirm both `DopplerSecret` resources return to `project-homelab/dev_homelab`.
-
-## 🚚 Full Migration Plan
-
-After the canary has synced and stayed healthy:
-
-1. Add all app-cluster keys to `home-dc-kubernetes/apps`.
-2. Add all infra-cluster keys to `home-dc-kubernetes/infra`.
-3. Retarget all remaining `DopplerSecret` resources.
-4. Retarget local OpenTofu tasks from `project-homelab/dev_homelab` to the new project/config.
-5. Remove stale keys from `project-homelab/dev_homelab` only after the full PR is merged and verified.
-
-Validation:
-
-```bash
-rg "project-homelab|dev_homelab" kubernetes .taskfiles scripts docs
-task secrets:validate-bootstrap
-task clusters:status
-```
-
 ## 📊 1Password Operator Assessment
 
 1Password remains a viable future target because it is the primary human secret

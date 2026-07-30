@@ -6,7 +6,6 @@ This section covers the Talos, Argo CD, and Kubernetes-side configuration that n
 
 -   [Installation & Deployment Guide](installation.md)
 -   [Architecture Plan](../architecture/ARCHITECTURE_PLAN.md)
--   [Argo Cluster Migration](../architecture/ARGO_CLUSTER_MIGRATION.md)
 -   [Phase 0/1 Blueprint](../architecture/PHASE_0_1_BLUEPRINT.md)
 -   [Implementation Decisions](../architecture/IMPLEMENTATION_DECISIONS.md)
 

@@ -9,7 +9,7 @@
 -   Storage: the migrated cluster currently uses Ceph CSI; Longhorn remains optional future work rather than current state.
 -   GitOps: Argo CD.
 -   Media service: remains on NAS Docker initially, routed via cluster ingress as external upstream.
--   Cluster relocation: keep the old `home-argo-cluster-2025` repo intact, but operate the migrated cluster directly from the `project-homelab` repo root with local state copied over.
+-   Cluster relocation: the cluster is operated directly from the `home-dc-kubernetes` repo root with local state kept in the workspace.
 -   Worker handling during cutover: keep worker VMs represented in Terraform state, but allow them to remain provisioned and powered off by using per-node `started = false`.
 
 ## ⚖️ Active Decisions

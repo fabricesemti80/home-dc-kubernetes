@@ -93,11 +93,11 @@ The committed SOPS files (`*.sops.yaml`) and `.sops.yaml` in this repository are
 
 ### 🔐 2. Doppler Secret Management
 
-Ensure access to Doppler projects (`project-homelab`):
+Ensure access to Doppler project `home-dc-kubernetes`:
 
 ```bash
 doppler login
-doppler setup --project project-homelab --config dev_homelab
+doppler setup --project home-dc-kubernetes --config apps
 ```
 
 ---

@@ -6,7 +6,6 @@ This is the main documentation hub for `home-dc-kubernetes`.
 
 -   [Installation & Deployment Guide](cluster/installation.md)
 -   [Architecture Plan](architecture/ARCHITECTURE_PLAN.md)
--   [Argo Cluster Migration](architecture/ARGO_CLUSTER_MIGRATION.md)
 -   [Implementation Decisions](architecture/IMPLEMENTATION_DECISIONS.md)
 
 ## 🏗️ Infrastructure

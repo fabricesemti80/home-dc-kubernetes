@@ -56,5 +56,4 @@ task tf:localdns:plan
 ## 📌 Related Documents
 
 -   [Architecture Plan](../architecture/ARCHITECTURE_PLAN.md)
--   [Argo Cluster Migration](../architecture/ARGO_CLUSTER_MIGRATION.md)
 -   [Cluster Docs Overview](../cluster/README.md)

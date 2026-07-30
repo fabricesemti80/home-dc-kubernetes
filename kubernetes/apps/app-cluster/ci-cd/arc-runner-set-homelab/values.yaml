@@ -1,5 +1,5 @@
 ---
-# ARC Runner Scale Set — project-homelab repo
+# ARC Runner Scale Set — home-dc-kubernetes repo
 # Defines the autoscaling runner group for this GitHub repo.
 # Requires the arc-controller chart (CRDs) to be installed first,
 # and an arc-github-app-secret created by DopplerSecret in arc-system.
@@ -10,8 +10,8 @@ githubConfigUrl: "https://github.com/fabricesemti80/home-dc-kubernetes"
 githubConfigSecret: arc-github-app-secret
 
 # Runner scale set name — workflows target this via:
-#   runs-on: [self-hosted, project-homelab]
-runnerScaleSetName: "project-homelab"
+#   runs-on: [self-hosted, home-dc-kubernetes]
+runnerScaleSetName: "home-dc-kubernetes"
 
 # Autoscaling
 minRunners: 0

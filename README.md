@@ -60,8 +60,7 @@ Also confirm access to:
 -   Proxmox, if rebuilding the app-cluster VMs
 -   Cloudflare account, DNS zone, and tunnel credentials
 -   Doppler project `home-dc-kubernetes` with configs `apps` and `infra`
--   the legacy `project-homelab/dev_homelab` Doppler config while
-    `CEPH_KEYRING` remains a template-render bootstrap input
+-   `CEPH_KEYRING` in the `home-dc-kubernetes/apps` Doppler config for template rendering
 -   GitHub deploy key or repository credentials for Argo CD
 -   Ceph on Proxmox for the app-cluster `cephfs` storage class
 
@@ -143,8 +142,8 @@ task talos:app:bootstrap
 ```
 
 Do not run `task template:configure` as a routine rebuild step. It re-renders
-repository templates and currently still needs bootstrap-only `CEPH_KEYRING`
-from `project-homelab/dev_homelab`; use it only when intentionally regenerating
+repository templates and needs bootstrap-only `CEPH_KEYRING` from the
+`home-dc-kubernetes/apps` Doppler config; use it only when intentionally regenerating
 templated source files.
 
 Compatibility aliases still exist:

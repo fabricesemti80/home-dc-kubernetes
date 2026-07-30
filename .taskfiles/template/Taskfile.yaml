@@ -80,7 +80,7 @@ tasks:
 
   render-configs:
     internal: true
-    cmd: doppler run --project project-homelab --config dev_homelab -- makejinja
+    cmd: doppler run --project home-dc-kubernetes --config apps -- makejinja
     env:
       PYTHONDONTWRITEBYTECODE: '1'
     preconditions:

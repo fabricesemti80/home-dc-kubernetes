@@ -44,8 +44,7 @@ flowchart TD
 
 -   `home-dc-kubernetes` is the active source of truth for the cluster.
 -   Argo CD targets this repository.
--   The earlier migration toward `project-homelab` and the legacy `home-argo-cluster-2025` repo are historical; live cluster configuration is now owned and managed from this repo.
--   The active Talos cluster is now modeled as three control-plane nodes only.
+-   The active Talos cluster is modeled as three control-plane nodes only.
 -   Historical worker VMs remain infrastructure artifacts for rollback or later reuse, but are no longer part of the committed Talos node inventory.
 -   Former host-level Docker services are being retired or migrated into Kubernetes.
 
