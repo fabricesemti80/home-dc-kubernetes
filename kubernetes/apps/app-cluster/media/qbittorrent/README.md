@@ -1,4 +1,4 @@
-# qBittorrent Notes
+# 🔽 qBittorrent Notes
 
 Use the web UI at `https://qbittorrent.krapulax.dev`.
 

@@ -1,6 +1,23 @@
-# Media Management Stack
+# 🎬 Media Management Stack
 
-## Objective
+## 🎯 Objective
+
+```mermaid
+flowchart LR
+    Prowlarr[Indexers] --> Sonarr[TV]
+    Prowlarr --> Radarr[Movies]
+    SABnzbd[Usenet] --> Sonarr
+    SABnzbd --> Radarr
+    qBittorrent[Torrents] --> Sonarr
+    qBittorrent --> Radarr
+    Sonarr --> Jellyfin[Jellyfin]
+    Radarr --> Jellyfin
+    Jellyseerr[Requests] --> Sonarr
+    Jellyseerr --> Radarr
+    Recyclarr[Config Sync] --> Sonarr
+    Recyclarr --> Radarr
+    Tdarr[Transcode] --> Jellyfin
+```
 
 Add media-management services that feed Jellyfin while preserving the existing storage split:
 
@@ -8,7 +25,7 @@ Add media-management services that feed Jellyfin while preserving the existing s
 -   NFS for shared media library and download paths
 -   small, reversible rollout starting with `sabnzbd` and `sonarr`
 
-## Scope
+## 📌 Scope
 
 Initial rollout includes:
 
@@ -25,7 +42,7 @@ Deferred until the first two apps are stable:
 
 -   API-key automation between services
 
-## Namespace Decision
+## 📌 Namespace Decision
 
 -   Reuse the existing `media` namespace
 
@@ -35,7 +52,7 @@ Rationale:
 -   the namespace already contains the shared media-library claim and routing patterns
 -   it avoids cross-namespace duplication for the first rollout
 
-## Storage Model
+## 💾 Storage Model
 
 -   Each app gets its own CephFS-backed PVC for `/config`
 -   Shared media content remains on the NFS export at `10.0.40.2:/media`
@@ -77,7 +94,7 @@ Planned pod paths:
     -   server/UI runs as a single pod with its internal node disabled
     -   three `tdarr_node` worker pods are pinned one per Kubernetes node, with a total CPU limit of 12 cores across the 24-core cluster
 
-## API-Key Automation Direction
+## 📌 API-Key Automation Direction
 
 The long-term goal is to automate cross-service integration, especially for Prowlarr, Sonarr, and Radarr.
 
@@ -95,7 +112,7 @@ Recommended future pattern:
 
 This avoids coupling runtime app internals to guessed static secrets in Doppler.
 
-## Security Notes
+## 📝 Security Notes
 
 -   Public ingress is acceptable temporarily for test access, but each app still needs its own application authentication enabled in the UI
 -   SABnzbd server credentials should not be committed; if later automated, source them from Doppler
@@ -107,7 +124,7 @@ This avoids coupling runtime app internals to guessed static secrets in Doppler.
 -   Tdarr workers are Kubernetes-only; external Docker workers are not part of this rollout
 -   The NFS-backed media library remains shared state and should be treated as retained data
 
-## Assumptions
+## 🤔 Assumptions
 
 -   `/media/downloads`
 -   `/media/downloads/complete`
@@ -115,7 +132,7 @@ This avoids coupling runtime app internals to guessed static secrets in Doppler.
 
 already exist or can be created on the NFS server before workloads start.
 
-## Validation
+## ✅ Validation
 
 -   Argo sync succeeds for the deployed apps
 -   PVCs bind on CephFS
@@ -130,7 +147,7 @@ already exist or can be created on the NFS server before workloads start.
 -   `jellyseerr` serves its UI and can reach Jellyfin, Sonarr, and Radarr over the configured URLs
 -   `tdarr` serves its UI, creates its internal node, can see `/media`, and can write temporary transcode data under `/temp`
 
-## Rollback
+## ↩️ Rollback
 
 -   Delete the `sabnzbd`, `qbittorrent`, `sonarr`, `prowlarr`, `recyclarr`, `radarr`, `jellyseerr`, and `tdarr` Argo applications
 -   Remove their HTTPRoutes

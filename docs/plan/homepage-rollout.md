@@ -1,6 +1,6 @@
-# Homepage Rollout
+# 🏠 Homepage Rollout
 
-## Scope
+## 📌 Scope
 
 -   [ ] Deploy Homepage into the `web` namespace
 -   [ ] Expose Homepage at `https://homepage.krapulax.dev`
@@ -10,14 +10,14 @@
 -   [ ] Expose Prometheus with a direct Homepage link to the expression browser
 -   [ ] Keep the initial rollout free of committed widget credentials
 
-## Assumptions
+## 🤔 Assumptions
 
 -   Gateway API `HTTPRoute` resources remain the primary public routing layer for the cluster
 -   Homepage service discovery will rely on `gethomepage.dev/*` annotations on those routes
 -   Homepage will run behind the existing external gateway and TLS path
 -   API-backed Homepage widgets can be added later once any required credentials exist in Doppler
 
-## Validation
+## ✅ Validation
 
 -   [ ] `kubectl get application -n argo-system homepage`
 -   [ ] `kubectl rollout status deploy/homepage -n web`
@@ -27,7 +27,7 @@
 -   [ ] Open `https://homepage.krapulax.dev`
 -   [ ] Confirm discovered services appear from annotated routes
 
-## Rollback
+## ↩️ Rollback
 
 -   [ ] Remove the Homepage Argo application
 -   [ ] Remove Homepage route annotations from services that should not be auto-discovered

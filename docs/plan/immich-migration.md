@@ -1,6 +1,6 @@
-# Immich Migration Rollout
+# 📸 Immich Migration Rollout
 
-## Design
+## 📌 Design
 
 -   [x] Preserve the original Docker Swarm Immich source as fallback
 -   [x] Preserve NFS-backed media files
@@ -8,20 +8,20 @@
 -   [x] Use the final `photos.krapulax.dev` route in Kubernetes
 -   [x] Add an internal-only companion hostname
 
-## Repo Scaffolding
+## 📌 Repo Scaffolding
 
 -   [x] Add Immich migration architecture notes
 -   [x] Scaffold Kubernetes Immich manifests
 -   [x] Add operator notes for migration and validation
 -   [x] Add the Argo CD application
 
-## Source-Side Operator Steps
+## 📌 Source-Side Operator Steps
 
 -   [ ] Confirm the old Swarm Immich stack still has access to:
     -   `/mnt/media/immich`
 -   [ ] Keep the Swarm stack definition and source storage untouched
 
-## Kubernetes Operator Steps
+## 📌 Kubernetes Operator Steps
 
 -   [x] Add `IMMICH_DB_PASSWORD` to Doppler for the Kubernetes Immich app
 -   [ ] Open `https://photos.krapulax.dev`
@@ -32,13 +32,13 @@
 -   [ ] Verify external library access under `/external-library`
 -   [ ] Verify assets appear as expected
 
-## Cutover
+## 📌 Cutover
 
 -   [ ] Stop or disable the old Swarm Immich service
 -   [ ] Switch the public hostname from the Swarm route to Kubernetes
 -   [ ] Validate uploads and browsing on the final hostname
 
-## Rollback
+## ↩️ Rollback
 
 -   [ ] Remove or disable the Kubernetes Immich app
 -   [ ] Leave the old Swarm source and storage untouched

@@ -1,21 +1,28 @@
-# OpenTofu Setup
+# 📄 OpenTofu Setup
 
 This repository keeps OpenTofu stacks under `infra/` so provider state and lifecycle can be handled independently.
 
-## Stack Layout
+## 📌 Stack Layout
+
+```mermaid
+flowchart LR
+    Proxmox[infra/terraform_proxmox] -->|Provisions VMs| Talos[Talos Cluster]
+    Cloudflare[infra/terraform_cloudflare] -->|Tunnels DNS Access| Public[Public Ingress]
+    LocalDNS[infra/terraform_localdns] -->|Internal Records| Internal[LAN DNS]
+```
 
 -   `infra/terraform_proxmox/`: Proxmox VMs and Talos cluster infrastructure
 -   `infra/terraform_cloudflare/`: Kubernetes Cloudflare tunnel, DNS, Access policies, and tunnel credentials
 -   `infra/terraform_localdns/`: Kubernetes local DNS infrastructure
 
-## Inputs and Local State
+## 📌 Inputs and Local State
 
 -   `infra/terraform_proxmox/*.auto.tfvars` holds local cluster-specific inputs and remains gitignored
 -   `nodes.yaml` is still updated from Terraform outputs for the Talos workflow
 -   local state is kept in the repo working copy for now and must be treated as operator-local secret material
 -   `.terraform/`, `.terraform.lock.hcl`, `*.tfstate`, `*.tfvars`, `*.auto.tfvars`, and `tfplan*` are ignored across all stack directories
 
-## Common Commands
+## 📌 Common Commands
 
 ```bash
 task tf:init
@@ -38,7 +45,7 @@ task tf:cloudflare:plan
 task tf:localdns:plan
 ```
 
-## Migration Notes
+## 🚚 Migration Notes
 
 -   Proxmox resource addresses remain unchanged, especially `module.talos.*`, so existing VMs stay attached to their current state.
 -   The former mixed root `terraform/` state was split locally into `infra/terraform_proxmox/terraform.tfstate` and `infra/terraform_cloudflare/terraform.tfstate`.
@@ -46,8 +53,7 @@ task tf:localdns:plan
 -   Stale copied root outputs should be pruned by a scoped plan/apply after a stack split so each stack only reports its own outputs.
 -   Rollback is a directory/state-file move back to the previous layout before applying changes; no remote resources are changed by the split itself.
 
-## Related Documents
+## 📌 Related Documents
 
 -   [Architecture Plan](../architecture/ARCHITECTURE_PLAN.md)
--   [Argo Cluster Migration](../architecture/ARGO_CLUSTER_MIGRATION.md)
 -   [Cluster Docs Overview](../cluster/README.md)

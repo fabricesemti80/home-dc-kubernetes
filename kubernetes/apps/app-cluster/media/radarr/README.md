@@ -1,4 +1,4 @@
-# Radarr Notes
+# 🎬 Radarr Notes
 
 Use the web UI at `https://radarr.krapulax.dev`.
 

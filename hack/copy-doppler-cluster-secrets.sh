@@ -1,11 +1,15 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-SOURCE_PROJECT="${SOURCE_PROJECT:-project-homelab}"
-SOURCE_CONFIG="${SOURCE_CONFIG:-dev_homelab}"
 TARGET_PROJECT="${TARGET_PROJECT:-home-dc-kubernetes}"
 APPS_CONFIG="${APPS_CONFIG:-apps}"
 INFRA_CONFIG="${INFRA_CONFIG:-infra}"
+
+if [[ -z ${SOURCE_PROJECT:-} || -z ${SOURCE_CONFIG:-} ]]; then
+  echo "Usage: SOURCE_PROJECT=<project> SOURCE_CONFIG=<config> $0" >&2
+  echo "Example: SOURCE_PROJECT=old-project SOURCE_CONFIG=old-config $0" >&2
+  exit 1
+fi
 
 apps_secrets=(
   GITHUB_APP_ID

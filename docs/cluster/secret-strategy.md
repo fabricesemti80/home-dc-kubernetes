@@ -1,6 +1,14 @@
-# Secret Strategy
+# 🔐 Secret Strategy
 
 This repository uses two secret layers:
+
+```mermaid
+flowchart TD
+    Git[Git + age.key] -->|SOPS decrypts| Bootstrap[Bootstrap Secrets]
+    Doppler[Doppler] -->|DopplerSecret CRD| Runtime[Runtime Secrets]
+    Bootstrap -->|Needed before operators| Cluster[Kubernetes Cluster]
+    Runtime -->|Needed by apps| Cluster
+```
 
 -   **SOPS/age** for secrets required before Kubernetes secret operators can run.
 -   **Doppler** for runtime application secrets synced into Kubernetes by the Doppler operator.
@@ -9,7 +17,7 @@ Do not move bootstrap secrets into Doppler or another in-cluster operator. If th
 operator is unavailable during rebuild, those secrets must still be available
 from Git plus the local age key.
 
-## Bootstrap Setup
+## 🥾 Bootstrap Setup
 
 Run this from a fresh checkout before building or rebuilding the clusters:
 
@@ -29,7 +37,7 @@ The validator checks:
 
 It never prints decrypted secret values.
 
-### Age Key
+### 🔹 Age Key
 
 The age private key is local-only:
 
@@ -55,9 +63,9 @@ task secrets:validate-bootstrap
 Back up `age.key` in the primary human password manager. Losing it means the
 encrypted bootstrap material in Git cannot be recovered.
 
-## SOPS Inventory
+## 📌 SOPS Inventory
 
-### Must Remain In SOPS
+### 🔹 Must Remain In SOPS
 
 These are needed before or during cluster bootstrap:
 
@@ -77,7 +85,7 @@ These are needed before or during cluster bootstrap:
 If Doppler is replaced by another operator, the two Doppler token secrets should
 be replaced by the equivalent bootstrap token/credentials for that operator.
 
-### Candidates To Move Out Of SOPS
+### 🔹 Candidates To Move Out Of SOPS
 
 These are not required to create the cluster and can move to Doppler or another
 external secret manager later:
@@ -93,7 +101,7 @@ external secret manager later:
 
 Move these only after the Doppler project split has proven stable.
 
-## Doppler Target Layout
+## 📌 Doppler Target Layout
 
 The current desired Doppler project is:
 
@@ -136,9 +144,9 @@ Then verify:
 task secrets:validate-bootstrap
 ```
 
-## Doppler Inventory
+## 📌 Doppler Inventory
 
-### App Cluster
+### ☸️ App Cluster
 
 | Managed Secret               | Namespace      | Keys                                                                        |
 | ---------------------------- | -------------- | --------------------------------------------------------------------------- |
@@ -151,7 +159,7 @@ task secrets:validate-bootstrap
 | `linkwarden-secrets`         | `productivity` | `DATABASE_URL`, `NEXTAUTH_URL`, `NEXTAUTH_SECRET`, `LINKWARDEN_DB_PASSWORD` |
 | `n8n-secrets`                | `productivity` | `N8N_ENCRYPTION_KEY`                                                        |
 
-### Infra Cluster
+### ☸️ Infra Cluster
 
 | Managed Secret                   | Namespace    | Keys                                                                                  |
 | -------------------------------- | ------------ | ------------------------------------------------------------------------------------- |
@@ -165,57 +173,7 @@ task secrets:validate-bootstrap
 | `cloudflare-tunnel-infra-secret` | `network`    | `TUNNEL_TOKEN_INFRA` as `TUNNEL_TOKEN`                                                |
 | `operator-oauth`                 | `tailscale`  | `TAILSCALE_OAUTH_CLIENT_ID`, `TAILSCALE_OAUTH_CLIENT_SECRET`                          |
 
-## Canary Migration Plan
-
-Canary PR:
-
-1. Add `SLACK_WEBHOOK_MONITORING` to `home-dc-kubernetes/apps`.
-2. Add `UPTIME_KUMA_USERNAME` and `UPTIME_KUMA_PASSWORD` to `home-dc-kubernetes/infra`.
-3. Rotate app and infra Doppler operator service tokens into the scoped SOPS token files:
-    - `kubernetes/apps/app-cluster/doppler-operator-system/doppler-operator/config/secret-apps.sops.yaml`
-    - `kubernetes/apps/infra-cluster/doppler-operator-system/doppler-operator-infra/config/secret-infra.sops.yaml`
-4. Retarget only these `DopplerSecret` resources:
-    - `alertmanager-slack-webhook` to `home-dc-kubernetes/apps`
-    - `uptime-kuma-credentials` to `home-dc-kubernetes/infra`
-5. Sync and verify:
-
-The canary migration PR implements step 4 only. Steps 1-3 must be completed by
-the operator before Argo syncs the canary manifests.
-
-```bash
-argocd app get kube-prometheus-stack --core
-argocd app get uptime-kuma-infra --core
-kubectl get dopplersecret -n doppler-operator-system alertmanager-slack-webhook
-kubectl get secret -n monitoring alertmanager-slack-webhook
-kubectl --kubeconfig .private/infra-cluster/kubeconfig get dopplersecret -n doppler-operator-system uptime-kuma-credentials
-kubectl --kubeconfig .private/infra-cluster/kubeconfig get secret -n monitoring uptime-kuma-credentials
-```
-
-Rollback:
-
-1. Revert the canary PR.
-2. Restore the previous Doppler operator service tokens in SOPS if they were rotated.
-3. Confirm both `DopplerSecret` resources return to `project-homelab/dev_homelab`.
-
-## Full Migration Plan
-
-After the canary has synced and stayed healthy:
-
-1. Add all app-cluster keys to `home-dc-kubernetes/apps`.
-2. Add all infra-cluster keys to `home-dc-kubernetes/infra`.
-3. Retarget all remaining `DopplerSecret` resources.
-4. Retarget local OpenTofu tasks from `project-homelab/dev_homelab` to the new project/config.
-5. Remove stale keys from `project-homelab/dev_homelab` only after the full PR is merged and verified.
-
-Validation:
-
-```bash
-rg "project-homelab|dev_homelab" kubernetes .taskfiles scripts docs
-task secrets:validate-bootstrap
-task clusters:status
-```
-
-## 1Password Operator Assessment
+## 📊 1Password Operator Assessment
 
 1Password remains a viable future target because it is the primary human secret
 manager. It is not a no-risk drop-in replacement for this repo yet:

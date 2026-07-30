@@ -1,4 +1,4 @@
-# Jellyseerr Notes
+# 🎬 Jellyseerr Notes
 
 Use the web UI at `https://requests.krapulax.dev`.
 

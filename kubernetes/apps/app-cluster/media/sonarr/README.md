@@ -1,4 +1,4 @@
-# Sonarr Notes
+# 📺 Sonarr Notes
 
 Use the web UI at `https://sonarr.krapulax.dev`.
 

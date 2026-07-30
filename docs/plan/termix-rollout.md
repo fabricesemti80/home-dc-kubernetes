@@ -1,6 +1,6 @@
-# Termix Rollout
+# 📟 Termix Rollout
 
-## Scope
+## 📌 Scope
 
 -   [x] Deploy Termix into the existing `productivity` namespace.
 -   [x] Expose Termix internally only at `http://termix.krapulax.home` and `https://termix.krapulax.home`.
@@ -10,13 +10,13 @@
 -   [x] Start without OIDC or Doppler secrets for the Tailscale-only initial rollout.
 -   [x] Keep Termix-generated database, JWT, and internal auth keys in the persistent data volume, not in Git.
 
-## Namespace
+## 📌 Namespace
 
 Use `productivity`.
 
 Termix is a user-facing admin/productivity application, similar in placement to Linkwarden. It should not live in `network`, `monitoring`, `storage`, or `kube-system` because it is not cluster infrastructure. It should not live in `media` because it does not consume the shared media storage conventions.
 
-## Upstream References
+## 📚 Upstream References
 
 -   Termix repository: `https://github.com/Termix-SSH/Termix`
 -   Docker install docs: `https://docs.termix.site/install/server/docker/`
@@ -25,7 +25,7 @@ Termix is a user-facing admin/productivity application, similar in placement to 
 -   Remote desktop docs: `https://docs.termix.site/remote-desktop/`
 -   OIDC docs: `https://docs.termix.site/oidc/`
 
-## Proposed Kubernetes Shape
+## 💡 Proposed Kubernetes Shape
 
 -   Argo CD app: `kubernetes/argo/apps/app-cluster/productivity/termix.yaml`
 -   App config: `kubernetes/apps/app-cluster/productivity/termix/`
@@ -54,7 +54,7 @@ Termix is a user-facing admin/productivity application, similar in placement to 
 -   Local DNS:
     -   add `termix.krapulax.home` as a CNAME to `kubernetes.krapulax.home` in `infra/terraform_localdns/`
 
-## Doppler Secrets
+## 🔐 Doppler Secrets
 
 Required only if OIDC is enabled at rollout:
 
@@ -82,7 +82,7 @@ Do not add these to Doppler for a normal fresh install:
 
 Termix auto-generates those values on first startup and stores them in `{DATA_DIR}/.env`. Only add them to Doppler for a restore workflow where an existing backup requires exact secret reuse.
 
-## Security Impact
+## 📌 Security Impact
 
 -   Termix can store SSH hosts, credentials, keys, command history, file access metadata, API keys, and remote desktop credentials, so internal-only routing is mandatory for the first rollout.
 -   The service must not be reachable through `envoy-external`, Cloudflare Tunnel, or public DNS.
@@ -91,7 +91,7 @@ Termix auto-generates those values on first startup and stores them in `{DATA_DI
 -   Do not mount Docker socket access into Termix for the initial cluster deployment.
 -   Treat the Termix PVC as sensitive backup material because it contains encrypted database files and generated encryption material.
 
-## Assumptions
+## 🤔 Assumptions
 
 -   `productivity` remains the namespace for user-facing non-media applications.
 -   `termix.krapulax.home` is the intended internal hostname.
@@ -100,7 +100,7 @@ Termix auto-generates those values on first startup and stores them in `{DATA_DI
 -   CephFS is the correct storage class for app configuration/data PVCs.
 -   Remote desktop support can be deferred if SSH-only access is enough for the first rollout.
 
-## Validation
+## ✅ Validation
 
 -   [ ] `doppler secrets get TERMIX_OIDC_CLIENT_ID --project home-dc-kubernetes --config apps` if OIDC is enabled
 -   [ ] `kubectl get application -n argo-system termix`
@@ -115,7 +115,7 @@ Termix auto-generates those values on first startup and stores them in `{DATA_DI
 -   [ ] Confirm terminal sessions work through the internal route
 -   [ ] If `guacd` is enabled, confirm RDP/VNC/Telnet connection tests work and that `termix-guacd` is not externally exposed
 
-## Rollback
+## ↩️ Rollback
 
 -   [ ] Remove the Termix Argo CD application.
 -   [ ] Remove the `termix-internal` `HTTPRoute`.

@@ -1,4 +1,4 @@
-# Linkwarden Notes
+# 🔖 Linkwarden Notes
 
 Current intent:
 

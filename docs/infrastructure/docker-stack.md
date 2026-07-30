@@ -1,4 +1,4 @@
-# Docker Stack
+# 🐳 Docker Stack
 
 Host-level Docker services are decommissioned as an active deployment target.
 

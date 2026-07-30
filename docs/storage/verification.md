@@ -1,18 +1,18 @@
-# CephFS Storage Setup Verification
+# 💾 CephFS Storage Setup Verification
 
 **Status**: ✅ All Kubernetes components deployed and ready
 **Last Updated**: 2026-03-14
 
-## Setup Checklist
+## 📌 Setup Checklist
 
-### Prerequisites on Ceph Cluster (Proxmox)
+### ☸️ Prerequisites on Ceph Cluster (Proxmox)
 
 -   [ ] **CephFS Subvolume Group Created**: `ceph fs subvolumegroup create cephfs-vm csi`
     -   **Command**: SSH to any Proxmox node (pve-0, pve-1, or pve-2) and run the above
     -   **Verify**: `ceph fs subvolume-group ls cephfs-vm` should show `csi`
     -   **Status**: Required for PVC provisioning
 
-### Kubernetes Deployment
+### 🚀 Kubernetes Deployment
 
 The following has been automatically configured:
 
@@ -75,24 +75,28 @@ kubectl describe storageclass cephfs
 
 ```bash
 # Check if namespace was created
+
 kubectl get namespace storage
 
 # Check PVC status (should be Bound after subvolume group is created)
+
 kubectl get pvc -n storage
 kubectl describe pvc nginx-test-pvc -n storage
 
 # Check pod status
+
 kubectl get pods -n storage -l app=nginx-test
 kubectl describe pod -n storage -l app=nginx-test
 
 # Test mount (if pod is running)
+
 kubectl exec -it -n storage <pod-name> -- df -h /usr/share/nginx/html
 kubectl exec -it -n storage <pod-name> -- cat /usr/share/nginx/html/index.html
 ```
 
 ---
 
-## Prerequisites Status
+## 📋 Prerequisites Status
 
 ### ✅ Kubernetes Side (Complete)
 
@@ -111,7 +115,7 @@ kubectl exec -it -n storage <pod-name> -- cat /usr/share/nginx/html/index.html
 
 ---
 
-## End-to-End Testing
+## 📌 End-to-End Testing
 
 Once Ceph subvolume group is created, the flow is:
 
@@ -140,9 +144,9 @@ Once Ceph subvolume group is created, the flow is:
 
 ---
 
-## Troubleshooting
+## 🚑 Troubleshooting
 
-### PVC Stuck in Pending
+### 🔹 PVC Stuck in Pending
 
 **Check CSI provisioner logs:**
 
@@ -156,7 +160,7 @@ kubectl logs -n storage -l app=ceph-csi-ceph-csi-cephfs-provisioner -c csi-provi
 -   `permission denied` → Verify Doppler secret and CEPH_KEYRING
 -   `pool does not exist` → Verify `cephfs-vm_data` pool exists on Ceph
 
-### Check Ceph Cluster Health
+### ☸️ Check Ceph Cluster Health
 
 From Proxmox:
 
@@ -167,7 +171,7 @@ ceph fs ls
 ceph fs subvolume-group ls cephfs-vm
 ```
 
-### Pod Not Starting After PVC Binds
+### 🔹 Pod Not Starting After PVC Binds
 
 ```bash
 kubectl describe pod -n storage <pod-name>
@@ -182,9 +186,9 @@ Common causes:
 
 ---
 
-## Files & Configuration
+## ⚙️ Files & Configuration
 
-### Kubernetes Files
+### 🔹 Kubernetes Files
 
 | File                                                                 | Purpose                      |
 | -------------------------------------------------------------------- | ---------------------------- |
@@ -194,13 +198,13 @@ Common causes:
 | `kubernetes/argo/apps/app-cluster/storage/`                          | ArgoCD Applications          |
 | `templates/config/kubernetes/apps/app-cluster/kube-system/ceph-csi/` | Secret template with Doppler |
 
-### Ansible Automation
+### 🔹 Ansible Automation
 
 | File                                       | Purpose                                               |
 | ------------------------------------------ | ----------------------------------------------------- |
 | `infra-ansible-home-proxmoxhosts/site.yml` | Proxmox deployment including subvolume group creation |
 
-### Documentation
+### 📚 Documentation
 
 | File                           | Purpose                            |
 | ------------------------------ | ---------------------------------- |
@@ -209,7 +213,7 @@ Common causes:
 
 ---
 
-## Next Steps
+## 📌 Next Steps
 
 1. **Create Ceph Subvolume Group** (if not already done)
 
@@ -239,7 +243,7 @@ Common causes:
 
 ---
 
-## Success Criteria
+## 📌 Success Criteria
 
 ✅ **All steps complete when:**
 
@@ -251,7 +255,7 @@ Common causes:
 
 ---
 
-## Verification Results (2026-03-14)
+## ✅ Verification Results (2026-03-14)
 
 ### ✅ All Prerequisites Met
 
@@ -299,7 +303,7 @@ Storage Class: cephfs
 PVC Name: nginx-test-pvc
 ```
 
-### Conclusion
+### 🏁 Conclusion
 
 ✅ **CephFS storage provisioning is fully operational**
 
@@ -312,7 +316,7 @@ PVC Name: nginx-test-pvc
 
 ---
 
-## References
+## 📚 References
 
 -   [Storage Setup Guide](./overview.md)
 -   [Ceph-CSI Documentation](https://github.com/ceph/ceph-csi)

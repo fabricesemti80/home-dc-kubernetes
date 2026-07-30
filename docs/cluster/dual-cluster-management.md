@@ -1,4 +1,4 @@
-# Dual Cluster Management
+# ☸️ Dual Cluster Management
 
 This repository now treats the Kubernetes estate as two clusters managed by one Argo CD hub.
 
@@ -9,7 +9,15 @@ This repository now treats the Kubernetes estate as two clusters managed by one 
 
 Argo CD runs on `app-cluster` and manages both clusters. Do not install a second Argo CD on `infra-cluster` unless this hub model is deliberately replaced.
 
-## Lens
+```mermaid
+flowchart LR
+    Hub[Argo CD Hub on app-cluster] -->|manages| App[app-cluster Workloads]
+    Hub -->|manages remote| Infra[infra-cluster Workloads]
+    Lens[Workstation Lens kubeconfig] -->|context| App
+    Lens -->|context| Infra
+```
+
+## 🔭 Lens
 
 Lens can use one kubeconfig containing both contexts. Generate the local-only merged file:
 
@@ -34,7 +42,7 @@ infra-cluster
 
 The Lens kubeconfig is separate from the repo `./kubeconfig`. The repo kubeconfig keeps the `argocd` context for Argo CD CLI `--core` commands. The Lens kubeconfig keeps only cluster browsing contexts.
 
-## Task Namespaces
+## 🛠️ Task Namespaces
 
 Use cluster-explicit task names for new work:
 
@@ -56,7 +64,7 @@ task clusters:status
 
 Legacy app-cluster task names still exist for compatibility, but new docs should prefer the explicit `app` or `infra` names.
 
-## Folder Boundaries
+## 📁 Folder Boundaries
 
 Current source layout:
 
@@ -71,7 +79,7 @@ Current source layout:
 
 Keep kubeconfigs, Talos generated configs, and private keys under `.private/` or ignored local files.
 
-## Application Placement
+## 📦 Application Placement
 
 For an app-cluster workload:
 
@@ -89,7 +97,7 @@ destination:
 
 Infra-cluster apps should start with small, dependency-light services. The Doppler operator and Reloader are good initial candidates because later infra workloads can reuse the same secret and reload patterns. Avoid moving DNS, monitoring, or storage until a simple app has synced and stayed healthy.
 
-## Validation
+## ✅ Validation
 
 ```bash
 task clusters:status

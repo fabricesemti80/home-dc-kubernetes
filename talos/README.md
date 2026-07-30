@@ -1,4 +1,4 @@
-# Talos Clusters
+# ☸️ Talos Clusters
 
 Talos source is split by cluster:
 

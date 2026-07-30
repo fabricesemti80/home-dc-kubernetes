@@ -1,4 +1,4 @@
-# App Cluster
+# ☸️ App Cluster
 
 `app-cluster` is the existing Talos VM cluster on Proxmox. It hosts Argo CD and general workloads.
 

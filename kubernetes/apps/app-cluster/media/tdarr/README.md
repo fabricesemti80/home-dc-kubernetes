@@ -1,4 +1,4 @@
-# Tdarr Notes
+# 🎬 Tdarr Notes
 
 Use the web UI at `https://tdarr.krapulax.dev`.
 
