@@ -10,7 +10,7 @@ metadata:
     gethomepage.dev/description: "Infrastructure monitoring"
     gethomepage.dev/enabled: "true"
     gethomepage.dev/group: "Infra Cluster - monitoring"
-    gethomepage.dev/href: "http://pulse.krapulax.dev"
+    gethomepage.dev/href: "https://pulse.krapulax.dev"
     gethomepage.dev/icon: "mdi-heart-pulse"
     gethomepage.dev/name: "Pulse"
     gethomepage.dev/weight: "20"

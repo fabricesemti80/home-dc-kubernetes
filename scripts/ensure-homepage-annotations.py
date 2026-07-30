@@ -4,6 +4,7 @@ import glob
 import os
 import re
 import sys
+from urllib.parse import urlsplit, urlunsplit
 
 import yaml
 
@@ -11,6 +12,9 @@ REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 APPS_DIR = os.path.join(REPO, "kubernetes", "apps")
 SETTINGS_PATH = os.path.join(
     REPO, "kubernetes", "apps", "app-cluster", "web", "homepage", "config", "settings.yaml"
+)
+SERVICES_PATH = os.path.join(
+    REPO, "kubernetes", "apps", "app-cluster", "web", "homepage", "config", "services.yaml"
 )
 
 CLUSTER_LABELS = {
@@ -98,6 +102,17 @@ def title_name(name: str) -> str:
     return " ".join(w.capitalize() for w in base.split())
 
 
+def upgrade_http_to_https(href: str) -> str:
+    """Upgrade http:// to https:// for public .dev hosts, preserving path/query."""
+    if not href.startswith("http://"):
+        return href
+    host = href.split("/")[2].split(":")[0]
+    if not host.endswith(".dev"):
+        return href
+    parts = urlsplit(href)
+    return urlunsplit(parts._replace(scheme="https"))
+
+
 def determine_href(doc: dict) -> str | None:
     annotations = doc.get("metadata", {}).get("annotations", {})
     host = annotations.get("external-dns.alpha.kubernetes.io/hostname")
@@ -108,11 +123,9 @@ def determine_href(doc: dict) -> str | None:
     if not host:
         return None
 
-    scheme = "https"
-    for parent in doc.get("spec", {}).get("parentRefs", []):
-        if parent.get("sectionName") == "http":
-            scheme = "http"
-            break
+    # Public .dev endpoints terminate TLS at Cloudflare, so use HTTPS.
+    # Internal .home endpoints are plain HTTP behind the internal gateway.
+    scheme = "http" if host.endswith(".home") else "https"
     return f"{scheme}://{host}"
 
 
@@ -255,11 +268,13 @@ def update_annotations_block(lines: list[str], desired: dict) -> tuple[list[str]
     return new_lines, True
 
 
-def update_route_file(path: str, changed: set, groups: set) -> None:
+def update_route_file(path: str, changed: set, groups: set) -> dict | None:
+    """Update annotations in an HTTPRoute file and return its homepage metadata."""
     with open(path, "r", encoding="utf-8") as f:
         text = f.read()
 
     docs = list(yaml.safe_load_all(text))
+    desired = None
     for doc in docs:
         if not doc or doc.get("kind") != "HTTPRoute":
             continue
@@ -276,18 +291,24 @@ def update_route_file(path: str, changed: set, groups: set) -> None:
         for k, v in existing_homepage.items():
             if k == "gethomepage.dev/group":
                 continue
+            if k == "gethomepage.dev/href":
+                desired[k] = upgrade_http_to_https(v)
+                continue
             desired[k] = v
 
         groups.add(desired["gethomepage.dev/group"])
 
+    if desired is None:
+        return None
+
     lines = text.splitlines(keepends=True)
     new_lines, modified = update_annotations_block(lines, desired)
-    if not modified:
-        return
+    if modified:
+        with open(path, "w", encoding="utf-8") as f:
+            f.writelines(new_lines)
+        changed.add(os.path.relpath(path, REPO))
 
-    with open(path, "w", encoding="utf-8") as f:
-        f.writelines(new_lines)
-    changed.add(os.path.relpath(path, REPO))
+    return desired
 
 
 def update_settings(groups: set) -> bool:
@@ -311,9 +332,64 @@ def update_settings(groups: set) -> bool:
     return False
 
 
+def update_services(infra_routes: list[dict]) -> bool:
+    """Write static services.yaml entries for infra-cluster routes.
+
+    The app-cluster homepage runs in cluster discovery mode and can only see
+    app-cluster HTTPRoutes. Infra-cluster routes are supplied statically here
+    so they still appear on the dashboard.
+    """
+    if not infra_routes:
+        text = "[]\n"
+    else:
+        # Sort by group, then weight, then name for stable output.
+        sorted_routes = sorted(
+            infra_routes,
+            key=lambda r: (
+                r["gethomepage.dev/group"],
+                int(r.get("gethomepage.dev/weight", "0")),
+                r["gethomepage.dev/name"],
+            ),
+        )
+        lines = []
+        current_group = None
+        for route in sorted_routes:
+            group = route["gethomepage.dev/group"]
+            name = route["gethomepage.dev/name"]
+            icon = route["gethomepage.dev/icon"]
+            href = route.get("gethomepage.dev/href", "")
+            description = route["gethomepage.dev/description"]
+
+            if group != current_group:
+                if current_group is not None:
+                    lines.append("")
+                lines.append(f"- {group}:")
+                current_group = group
+
+            lines.append(f"    - {name}:")
+            lines.append(f"        icon: {icon}")
+            if href:
+                lines.append(f"        href: {href}")
+            lines.append(f"        description: {description}")
+
+        text = "\n".join(lines) + "\n"
+
+    existing = ""
+    if os.path.exists(SERVICES_PATH):
+        with open(SERVICES_PATH, "r", encoding="utf-8") as f:
+            existing = f.read()
+
+    if text != existing:
+        with open(SERVICES_PATH, "w", encoding="utf-8") as f:
+            f.write(text)
+        return True
+    return False
+
+
 def main():
     changed = set()
     groups = set()
+    infra_routes: list[dict] = []
 
     route_files = sorted(
         glob.glob(os.path.join(APPS_DIR, "**", "*http-route*.yaml"), recursive=True)
@@ -323,11 +399,20 @@ def main():
     for path in route_files:
         if should_skip(path):
             continue
-        update_route_file(path, changed, groups)
+        route = update_route_file(path, changed, groups)
+        if route is None:
+            continue
+        cluster_key, _, _ = parse_app_path(path)
+        if cluster_key == "infra-cluster":
+            infra_routes.append(route)
 
     settings_changed = update_settings(groups)
     if settings_changed:
         changed.add(os.path.relpath(SETTINGS_PATH, REPO))
+
+    services_changed = update_services(infra_routes)
+    if services_changed:
+        changed.add(os.path.relpath(SERVICES_PATH, REPO))
 
     if changed:
         print("Updated files:")
