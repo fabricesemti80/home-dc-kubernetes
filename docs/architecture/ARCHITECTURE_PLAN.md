@@ -12,15 +12,15 @@ This codebase was originally bootstrapped using [ajaykumar4/cluster-template](ht
 
 ```mermaid
 flowchart TD
-    subgraph Git [Git Repository]
+    subgraph Git["Git Repository"]
         Manifests[Kubernetes Manifests]
         TF[OpenTofu Stacks]
     end
-    subgraph App [app-cluster Proxmox VMs]
+    subgraph App["app-cluster Proxmox VMs"]
         ArgoCD[Argo CD Hub]
         Apps[Application Workloads]
     end
-    subgraph Infra [infra-cluster Physical Mini PCs]
+    subgraph Infra["infra-cluster Physical Mini PCs"]
         Core[Core Infra Services]
     end
     Git -->|GitOps| ArgoCD

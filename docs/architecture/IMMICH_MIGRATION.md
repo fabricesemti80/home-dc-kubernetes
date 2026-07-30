@@ -26,10 +26,10 @@ Legacy Dockerlab layout:
 
 ```mermaid
 flowchart LR
-    subgraph Legacy [Docker Swarm]
+    subgraph Legacy["Docker Swarm"]
         OldMedia[/NFS Media /mnt/media/immich]
     end
-    subgraph K8s [Kubernetes]
+    subgraph K8s["Kubernetes"]
         NewDB[(Fresh Postgres)]
         NewML[Machine Learning]
         NewImmich[Immich Server]

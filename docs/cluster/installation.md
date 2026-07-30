@@ -10,18 +10,18 @@ This guide provides a comprehensive, step-by-step installation and deployment pr
 
 ```mermaid
 flowchart TD
-    subgraph Hub ["app-cluster (Proxmox Talos VMs)"]
+    subgraph Hub["app-cluster (Proxmox Talos VMs)"]
         ArgoCD["Argo CD Hub"]
         AppWorkloads["Application Workloads\n(Nextcloud, Immich, Media, etc.)"]
         EnvoyApp["Envoy Gateway\n(external-apps.krapulax.dev)"]
     end
 
-    subgraph Spokes ["infra-cluster (Bare-metal Mini PCs)"]
+    subgraph Spokes["infra-cluster (Bare-metal Mini PCs)"]
         InfraWorkloads["Infra Services\n(Pulse, Kestra, Reloader, Uptime Kuma)"]
         EnvoyInfra["Envoy Gateway\n(external-infra.krapulax.dev)"]
     end
 
-    subgraph IaC ["OpenTofu / IaC Stacks"]
+    subgraph IaC["OpenTofu / IaC Stacks"]
         TF_Proxmox["infra/terraform_proxmox"]
         TF_CF["infra/terraform_cloudflare"]
         TF_DNS["infra/terraform_localdns"]
