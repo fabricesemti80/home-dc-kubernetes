@@ -1,0 +1,91 @@
+---
+global:
+  createDefaultServiceAccount: false
+
+controllers:
+  technitium:
+    type: daemonset
+    strategy: RollingUpdate
+    containers:
+      app:
+        image:
+          repository: docker.io/technitium/dns-server
+          tag: "15.4.0"
+        env:
+          TZ: Europe/London
+          DNS_SERVER_WEB_SERVICE_HTTP_PORT: "5380"
+          DNS_SERVER_RECURSION: UseSpecifiedNetworkACL
+          DNS_SERVER_RECURSION_NETWORK_ACL: "10.0.0.0/8,172.16.0.0/12,192.168.0.0/16"
+          DNS_SERVER_LOG_FOLDER_PATH: /var/log/technitium/dns
+          DNS_SERVER_LOG_MAX_LOG_FILE_DAYS: "30"
+          DNS_SERVER_STATS_ENABLE_IN_MEMORY_STATS: "true"
+          DNS_SERVER_ADMIN_PASSWORD:
+            valueFrom:
+              secretKeyRef:
+                name: technitium-secrets
+                key: TECHNITIUM_ADMIN_PASSWORD
+        probes:
+          liveness: &probes
+            enabled: true
+            custom: true
+            spec:
+              httpGet:
+                path: /
+                port: &web-port 5380
+              initialDelaySeconds: 30
+              periodSeconds: 15
+              timeoutSeconds: 5
+              failureThreshold: 6
+          readiness: *probes
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: false
+          capabilities:
+            drop: ["ALL"]
+            add: ["NET_BIND_SERVICE"]
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            memory: 1Gi
+
+defaultPodOptions:
+  hostNetwork: true
+  dnsPolicy: ClusterFirstWithHostNet
+  automountServiceAccountToken: false
+  annotations:
+    reloader.stakater.com/auto: "true"
+  tolerations:
+    - key: node-role.kubernetes.io/control-plane
+      operator: Exists
+      effect: NoSchedule
+  securityContext:
+    runAsNonRoot: false
+    runAsUser: 0
+    runAsGroup: 0
+
+service:
+  app:
+    controller: technitium
+    ports:
+      http:
+        port: *web-port
+
+persistence:
+  config:
+    type: custom
+    volumeSpec:
+      hostPath:
+        path: /var/technitium/dns/config
+        type: DirectoryOrCreate
+    globalMounts:
+      - path: /etc/dns
+  logs:
+    type: custom
+    volumeSpec:
+      hostPath:
+        path: /var/technitium/dns/logs
+        type: DirectoryOrCreate
+    globalMounts:
+      - path: /var/log/technitium/dns

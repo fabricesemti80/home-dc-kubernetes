@@ -161,17 +161,18 @@ task secrets:validate-bootstrap
 
 ### ☸️ Infra Cluster
 
-| Managed Secret                   | Namespace    | Keys                                                                                  |
-| -------------------------------- | ------------ | ------------------------------------------------------------------------------------- |
-| `kestra-basic-auth`              | `kestra`     | `KESTRA_BASIC_AUTH_USERNAME`, `KESTRA_BASIC_AUTH_PASSWORD`                            |
-| `kestra-postgres`                | `kestra`     | `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`, `USERDB_USER`, `USERDB_PASSWORD` |
-| `versitygw-root`                 | `kestra`     | `ROOT_ACCESS_KEY`, `ROOT_SECRET_KEY`                                                  |
-| `kestra-homelab-ops`             | `kestra`     | `HOMELAB_SSH_PRIVATE_KEY`, `HOMELAB_SSH_KNOWN_HOSTS`                                  |
-| `pulse-agent-token`              | `monitoring` | `PULSE_INFRA_TOKEN`                                                                   |
-| `pulse-secrets`                  | `monitoring` | `PULSE_AUTH_USER`, `PULSE_AUTH_PASS`                                                  |
-| `uptime-kuma-credentials`        | `monitoring` | `UPTIME_KUMA_USERNAME`, `UPTIME_KUMA_PASSWORD`                                        |
-| `cloudflare-tunnel-infra-secret` | `network`    | `TUNNEL_TOKEN_INFRA` as `TUNNEL_TOKEN`                                                |
-| `operator-oauth`                 | `tailscale`  | `TAILSCALE_OAUTH_CLIENT_ID`, `TAILSCALE_OAUTH_CLIENT_SECRET`                          |
+| Managed Secret                   | Namespace    | Keys                                                                                      |
+| -------------------------------- | ------------ | ----------------------------------------------------------------------------------------- |
+| `kestra-basic-auth`              | `kestra`     | `KESTRA_BASIC_AUTH_USERNAME`, `KESTRA_BASIC_AUTH_PASSWORD`                                |
+| `kestra-postgres`                | `kestra`     | `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`, `USERDB_USER`, `USERDB_PASSWORD`     |
+| `versitygw-root`                 | `kestra`     | `ROOT_ACCESS_KEY`, `ROOT_SECRET_KEY`                                                      |
+| `kestra-homelab-ops`             | `kestra`     | `HOMELAB_SSH_PRIVATE_KEY`, `HOMELAB_SSH_KNOWN_HOSTS`                                      |
+| `pulse-agent-token`              | `monitoring` | `PULSE_INFRA_TOKEN`                                                                       |
+| `pulse-secrets`                  | `monitoring` | `PULSE_AUTH_USER`, `PULSE_AUTH_PASS`                                                      |
+| `uptime-kuma-credentials`        | `monitoring` | `UPTIME_KUMA_USERNAME`, `UPTIME_KUMA_PASSWORD`                                            |
+| `cloudflare-tunnel-infra-secret` | `network`    | `TUNNEL_TOKEN_INFRA` as `TUNNEL_TOKEN`                                                    |
+| `technitium-rfc2136-secrets`     | `network`    | `TECHNITIUM_RFC2136_TSIG_KEYNAME`, `TECHNITIUM_RFC2136_TSIG_SECRET` for local DNS updates |
+| `operator-oauth`                 | `tailscale`  | `TAILSCALE_OAUTH_CLIENT_ID`, `TAILSCALE_OAUTH_CLIENT_SECRET`                              |
 
 ## 📊 1Password Operator Assessment
 

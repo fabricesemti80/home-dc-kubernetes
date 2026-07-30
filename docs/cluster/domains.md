@@ -20,7 +20,7 @@ flowchart LR
 | `external-apps.krapulax.dev`  | `kubernetes-apps` tunnel  | New canonical public endpoint for app-cluster routes |
 | `external-infra.krapulax.dev` | `kubernetes-infra` tunnel | Canonical public endpoint for infra-cluster services |
 | `internal.krapulax.dev`       | -                         | Internal routing                                     |
-| `krapulax.home`               | -                         | Internal zone; DNS automation currently inactive     |
+| `krapulax.home`               | `10.0.40.53`              | Internal zone served by Technitium                   |
 | `kubernetes.krapulax.home`    | `10.0.40.102`             | Internal gateway target                              |
 | `kestra.krapulax.home`        | `10.0.40.106`             | Infra-cluster internal Kestra                        |
 
@@ -98,6 +98,6 @@ The migration from `external.krapulax.dev` is complete:
 
 -   External `krapulax.dev` records are managed by the app-cluster ExternalDNS deployment.
 -   Public infra service records target `external-infra.krapulax.dev`; only `external-infra.krapulax.dev` points at the infra tunnel ID.
--   Internal `krapulax.home` DNS automation is currently inactive while the Technitium deployment is redesigned.
+-   Internal `krapulax.home` records are published into Technitium by RFC2136 ExternalDNS deployments in each cluster.
 -   Internal HTTPRoutes set `external-dns.alpha.kubernetes.io/target: kubernetes.krapulax.home`.
 -   Hostnames may be defined in both HTTPRoute annotations and central `DNSEndpoint` resources.
