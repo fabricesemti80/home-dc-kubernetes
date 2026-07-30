@@ -11,6 +11,7 @@ This section covers the Talos, Argo CD, and Kubernetes-side configuration that n
 
 ## Day-to-Day Guides
 
+-   [Root rebuild guide](../../README.md)
 -   [Dual Cluster Management](dual-cluster-management.md)
 -   [Secret Strategy](secret-strategy.md)
 -   [Adding Applications](adding-applications.md)
