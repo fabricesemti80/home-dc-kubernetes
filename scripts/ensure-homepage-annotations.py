@@ -113,38 +113,43 @@ def upgrade_http_to_https(href: str) -> str:
     return urlunsplit(parts._replace(scheme="https"))
 
 
-def determine_href(doc: dict) -> str | None:
+def route_host(doc: dict) -> str | None:
     annotations = doc.get("metadata", {}).get("annotations", {})
     host = annotations.get("external-dns.alpha.kubernetes.io/hostname")
     if not host:
         hostnames = doc.get("spec", {}).get("hostnames", [])
         if hostnames:
             host = hostnames[0]
+    return host
+
+
+def is_public_route(doc: dict) -> bool:
+    """Only public DNS records (currently .dev) should appear on the homepage."""
+    host = route_host(doc)
+    return bool(host and host.endswith(".dev"))
+
+
+def determine_href(doc: dict) -> str | None:
+    host = route_host(doc)
     if not host:
         return None
-
     # Public .dev endpoints terminate TLS at Cloudflare, so use HTTPS.
-    # Internal .home endpoints are plain HTTP behind the internal gateway.
-    scheme = "http" if host.endswith(".home") else "https"
+    scheme = "https" if host.endswith(".dev") else "http"
     return f"{scheme}://{host}"
 
 
-def desired_annotations(doc: dict, cluster_key: str, namespace: str, app: str) -> dict:
+def desired_annotations(doc: dict, cluster_key: str, namespace: str, app: str) -> dict | None:
+    if not is_public_route(doc):
+        return None
+
     route_name = doc.get("metadata", {}).get("name", app)
-    is_internal = route_name.endswith("-internal")
-    display_base = route_name.removesuffix("-internal")
-    display_name = title_name(display_base)
-    if is_internal:
-        display_name = f"{display_name} (internal)"
+    display_name = title_name(route_name)
 
     group = f"{CLUSTER_LABELS.get(cluster_key, cluster_key)} - {namespace}"
-    icon = ICON_MAP.get(display_base.lower(), "mdi-application")
+    icon = ICON_MAP.get(route_name.lower(), "mdi-application")
     description = DESCRIPTIONS.get(
-        display_base.lower(), f"{title_name(display_base)} service"
+        route_name.lower(), f"{title_name(route_name)} service"
     )
-    if is_internal:
-        description = f"{description} (internal)"
-
     weight = "10" if cluster_key == "app-cluster" else "20"
 
     desired = {
@@ -166,7 +171,7 @@ def get_line_indent(line: str) -> int:
 
 
 def update_annotations_block(lines: list[str], desired: dict) -> tuple[list[str], bool]:
-    """Insert or update homepage annotations while preserving file style."""
+    """Insert, update, or remove homepage annotations while preserving file style."""
     new_lines = list(lines)
 
     # Find metadata: line
@@ -215,6 +220,17 @@ def update_annotations_block(lines: list[str], desired: dict) -> tuple[list[str]
                 continue
             kept.append(line)
 
+        if not desired:
+            # Dropping all homepage annotations. If nothing else is left, remove the
+            # empty annotations: key as well.
+            rest = [line for line in kept if line.strip() and not line.strip().startswith("#")]
+            if not rest:
+                new_lines = new_lines[:ann_start] + new_lines[ann_end:]
+                return new_lines, new_lines != lines
+            new_block = [new_lines[ann_start]] + kept
+            new_lines = new_lines[:ann_start] + new_block + new_lines[ann_end:]
+            return new_lines, new_lines != lines
+
         # Build new homepage annotation lines
         key_indent = " " * (ann_indent + 2)
         homepage_lines = [
@@ -238,6 +254,9 @@ def update_annotations_block(lines: list[str], desired: dict) -> tuple[list[str]
         )
         new_lines = new_lines[: ann_start] + new_block + new_lines[ann_end:]
         return new_lines, new_lines != lines
+
+    if not desired:
+        return new_lines, False
 
     # No annotations block: insert one at the end of the metadata block
     base_indent = get_line_indent(new_lines[metadata_idx])
@@ -288,6 +307,13 @@ def update_route_file(path: str, changed: set, groups: set) -> dict | None:
             for k, v in doc.get("metadata", {}).get("annotations", {}).items()
             if k.startswith("gethomepage.dev/")
         }
+
+        if desired is None:
+            # Internal route: strip any existing homepage annotations.
+            if existing_homepage:
+                desired = {}
+            continue
+
         for k, v in existing_homepage.items():
             if k == "gethomepage.dev/group":
                 continue
@@ -298,6 +324,7 @@ def update_route_file(path: str, changed: set, groups: set) -> dict | None:
 
         groups.add(desired["gethomepage.dev/group"])
 
+    # desired is None and no existing homepage annotations -> nothing to do
     if desired is None:
         return None
 
@@ -308,7 +335,7 @@ def update_route_file(path: str, changed: set, groups: set) -> dict | None:
             f.writelines(new_lines)
         changed.add(os.path.relpath(path, REPO))
 
-    return desired
+    return desired if desired else None
 
 
 def update_settings(groups: set) -> bool:
