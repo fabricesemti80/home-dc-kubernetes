@@ -37,7 +37,7 @@ kubernetes/apps/infra-cluster/monitoring/uptime-kuma-infra/config/autokuma-monit
 Do not edit that file manually. After this workflow has been merged to the default branch, pull requests that change Kubernetes route manifests automatically run `.github/workflows/generate-autokuma-monitors.yaml`, which:
 
 1. checks out the pull request's head branch;
-2. installs the pinned Mike Farah `yq` binary used by the generator;
+2. installs the Python dependencies used by the generator;
 3. runs `scripts/generate-autokuma-monitors.py`;
 4. detects whether the generated ConfigMap changed;
 5. commits and pushes the generated output back to the same branch when required;
@@ -66,6 +66,9 @@ The generator:
 7. writes one AutoKuma JSON document per hostname into the ConfigMap.
 
 Each generated monitor uses HTTPS, a 60-second interval, and three retries.
+Routes can override accepted HTTP status codes with
+`uptime-kuma.krapulax.dev/accepted-statuscodes`, using the same comma-separated
+range values as Uptime Kuma, for example `200-299,300-399`.
 
 ## ➕ Adding or removing monitoring
 
@@ -118,7 +121,9 @@ It excludes:
 
 An HTTP monitor validates the full user-visible path: public DNS, Cloudflare, the selected tunnel, Kubernetes routing, the service, the application response, and TLS certificate validity. It complements rather than replaces readiness probes, Prometheus, Grafana, Alertmanager, or Pulse.
 
-Some authenticated applications may return redirects, 401, or 403 responses. Those services may need a dedicated health path or an explicit AutoKuma override in a future extension. The generated inventory currently uses the standard HTTP monitor defaults.
+Some authenticated applications may return redirects, 401, or 403 responses.
+Those services should use a dedicated health path where available, or set an
+explicit accepted-status override on the public `HTTPRoute`.
 
 ## 🚑 Troubleshooting
 

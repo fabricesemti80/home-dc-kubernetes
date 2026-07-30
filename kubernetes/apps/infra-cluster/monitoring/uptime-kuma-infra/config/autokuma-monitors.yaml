@@ -54,7 +54,11 @@ data:
       "name": "Media Files",
       "url": "https://files.krapulax.dev",
       "interval": 60,
-      "max_retries": 3
+      "max_retries": 3,
+      "accepted_statuscodes": [
+        "200-299",
+        "300-399"
+      ]
     }
   glance.json: |-
     {

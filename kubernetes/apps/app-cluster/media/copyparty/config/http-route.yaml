@@ -14,6 +14,7 @@ metadata:
     gethomepage.dev/icon: "mdi-file-cabinet"
     gethomepage.dev/name: "Media Files"
     gethomepage.dev/weight: "30"
+    uptime-kuma.krapulax.dev/accepted-statuscodes: "200-299,300-399"
 spec:
   parentRefs:
     - name: envoy-external
