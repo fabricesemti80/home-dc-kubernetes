@@ -6,6 +6,13 @@ metadata:
   namespace: media
   annotations:
     external-dns.alpha.kubernetes.io/target: kubernetes.krapulax.home
+    gethomepage.dev/description: "Photo and video management (internal)"
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/group: "App Cluster - media"
+    gethomepage.dev/href: "http://photos.krapulax.home"
+    gethomepage.dev/icon: "immich.png"
+    gethomepage.dev/name: "Immich (internal)"
+    gethomepage.dev/weight: "10"
 spec:
   parentRefs:
     - name: envoy-internal

@@ -7,11 +7,12 @@ metadata:
   annotations:
     external-dns.alpha.kubernetes.io/hostname: jelly.krapulax.dev
     external-dns.alpha.kubernetes.io/target: external-apps.krapulax.dev
+    gethomepage.dev/description: "Media streaming server"
     gethomepage.dev/enabled: "true"
-    gethomepage.dev/group: Media
-    gethomepage.dev/name: Jellyfin
-    gethomepage.dev/icon: jellyfin.png
-    gethomepage.dev/description: Media streaming server
+    gethomepage.dev/group: "App Cluster - media"
+    gethomepage.dev/href: "https://jelly.krapulax.dev"
+    gethomepage.dev/icon: "jellyfin.png"
+    gethomepage.dev/name: "Jellyfin"
     gethomepage.dev/weight: "20"
 spec:
   parentRefs:

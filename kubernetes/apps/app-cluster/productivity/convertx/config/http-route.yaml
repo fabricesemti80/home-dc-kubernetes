@@ -7,11 +7,12 @@ metadata:
   annotations:
     external-dns.alpha.kubernetes.io/hostname: convertx.krapulax.dev
     external-dns.alpha.kubernetes.io/target: external-apps.krapulax.dev
+    gethomepage.dev/description: "File converter"
     gethomepage.dev/enabled: "true"
-    gethomepage.dev/group: Productivity
-    gethomepage.dev/name: ConvertX
-    gethomepage.dev/icon: mdi-file-convert
-    gethomepage.dev/description: File converter
+    gethomepage.dev/group: "App Cluster - productivity"
+    gethomepage.dev/href: "https://convertx.krapulax.dev"
+    gethomepage.dev/icon: "mdi-file-convert"
+    gethomepage.dev/name: "ConvertX"
     gethomepage.dev/weight: "10"
 spec:
   parentRefs:

@@ -6,6 +6,13 @@ metadata:
   namespace: productivity
   annotations:
     external-dns.alpha.kubernetes.io/target: kubernetes.krapulax.home
+    gethomepage.dev/description: "File converter (internal)"
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/group: "App Cluster - productivity"
+    gethomepage.dev/href: "http://convertx.krapulax.home"
+    gethomepage.dev/icon: "mdi-file-convert"
+    gethomepage.dev/name: "Convertx (internal)"
+    gethomepage.dev/weight: "10"
 spec:
   parentRefs:
     - name: envoy-internal

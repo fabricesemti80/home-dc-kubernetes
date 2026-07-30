@@ -7,11 +7,12 @@ metadata:
   annotations:
     external-dns.alpha.kubernetes.io/hostname: tdarr.krapulax.dev
     external-dns.alpha.kubernetes.io/target: external-apps.krapulax.dev
+    gethomepage.dev/description: "Distributed media transcoding and health checks"
     gethomepage.dev/enabled: "true"
-    gethomepage.dev/group: Media
-    gethomepage.dev/name: Tdarr
-    gethomepage.dev/icon: tdarr.png
-    gethomepage.dev/description: Distributed media transcoding and health checks
+    gethomepage.dev/group: "App Cluster - media"
+    gethomepage.dev/href: "https://tdarr.krapulax.dev"
+    gethomepage.dev/icon: "tdarr.png"
+    gethomepage.dev/name: "Tdarr"
     gethomepage.dev/weight: "90"
 spec:
   parentRefs:

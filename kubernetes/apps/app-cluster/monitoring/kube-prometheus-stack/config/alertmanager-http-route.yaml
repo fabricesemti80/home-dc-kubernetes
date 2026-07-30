@@ -6,11 +6,12 @@ metadata:
   annotations:
     external-dns.alpha.kubernetes.io/hostname: alertmanager.krapulax.dev
     external-dns.alpha.kubernetes.io/target: external-apps.krapulax.dev
+    gethomepage.dev/description: "Alert routing and silences"
     gethomepage.dev/enabled: "true"
-    gethomepage.dev/group: Monitoring
-    gethomepage.dev/name: Alertmanager
-    gethomepage.dev/icon: alertmanager.png
-    gethomepage.dev/description: Alert routing and silences
+    gethomepage.dev/group: "App Cluster - monitoring"
+    gethomepage.dev/href: "https://alertmanager.krapulax.dev"
+    gethomepage.dev/icon: "alertmanager.png"
+    gethomepage.dev/name: "Alertmanager"
     gethomepage.dev/weight: "20"
 spec:
   parentRefs:

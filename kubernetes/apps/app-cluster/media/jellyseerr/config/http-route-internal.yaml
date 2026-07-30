@@ -6,6 +6,13 @@ metadata:
   namespace: media
   annotations:
     external-dns.alpha.kubernetes.io/target: kubernetes.krapulax.home
+    gethomepage.dev/description: "Media requests and approvals (internal)"
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/group: "App Cluster - media"
+    gethomepage.dev/href: "http://requests.krapulax.home"
+    gethomepage.dev/icon: "jellyseerr.png"
+    gethomepage.dev/name: "Jellyseerr (internal)"
+    gethomepage.dev/weight: "10"
 spec:
   parentRefs:
     - name: envoy-internal

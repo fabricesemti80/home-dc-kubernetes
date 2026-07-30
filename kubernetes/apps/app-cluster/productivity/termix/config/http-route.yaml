@@ -7,11 +7,12 @@ metadata:
   annotations:
     external-dns.alpha.kubernetes.io/hostname: termix.krapulax.dev
     external-dns.alpha.kubernetes.io/target: external-apps.krapulax.dev
+    gethomepage.dev/description: "Internal SSH and server access"
     gethomepage.dev/enabled: "true"
-    gethomepage.dev/group: Productivity
-    gethomepage.dev/name: Termix
-    gethomepage.dev/icon: terminal.png
-    gethomepage.dev/description: Internal SSH and server access
+    gethomepage.dev/group: "App Cluster - productivity"
+    gethomepage.dev/href: "https://termix.krapulax.dev"
+    gethomepage.dev/icon: "terminal.png"
+    gethomepage.dev/name: "Termix"
     gethomepage.dev/weight: "20"
 spec:
   parentRefs:

@@ -7,11 +7,12 @@ metadata:
   annotations:
     external-dns.alpha.kubernetes.io/hostname: sabnzbd.krapulax.dev
     external-dns.alpha.kubernetes.io/target: external-apps.krapulax.dev
+    gethomepage.dev/description: "Usenet downloads"
     gethomepage.dev/enabled: "true"
-    gethomepage.dev/group: Media
-    gethomepage.dev/name: SABnzbd
-    gethomepage.dev/icon: sabnzbd.png
-    gethomepage.dev/description: Usenet downloads
+    gethomepage.dev/group: "App Cluster - media"
+    gethomepage.dev/href: "https://sabnzbd.krapulax.dev"
+    gethomepage.dev/icon: "sabnzbd.png"
+    gethomepage.dev/name: "SABnzbd"
     gethomepage.dev/weight: "70"
 spec:
   parentRefs:

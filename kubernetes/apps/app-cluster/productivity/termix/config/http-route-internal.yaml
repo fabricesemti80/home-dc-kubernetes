@@ -6,6 +6,13 @@ metadata:
   namespace: productivity
   annotations:
     external-dns.alpha.kubernetes.io/target: kubernetes.krapulax.home
+    gethomepage.dev/description: "Internal SSH and server access (internal)"
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/group: "App Cluster - productivity"
+    gethomepage.dev/href: "http://termix.krapulax.home"
+    gethomepage.dev/icon: "terminal.png"
+    gethomepage.dev/name: "Termix (internal)"
+    gethomepage.dev/weight: "10"
 spec:
   parentRefs:
     - name: envoy-internal

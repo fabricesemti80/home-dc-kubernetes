@@ -6,6 +6,13 @@ metadata:
   namespace: media
   annotations:
     external-dns.alpha.kubernetes.io/target: kubernetes.krapulax.home
+    gethomepage.dev/description: "Series library automation (internal)"
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/group: "App Cluster - media"
+    gethomepage.dev/href: "http://sonarr.krapulax.home"
+    gethomepage.dev/icon: "sonarr.png"
+    gethomepage.dev/name: "Sonarr (internal)"
+    gethomepage.dev/weight: "10"
 spec:
   parentRefs:
     - name: envoy-internal
