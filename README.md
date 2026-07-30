@@ -51,6 +51,27 @@ infra/terraform_*/*.auto.tfvars
 infra/terraform_*/terraform.tfstate
 ```
 
+Recovery sources for each input:
+
+-   `age.key`: restore from your password manager or backup. If it is lost,
+    generate a new key, update `.sops.yaml` with the new recipient, and
+    re-encrypt every `*.sops.yaml` file (`task template:encrypt-secrets`).
+-   `kubeconfig` (app cluster): restore from backup. If the cluster still exists,
+    fetch a fresh kubeconfig with `task talos:app:kubeconfig` after
+    authenticating to Talos.
+-   `.private/infra-cluster/kubeconfig`: restore from backup. If the infra
+    cluster still exists, regenerate it with `task talos:infra:kubeconfig`.
+-   `.private/infra-cluster/generated/`: restore the whole directory from backup.
+    It contains the infra-cluster Talos identity bundle. If it is lost,
+    regenerate machine configs and secrets from `talos/infra/` with
+    `task talos:infra:bootstrap`; this creates a new cluster identity and the
+    old one is unrecoverable.
+-   `infra/terraform_*/*.auto.tfvars`: restore from backup or reconstruct from
+    the live infrastructure and your notes.
+-   `infra/terraform_*/terraform.tfstate`: restore from backup. If it is lost,
+    treat the rebuild as new infrastructure and use planned imports
+    (`terraform import`) to adopt existing resources.
+
 For infra-cluster recovery, `.private/infra-cluster/generated/` is the physical
 cluster identity bundle. Keep the whole directory, not only `talosconfig`, when
 recovering existing infra nodes.
@@ -64,12 +85,14 @@ Also confirm access to:
 -   GitHub deploy key or repository credentials for Argo CD
 -   Ceph on Proxmox for the app-cluster `cephfs` storage class
 
-If state files are unavailable, treat the rebuild as new infrastructure and plan
+If these inputs are unavailable, treat the rebuild as new infrastructure and plan
 OpenTofu imports before applying.
 
 ## 🛤️ Stage 1: Workstation
 
-Clone the repo outside iCloud-synced folders, then install the pinned tools:
+Clone the repo outside iCloud-synced folders, then install the pinned tools. This
+stage prepares the operator workstation for both recovery of an existing cluster
+and a fresh build:
 
 ```bash
 git clone git@github.com:fabricesemti80/home-dc-kubernetes.git
