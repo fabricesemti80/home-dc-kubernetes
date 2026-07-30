@@ -48,6 +48,8 @@ flowchart TD
 -   Historical worker VMs remain infrastructure artifacts for rollback or later reuse, but are no longer part of the committed Talos node inventory.
 -   Former host-level Docker services are being retired or migrated into Kubernetes.
 
+> **Supersedes:** [Argo Cluster Relocation](../archive/ARGO_CLUSTER_MIGRATION.md) (2026-03). The migration from the legacy `home-argo-cluster-2025` repository into `home-dc-kubernetes` has been completed; the topology and source-of-truth statements above reflect the steady state after that cutover.
+
 ## 🤔 Assumptions
 
 -   The imported cluster should keep using its current Proxmox IDs, node IPs, Talos secrets, and Terraform state.
@@ -69,8 +71,15 @@ flowchart TD
 
 ## ↩️ Rollback
 
--   Repoint Argo CD back to the previous repository if the current repository change has not been applied.
--   Continue operating from the original repo because its state and files remain untouched.
--   Restore any copied local-only runtime files from the old workspace if the new one is discarded.
--   Reintroduce worker nodes by restoring them to `nodes.yaml`, regenerating `talos/app/talconfig.yaml`, and re-running Talos config generation.
--   If the OpenTofu stack split needs to be reversed before apply, move the directories and local state files back to the previous layout.
+**Pre-cutover** (before Argo CD has been switched to this repository):
+
+-   Discard the new workspace and continue operating from the original repository.
+
+**Post-cutover** (Argo CD already targets `home-dc-kubernetes`):
+
+1.  Reapply the bootstrap manifests from the `home-argo-cluster-2025` repository to repoint Argo CD back at that repository.
+2.  Reconcile Argo CD so it restores the `home-argo-cluster-2025` desired state.
+3.  If the old repo's workspace is no longer available, restore its bootstrap manifests from Git history or backups.
+4.  Restore any copied local-only runtime files from the old workspace if the new one is discarded.
+5.  Reintroduce worker nodes by restoring them to `nodes.yaml`, regenerating `talos/app/talconfig.yaml`, and re-running Talos config generation.
+6.  If the OpenTofu stack split needs to be reversed before apply, move the directories and local state files back to the previous layout.
