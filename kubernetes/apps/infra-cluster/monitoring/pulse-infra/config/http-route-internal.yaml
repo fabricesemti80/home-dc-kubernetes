@@ -4,6 +4,14 @@ kind: HTTPRoute
 metadata:
   name: pulse-internal
   namespace: monitoring
+  annotations:
+    gethomepage.dev/description: "Infrastructure monitoring (internal)"
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/group: "Infra Cluster - monitoring"
+    gethomepage.dev/href: "http://pulse.krapulax.home"
+    gethomepage.dev/icon: "mdi-heart-pulse"
+    gethomepage.dev/name: "Pulse (internal)"
+    gethomepage.dev/weight: "20"
 spec:
   parentRefs:
     - name: envoy-internal

@@ -5,12 +5,13 @@ metadata:
   name: argo
   namespace: argo-system
   annotations:
+    gethomepage.dev/app: "argocd-server"
+    gethomepage.dev/description: "GitOps control plane"
     gethomepage.dev/enabled: "true"
-    gethomepage.dev/group: Infrastructure
-    gethomepage.dev/name: Argo CD
-    gethomepage.dev/icon: argo-cd.png
-    gethomepage.dev/description: GitOps control plane
-    gethomepage.dev/app: argocd-server
+    gethomepage.dev/group: "App Cluster - argo-system"
+    gethomepage.dev/href: "https://argo.krapulax.dev"
+    gethomepage.dev/icon: "argo-cd.png"
+    gethomepage.dev/name: "Argo CD"
     gethomepage.dev/weight: "10"
 spec:
   parentRefs:

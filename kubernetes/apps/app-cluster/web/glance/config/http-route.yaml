@@ -7,11 +7,12 @@ metadata:
   annotations:
     external-dns.alpha.kubernetes.io/hostname: glance.krapulax.dev
     external-dns.alpha.kubernetes.io/target: external-apps.krapulax.dev
+    gethomepage.dev/description: "Lightweight landing page"
     gethomepage.dev/enabled: "true"
-    gethomepage.dev/group: Dashboards
-    gethomepage.dev/name: Glance
-    gethomepage.dev/icon: glance.png
-    gethomepage.dev/description: Lightweight landing page
+    gethomepage.dev/group: "App Cluster - web"
+    gethomepage.dev/href: "https://glance.krapulax.dev"
+    gethomepage.dev/icon: "glance.png"
+    gethomepage.dev/name: "Glance"
     gethomepage.dev/weight: "10"
 spec:
   parentRefs:

@@ -7,11 +7,12 @@ metadata:
   annotations:
     external-dns.alpha.kubernetes.io/hostname: photos.krapulax.dev
     external-dns.alpha.kubernetes.io/target: external-apps.krapulax.dev
+    gethomepage.dev/description: "Photo and video library"
     gethomepage.dev/enabled: "true"
-    gethomepage.dev/group: Media
-    gethomepage.dev/name: Immich
-    gethomepage.dev/icon: immich.png
-    gethomepage.dev/description: Photo and video library
+    gethomepage.dev/group: "App Cluster - media"
+    gethomepage.dev/href: "https://photos.krapulax.dev"
+    gethomepage.dev/icon: "immich.png"
+    gethomepage.dev/name: "Immich"
     gethomepage.dev/weight: "10"
 spec:
   parentRefs:

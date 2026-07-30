@@ -6,12 +6,12 @@ metadata:
   annotations:
     external-dns.alpha.kubernetes.io/hostname: prometheus.krapulax.dev
     external-dns.alpha.kubernetes.io/target: external-apps.krapulax.dev
+    gethomepage.dev/description: "PromQL queries and time-series exploration"
     gethomepage.dev/enabled: "true"
-    gethomepage.dev/group: Monitoring
-    gethomepage.dev/name: Prometheus
-    gethomepage.dev/icon: prometheus.png
-    gethomepage.dev/description: PromQL queries and time-series exploration
-    gethomepage.dev/href: https://prometheus.krapulax.dev/graph
+    gethomepage.dev/group: "App Cluster - monitoring"
+    gethomepage.dev/href: "https://prometheus.krapulax.dev/graph"
+    gethomepage.dev/icon: "prometheus.png"
+    gethomepage.dev/name: "Prometheus"
     gethomepage.dev/weight: "30"
 spec:
   parentRefs:

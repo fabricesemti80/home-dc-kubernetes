@@ -6,11 +6,12 @@ metadata:
   annotations:
     external-dns.alpha.kubernetes.io/hostname: grafana.krapulax.dev
     external-dns.alpha.kubernetes.io/target: external-apps.krapulax.dev
+    gethomepage.dev/description: "Dashboards and metrics exploration"
     gethomepage.dev/enabled: "true"
-    gethomepage.dev/group: Monitoring
-    gethomepage.dev/name: Grafana
-    gethomepage.dev/icon: grafana.png
-    gethomepage.dev/description: Dashboards and metrics exploration
+    gethomepage.dev/group: "App Cluster - monitoring"
+    gethomepage.dev/href: "https://grafana.krapulax.dev"
+    gethomepage.dev/icon: "grafana.png"
+    gethomepage.dev/name: "Grafana"
     gethomepage.dev/weight: "10"
 spec:
   parentRefs:

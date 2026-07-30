@@ -7,11 +7,12 @@ metadata:
   annotations:
     external-dns.alpha.kubernetes.io/hostname: homepage.krapulax.dev
     external-dns.alpha.kubernetes.io/target: external-apps.krapulax.dev
+    gethomepage.dev/description: "Kubernetes-native homelab dashboard"
     gethomepage.dev/enabled: "true"
-    gethomepage.dev/group: Dashboards
-    gethomepage.dev/name: Homepage
-    gethomepage.dev/icon: homepage.png
-    gethomepage.dev/description: Kubernetes-native homelab dashboard
+    gethomepage.dev/group: "App Cluster - web"
+    gethomepage.dev/href: "https://homepage.krapulax.dev"
+    gethomepage.dev/icon: "homepage.png"
+    gethomepage.dev/name: "Homepage"
     gethomepage.dev/weight: "5"
 spec:
   parentRefs:

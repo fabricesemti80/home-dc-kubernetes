@@ -7,11 +7,12 @@ metadata:
   annotations:
     external-dns.alpha.kubernetes.io/hostname: prowlarr.krapulax.dev
     external-dns.alpha.kubernetes.io/target: external-apps.krapulax.dev
+    gethomepage.dev/description: "Indexer aggregation"
     gethomepage.dev/enabled: "true"
-    gethomepage.dev/group: Media
-    gethomepage.dev/name: Prowlarr
-    gethomepage.dev/icon: prowlarr.png
-    gethomepage.dev/description: Indexer aggregation
+    gethomepage.dev/group: "App Cluster - media"
+    gethomepage.dev/href: "https://prowlarr.krapulax.dev"
+    gethomepage.dev/icon: "prowlarr.png"
+    gethomepage.dev/name: "Prowlarr"
     gethomepage.dev/weight: "60"
 spec:
   parentRefs:

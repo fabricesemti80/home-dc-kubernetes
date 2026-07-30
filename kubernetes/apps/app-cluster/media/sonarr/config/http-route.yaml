@@ -7,11 +7,12 @@ metadata:
   annotations:
     external-dns.alpha.kubernetes.io/hostname: sonarr.krapulax.dev
     external-dns.alpha.kubernetes.io/target: external-apps.krapulax.dev
+    gethomepage.dev/description: "Series library automation"
     gethomepage.dev/enabled: "true"
-    gethomepage.dev/group: Media
-    gethomepage.dev/name: Sonarr
-    gethomepage.dev/icon: sonarr.png
-    gethomepage.dev/description: Series library automation
+    gethomepage.dev/group: "App Cluster - media"
+    gethomepage.dev/href: "https://sonarr.krapulax.dev"
+    gethomepage.dev/icon: "sonarr.png"
+    gethomepage.dev/name: "Sonarr"
     gethomepage.dev/weight: "50"
 spec:
   parentRefs:

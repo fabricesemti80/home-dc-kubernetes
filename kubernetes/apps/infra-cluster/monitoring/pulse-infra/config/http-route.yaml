@@ -7,6 +7,13 @@ metadata:
   annotations:
     external-dns.alpha.kubernetes.io/hostname: pulse.krapulax.dev
     external-dns.alpha.kubernetes.io/target: external-infra.krapulax.dev
+    gethomepage.dev/description: "Infrastructure monitoring"
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/group: "Infra Cluster - monitoring"
+    gethomepage.dev/href: "http://pulse.krapulax.dev"
+    gethomepage.dev/icon: "mdi-heart-pulse"
+    gethomepage.dev/name: "Pulse"
+    gethomepage.dev/weight: "20"
 spec:
   parentRefs:
     - name: envoy-external

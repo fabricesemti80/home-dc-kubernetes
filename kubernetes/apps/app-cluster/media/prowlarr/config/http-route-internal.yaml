@@ -6,6 +6,13 @@ metadata:
   namespace: media
   annotations:
     external-dns.alpha.kubernetes.io/target: kubernetes.krapulax.home
+    gethomepage.dev/description: "Indexer aggregation (internal)"
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/group: "App Cluster - media"
+    gethomepage.dev/href: "http://prowlarr.krapulax.home"
+    gethomepage.dev/icon: "prowlarr.png"
+    gethomepage.dev/name: "Prowlarr (internal)"
+    gethomepage.dev/weight: "10"
 spec:
   parentRefs:
     - name: envoy-internal

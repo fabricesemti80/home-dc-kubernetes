@@ -6,6 +6,13 @@ metadata:
   namespace: media
   annotations:
     external-dns.alpha.kubernetes.io/target: kubernetes.krapulax.home
+    gethomepage.dev/description: "Movie library automation (internal)"
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/group: "App Cluster - media"
+    gethomepage.dev/href: "http://radarr.krapulax.home"
+    gethomepage.dev/icon: "radarr.png"
+    gethomepage.dev/name: "Radarr (internal)"
+    gethomepage.dev/weight: "10"
 spec:
   parentRefs:
     - name: envoy-internal

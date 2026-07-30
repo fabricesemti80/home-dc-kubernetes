@@ -26,8 +26,10 @@ cardBlur: md
 # --- LAYOUT CONFIGURATION ---
 
 layout:
-  Dashboards:
-  Infrastructure:
-  Monitoring:
-  Productivity:
-  Media:
+  App Cluster - argo-system:
+  App Cluster - media:
+  App Cluster - monitoring:
+  App Cluster - productivity:
+  App Cluster - web:
+  Infra Cluster - automation:
+  Infra Cluster - monitoring:
