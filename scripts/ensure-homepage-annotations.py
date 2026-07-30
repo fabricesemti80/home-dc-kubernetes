@@ -224,7 +224,7 @@ def update_annotations_block(lines: list[str], desired: dict) -> tuple[list[str]
             + homepage_lines
         )
         new_lines = new_lines[: ann_start] + new_block + new_lines[ann_end:]
-        return new_lines, True
+        return new_lines, new_lines != lines
 
     # No annotations block: insert one at the end of the metadata block
     base_indent = get_line_indent(new_lines[metadata_idx])
