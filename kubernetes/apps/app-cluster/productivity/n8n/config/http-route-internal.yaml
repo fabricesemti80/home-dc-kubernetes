@@ -6,13 +6,6 @@ metadata:
   namespace: productivity
   annotations:
     external-dns.alpha.kubernetes.io/target: kubernetes.krapulax.home
-    gethomepage.dev/description: "Workflow automation platform (internal)"
-    gethomepage.dev/enabled: "true"
-    gethomepage.dev/group: "App Cluster - productivity"
-    gethomepage.dev/href: "http://n8n.krapulax.home"
-    gethomepage.dev/icon: "n8n.png"
-    gethomepage.dev/name: "N8n (internal)"
-    gethomepage.dev/weight: "10"
 spec:
   parentRefs:
     - name: envoy-internal

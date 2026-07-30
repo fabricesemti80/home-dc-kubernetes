@@ -4,14 +4,6 @@ kind: HTTPRoute
 metadata:
   name: kestra-internal
   namespace: kestra
-  annotations:
-    gethomepage.dev/description: "Infra automation and orchestration (internal)"
-    gethomepage.dev/enabled: "true"
-    gethomepage.dev/group: "Infra Cluster - automation"
-    gethomepage.dev/href: "http://kestra.krapulax.home"
-    gethomepage.dev/icon: "mdi-rocket-launch"
-    gethomepage.dev/name: "Kestra (internal)"
-    gethomepage.dev/weight: "20"
 spec:
   parentRefs:
     - name: envoy-internal

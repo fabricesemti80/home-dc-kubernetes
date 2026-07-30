@@ -1,18 +1,8 @@
-- Infra Cluster - automation:
-    - Kestra (internal):
-        icon: mdi-rocket-launch
-        href: http://kestra.krapulax.home
-        description: Infra automation and orchestration (internal)
-
 - Infra Cluster - monitoring:
     - Pulse:
         icon: mdi-heart-pulse
         href: https://pulse.krapulax.dev
         description: Infrastructure monitoring
-    - Pulse (internal):
-        icon: mdi-heart-pulse
-        href: http://pulse.krapulax.home
-        description: Infrastructure monitoring (internal)
     - Uptime Kuma:
         icon: mdi-monitor-eye
         href: https://uptime.krapulax.dev
