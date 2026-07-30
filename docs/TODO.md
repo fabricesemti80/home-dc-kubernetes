@@ -22,34 +22,23 @@ Candidate categories include:
 -   avoid duplicating task logic inside workflow YAML where the workflow can invoke the existing Taskfile target;
 -   document any tasks that must remain manual and why.
 
-## Separate app-cluster and infra-cluster folder structure
+## Separate app-cluster and infra-cluster folder structure [COMPLETED]
 
-Refactor the Kubernetes repository layout so that resources targeting the application cluster and infrastructure cluster are clearly separated.
+_Status: Completed in PR #210 (canary) and PR #211 (full migration)._
 
-The structure should make cluster ownership obvious from the path and reduce the need to inspect Argo CD destination configuration before understanding where a workload runs.
+Refactored the Kubernetes repository layout so resources targeting `app-cluster` and `infra-cluster` are explicitly separated under:
 
-A possible direction is:
-
-```text
-kubernetes/
-  app-cluster/
-    apps/
-    platform/
-    networking/
-    storage/
-  infra-cluster/
-    apps/
-    platform/
-    networking/
-    storage/
-```
-
-The final structure should follow the actual responsibilities of each cluster rather than this example mechanically.
+-   `kubernetes/apps/app-cluster/...` & `kubernetes/apps/infra-cluster/...`
+-   `kubernetes/argo/apps/app-cluster/...` & `kubernetes/argo/apps/infra-cluster/...`
 
 ### Completion criteria
 
--   verify both clusters reconcile successfully after the full migration;
--   add validation that prevents new app manifests from using the legacy mixed folders.
+-   [x] define and document the target folder convention;
+-   [x] migrate resources without changing their effective runtime configuration;
+-   [x] update Argo CD Application and ApplicationSet source paths;
+-   [x] update scripts, validation, documentation, and generators that reference the old paths;
+-   [x] verify both clusters reconcile successfully after migration.
+-   [ ] add validation that prevents new app manifests from using the legacy mixed folders.
 
 ## Separate app-cluster and infra-cluster DNS validation
 

@@ -4,13 +4,21 @@
 
 Operate the Talos/Kubernetes homelab from this repository while Docker-host services live in their own management repository.
 
+## Lineage & Origin
+
+This codebase was originally bootstrapped using [ajaykumar4/cluster-template](https://github.com/ajaykumar4/cluster-template) (utilizing Talos Linux, Argo CD, and `bjw-s/app-template` Helm chart patterns). It has since been customized into a **dual-cluster operational topology** managed by a single central Argo CD hub.
+
 ## Active Structure
 
+-   `app-cluster`: Primary application cluster running on Proxmox Talos VMs, hosting general workloads and the central Argo CD hub.
+-   `infra-cluster`: Physical mini-PC infrastructure cluster running core baseline services (`pulse-infra`, `kestra-infra`, `reloader-infra`).
 -   `infra/terraform_proxmox/`: Proxmox VMs and Talos cluster infrastructure.
 -   `infra/terraform_cloudflare/`: Kubernetes Cloudflare tunnel, DNS, Access resources, and tunnel credentials.
 -   `infra/terraform_localdns/`: Kubernetes local DNS OpenTofu stack.
 -   `talos/`, `kubernetes/`, `bootstrap/`, and `.taskfiles/`: Talos, Argo CD, and Kubernetes workspace migrated from the legacy cluster repo.
 -   `kubernetes/apps/app-cluster/default/`: lightweight default-namespace apps used for baseline GitOps validation and small utility workloads.
+-   `kubernetes/apps/app-cluster/` & `kubernetes/apps/infra-cluster/`: Workload manifests separated by destination cluster.
+-   `kubernetes/argo/apps/app-cluster/` & `kubernetes/argo/apps/infra-cluster/`: Argo CD Applications separated by destination cluster.
 -   `/Users/fs/Documents/repositories/infrastructure/home-DC-docker`: host-level Docker Compose, Docker Cloudflare resources, and Docker local DNS records.
 
 ## Current Migration Direction

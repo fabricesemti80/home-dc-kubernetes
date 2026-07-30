@@ -25,6 +25,7 @@ Host-level Docker services are managed from `/Users/fs/Documents/repositories/in
 -   Host-level Docker services live in `/Users/fs/Documents/repositories/infrastructure/home-DC-docker`, not this repo.
 -   Docker-specific Cloudflare and local DNS Terraform belongs in the Docker repo.
 -   Kubernetes resources must remain under `kubernetes/`, `bootstrap/`, `talos/`, and Kubernetes-specific Terraform stacks in this repo.
+-   Originally bootstrapped from [ajaykumar4/cluster-template](https://github.com/ajaykumar4/cluster-template) and evolved into a dual-cluster architecture.
 
 ## Kubernetes App Conventions
 
@@ -33,6 +34,7 @@ Host-level Docker services are managed from `/Users/fs/Documents/repositories/in
 -   All apps should follow the established cluster-aware directory structure:
     -   `kubernetes/apps/app-cluster/<namespace>/<app>/` for app-cluster workloads
     -   `kubernetes/apps/infra-cluster/<namespace>/<app>/` for infra-cluster workloads
+-   Corresponding Argo Applications live under: `kubernetes/argo/apps/<cluster>/<namespace>/<app>.yaml`
 -   Each app should have: `values.yaml`, `kustomization.yaml`, and `config/` subdirectory
 -   Use the app-template chart pattern for new apps
 
