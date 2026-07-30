@@ -1,7 +1,5 @@
 # 📋 Planka Decommission
 
-![📋 Planka Decommission](../img/plan-planka-rollout.svg)
-
 ## 📌 Scope
 
 -   [x] Remove Planka from Argo CD desired state.

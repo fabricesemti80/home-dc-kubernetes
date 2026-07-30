@@ -1,7 +1,5 @@
 # 📚 Cluster Documentation
 
-![📚 Cluster Documentation](../img/cluster-readme.svg)
-
 This section covers the Talos, Argo CD, and Kubernetes-side configuration that now lives directly in this repository.
 
 ## 📌 Core Documents

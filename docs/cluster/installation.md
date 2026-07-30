@@ -1,7 +1,5 @@
 # ☸️ Dual-Cluster Installation & Deployment Guide
 
-![☸️ Dual-Cluster Installation & Deployment Guide](../img/cluster-installation.svg)
-
 This guide provides a comprehensive, step-by-step installation and deployment process for the homelab Kubernetes estate managed by this repository.
 
 > [!NOTE] > **Lineage & Origin**: This cluster architecture was originally bootstrapped from [`ajaykumar4/cluster-template`](https://github.com/ajaykumar4/cluster-template) (utilizing Talos Linux, Argo CD, and `bjw-s/app-template` patterns). It has evolved into a dual-cluster topology (`app-cluster` and `infra-cluster`) managed by a single central Argo CD GitOps hub.
@@ -48,9 +46,11 @@ Enter the Nix development environment to ensure all required CLI tools (`tofu`, 
 
 ```bash
 # Enter Nix dev shell
+
 nix develop
 
 # Install required Helm plugins and dependencies
+
 task deps
 ```
 
@@ -108,12 +108,15 @@ Infrastructure stacks are managed independently using OpenTofu under `infra/`:
 
 ```bash
 # Initialize all OpenTofu modules (Proxmox, Cloudflare, Local DNS)
+
 task tf:init
 
 # Review execution plan
+
 task tf:plan
 
 # Apply infrastructure changes
+
 task tf:apply
 ```
 
@@ -135,17 +138,21 @@ Target the control-plane nodes configured in `talos/app/talconfig.yaml` (`10.0.4
 
 ```bash
 # 1. Generate machine configurations
+
 task talos:app:generate-config
 
 # 2. Apply machine configs to control-plane nodes
+
 task talos:app:apply-node IP=10.0.40.90
 task talos:app:apply-node IP=10.0.40.91
 task talos:app:apply-node IP=10.0.40.92
 
 # 3. Bootstrap etcd on the first control plane node
+
 task talos:app:bootstrap
 
 # 4. Fetch kubeconfig
+
 task talos:app:kubeconfig
 ```
 
@@ -155,12 +162,15 @@ Follow [docs/INFRA_CLUSTER_BOOTSTRAP.md](../INFRA_CLUSTER_BOOTSTRAP.md) for bare
 
 ```bash
 # Generate infra cluster machine configs
+
 task talos:infra:bootstrap
 
 # Fetch infra cluster kubeconfig
+
 task talos:infra:kubeconfig
 
 # Install Cilium CNI on infra-cluster
+
 task talos:infra:cilium
 ```
 
@@ -221,15 +231,19 @@ Verify total cluster health across both control plane and workloads:
 
 ```bash
 # Verify app-cluster and infra-cluster statuses
+
 task clusters:status
 
 # Verify Kubernetes node readiness
+
 kubectl get nodes -o wide
 
 # Check Argo CD sync status
+
 argocd app list
 
 # Run comprehensive verification suite
+
 task verify:cluster
 ```
 

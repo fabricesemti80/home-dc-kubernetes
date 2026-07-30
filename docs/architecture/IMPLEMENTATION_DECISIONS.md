@@ -1,7 +1,5 @@
 # ⚖️ Implementation Decisions
 
-![⚖️ Implementation Decisions](../img/architecture-implementation-decisions.svg)
-
 ## 📌 Confirmed
 
 -   Network: VLAN30 (`10.0.30.0/24`).

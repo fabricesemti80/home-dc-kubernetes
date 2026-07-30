@@ -1,7 +1,5 @@
 # 🏠 Homepage Rollout
 
-![🏠 Homepage Rollout](../img/plan-homepage-rollout.svg)
-
 ## 📌 Scope
 
 -   [ ] Deploy Homepage into the `web` namespace

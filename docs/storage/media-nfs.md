@@ -1,7 +1,5 @@
 # 🗄️ Media NFS Storage
 
-![🗄️ Media NFS Storage](../img/storage-media-nfs.svg)
-
 This cluster can consume the existing media library over NFS for workloads such as Jellyfin.
 
 ## 📌 Design

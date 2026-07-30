@@ -1,10 +1,18 @@
 # 🤖 n8n Deployment
 
-![🤖 n8n Deployment](../img/architecture-n8n-deployment.svg)
-
 Deploys [n8n](https://n8n.io/) — a workflow automation platform — to the Talos Kubernetes cluster.
 
 ## 🏛️ Architecture
+
+```mermaid
+flowchart LR
+    Internet[Internet] --> CF[Cloudflare Access]
+    CF -->|n8n.krapulax.dev| External[Envoy External Gateway]
+    Internal[Envoy Internal Gateway] -->|n8n.krapulax.home| Pod[n8n Pod]
+    External --> Pod
+    Pod -->|SQLite DB| PVC[CephFS PVC]
+    Doppler[Doppler Secret] -->|N8N_ENCRYPTION_KEY| Pod
+```
 
 -   **Namespace:** `productivity`
 -   **Chart:** `bjw-s-labs/app-template` (v5.0.1)

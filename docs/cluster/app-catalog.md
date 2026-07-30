@@ -1,7 +1,5 @@
 # 📚 App Catalog
 
-![📚 App Catalog](../img/cluster-app-catalog.svg)
-
 This document provides an index of all applications deployed in the Kubernetes cluster.
 
 ## ☸️ Cluster Overview

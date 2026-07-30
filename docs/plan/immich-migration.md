@@ -1,7 +1,5 @@
 # 📸 Immich Migration Rollout
 
-![📸 Immich Migration Rollout](../img/plan-immich-migration.svg)
-
 ## 📌 Design
 
 -   [x] Preserve the original Docker Swarm Immich source as fallback

@@ -1,7 +1,5 @@
 # 🏗️ Phase 0/1 Implementation Blueprint
 
-![🏗️ Phase 0/1 Implementation Blueprint](../img/architecture-phase-0-1-blueprint.svg)
-
 ## 🎯 Objective
 
 Deliver a bootstrapped Talos Kubernetes cluster on Proxmox with private-only Tailscale access and GitOps baseline ready for Phase 2.

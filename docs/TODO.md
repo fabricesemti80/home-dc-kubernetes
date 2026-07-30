@@ -1,7 +1,5 @@
 # 📋 TODO
 
-![📋 TODO](img/todo.svg)
-
 This document captures architectural and automation work that is intentionally deferred. Items should be converted into implementation pull requests when time permits.
 
 ## 🔧 Create GitHub Actions for Taskfile tasks that do not need to be manual

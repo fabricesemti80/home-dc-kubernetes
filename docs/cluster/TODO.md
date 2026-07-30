@@ -1,7 +1,5 @@
 # 📋 TODO: Homelab Improvement Tasks
 
-![📋 TODO: Homelab Improvement Tasks](../img/cluster-todo.svg)
-
 ## 📌 Completed (High Priority)
 
 ### 📚 1. Domain Documentation

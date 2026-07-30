@@ -1,8 +1,23 @@
 # 🎬 Media Management Stack
 
-![🎬 Media Management Stack](../img/architecture-media-management-stack.svg)
-
 ## 🎯 Objective
+
+```mermaid
+flowchart LR
+    Prowlarr[Indexers] --> Sonarr[TV]
+    Prowlarr --> Radarr[Movies]
+    SABnzbd[Usenet] --> Sonarr
+    SABnzbd --> Radarr
+    qBittorrent[Torrents] --> Sonarr
+    qBittorrent --> Radarr
+    Sonarr --> Jellyfin[Jellyfin]
+    Radarr --> Jellyfin
+    Jellyseerr[Requests] --> Sonarr
+    Jellyseerr --> Radarr
+    Recyclarr[Config Sync] --> Sonarr
+    Recyclarr --> Radarr
+    Tdarr[Transcode] --> Jellyfin
+```
 
 Add media-management services that feed Jellyfin while preserving the existing storage split:
 

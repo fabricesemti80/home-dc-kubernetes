@@ -1,7 +1,5 @@
 # 📸 Immich Migration
 
-![📸 Immich Migration](../img/architecture-immich-migration.svg)
-
 ## 🎯 Objective
 
 Bring Immich from the legacy Docker Swarm environment into Kubernetes while preserving:
@@ -25,6 +23,23 @@ Legacy Dockerlab layout:
     -   `/mnt/cephfs/docker-shared-data/immich/model-cache`
 
 ## 🚚 Migration Strategy
+
+```mermaid
+flowchart LR
+    subgraph Legacy [Docker Swarm]
+        OldMedia[/NFS Media /mnt/media/immich]
+    end
+    subgraph K8s [Kubernetes]
+        NewDB[(Fresh Postgres)]
+        NewML[Machine Learning]
+        NewImmich[Immich Server]
+        NewMedia[/NFS subPath immich]
+    end
+    OldMedia -->|Read-only external library| NewImmich
+    NewDB --> NewImmich
+    NewML --> NewImmich
+    NewMedia --> NewImmich
+```
 
 Use a non-destructive fresh-rebuild migration:
 

@@ -1,10 +1,16 @@
 # 🔒 Tailscale Infra Routers
 
-![🔒 Tailscale Infra Routers](../img/architecture-tailscale-infra-routers.svg)
-
 Deploy Tailscale routing through the Kubernetes Operator on `infra-cluster`.
 
 ## 🏛️ Architecture
+
+```mermaid
+flowchart LR
+    Tailscale[Tailscale Operator] -->|Manages| Connector[Connector Pods]
+    Doppler -->|OAuth| Tailscale
+    Connector -->|Subnet Routes| LAN[Local Networks]
+    Connector -->|Exit Node| Internet[Internet]
+```
 
 -   The Tailscale Operator manages a Connector with two replicas.
 -   Each Connector replica is an ephemeral Tailscale device managed by the Operator.

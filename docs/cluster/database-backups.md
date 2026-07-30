@@ -1,10 +1,17 @@
 # 💾 Database Backups
 
-![💾 Database Backups](../img/cluster-database-backups.svg)
-
 This document tracks the backup strategy for databases in the cluster.
 
 ## 📌 Current State
+
+```mermaid
+flowchart TD
+    Linkwarden[(Linkwarden Postgres)] -->|No auto backup| Risk[Data Loss Risk]
+    Immich[(Immich Postgres)] -->|No auto backup| Risk
+    CephFS[CephFS Replication] -->|Protects storage| PVC[Database PVCs]
+    Linkwarden -->|Manual pg_dump| Dump[Operator Backup]
+    Immich -->|Manual pg_dump| Dump
+```
 
 ### 🗄️ PostgreSQL Databases
 

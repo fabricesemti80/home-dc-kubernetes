@@ -1,7 +1,5 @@
 # 📚 Documentation
 
-![📚 Documentation](img/readme.svg)
-
 This is the main documentation hub for `home-dc-kubernetes`.
 
 ## 🚀 Start Here

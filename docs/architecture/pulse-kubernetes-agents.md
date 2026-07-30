@@ -1,7 +1,5 @@
 # 💓 Pulse Kubernetes Agents
 
-![💓 Pulse Kubernetes Agents](../img/architecture-pulse-kubernetes-agents.svg)
-
 Deploy the Pulse agent only into the infra cluster so the infra Pulse server can monitor the independent infra runtime without ingesting app-cluster workload volume.
 
 ## 🏛️ Architecture

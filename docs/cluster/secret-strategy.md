@@ -1,8 +1,14 @@
 # 🔐 Secret Strategy
 
-![🔐 Secret Strategy](../img/cluster-secret-strategy.svg)
-
 This repository uses two secret layers:
+
+```mermaid
+flowchart TD
+    Git[Git + age.key] -->|SOPS decrypts| Bootstrap[Bootstrap Secrets]
+    Doppler[Doppler] -->|DopplerSecret CRD| Runtime[Runtime Secrets]
+    Bootstrap -->|Needed before operators| Cluster[Kubernetes Cluster]
+    Runtime -->|Needed by apps| Cluster
+```
 
 -   **SOPS/age** for secrets required before Kubernetes secret operators can run.
 -   **Doppler** for runtime application secrets synced into Kubernetes by the Doppler operator.

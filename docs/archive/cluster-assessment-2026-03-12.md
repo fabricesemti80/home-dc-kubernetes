@@ -1,7 +1,5 @@
 # 📊 Cluster Assessment — 2026-03-12
 
-![📊 Cluster Assessment — 2026-03-12](../img/archive-cluster-assessment-2026-03-12.svg)
-
 Read-only assessment of the homelab Kubernetes cluster architecture, security, networking, operations, and best practices.
 
 ## 📌 Strengths

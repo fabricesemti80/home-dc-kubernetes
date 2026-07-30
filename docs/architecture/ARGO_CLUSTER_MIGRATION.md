@@ -1,7 +1,5 @@
 # ☸️ Argo Cluster Relocation
 
-![☸️ Argo Cluster Relocation](../img/architecture-argo-cluster-migration.svg)
-
 Current repository name: `home-dc-kubernetes`. This document records the earlier migration into `project-homelab`; live Argo repository targets have since been renamed.
 
 ## 📌 Goal
@@ -34,6 +32,17 @@ The imported Terraform module originally forced every Talos VM to `started = tru
 -   Removing workers from Talos config is safer than leaving drained `NotReady` nodes referenced indefinitely, because daemonset-based apps otherwise remain `Progressing`.
 
 ## 📌 Recommended Cutover Sequence
+
+```mermaid
+flowchart LR
+    A[Push project-homelab] --> B[Keep Workers Stopped]
+    B --> C[tf init & plan]
+    C --> D[Power On Control Planes]
+    D --> E[Verify Talos Health]
+    E --> F[Apply Argo Bootstrap]
+    F --> G[Remove Workers from nodes.yaml]
+    G --> H[Steady State]
+```
 
 1. Push `project-homelab` with the imported cluster workspace to GitHub.
 2. In `infra/terraform_proxmox/nodes.auto.tfvars`, keep worker nodes `started = false` and control-plane nodes `true` unless you are also removing the VM definitions in the same change.

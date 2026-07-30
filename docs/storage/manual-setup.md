@@ -1,7 +1,5 @@
 # 🔧 Manual CephFS Setup Instructions
 
-![🔧 Manual CephFS Setup Instructions](../img/storage-manual-setup.svg)
-
 If you need to manually create the CephFS subvolume group or verify the setup, use these commands.
 
 ## ☸️ Proxmox Side (Ceph Cluster)
@@ -11,6 +9,7 @@ If you need to manually create the CephFS subvolume group or verify the setup, u
 ```bash
 ssh root@pve-0
 # or pve-1 or pve-2
+
 ```
 
 ### 🔹 2. Create CephFS Subvolume Group
@@ -53,9 +52,11 @@ ceph fs ls
 
 ```bash
 # List all storage-related applications
+
 kubectl get applications -n argo-system | grep -E "(ceph|storage)"
 
 # Check sync status
+
 kubectl get applications -n argo-system ceph-csi-secret -o jsonpath='{.status.sync.status}'
 kubectl get applications -n argo-system storage -o jsonpath='{.status.sync.status}'
 kubectl get applications -n argo-system nginx-test-storage -o jsonpath='{.status.sync.status}'
@@ -65,10 +66,12 @@ kubectl get applications -n argo-system nginx-test-storage -o jsonpath='{.status
 
 ```bash
 # Check if csi-cephfs-secret exists
+
 kubectl get secret csi-cephfs-secret -n kube-system
 kubectl describe secret csi-cephfs-secret -n kube-system
 
 # Verify it has the required keys
+
 kubectl get secret csi-cephfs-secret -n kube-system -o jsonpath='{.data}' | jq 'keys'
 ```
 
@@ -78,10 +81,12 @@ kubectl get secret csi-cephfs-secret -n kube-system -o jsonpath='{.data}' | jq '
 
 ```bash
 # Check StorageClass
+
 kubectl get storageclass cephfs
 kubectl describe storageclass cephfs
 
 # Verify parameters
+
 kubectl get storageclass cephfs -o jsonpath='{.parameters}'
 ```
 
@@ -89,13 +94,16 @@ kubectl get storageclass cephfs -o jsonpath='{.parameters}'
 
 ```bash
 # Check if ceph-csi chart was deployed
+
 kubectl get pods -n storage -l app=ceph-csi-ceph-csi-cephfs-provisioner
 kubectl get pods -n storage -l app=ceph-csi-ceph-csi-cephfs-nodeplugin
 
 # Check provisioner logs for errors
+
 kubectl logs -n storage -l app=ceph-csi-ceph-csi-cephfs-provisioner -c csi-provisioner --tail=50
 
 # Check nodeplugin logs
+
 kubectl logs -n storage -l app=ceph-csi-ceph-csi-cephfs-nodeplugin -c csi-nodeplugin --tail=50
 ```
 
@@ -103,13 +111,16 @@ kubectl logs -n storage -l app=ceph-csi-ceph-csi-cephfs-nodeplugin -c csi-nodepl
 
 ```bash
 # Create namespace if missing
+
 kubectl create namespace storage --dry-run=client -o yaml | kubectl apply -f -
 
 # Check PVC
+
 kubectl get pvc -n storage
 kubectl describe pvc nginx-test-pvc -n storage
 
 # Watch PVC binding
+
 kubectl get pvc -n storage -w
 ```
 
@@ -117,13 +128,16 @@ kubectl get pvc -n storage -w
 
 ```bash
 # Check pod status
+
 kubectl get pods -n storage -l app=nginx-test
 kubectl describe pod -n storage -l app=nginx-test
 
 # Check pod logs
+
 kubectl logs -n storage -l app=nginx-test
 
 # Watch pod startup
+
 kubectl get pods -n storage -l app=nginx-test -w
 ```
 
@@ -131,15 +145,19 @@ kubectl get pods -n storage -l app=nginx-test -w
 
 ```bash
 # Get pod name
+
 POD=$(kubectl get pods -n storage -l app=nginx-test -o jsonpath='{.items[0].metadata.name}')
 
 # Check mount
+
 kubectl exec -it -n storage $POD -- df -h /usr/share/nginx/html
 
 # Check content
+
 kubectl exec -it -n storage $POD -- cat /usr/share/nginx/html/index.html
 
 # Verify it's mounted from CephFS
+
 kubectl exec -it -n storage $POD -- mount | grep nginx
 ```
 
@@ -170,9 +188,11 @@ kubectl logs -n storage -l app=ceph-csi-ceph-csi-cephfs-provisioner -c csi-provi
 
 ```bash
 # In the kubernetes repository:
+
 task configure
 
 # This should generate kubernetes/apps/app-cluster/kube-system/ceph-csi/secret.sops.yaml
+
 ls -la kubernetes/apps/app-cluster/kube-system/ceph-csi/secret.sops.yaml
 ```
 
@@ -186,13 +206,16 @@ sops -d kubernetes/apps/app-cluster/kube-system/ceph-csi/secret.sops.yaml
 
 ```bash
 # Check if storage namespace exists
+
 kubectl get namespace storage
 
 # Check ceph-csi deployment in storage namespace
+
 kubectl get deployments -n storage
 kubectl describe deployment ceph-csi-ceph-csi-cephfs-provisioner -n storage
 
 # Check pod events
+
 kubectl describe pod -n storage -l app=ceph-csi-ceph-csi-cephfs-provisioner
 ```
 
@@ -212,12 +235,15 @@ kubectl create namespace storage
 
 ```bash
 # First, ensure Doppler secret exists locally
+
 task configure
 
 # Then deploy the secret
+
 sops -d kubernetes/apps/app-cluster/kube-system/ceph-csi/secret.sops.yaml | kubectl apply -f -
 
 # Verify
+
 kubectl get secret csi-cephfs-secret -n kube-system
 ```
 
@@ -227,6 +253,7 @@ kubectl get secret csi-cephfs-secret -n kube-system
 kubectl apply -f kubernetes/apps/app-cluster/storage/cephfs-sc.yaml
 
 # Verify
+
 kubectl get storageclass cephfs
 ```
 
@@ -234,13 +261,16 @@ kubectl get storageclass cephfs
 
 ```bash
 # First check values
+
 cat kubernetes/apps/app-cluster/storage/ceph-csi/values.sops.yaml
 
 # Add the helm repo
+
 helm repo add ceph-csi https://ceph.github.io/ceph-csi
 helm repo update
 
 # Install (adjust values as needed)
+
 helm install ceph-csi ceph-csi/ceph-csi-cephfs \
   -n storage \
   --create-namespace \
@@ -253,6 +283,7 @@ helm install ceph-csi ceph-csi/ceph-csi-cephfs \
 kubectl apply -k kubernetes/apps/app-cluster/storage/nginx-test/
 
 # Watch it come up
+
 kubectl get pvc,pods -n storage -w
 ```
 
@@ -277,22 +308,29 @@ kubectl get pvc,pods -n storage -w
 
 ```bash
 # Delete test application
+
 kubectl delete -k kubernetes/apps/app-cluster/storage/nginx-test/ 2>/dev/null || true
 
 # Delete StorageClass (will orphan PVs)
+
 kubectl delete storageclass cephfs 2>/dev/null || true
 
 # Delete secret
+
 kubectl delete secret csi-cephfs-secret -n kube-system 2>/dev/null || true
 
 # Delete namespace (will delete all pods/services/pvcs)
+
 kubectl delete namespace storage 2>/dev/null || true
 
 # On Proxmox, delete subvolume group (WARNING: deletes data)
+
 # SSH to pve-0
+
 ssh root@pve-0 "ceph fs subvolume-group rm cephfs-vm csi" 2>/dev/null || true
 
 # Then re-run the setup from this document
+
 ```
 
 ⚠️ **WARNING**: Deleting the subvolume group will delete all data stored in that group.

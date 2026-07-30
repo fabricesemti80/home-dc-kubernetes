@@ -1,7 +1,5 @@
 # ☸️ Dual Cluster Management
 
-![☸️ Dual Cluster Management](../img/cluster-dual-cluster-management.svg)
-
 This repository now treats the Kubernetes estate as two clusters managed by one Argo CD hub.
 
 | Cluster       | Argo name       | Kubeconfig                            | Role                                                |
@@ -10,6 +8,14 @@ This repository now treats the Kubernetes estate as two clusters managed by one 
 | Infra cluster | `infra-cluster` | `./.private/infra-cluster/kubeconfig` | Small physical cluster for infrastructure workloads |
 
 Argo CD runs on `app-cluster` and manages both clusters. Do not install a second Argo CD on `infra-cluster` unless this hub model is deliberately replaced.
+
+```mermaid
+flowchart LR
+    Hub[Argo CD Hub on app-cluster] -->|manages| App[app-cluster Workloads]
+    Hub -->|manages remote| Infra[infra-cluster Workloads]
+    Lens[Workstation Lens kubeconfig] -->|context| App
+    Lens -->|context| Infra
+```
 
 ## 🔭 Lens
 

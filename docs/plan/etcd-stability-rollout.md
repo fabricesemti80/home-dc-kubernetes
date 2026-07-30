@@ -1,7 +1,5 @@
 # ⚙️ Etcd Stability And Talos Improvement Runbook
 
-![⚙️ Etcd Stability And Talos Improvement Runbook](../img/plan-etcd-stability-rollout.svg)
-
 ## 🎯 Objective
 
 Improve etcd stability on the existing Proxmox and Ceph-backed control planes without changing Terraform, VM hardware, network devices, or disk placement.

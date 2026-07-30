@@ -1,10 +1,15 @@
 # 📄 OpenTofu Setup
 
-![📄 OpenTofu Setup](../img/infrastructure-terraform.svg)
-
 This repository keeps OpenTofu stacks under `infra/` so provider state and lifecycle can be handled independently.
 
 ## 📌 Stack Layout
+
+```mermaid
+flowchart LR
+    Proxmox[infra/terraform_proxmox] -->|Provisions VMs| Talos[Talos Cluster]
+    Cloudflare[infra/terraform_cloudflare] -->|Tunnels DNS Access| Public[Public Ingress]
+    LocalDNS[infra/terraform_localdns] -->|Internal Records| Internal[LAN DNS]
+```
 
 -   `infra/terraform_proxmox/`: Proxmox VMs and Talos cluster infrastructure
 -   `infra/terraform_cloudflare/`: Kubernetes Cloudflare tunnel, DNS, Access policies, and tunnel credentials

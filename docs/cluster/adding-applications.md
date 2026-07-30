@@ -1,10 +1,17 @@
 # ➕ Adding Applications
 
-![➕ Adding Applications](../img/cluster-adding-applications.svg)
-
 This guide walks you through adding a new application to your Kubernetes cluster using GitOps with Argo CD.
 
 ## 🗺️ Overview
+
+```mermaid
+flowchart LR
+    A[Create App Directory] --> B[Create values.yaml]
+    B --> C[Add Secrets Doppler or SOPS]
+    C --> D[Create Argo Application]
+    D --> E[Expose via HTTPRoute]
+    E --> F[Commit & Sync]
+```
 
 Applications in this repository are managed through Argo CD using a cluster-split directory layout:
 
@@ -131,8 +138,10 @@ If your application needs secrets, create a `values.sops.yaml` file:
 
 ```sh
 # Decrypt an existing sops file to get the format
+
 sops -d kubernetes/apps/default/echo/values.sops.yaml
 # (Note: Targets move to kubernetes/apps/app-cluster/default/echo/values.sops.yaml once PR #211 lands)
+
 ```
 
 Then create your encrypted version:
@@ -285,12 +294,17 @@ Here's a complete example of adding a simple echo application:
 
 ```sh
 # 1. Create directory
+
 mkdir -p kubernetes/apps/app-cluster/default/myapp
 
 # 2. Create values.yaml (copy from echo example and modify)
+
 # 3. Create values.sops.yaml if needed
+
 # 4. Create kubernetes/argo/apps/app-cluster/default/myapp.yaml
+
 # 5. Commit and push
+
 ```
 
 ## 🚑 Troubleshooting
@@ -304,17 +318,22 @@ mkdir -p kubernetes/apps/app-cluster/default/myapp
 
 ```sh
 # List all applications
+
 argocd app list -A
 
 # Get application details
+
 argocd app get <app>
 
 # Force sync
+
 argocd app sync <app>
 
 # View application logs
+
 argocd app logs <app>
 
 # Delete application (if needed)
+
 argocd app delete <app>
 ```

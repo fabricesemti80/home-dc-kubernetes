@@ -1,7 +1,5 @@
 # 💾 CephFS Storage Setup Verification
 
-![💾 CephFS Storage Setup Verification](../img/storage-verification.svg)
-
 **Status**: ✅ All Kubernetes components deployed and ready
 **Last Updated**: 2026-03-14
 
@@ -77,17 +75,21 @@ kubectl describe storageclass cephfs
 
 ```bash
 # Check if namespace was created
+
 kubectl get namespace storage
 
 # Check PVC status (should be Bound after subvolume group is created)
+
 kubectl get pvc -n storage
 kubectl describe pvc nginx-test-pvc -n storage
 
 # Check pod status
+
 kubectl get pods -n storage -l app=nginx-test
 kubectl describe pod -n storage -l app=nginx-test
 
 # Test mount (if pod is running)
+
 kubectl exec -it -n storage <pod-name> -- df -h /usr/share/nginx/html
 kubectl exec -it -n storage <pod-name> -- cat /usr/share/nginx/html/index.html
 ```

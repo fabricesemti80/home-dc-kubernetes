@@ -1,7 +1,5 @@
 # 🎬 Media Management Rollout
 
-![🎬 Media Management Rollout](../img/plan-media-management-rollout.svg)
-
 ## 📌 Phase 1
 
 -   [x] Decide to reuse the `media` namespace for management services

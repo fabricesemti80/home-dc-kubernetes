@@ -1,10 +1,21 @@
 # ☸️ Infra-cluster build and migration runbook
 
-![☸️ Infra-cluster build and migration runbook](img/infra-cluster-bootstrap.svg)
-
 This runbook creates a small bare-metal Talos cluster for services that should remain available while the Proxmox-hosted application cluster is under maintenance.
 
 ## 🎯 Target state
+
+```mermaid
+flowchart LR
+    P0[Phase 0 Prepare Argo CLI] --> P1[Phase 1 Rename Argo Cluster]
+    P1 --> P2[Phase 2 Boot Mini PC]
+    P2 --> P3[Phase 3 Generate Talos Config]
+    P3 --> P4[Phase 4 Install Talos]
+    P4 --> P5[Phase 5 Bootstrap K8s + Cilium]
+    P5 --> P6[Phase 6 Register in Argo Hub]
+    P6 --> P7[Phase 7 Storage Decisions]
+    P7 --> P8[Phase 8 Deploy Core Apps]
+    P8 --> P9[Phase 9 Maintenance Test]
+```
 
 | Argo CD name    | Platform              | Role                               |
 | --------------- | --------------------- | ---------------------------------- |

@@ -1,7 +1,5 @@
 # ⏱️ Uptime Kuma and AutoKuma
 
-![⏱️ Uptime Kuma and AutoKuma](../img/monitoring-uptime-kuma-autokuma.svg)
-
 ## 📌 Purpose
 
 Uptime Kuma provides external availability checks, response-time history, certificate expiry visibility, and status pages for services exposed under `*.krapulax.dev`.
@@ -10,20 +8,15 @@ AutoKuma makes the monitor inventory declarative. Public Kubernetes HTTPRoutes a
 
 ## 🏛️ Architecture
 
-```text
-Kubernetes HTTPRoutes
-        |
-        v
-GitHub Action
-        |
-        v
-scripts/generate-autokuma-monitors.py
-        |
-        v
-config/autokuma-monitors.yaml
-        |
-        v
-Git -> Argo CD -> ConfigMap -> AutoKuma -> Uptime Kuma
+```mermaid
+flowchart LR
+    Routes[Kubernetes HTTPRoutes] -->|PR triggers| GH[GitHub Action]
+    GH --> Generator[generate-autokuma-monitors.py]
+    Generator --> Config[autokuma-monitors.yaml]
+    Config -->|Argo CD| CM[ConfigMap]
+    CM --> AutoKuma
+    AutoKuma --> UK[Uptime Kuma]
+    UK -->|HTTPS Checks| Public[Public Services]
 ```
 
 Uptime Kuma and AutoKuma run as separate controllers in the same app-template Helm release on the infra cluster. Both are pinned to `infra-wk-01` and use hostPath persistence:

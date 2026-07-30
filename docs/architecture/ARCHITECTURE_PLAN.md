@@ -1,7 +1,5 @@
 # 🏛️ Homelab Architecture Plan
 
-![🏛️ Homelab Architecture Plan](../img/architecture-architecture-plan.svg)
-
 ## 🎯 Objective
 
 Operate the Talos/Kubernetes homelab from this repository as the active deployment home for applications and infrastructure services.
@@ -11,6 +9,26 @@ Operate the Talos/Kubernetes homelab from this repository as the active deployme
 This codebase was originally bootstrapped using [ajaykumar4/cluster-template](https://github.com/ajaykumar4/cluster-template) (utilizing Talos Linux, Argo CD, and `bjw-s/app-template` Helm chart patterns). It has since been customized into a **dual-cluster operational topology** managed by a single central Argo CD hub.
 
 ## 🏗️ Active Structure
+
+```mermaid
+flowchart TD
+    subgraph Git [Git Repository]
+        Manifests[Kubernetes Manifests]
+        TF[OpenTofu Stacks]
+    end
+    subgraph App [app-cluster Proxmox VMs]
+        ArgoCD[Argo CD Hub]
+        Apps[Application Workloads]
+    end
+    subgraph Infra [infra-cluster Physical Mini PCs]
+        Core[Core Infra Services]
+    end
+    Git -->|GitOps| ArgoCD
+    ArgoCD -->|Manages| Apps
+    ArgoCD -->|Manages| Core
+    TF -->|Provisions| App
+    TF -->|Provisions| Infra
+```
 
 -   `app-cluster`: Primary application cluster running on Proxmox Talos VMs, hosting general workloads and the central Argo CD hub.
 -   `infra-cluster`: Physical mini-PC infrastructure cluster running core baseline services (`pulse-infra`, `kestra-infra`, `reloader-infra`).

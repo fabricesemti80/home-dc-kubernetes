@@ -1,10 +1,18 @@
 # ⚙️ Kestra Infra Deployment
 
-![⚙️ Kestra Infra Deployment](../img/architecture-kestra-infra.svg)
-
 Deploy Kestra on the infra cluster as the homelab automation service. It should stay available when the Proxmox-hosted app cluster is offline for maintenance.
 
 ## 🏛️ Architecture
+
+```mermaid
+flowchart LR
+    Internet -->|kestra.krapulax.dev| CFT[Cloudflare Tunnel]
+    CFT --> Kestra[Kestra Pod]
+    Internal[Infra Envoy Gateway] -->|kestra.krapulax.home| Kestra
+    Kestra --> Postgres[(PostgreSQL)]
+    Kestra --> Versity[VersityGW Object Storage]
+    Doppler -->|Secrets| Kestra
+```
 
 -   Namespace: `kestra`
 -   Runtime: upstream regular `kestra` Helm chart.

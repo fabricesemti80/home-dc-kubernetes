@@ -1,10 +1,18 @@
 # ⚙️ Domain Configuration
 
-![⚙️ Domain Configuration](../img/cluster-domains.svg)
-
 Centralized documentation for external and internal DNS hostnames in the cluster.
 
 ## 🌐 Base Domains
+
+```mermaid
+flowchart LR
+    Internet[Internet] -->|*.krapulax.dev| Cloudflare[Cloudflare DNS]
+    Cloudflare -->|external-apps| AppsTunnel[kubernetes-apps Tunnel]
+    Cloudflare -->|external-infra| InfraTunnel[kubernetes-infra Tunnel]
+    AppsTunnel --> AppCluster[app-cluster Envoy]
+    InfraTunnel --> InfraCluster[infra-cluster Envoy]
+    LAN[LAN] -->|*.krapulax.home| InternalGW[Internal Gateway]
+```
 
 | Domain                        | Target                    | Description                                          |
 | ----------------------------- | ------------------------- | ---------------------------------------------------- |

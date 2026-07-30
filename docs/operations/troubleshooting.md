@@ -1,8 +1,16 @@
 # 🔧 Troubleshooting
 
-![🔧 Troubleshooting](../img/operations-troubleshooting.svg)
-
 Common issues encountered during cluster bootstrap and their resolutions.
+
+```mermaid
+flowchart TD
+    Issue[Something is wrong] --> Helm[helm list -A]
+    Helm --> Stuck[Stuck release] --> Rollback[helm rollback]
+    Helm --> PodFail[Pod failing] --> Logs[kubectl logs]
+    Logs --> DNS[DNS/CoreDNS] --> FixImage[Fix container image]
+    Logs --> CNI[CNI not ready] --> CheckCilium[Check Cilium pods]
+    Logs --> VIP[VIP unreachable] --> Wait[Wait for etcd]
+```
 
 ## 📌 Helm 4 Post-Renderer Incompatibility
 
@@ -39,6 +47,7 @@ helm list -A --pending
 ```sh
 helm rollback <release-name> <last-good-revision> -n <namespace>
 # e.g. helm rollback coredns 3 -n kube-system
+
 ```
 
 If the release has no successful revision (stuck on revision 1), uninstall and let the bootstrap recreate it:
@@ -121,12 +130,15 @@ Unable to connect to the server: dial tcp 10.0.40.101:6443: connect: operation t
 
 ```sh
 # Check if individual nodes are reachable
+
 ping 10.0.40.90  # control plane node 1
 
 # Check cluster health via a direct node
+
 talosctl -n 10.0.40.90 health --wait-timeout 30s
 
 # Check etcd status
+
 talosctl -n 10.0.40.90 etcd status
 talosctl -n 10.0.40.90 etcd members
 ```
@@ -155,6 +167,7 @@ kubectl -n kube-system describe pod -l k8s-app=kube-dns
 
 kubectl -n kube-system get deploy coredns -o jsonpath='{.spec.template.spec.containers[0].image}'
 # If it shows ghcr.io/coredns/charts/coredns:*, that's the chart image, not the runtime image
+
 ```
 
 **Fix:** Update `kubernetes/apps/app-cluster/kube-system/coredns/values.yaml`:

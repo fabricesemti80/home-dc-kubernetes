@@ -1,7 +1,5 @@
 # 📟 Termix Rollout
 
-![📟 Termix Rollout](../img/plan-termix-rollout.svg)
-
 ## 📌 Scope
 
 -   [x] Deploy Termix into the existing `productivity` namespace.

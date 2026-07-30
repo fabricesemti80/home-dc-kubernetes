@@ -1,8 +1,14 @@
 # 💾 CephFS Storage Setup Guide
 
-![💾 CephFS Storage Setup Guide](../img/storage-overview.svg)
-
 ## 🏛️ Architecture Overview
+
+```mermaid
+flowchart LR
+    Ceph[Ceph Cluster on Proxmox] -->|CephFS| CSI[Ceph-CSI Driver]
+    Doppler[Doppler Secret] -->|CSI credentials| CSI
+    CSI -->|StorageClass cephfs| PVC[PersistentVolumeClaim]
+    PVC -->|ReadWriteMany| Pod[Application Pod]
+```
 
 This Kubernetes cluster uses **CephFS** storage provisioned from a **Ceph cluster running on Proxmox hypervisors**. The setup provides persistent storage for Kubernetes workloads via the **Ceph-CSI driver**.
 
@@ -42,6 +48,7 @@ SSH to any Proxmox node (pve-0, pve-1, or pve-2):
 
 ```bash
 # Create the subvolume group for CSI
+
 ceph fs subvolume group create cephfs-vm csi
 ```
 
@@ -70,13 +77,19 @@ The secret is generated from **Doppler** during `task configure`:
 
 ```bash
 # In the kubernetes repository, run:
+
 task configure
 
 # This will:
+
 # 1. Read CEPH_KEYRING from Doppler
+
 # 2. Render templates with makejinja
+
 # 3. Encrypt secrets with sops
+
 # 4. Create kubernetes/apps/app-cluster/kube-system/ceph-csi/secret.sops.yaml
+
 ```
 
 **Deploy the secret:**
@@ -85,6 +98,7 @@ task configure
 sops -d kubernetes/apps/app-cluster/kube-system/ceph-csi/secret.sops.yaml | kubectl apply -f -
 
 # Verify:
+
 kubectl get secret csi-cephfs-secret -n kube-system
 ```
 
@@ -94,6 +108,7 @@ kubectl get secret csi-cephfs-secret -n kube-system
 kubectl apply -f kubernetes/apps/app-cluster/storage/cephfs-sc.yaml
 
 # Verify:
+
 kubectl get storageclass cephfs
 ```
 
@@ -150,6 +165,7 @@ kubectl logs -n storage -l app=ceph-csi-ceph-csi-cephfs-provisioner -c csi-provi
 
 ```bash
 # From Proxmox node:
+
 ceph status
 ceph fs ls
 ceph fs subvolume-group ls cephfs-vm
@@ -177,6 +193,7 @@ Common causes:
 
 ```bash
 # From Proxmox:
+
 ceph health detail
 ceph df
 ceph osd pool ls detail
@@ -186,9 +203,11 @@ ceph osd pool ls detail
 
 ```bash
 # Watch for provisioning events
+
 kubectl logs -n storage -f -l app=ceph-csi-ceph-csi-cephfs-provisioner -c csi-provisioner
 
 # Check PVC status continuously
+
 kubectl get pvc -n storage -w
 ```
 
@@ -224,6 +243,7 @@ The Proxmox setup is automated via Ansible in `infra-ansible-home-proxmoxhosts`:
 
 ```bash
 # Create Ceph subvolume group automatically:
+
 ansible-playbook site.yml
 ```
 
@@ -251,12 +271,15 @@ Kubernetes storage is managed via ArgoCD:
 kubectl apply -k kubernetes/apps/app-cluster/storage/nginx-test/
 
 # Verify PVC is bound:
+
 kubectl get pvc -n storage
 
 # Verify pod is running:
+
 kubectl get pods -n storage -l app=nginx-test
 
 # Check mounted volume:
+
 kubectl exec -it -n storage <pod-name> -- df -h /usr/share/nginx/html
 ```
 
@@ -295,12 +318,15 @@ From Proxmox:
 
 ```bash
 # Manual snapshot
+
 ceph fs subvolume snapshot create cephfs-vm csi snapshot-name
 
 # List snapshots
+
 ceph fs subvolume-group snapshot ls cephfs-vm csi
 
 # Remove snapshot
+
 ceph fs subvolume snapshot rm cephfs-vm csi snapshot-name
 ```
 
