@@ -102,6 +102,15 @@ tasks:
     desc: Bootstrap Talos cluster and join nodes
     cmd: task bootstrap:talos
 
+  talos:reboot-nodes:
+    desc: Reboot Talos nodes one at a time and wait for Ready
+    cmd: bash hack/reboot-talos-nodes-sequentially.sh {{.CLI_ARGS}}
+    preconditions:
+      - test -f hack/reboot-talos-nodes-sequentially.sh
+      - test -f kubeconfig
+      - which kubectl
+      - which talosctl
+
   apps:bootstrap:
     desc: Bootstrap cluster apps after Talos is healthy
     cmd: task bootstrap:apps
