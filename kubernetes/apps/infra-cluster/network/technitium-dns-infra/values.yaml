@@ -1,0 +1,46 @@
+---
+fullnameOverride: technitium-dns-infra
+
+provider:
+  name: rfc2136
+
+env:
+  - name: RFC2136_TSIG_KEYNAME
+    valueFrom:
+      secretKeyRef:
+        name: technitium-rfc2136-secrets
+        key: TECHNITIUM_RFC2136_TSIG_KEYNAME
+  - name: RFC2136_TSIG_SECRET
+    valueFrom:
+      secretKeyRef:
+        name: technitium-rfc2136-secrets
+        key: TECHNITIUM_RFC2136_TSIG_SECRET
+
+extraArgs:
+  - --gateway-name=envoy-internal
+  - --rfc2136-host=10.0.40.53
+  - --rfc2136-port=53
+  - --rfc2136-zone=krapulax.home
+  - --rfc2136-tsig-keyname=$(RFC2136_TSIG_KEYNAME)
+  - --rfc2136-tsig-secret=$(RFC2136_TSIG_SECRET)
+  - --rfc2136-tsig-secret-alg=hmac-sha256
+  - --rfc2136-tsig-axfr
+
+triggerLoopOnEvent: true
+policy: sync
+sources:
+  - gateway-httproute
+txtPrefix: k8s.
+txtOwnerId: infra-cluster-home
+domainFilters:
+  - krapulax.home
+
+resources:
+  requests:
+    cpu: 10m
+    memory: 64Mi
+  limits:
+    memory: 256Mi
+
+podAnnotations:
+  secret.reloader.stakater.com/reload: technitium-rfc2136-secrets

@@ -1,0 +1,24 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: technitium-dns
+  namespace: network
+  annotations:
+    io.cilium/lb-ipam-ips: 10.0.40.53
+spec:
+  type: LoadBalancer
+  externalTrafficPolicy: Local
+  selector:
+    app.kubernetes.io/controller: technitium
+    app.kubernetes.io/instance: technitium
+    app.kubernetes.io/name: technitium
+  ports:
+    - name: dns-tcp
+      protocol: TCP
+      port: 53
+      targetPort: 53
+    - name: dns-udp
+      protocol: UDP
+      port: 53
+      targetPort: 53
