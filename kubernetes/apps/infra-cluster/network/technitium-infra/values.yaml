@@ -52,6 +52,8 @@ controllers:
           DNS_SERVER_WEB_SERVICE_HTTP_PORT: "5380"
           DNS_SERVER_RECURSION: UseSpecifiedNetworkACL
           DNS_SERVER_RECURSION_NETWORK_ACL: "10.0.0.0/8,172.16.0.0/12,192.168.0.0/16"
+          DNS_SERVER_FORWARDERS: "https://cloudflare-dns.com/dns-query (1.1.1.1),https://cloudflare-dns.com/dns-query (1.0.0.1)"
+          DNS_SERVER_FORWARDER_PROTOCOL: Https
           DNS_SERVER_LOG_FOLDER_PATH: /var/log/technitium/dns
           DNS_SERVER_LOG_MAX_LOG_FILE_DAYS: "30"
           DNS_SERVER_STATS_ENABLE_IN_MEMORY_STATS: "true"
