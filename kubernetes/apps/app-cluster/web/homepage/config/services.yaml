@@ -7,3 +7,9 @@
         icon: mdi-monitor-eye
         href: https://uptime.krapulax.dev
         description: External availability monitoring
+
+- Infra Cluster - network:
+    - Technitium:
+        icon: mdi-dns
+        href: https://dns.krapulax.dev
+        description: Authoritative local DNS
