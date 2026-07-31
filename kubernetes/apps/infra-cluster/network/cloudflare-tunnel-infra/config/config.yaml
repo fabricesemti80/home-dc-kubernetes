@@ -10,6 +10,8 @@ data:
         service: http://kestra.kestra.svc.cluster.local:8080
       - hostname: pulse.krapulax.dev
         service: http://pulse.monitoring.svc.cluster.local:7655
+      - hostname: dns.krapulax.dev
+        service: http://technitium.network.svc.cluster.local:5380
       - hostname: uptime.krapulax.dev
         service: http://uptime-kuma.monitoring.svc.cluster.local:3001
       - service: http_status:404
