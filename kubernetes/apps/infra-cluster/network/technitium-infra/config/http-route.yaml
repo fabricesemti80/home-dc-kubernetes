@@ -1,0 +1,28 @@
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: technitium-external
+  namespace: network
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: dns.krapulax.dev
+    external-dns.alpha.kubernetes.io/target: external-infra.krapulax.dev
+    gethomepage.dev/description: "Authoritative local DNS"
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/group: "Infra Cluster - network"
+    gethomepage.dev/href: "https://dns.krapulax.dev"
+    gethomepage.dev/icon: "mdi-dns"
+    gethomepage.dev/name: "Technitium"
+    gethomepage.dev/weight: "20"
+spec:
+  parentRefs:
+    - name: envoy-external
+      namespace: network
+      sectionName: http
+  hostnames:
+    - dns.krapulax.dev
+  rules:
+    - backendRefs:
+        - name: technitium
+          namespace: network
+          port: 5380

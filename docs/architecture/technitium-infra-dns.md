@@ -19,7 +19,7 @@ Deploy Technitium DNS Server on the infra cluster as a two-replica StatefulSet. 
 ## Security Impact
 
 -   Recursive DNS is limited to private RFC1918 ranges.
--   The web console is internal-only at `dns.krapulax.home`.
+-   The web console is available internally at `dns.krapulax.home` and externally through the infra Cloudflare tunnel at `dns.krapulax.dev`.
 -   DNS `53/TCP` and `53/UDP` are exposed on `10.0.40.53`.
 -   No cluster tokens, TSIG keys, or local zone records are committed.
 -   `krapulax.dev` remains Cloudflare-managed by the Cloudflare ExternalDNS deployment.

@@ -73,6 +73,7 @@ The migration from `external.krapulax.dev` is complete:
 | Grafana      | `grafana.krapulax.dev`      | apps    | `kubernetes/apps/app-cluster/monitoring/kube-prometheus-stack/config/http-route.yaml` |
 | Alertmanager | `alertmanager.krapulax.dev` | apps    | `kubernetes/apps/app-cluster/monitoring/kube-prometheus-stack/values.yaml`            |
 | Pulse        | `pulse.krapulax.dev`        | infra   | `kubernetes/apps/infra-cluster/monitoring/pulse-infra/config/http-route.yaml`         |
+| Technitium   | `dns.krapulax.dev`          | infra   | `kubernetes/apps/infra-cluster/network/technitium-infra/config/http-route.yaml`       |
 | Uptime Kuma  | `uptime.krapulax.dev`       | infra   | `kubernetes/apps/infra-cluster/monitoring/uptime-kuma-infra/config/http-route.yaml`   |
 
 ### 🔹 Automation
