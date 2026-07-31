@@ -40,6 +40,14 @@ data:
       "interval": 60,
       "max_retries": 3
     }
+  dns.json: |-
+    {
+      "type": "http",
+      "name": "Technitium",
+      "url": "https://dns.krapulax.dev",
+      "interval": 60,
+      "max_retries": 3
+    }
   echo.json: |-
     {
       "type": "http",
