@@ -4,8 +4,44 @@ global:
 
 controllers:
   technitium:
-    type: daemonset
+    type: statefulset
+    replicas: 2
     strategy: RollingUpdate
+    statefulset:
+      podManagementPolicy: Parallel
+      serviceName:
+        identifier: headless
+      persistentVolumeClaimRetentionPolicy:
+        whenDeleted: Retain
+        whenScaled: Retain
+      volumeClaimTemplates:
+        - name: config
+          accessMode: ReadWriteOnce
+          storageClass: technitium-local
+          size: 1Gi
+          globalMounts:
+            - path: /etc/dns
+        - name: logs
+          accessMode: ReadWriteOnce
+          storageClass: technitium-local
+          size: 1Gi
+          globalMounts:
+            - path: /var/log/technitium/dns
+    pod:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: app.kubernetes.io/instance
+                    operator: In
+                    values:
+                      - technitium
+                  - key: app.kubernetes.io/controller
+                    operator: In
+                    values:
+                      - technitium
+              topologyKey: kubernetes.io/hostname
     containers:
       app:
         image:
@@ -51,8 +87,6 @@ controllers:
             memory: 1Gi
 
 defaultPodOptions:
-  hostNetwork: true
-  dnsPolicy: ClusterFirstWithHostNet
   automountServiceAccountToken: false
   annotations:
     reloader.stakater.com/auto: "true"
@@ -67,25 +101,15 @@ defaultPodOptions:
 
 service:
   app:
+    forceRename: technitium
     controller: technitium
     ports:
       http:
         port: *web-port
-
-persistence:
-  config:
-    type: custom
-    volumeSpec:
-      hostPath:
-        path: /var/technitium/dns/config
-        type: DirectoryOrCreate
-    globalMounts:
-      - path: /etc/dns
-  logs:
-    type: custom
-    volumeSpec:
-      hostPath:
-        path: /var/technitium/dns/logs
-        type: DirectoryOrCreate
-    globalMounts:
-      - path: /var/log/technitium/dns
+  headless:
+    controller: technitium
+    clusterIP: None
+    publishNotReadyAddresses: true
+    ports:
+      http:
+        port: *web-port
