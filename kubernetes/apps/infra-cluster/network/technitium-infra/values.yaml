@@ -103,6 +103,7 @@ service:
   app:
     forceRename: technitium
     controller: technitium
+    sessionAffinity: ClientIP
     ports:
       http:
         port: *web-port
