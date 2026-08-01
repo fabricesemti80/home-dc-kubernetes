@@ -143,8 +143,8 @@
       minimumReleaseAge: "3 days",
     },
     {
-      description: "Never auto-merge major or breaking changes",
-      matchUpdateTypes: ["major", "breaking"],
+      description: "Never auto-merge major changes (breaking releases are classified as major)",
+      matchUpdateTypes: ["major"],
       automerge: false,
     },
     {
