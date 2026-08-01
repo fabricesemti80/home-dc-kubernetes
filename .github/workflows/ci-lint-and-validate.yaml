@@ -41,7 +41,7 @@ jobs:
           sudo chmod +x /usr/local/bin/yq
 
       - name: Install OpenTofu
-        uses: opentofu/setup-opentofu@v1
+        uses: opentofu/setup-opentofu@a1320f892987e89d278cc92dc5adc984fb93aca4 # v2
 
       - name: Set up Python
         uses: actions/setup-python@v5
