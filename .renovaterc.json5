@@ -134,6 +134,26 @@
       matchDatasources: ["github-releases"],
       addLabels: ["renovate/github-release"],
     },
+    {
+      description:
+        "Auto-merge non-breaking updates: containers, helm charts, releases (minor/patch/digest only)",
+      matchDatasources: ["docker", "helm", "github-releases"],
+      matchUpdateTypes: ["minor", "patch", "digest"],
+      automerge: true,
+      minimumReleaseAge: "3 days",
+    },
+    {
+      description: "Never auto-merge major or breaking changes",
+      matchUpdateTypes: ["major", "breaking"],
+      automerge: false,
+    },
+    {
+      description: "PostgreSQL: never auto-merge, always open a PR and wait for review",
+      matchDatasources: ["docker", "helm"],
+      matchPackagePatterns: ["(^|/)(postgres|postgresql)([-/]|$)"],
+      automerge: false,
+      addLabels: ["renovate/postgres"],
+    },
   ],
   customManagers: [
     {
