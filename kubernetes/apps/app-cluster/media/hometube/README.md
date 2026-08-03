@@ -1,9 +1,19 @@
 # 🎬 HomeTube Notes
 
-Use the web UI at `https://hometube.krapulax.dev` (or `http://hometube.krapulax.home` on the LAN).
+Use the web UI at `https://hometube.krapulax.dev` (externally, behind Cloudflare
+Access) or `http://hometube.krapulax.home` (LAN).
 
 HomeTube is a universal video downloader (YouTube, Vimeo, Reddit, etc.) that
 organizes downloads into a media-server-friendly structure.
+
+## Access control
+
+The `hometube.krapulax.dev` route is gated by **Cloudflare Access with an
+allow-only policy** (same pattern as n8n) because it is a public downloader
+that writes to the shared media volume. The internal route is LAN-only.
+
+See `docs/plan/hometube-rollout.md` for the full design, validation, and
+rollback procedure.
 
 ## Storage
 

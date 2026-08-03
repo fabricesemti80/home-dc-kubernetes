@@ -104,5 +104,12 @@ locals {
       session_hours = 24
       auto_redirect = false
     }
+    "hometube" = {
+      name          = "HomeTube"
+      subdomain     = "hometube"
+      policy_type   = "allow"
+      session_hours = 24
+      auto_redirect = false
+    }
   }
 }
