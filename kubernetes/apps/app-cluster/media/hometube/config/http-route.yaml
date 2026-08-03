@@ -1,0 +1,28 @@
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: hometube
+  namespace: media
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: hometube.krapulax.dev
+    external-dns.alpha.kubernetes.io/target: external-apps.krapulax.dev
+    gethomepage.dev/description: "Universal video downloader"
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/group: "App Cluster - media"
+    gethomepage.dev/href: "https://hometube.krapulax.dev"
+    gethomepage.dev/icon: "youtube.png"
+    gethomepage.dev/name: "HomeTube"
+    gethomepage.dev/weight: "70"
+spec:
+  parentRefs:
+    - name: envoy-external
+      namespace: network
+      sectionName: https
+  hostnames:
+    - hometube.krapulax.dev
+  rules:
+    - backendRefs:
+        - name: hometube
+          namespace: media
+          port: 8501
