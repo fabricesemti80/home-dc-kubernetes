@@ -1,0 +1,89 @@
+---
+global:
+  createDefaultServiceAccount: false
+
+defaultPodOptions:
+  automountServiceAccountToken: false
+
+controllers:
+  hometube:
+    strategy: RollingUpdate
+    initContainers:
+      init-permissions:
+        image:
+          repository: docker.io/library/busybox
+          tag: "1.36"
+        command:
+          - /bin/sh
+          - -ec
+        args:
+          - |
+            mkdir -p /init/downloads/hometube/videos
+            mkdir -p /init/downloads/hometube/tmp
+            chown -R 1000:1000 /init/downloads/hometube
+        resources:
+          requests:
+            cpu: 10m
+            memory: 16Mi
+          limits:
+            memory: 64Mi
+    containers:
+      app:
+        image:
+          repository: ghcr.io/egalitarianmonkey/hometube
+          tag: latest
+        env:
+          TZ: Europe/London
+        probes:
+          liveness: &probes
+            enabled: true
+            custom: true
+            spec:
+              httpGet:
+                path: /_stcore/health
+                port: 8501
+              initialDelaySeconds: 30
+              periodSeconds: 20
+              timeoutSeconds: 5
+              failureThreshold: 3
+          readiness: *probes
+        resources:
+          requests:
+            cpu: 250m
+            memory: 512Mi
+          limits:
+            cpu: "2"
+            memory: 2Gi
+
+service:
+  app:
+    controller: hometube
+    ports:
+      http:
+        port: 8501
+        targetPort: 8501
+
+persistence:
+  media-init:
+    enabled: true
+    existingClaim: media-library-pvc
+    advancedMounts:
+      hometube:
+        init-permissions:
+          - path: /init
+  media-videos:
+    enabled: true
+    existingClaim: media-library-pvc
+    advancedMounts:
+      hometube:
+        app:
+          - path: /data/videos
+            subPath: downloads/hometube/videos
+  media-tmp:
+    enabled: true
+    existingClaim: media-library-pvc
+    advancedMounts:
+      hometube:
+        app:
+          - path: /data/tmp
+            subPath: downloads/hometube/tmp
