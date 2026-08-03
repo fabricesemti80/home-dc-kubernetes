@@ -123,3 +123,54 @@ Termix auto-generates those values on first startup and stores them in `{DATA_DI
 -   [ ] Remove the Termix DopplerSecret manifest if OIDC secrets were synced.
 -   [ ] Keep the Termix PVC until exported data, saved credentials, and generated encryption material are no longer needed.
 -   [ ] Delete the Termix PVC only after backup or destruction is explicitly confirmed.
+
+---
+
+# 🗑️ Termix Decommission
+
+## ⚠️ Prerequisite: cascade the Application deletion
+
+The root `apps` app-of-apps has `Prune=false` in its syncOptions, so removing
+`kubernetes/argo/apps/app-cluster/productivity/termix.yaml` from Git will NOT
+delete the `termix` Application from ArgoCD, and without the
+`resources-finalizer.argocd.argoproj.io` finalizer the managed Deployment,
+Service, PVC, and HTTPRoutes would be orphaned and keep running.
+
+**Do this on the hub cluster (app-cluster) to fully remove Termix:**
+
+```bash
+# 1. Verify the Application still exists after the Git removal syncs
+kubectl -n argo-system get application termix
+
+# 2. Add the cascade finalizer so ArgoCD deletes the managed resources
+kubectl -n argo-system patch application termix \
+  -p '{"metadata":{"finalizers":["resources-finalizer.argocd.argoproj.io"]}}'
+
+# 3. Delete the Application — with the finalizer present this cascades
+#    to the Deployment, Service, HTTPRoutes, and the CephFS PVC
+kubectl -n argo-system delete application termix
+```
+
+## ✅ Post-removal validation
+
+- [ ] `kubectl -n productivity get deploy termix` → `No resources found`
+- [ ] `kubectl -n productivity get svc termix` → `No resources found`
+- [ ] `kubectl -n productivity get httproute` → no `termix` route
+- [ ] `dig +short termix.krapulax.home` → no answer
+- [ ] `curl -sI https://termix.krapulax.dev` → connection refused/404
+
+## ↩️ Rollback / data retention
+
+- The Termix PVC (`5Gi`, `storageClass: cephfs`) holds the SQLite database,
+  generated JWT/auth material, saved hosts and credentials.
+- The storage class retains the underlying PV, but **deleting the bound PVC
+  makes recovery non-trivial** — back it up before the cascade delete if any
+  data may still be needed:
+
+```bash
+kubectl -n productivity get pvc -o wide | grep termix
+# snapshot or copy the CephFS contents before running the cascade delete
+```
+
+- If Termix needs to be restored later: re-add the app manifests and the
+  Application (revert this PR), then restore the PVC contents.
