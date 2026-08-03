@@ -194,47 +194,6 @@ Rollback:
 -   Remove Homepage-specific `gethomepage.dev/*` annotations from `HTTPRoute` objects if discovery behavior is not acceptable.
 -   Remove any Doppler-managed Homepage widget secrets if API-backed widgets are rolled back.
 
-### 📟 Termix internal admin access
-
-Decision:
-
--   Deploy Termix into the existing `productivity` namespace.
--   Expose Termix only through the internal Envoy Gateway at `http://termix.krapulax.home` and `https://termix.krapulax.home`.
--   Do not add an external `HTTPRoute`, Cloudflare DNS record, or public tunnel route for the initial rollout.
--   Store Termix data on a CephFS-backed PVC mounted at `/app/data`.
--   Pin the Termix image to `ghcr.io/lukegus/termix:release-2.3.1` instead of using `latest`.
--   Defer `guacd` unless RDP, VNC, or Telnet support is explicitly needed for the first rollout.
--   Start without OIDC or Doppler secrets for the Tailscale-only initial rollout; let Termix manage its generated database, JWT, and internal auth secrets in the persistent data directory.
-
-Assumptions:
-
--   Termix is a user-facing administrative/productivity tool, not cluster platform infrastructure, so `productivity` is the least surprising namespace.
--   `termix.krapulax.home` should CNAME to the internal Kubernetes gateway record.
--   Internal Envoy routing supports the WebSocket upgrade behavior Termix needs for browser terminal sessions.
--   A single replica is acceptable because Termix uses local SQLite-backed state under the data directory.
--   The Termix PVC is sensitive because it can contain saved hosts, encrypted database files, generated encryption material, SSH metadata, and exported connection data.
-
-Validation checks:
-
--   `doppler secrets get TERMIX_OIDC_CLIENT_ID --project home-dc-kubernetes --config apps` if OIDC is enabled
--   `kubectl get application -n argo-system termix`
--   `kubectl get deploy -n productivity termix`
--   `kubectl get pvc -n productivity | rg termix`
--   `kubectl get httproute -n productivity termix-internal -o yaml`
--   `kubectl rollout status deploy/termix -n productivity`
--   `kubectl logs -n productivity deploy/termix --tail=100`
--   `dig +short termix.krapulax.home`
--   Open `http://termix.krapulax.home`
--   Open `https://termix.krapulax.home`
--   Confirm SSH terminal sessions work through the internal route.
-
-Rollback:
-
--   Remove the Termix Argo CD application and internal `HTTPRoute`.
--   Remove the `termix.krapulax.home` local DNS record if it was added.
--   Remove the Termix DopplerSecret manifest if OIDC secrets were synced.
--   Keep the Termix PVC until saved credentials, generated encryption material, and any exported host data have been backed up or intentionally destroyed.
-
 ### 📋 Planka productivity decommission
 
 Decision:
@@ -427,7 +386,7 @@ Decision:
 Assumptions:
 
 -   `kubernetes.krapulax.home` should continue to point at `10.0.40.102`.
--   `photos.krapulax.home`, `jellyfin.krapulax.home`, `requests.krapulax.home`, `prowlarr.krapulax.home`, `qbittorrent.krapulax.home`, `radarr.krapulax.home`, `sabnzbd.krapulax.home`, `sonarr.krapulax.home`, `tdarr.krapulax.home`, and `termix.krapulax.home` should CNAME to `kubernetes.krapulax.home`.
+-   `photos.krapulax.home`, `jellyfin.krapulax.home`, `requests.krapulax.home`, `prowlarr.krapulax.home`, `qbittorrent.krapulax.home`, `radarr.krapulax.home`, `sabnzbd.krapulax.home`, `sonarr.krapulax.home`, `tdarr.krapulax.home` should CNAME to `kubernetes.krapulax.home`.
 -   Recyclarr is not exposed through a local HTTPRoute because it has no existing external HTTPRoute or user-facing service in the current media namespace config.
 -   Doppler `home-dc-kubernetes/infra` will provide `UNIFI_USERNAME`, `UNIFI_PASSWORD`, `UNIFI_API_URL`, and optionally `UNIFI_ALLOW_INSECURE`.
 -   The UniFi API is reachable from operator workstations at `https://192.168.1.1`; the provider must allow its self-signed TLS certificate.
@@ -447,7 +406,6 @@ Validation checks:
 -   `dig +short sabnzbd.krapulax.home`
 -   `dig +short sonarr.krapulax.home`
 -   `dig +short tdarr.krapulax.home`
--   `dig +short termix.krapulax.home`
 
 Rollback:
 

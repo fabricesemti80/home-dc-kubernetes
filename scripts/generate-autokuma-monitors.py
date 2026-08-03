@@ -43,7 +43,6 @@ DISPLAY_NAME_OVERRIDES = {
     "sabnzbd.krapulax.dev": "SABnzbd",
     "sonarr.krapulax.dev": "Sonarr",
     "tdarr.krapulax.dev": "Tdarr",
-    "termix.krapulax.dev": "Termix",
     "uptime.krapulax.dev": "Uptime Kuma",
 }
 

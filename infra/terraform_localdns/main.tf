@@ -65,12 +65,6 @@ resource "unifi_dns_record" "tdarr_internal" {
   record = unifi_dns_record.kubernetes_internal_gateway.name
 }
 
-resource "unifi_dns_record" "termix_internal" {
-  name   = "termix.${local.internal_domain}"
-  type   = "CNAME"
-  record = unifi_dns_record.kubernetes_internal_gateway.name
-}
-
 resource "unifi_dns_record" "n8n_internal" {
   name   = "n8n.${local.internal_domain}"
   type   = "CNAME"

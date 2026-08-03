@@ -45,7 +45,6 @@ ICON_MAP = {
     "sonarr": "sonarr.png",
     "sterling-pdf": "stirling-pdf.png",
     "tdarr": "tdarr.png",
-    "termix": "terminal.png",
     "uptime-kuma": "mdi-monitor-eye",
 }
 
@@ -72,7 +71,6 @@ DESCRIPTIONS = {
     "sonarr": "Series library automation",
     "sterling-pdf": "PDF editor and manipulation tool",
     "tdarr": "Distributed media transcoding and health checks",
-    "termix": "Internal SSH and server access",
     "uptime-kuma": "External availability monitoring",
 }
 

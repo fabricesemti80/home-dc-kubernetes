@@ -208,14 +208,6 @@ data:
       "interval": 60,
       "max_retries": 3
     }
-  termix.json: |-
-    {
-      "type": "http",
-      "name": "Termix",
-      "url": "https://termix.krapulax.dev",
-      "interval": 60,
-      "max_retries": 3
-    }
   uptime.json: |-
     {
       "type": "http",
