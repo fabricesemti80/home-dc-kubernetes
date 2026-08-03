@@ -88,6 +88,14 @@ data:
       "interval": 60,
       "max_retries": 3
     }
+  hometube.json: |-
+    {
+      "type": "http",
+      "name": "HomeTube",
+      "url": "https://hometube.krapulax.dev",
+      "interval": 60,
+      "max_retries": 3
+    }
   jelly.json: |-
     {
       "type": "http",
