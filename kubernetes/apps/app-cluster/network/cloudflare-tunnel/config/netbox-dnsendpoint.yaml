@@ -1,0 +1,11 @@
+apiVersion: externaldns.k8s.io/v1alpha1
+kind: DNSEndpoint
+metadata:
+  name: netbox-cloudflare-tunnel
+spec:
+  endpoints:
+    - dnsName: netbox.krapulax.dev
+      recordType: CNAME
+      recordTTL: 1
+      targets:
+        - external-infra.krapulax.dev

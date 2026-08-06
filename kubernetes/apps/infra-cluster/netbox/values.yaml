@@ -1,0 +1,124 @@
+---
+# NetBox on infra-cluster.
+#
+# Capacity notes (2026-08): infra-cluster is a 2-node Talos cluster
+# (infra-cp-01: 5.95 CPU / 15.5Gi; infra-wk-01: 3.95 CPU / 7.5Gi).
+# infra-wk-01 is already at ~63% of its memory limits, so NetBox is pinned
+# to infra-cp-01 (the node Kestra already uses) and every component gets an
+# explicit limit that fits the host. Do NOT raise these without checking
+# `kubectl describe nodes` headroom first.
+fullnameOverride: netbox
+
+# Pin all NetBox pods to the infra control node so local-path volumes stay
+# on the same node and we don't pressure the small worker node.
+nodeSelector:
+  kubernetes.io/hostname: infra-cp-01
+tolerations:
+  - key: node-role.kubernetes.io/control-plane
+    operator: Exists
+    effect: NoSchedule
+
+# --- Session/secret material (Doppler-managed, key: secret_key) ---
+existingSecret: netbox-config
+
+superuser:
+  name: admin
+  email: admin@example.com
+  existingSecret: netbox-superuser
+
+allowedHosts:
+  - netbox.krapulax.home
+  - netbox.krapulax.dev
+
+timeZone: Europe/London
+
+# --- Web ---
+replicaCount: 1
+resourcesPreset: "medium"
+resources:
+  requests:
+    cpu: 500m
+    memory: 1Gi
+  limits:
+    cpu: 750m
+    memory: 1536Mi
+
+# --- Worker (defaults to resourcesPreset "none" = NO LIMITS; set explicitly) ---
+worker:
+  replicaCount: 1
+  resourcesPreset: "none"
+  resources:
+    requests:
+      cpu: 250m
+      memory: 512Mi
+    limits:
+      cpu: 500m
+      memory: 768Mi
+
+# --- Housekeeping cron (daily) ---
+housekeeping:
+  enabled: true
+  schedule: "0 2 * * *"
+  timezone: Europe/London
+  resourcesPreset: "nano"
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 150m
+      memory: 192Mi
+
+# --- Persistence ---
+persistence:
+  enabled: true
+  storageClass: local-path
+  accessMode: ReadWriteOnce
+  size: 8Gi
+
+# --- Bundled PostgreSQL (bitnami standalone, 1 replica) ---
+postgresql:
+  enabled: true
+  architecture: standalone
+  primary:
+    resourcesPreset: "micro"
+    resources:
+      requests:
+        cpu: 250m
+        memory: 256Mi
+      limits:
+        cpu: 380m
+        memory: 384Mi
+    persistence:
+      storageClass: local-path
+      size: 8Gi
+  readReplicas:
+    replicaCount: 0
+  metrics:
+    enabled: false
+
+# --- Bundled Valkey/Redis (cache only; standalone, NOT replication) ---
+valkey:
+  enabled: true
+  architecture: standalone
+  master:
+    resourcesPreset: "nano"
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        cpu: 150m
+        memory: 192Mi
+    persistence:
+      enabled: false
+  replica:
+    replicaCount: 0
+  metrics:
+    enabled: false
+
+# --- Ingress/route (HTTPRoutes are defined in config/ per repo pattern) ---
+ingress:
+  enabled: false
+httpRoute:
+  enabled: false

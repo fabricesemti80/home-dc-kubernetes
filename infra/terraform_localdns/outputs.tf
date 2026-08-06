@@ -55,5 +55,10 @@ output "kubernetes_internal_dns_records" {
       type   = unifi_dns_record.hometube_internal.type
       record = unifi_dns_record.hometube_internal.record
     }
+    netbox = {
+      name   = unifi_dns_record.netbox_internal.name
+      type   = unifi_dns_record.netbox_internal.type
+      record = unifi_dns_record.netbox_internal.record
+    }
   }
 }
