@@ -35,13 +35,13 @@ Infra cluster is 2 nodes: `infra-cp-01` (5.95 CPU / 15.5Gi) and `infra-wk-01`
 `infra-cp-01` (same node as Kestra, which is already there) and every component
 has an explicit limit that fits the host:
 
-| Component | Requests | Limits | Notes |
-|---|---|---|---|
-| netbox web | 500m / 1Gi | 750m / 1536Mi | `medium` preset, explicit |
-| worker | 250m / 512Mi | 500m / 768Mi | chart default is **none** (no limits) — overridden |
-| housekeeping | 100m / 128Mi | 150m / 192Mi | cron, nano |
-| postgres | 250m / 256Mi | 380m / 384Mi | micro, standalone, 8Gi local-path |
-| valkey | 100m / 128Mi | 150m / 192Mi | nano, standalone, cache only (no PVC) |
+| Component    | Requests     | Limits        | Notes                                              |
+| ------------ | ------------ | ------------- | -------------------------------------------------- |
+| netbox web   | 500m / 1Gi   | 750m / 1536Mi | `medium` preset, explicit                          |
+| worker       | 250m / 512Mi | 500m / 768Mi  | chart default is **none** (no limits) — overridden |
+| housekeeping | 100m / 128Mi | 150m / 192Mi  | cron, nano                                         |
+| postgres     | 250m / 256Mi | 380m / 384Mi  | micro, standalone, 8Gi local-path                  |
+| valkey       | 100m / 128Mi | 150m / 192Mi  | nano, standalone, cache only (no PVC)              |
 
 Total ≈ 1.2 CPU / 2Gi requests — fits the ~4.8 CPU / ~10Gi headroom on
 infra-cp-01 without touching the busy worker node.
@@ -79,12 +79,12 @@ infra-cp-01 without touching the busy worker node.
 ## ↩️ Rollback
 
 -   [ ] Delete the `netbox` Argo CD application (cascade delete: patch with
-      `resources-finalizer.argocd.argoproj.io`, then
-      `kubectl -n argo-system delete application netbox`), or revert this PR and
-      let Argo self-heal back.
+        `resources-finalizer.argocd.argoproj.io`, then
+        `kubectl -n argo-system delete application netbox`), or revert this PR and
+        let Argo self-heal back.
 -   [ ] Remove the `netbox-external` / `netbox-internal` HTTPRoutes.
 -   [ ] Remove `netbox.krapulax.home` local DNS and the `netbox.krapulax.dev`
-      CNAME (app-cluster tunnel DNSEndpoint) + Cloudflare Access app entry.
+        CNAME (app-cluster tunnel DNSEndpoint) + Cloudflare Access app entry.
 -   [ ] Keep the `local-path` PVCs (`netbox-data`, `netbox-postgresql-0`) until
-      the inventory has been exported — they hold real data.
+        the inventory has been exported — they hold real data.
 -   [ ] Delete PVCs only after backup or destruction is explicitly confirmed.
