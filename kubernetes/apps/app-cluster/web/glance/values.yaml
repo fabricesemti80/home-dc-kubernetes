@@ -35,6 +35,7 @@ controllers:
             cpu: 25m
             memory: 64Mi
           limits:
+            cpu: 250m
             memory: 256Mi
 defaultPodOptions:
   automountServiceAccountToken: false

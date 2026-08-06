@@ -43,6 +43,8 @@ the ~4.8 CPU / ~10Gi headroom, alongside NetBox (~1.2 CPU / 2Gi).
 
 -   [ ] `kubectl get pods -A -o json | jq '.items[].spec.containers[].resources'`
         → no zero-limit workloads remain for git-managed infra apps
+-   [ ] `kubectl get pods -A -o json | jq '.items[].spec.initContainers[].resources'`
+        → no zero-limit init containers remain (e.g. pulse fix-perms)
 -   [ ] `kubectl top nodes` → infra-wk-01 memory stays under ~75% of limits
 -   [ ] Kestra still starts and runs a flow end-to-end
 -   [ ] `kubectl rollout status -n kestra deploy/kestra-standalone`

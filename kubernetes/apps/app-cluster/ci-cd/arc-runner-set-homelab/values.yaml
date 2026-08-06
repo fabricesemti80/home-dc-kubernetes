@@ -36,6 +36,13 @@ listenerTemplate:
         effect: "NoSchedule"
     containers:
       - name: listener
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
+            cpu: 250m
+            memory: 256Mi
 
 # Runner pod overrides for dind mode.
 # The chart reuses the runner image for its dind init container, so keep image
@@ -59,6 +66,7 @@ template:
             cpu: 500m
             memory: 512Mi
           limits:
+            cpu: 2
             memory: 2Gi
       - name: dind
         # dind runs as root (required by docker:dind) — no runAsUser override
@@ -67,4 +75,5 @@ template:
             cpu: 500m
             memory: 512Mi
           limits:
+            cpu: 2
             memory: 2Gi

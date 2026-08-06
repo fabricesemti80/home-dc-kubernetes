@@ -87,6 +87,13 @@ alertmanager:
   alertmanagerSpec:
     externalUrl: https://alertmanager.krapulax.dev
     replicas: 1
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: 500m
+        memory: 1Gi
     secrets:
       - alertmanager-slack-webhook
     storage:
@@ -101,6 +108,13 @@ alertmanager:
 
 grafana:
   enabled: true
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
   persistence:
     enabled: true
     storageClassName: cephfs
@@ -116,6 +130,14 @@ grafana:
 
 prometheus:
   enabled: true
+  prometheusOperator:
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
   prometheusSpec:
     externalUrl: https://prometheus.krapulax.dev
     replicas: 1
@@ -124,6 +146,9 @@ prometheus:
       requests:
         memory: 256Mi
         cpu: 100m
+      limits:
+        memory: 1536Mi
+        cpu: 500m
     storageSpec:
       volumeClaimTemplate:
         spec:
@@ -139,6 +164,20 @@ kubeProxy:
 
 nodeExporter:
   enabled: true
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 250m
+      memory: 256Mi
 
 kubeStateMetrics:
   enabled: true
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 250m
+      memory: 512Mi

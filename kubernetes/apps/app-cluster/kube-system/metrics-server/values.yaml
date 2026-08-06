@@ -5,6 +5,13 @@ args:
   - --kubelet-use-node-status-port
   - --metric-resolution=10s
   - --kubelet-request-timeout=2s
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 250m
+    memory: 256Mi
 metrics:
   enabled: true
 serviceMonitor:
