@@ -111,5 +111,12 @@ locals {
       session_hours = 24
       auto_redirect = false
     }
+    "netbox" = {
+      name          = "NetBox"
+      subdomain     = "netbox"
+      policy_type   = "allow"
+      session_hours = 24
+      auto_redirect = false
+    }
   }
 }
