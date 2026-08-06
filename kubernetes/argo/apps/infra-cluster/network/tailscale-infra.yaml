@@ -18,6 +18,8 @@ spec:
       targetRevision: 1.98.9
       helm:
         releaseName: tailscale-operator
+        valueFiles:
+          - $repo/kubernetes/apps/infra-cluster/network/tailscale-infra/values.yaml
   destination:
     name: infra-cluster
     namespace: tailscale

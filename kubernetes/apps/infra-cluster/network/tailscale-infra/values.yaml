@@ -1,0 +1,11 @@
+---
+# Tailscale operator on infra-cluster. Runs on a 2-node cluster; keep limits
+# modest but bounded.
+operatorConfig:
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 250m
+      memory: 256Mi
