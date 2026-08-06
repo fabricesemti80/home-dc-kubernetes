@@ -15,9 +15,9 @@ spec:
       helm:
         releaseName: netbox
         valueFiles:
-          - $repo/kubernetes/apps/infra-cluster/netbox/values.yaml
+          - $repo/kubernetes/apps/infra-cluster/netbox/netbox/values.yaml
     - repoURL: "https://github.com/fabricesemti80/home-dc-kubernetes.git"
-      path: kubernetes/apps/infra-cluster/netbox
+      path: kubernetes/apps/infra-cluster/netbox/netbox
       targetRevision: main
       ref: repo
   destination:

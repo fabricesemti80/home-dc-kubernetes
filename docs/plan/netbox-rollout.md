@@ -20,8 +20,9 @@ Use `netbox` — NetBox is infrastructure tooling (IPAM/DCIM), so it lives on
 
 ## 💡 Kubernetes Shape
 
--   Argo CD app: `kubernetes/argo/apps/infra-cluster/netbox.yaml`
--   App config: `kubernetes/apps/infra-cluster/netbox/`
+-   Argo CD app: `kubernetes/argo/apps/infra-cluster/netbox/netbox.yaml`
+-   App config: `kubernetes/apps/infra-cluster/netbox/netbox/`
+-   Architecture doc: `docs/architecture/netbox-infra.md`
 -   Helm chart: `netbox` 8.3.49 from `https://netbox-community.github.io/netbox-chart` (vendors bitnami postgresql + valkey subcharts, no OCI needed)
 -   Components: web (1 replica), worker (1 replica), housekeeping cron (02:00 Europe/London), postgres (standalone), valkey (standalone)
 -   Service port: 80 (ClusterIP)
@@ -82,9 +83,14 @@ infra-cp-01 without touching the busy worker node.
         `resources-finalizer.argocd.argoproj.io`, then
         `kubectl -n argo-system delete application netbox`), or revert this PR and
         let Argo self-heal back.
+-   [ ] **Before the cascade delete**: the `resources-finalizer` makes ArgoCD
+        delete every chart-rendered resource, including the `netbox-data` and
+        `netbox-postgresql-0` PVCs. Export the inventory first (NetBox CSV
+        export) and, if the data must survive, annotate the PVCs with
+        `helm.sh/resource-policy: keep` (or back them up) **before** deleting
+        the Application. The local-path StorageClass retains the underlying PV,
+        but a deleted PVC is not automatically re-attachable.
 -   [ ] Remove the `netbox-external` / `netbox-internal` HTTPRoutes.
 -   [ ] Remove `netbox.krapulax.home` local DNS and the `netbox.krapulax.dev`
         CNAME (app-cluster tunnel DNSEndpoint) + Cloudflare Access app entry.
--   [ ] Keep the `local-path` PVCs (`netbox-data`, `netbox-postgresql-0`) until
-        the inventory has been exported — they hold real data.
 -   [ ] Delete PVCs only after backup or destruction is explicitly confirmed.

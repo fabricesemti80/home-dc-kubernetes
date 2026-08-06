@@ -81,6 +81,12 @@ postgresql:
   enabled: true
   architecture: standalone
   primary:
+    nodeSelector:
+      kubernetes.io/hostname: infra-cp-01
+    tolerations:
+      - key: node-role.kubernetes.io/control-plane
+        operator: Exists
+        effect: NoSchedule
     resourcesPreset: "micro"
     resources:
       requests:
@@ -101,7 +107,13 @@ postgresql:
 valkey:
   enabled: true
   architecture: standalone
-  master:
+  primary:
+    nodeSelector:
+      kubernetes.io/hostname: infra-cp-01
+    tolerations:
+      - key: node-role.kubernetes.io/control-plane
+        operator: Exists
+        effect: NoSchedule
     resourcesPreset: "nano"
     resources:
       requests:
