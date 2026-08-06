@@ -5,3 +5,10 @@
 doppler-kubernetes-operator:
   image:
     repository: mirror.gcr.io/dopplerhq/kubernetes-operator
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 250m
+      memory: 256Mi
