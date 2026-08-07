@@ -37,6 +37,13 @@ configs:
       return hs
 controller:
   replicas: 2
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
   livenessProbe:
     httpGet:
       path: /healthz
@@ -54,6 +61,13 @@ controller:
         release: kube-prometheus-stack
 dex:
   replicas: 2
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 250m
+      memory: 256Mi
   livenessProbe:
     httpGet:
       path: /dex/healthz
@@ -66,12 +80,26 @@ dex:
   metrics:
     enabled: false
 redis:
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 250m
+      memory: 256Mi
   metrics:
     enabled: true
     serviceMonitor: *service-monitor
 server:
   replicas: 2
   allowAnyNamespace: true
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 256Mi
   livenessProbe:
     httpGet:
       path: /healthz
@@ -84,11 +112,25 @@ server:
     serviceMonitor: *service-monitor
 notifications:
   replicas: 2
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 250m
+      memory: 256Mi
   metrics:
     enabled: true
     serviceMonitor: *service-monitor
 repoServer:
   replicas: 2
+  resources:
+    requests:
+      cpu: 250m
+      memory: 256Mi
+    limits:
+      cpu: "1"
+      memory: 512Mi
   livenessProbe:
     httpGet:
       path: /healthz
@@ -159,6 +201,13 @@ repoServer:
     - name: gitops-tools
       image: ghcr.io/ajaykumar4/gitops-tools:2026.8.0
       imagePullPolicy: Always
+      resources:
+        requests:
+          cpu: 50m
+          memory: 128Mi
+        limits:
+          cpu: 250m
+          memory: 256Mi
       command: [sh, -ec]
       args:
         - |

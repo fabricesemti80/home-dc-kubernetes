@@ -46,6 +46,13 @@ operator:
       enabled: true
   replicas: 2
   rollOutPods: true
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 250m
+      memory: 256Mi
 prometheus:
   enabled: true
   serviceMonitor:
@@ -53,6 +60,13 @@ prometheus:
     trustCRDsExist: true
 rollOutCiliumPods: true
 routingMode: native
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
 securityContext:
   capabilities:
     ciliumAgent:

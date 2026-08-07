@@ -58,10 +58,36 @@ common:
           done
           aws --endpoint-url "$S3_ENDPOINT_URL" s3api head-bucket --bucket "$BUCKET" >/dev/null 2>&1 \
             || aws --endpoint-url "$S3_ENDPOINT_URL" s3 mb "s3://$BUCKET"
+      resources:
+        requests:
+          cpu: 10m
+          memory: 32Mi
+        limits:
+          cpu: 100m
+          memory: 128Mi
+
+  # Kestra is a Java app that runs flows + scheduler + executor in standalone
+  # mode. Sizing for infra-cp-01 (5.95 CPU / 15.5Gi): keep requests modest but
+  # give the JVM headroom; limits bound the node alongside NetBox.
+  resources:
+    requests:
+      cpu: 500m
+      memory: 1Gi
+    limits:
+      cpu: "2"
+      memory: 2Gi
 
 dind:
   enabled: true
   mode: insecure
+  # Docker-in-Docker builds flow containers; can spike CPU during image pulls.
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: "1"
+      memory: 1Gi
 
 configurations:
   application:

@@ -92,6 +92,7 @@ controllers:
             cpu: 250m
             memory: 1Gi
           limits:
+            cpu: 2
             ephemeral-storage: 3Gi
             memory: 4Gi
 
