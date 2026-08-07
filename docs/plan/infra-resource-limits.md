@@ -28,6 +28,7 @@ everything else (including Kestra itself, which runs critical automation).
 | tailscale-operator     | 50m / 64Mi   | 250m / 256Mi |                        |
 | pulse                  | 100m / 256Mi | 500m / 1Gi   | added CPU limit        |
 | envoy (gateway)        | 100m / 128Mi | 500m / 512Mi | added CPU limit        |
+| Argo CD app controller | 100m / 512Mi | 500m / 1Gi   | OOMKilled at 512Mi     |
 
 Total added ≈ 1.4 CPU / 2.5Gi requests on infra-cp-01 (Kestra's node) — fits
 the ~4.8 CPU / ~10Gi headroom, alongside NetBox (~1.2 CPU / 2Gi).
