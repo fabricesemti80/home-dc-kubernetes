@@ -14,15 +14,16 @@ flowchart LR
     LAN[LAN] -->|*.krapulax.home| InternalGW[Internal Gateway]
 ```
 
-| Domain                        | Target                    | Description                                          |
-| ----------------------------- | ------------------------- | ---------------------------------------------------- |
-| `krapulax.dev`                | -                         | Primary domain                                       |
-| `external-apps.krapulax.dev`  | `kubernetes-apps` tunnel  | New canonical public endpoint for app-cluster routes |
-| `external-infra.krapulax.dev` | `kubernetes-infra` tunnel | Canonical public endpoint for infra-cluster services |
-| `internal.krapulax.dev`       | -                         | Internal routing                                     |
-| `krapulax.home`               | `10.0.40.53`              | Internal zone served by Technitium                   |
-| `kubernetes.krapulax.home`    | `10.0.40.102`             | Internal gateway target                              |
-| `kestra.krapulax.home`        | `10.0.40.106`             | Infra-cluster internal Kestra                        |
+| Domain                        | Target                     | Description                                          |
+| ----------------------------- | -------------------------- | ---------------------------------------------------- |
+| `krapulax.dev`                | -                          | Primary domain                                       |
+| `external-apps.krapulax.dev`  | `kubernetes-apps` tunnel   | New canonical public endpoint for app-cluster routes |
+| `external-infra.krapulax.dev` | `kubernetes-infra` tunnel  | Canonical public endpoint for infra-cluster services |
+| `internal.krapulax.dev`       | -                          | Internal routing                                     |
+| `krapulax.home`               | `10.0.40.53`               | Internal zone served by Technitium                   |
+| `kubernetes.krapulax.home`    | `10.0.40.102`              | Internal gateway target                              |
+| `kestra.krapulax.home`        | `10.0.40.106`              | Infra-cluster internal Kestra                        |
+| `ha.krapulax.home`            | `kubernetes.krapulax.home` | App-cluster internal Home Assistant                  |
 
 ## 🚚 External endpoint migration
 
