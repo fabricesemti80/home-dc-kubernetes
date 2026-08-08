@@ -39,9 +39,9 @@ This document provides an index of all applications deployed in the Kubernetes c
 
 ### 🏠 home
 
-| App           | Type             | Image                                     | Port | Domain              | Notes                    |
-| ------------- | ---------------- | ----------------------------------------- | ---- | ------------------- | ------------------------ |
-| home-assistant | Home Automation | ghcr.io/home-assistant/home-assistant     | 8123 | ha.krapulax.home    | Smart home automation    |
+| App            | Type            | Image                                 | Port | Domain           | Notes                 |
+| -------------- | --------------- | ------------------------------------- | ---- | ---------------- | --------------------- |
+| home-assistant | Home Automation | ghcr.io/home-assistant/home-assistant | 8123 | ha.krapulax.home | Smart home automation |
 
 ### 🔹 productivity
 

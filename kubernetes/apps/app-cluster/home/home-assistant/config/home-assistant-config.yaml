@@ -1,0 +1,23 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: home-assistant-config
+  namespace: home
+  labels:
+    reloader.stakater.com/auto: "true"
+data:
+  configuration.yaml: |
+    homeassistant:
+      name: Home
+
+    # HA sits behind the Envoy internal gateway (HTTPRoute ha.krapulax.home).
+    # Envoy forwards with proxy headers; HA rejects untrusted reverse-proxy
+    # requests with HTTP 400, so we must trust the cluster ranges Envoy
+    # originates from. app-cluster pod CIDR is 10.42.0.0/16 (talos/app),
+    # service CIDR 10.43.0.0/16.
+    http:
+      use_x_forwarded_for: true
+      trusted_proxies:
+        - 10.42.0.0/16
+        - 10.43.0.0/16

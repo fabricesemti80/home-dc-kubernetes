@@ -4,7 +4,10 @@ global:
 
 controllers:
   home-assistant:
-    strategy: RollingUpdate
+    # HA keeps state (recorder SQLite, automations) in /config. RollingUpdate
+    # can briefly run two instances against the same PVC, contending on the
+    # SQLite DB and double-firing automations. Recreate is the safe strategy.
+    strategy: Recreate
     serviceAccount:
       name: home-assistant
     containers:
@@ -43,7 +46,7 @@ controllers:
               failureThreshold: 30
         # HA's official container must run as root. We still harden it:
         # no privilege escalation, no capabilities, read-only rootfs
-        # (only /config and /tmp below are writable).
+        # (only /config, /run and /tmp below are writable).
         securityContext:
           allowPrivilegeEscalation: false
           capabilities: { drop: ["ALL"] }
@@ -80,7 +83,24 @@ persistence:
     size: 5Gi
     globalMounts:
       - path: /config
+  # The official image's /init runtime writes state under /run; with a
+  # read-only rootfs that path must be a writable emptyDir or the container
+  # exits during initialization.
+  run:
+    type: emptyDir
+    globalMounts:
+      - path: /run
   tmp:
     type: emptyDir
     globalMounts:
       - path: /tmp
+  # First-boot configuration (trusted proxies etc.). Mounted read-only at
+  # /config/configuration.yaml; the reloader annotation restarts HA when the
+  # ConfigMap changes.
+  ha-config:
+    type: configMap
+    name: home-assistant-config
+    globalMounts:
+      - path: /config/configuration.yaml
+        subPath: configuration.yaml
+        readOnly: true
