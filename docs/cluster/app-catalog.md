@@ -7,6 +7,7 @@ This document provides an index of all applications deployed in the Kubernetes c
 | Namespace               | App Count | Description                                             |
 | ----------------------- | --------- | ------------------------------------------------------- |
 | media                   | 10        | Media management stack (Jellyfin, Sonarr, Radarr, etc.) |
+| home                    | 1         | Home Assistant                                          |
 | productivity            | 3         | Linkwarden, Code Server, Sterling PDF                   |
 | monitoring              | 1         | Prometheus/Grafana stack                                |
 | network                 | 2         | Cloudflare DNS and Tunnel                               |
@@ -35,6 +36,12 @@ This document provides an index of all applications deployed in the Kubernetes c
 | sabnzbd     | Usenet Client    | lscr.io/linuxserver/sabnzbd      | 8080 | sabnzbd.krapulax.dev     | Usenet downloads         |
 | recyclarr   | Sync Tool        | ghcr.io/recyclarr/recyclarr      | -    | -                        | Aria2/Radarr sync (cron) |
 | tdarr       | Transcoder       | ghcr.io/haveagitgat/tdarr        | 8265 | tdarr.krapulax.dev       | Media transcode checks   |
+
+### 🏠 home
+
+| App           | Type             | Image                                     | Port | Domain              | Notes                    |
+| ------------- | ---------------- | ----------------------------------------- | ---- | ------------------- | ------------------------ |
+| home-assistant | Home Automation | ghcr.io/home-assistant/home-assistant     | 8123 | ha.krapulax.home    | Smart home automation    |
 
 ### 🔹 productivity
 

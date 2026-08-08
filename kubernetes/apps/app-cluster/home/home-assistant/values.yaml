@@ -1,0 +1,86 @@
+---
+global:
+  createDefaultServiceAccount: false
+
+controllers:
+  home-assistant:
+    strategy: RollingUpdate
+    serviceAccount:
+      name: home-assistant
+    containers:
+      app:
+        image:
+          # Official image. The non-root community build (onedr0p/home-assistant)
+          # is abandoned (last tag 2025.3.3) so we use the official container,
+          # which is designed to run as root -- hence the runAsUser: 0 below.
+          repository: ghcr.io/home-assistant/home-assistant
+          tag: "2026.8.1"
+        env:
+          TZ: Europe/London
+        probes:
+          liveness: &probes
+            enabled: true
+            custom: true
+            spec:
+              httpGet:
+                path: /
+                port: 8123
+              initialDelaySeconds: 30
+              periodSeconds: 20
+              timeoutSeconds: 5
+              failureThreshold: 4
+          readiness: *probes
+          startup:
+            enabled: true
+            custom: true
+            spec:
+              httpGet:
+                path: /
+                port: 8123
+              initialDelaySeconds: 10
+              periodSeconds: 10
+              timeoutSeconds: 5
+              failureThreshold: 30
+        # HA's official container must run as root. We still harden it:
+        # no privilege escalation, no capabilities, read-only rootfs
+        # (only /config and /tmp below are writable).
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities: { drop: ["ALL"] }
+          readOnlyRootFilesystem: true
+        resources:
+          requests:
+            cpu: 100m
+            memory: 512Mi
+          limits:
+            memory: 1Gi
+
+defaultPodOptions:
+  automountServiceAccountToken: false
+  annotations:
+    reloader.stakater.com/auto: "true"
+  securityContext:
+    runAsUser: 0
+    runAsGroup: 0
+    fsGroup: 0
+
+service:
+  app:
+    controller: home-assistant
+    ports:
+      http:
+        port: 80
+        targetPort: 8123
+
+persistence:
+  config:
+    type: persistentVolumeClaim
+    accessMode: ReadWriteMany
+    storageClass: cephfs
+    size: 5Gi
+    globalMounts:
+      - path: /config
+  tmp:
+    type: emptyDir
+    globalMounts:
+      - path: /tmp

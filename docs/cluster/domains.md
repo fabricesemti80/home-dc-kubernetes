@@ -22,7 +22,8 @@ flowchart LR
 | `internal.krapulax.dev`       | -                         | Internal routing                                     |
 | `krapulax.home`               | `10.0.40.53`              | Internal zone served by Technitium                   |
 | `kubernetes.krapulax.home`    | `10.0.40.102`             | Internal gateway target                              |
-| `kestra.krapulax.home`        | `10.0.40.106`             | Infra-cluster internal Kestra                        |
+| `kestra.krapulax.home`        | `10.0.40.106`              | Infra-cluster internal Kestra                        |
+| `ha.krapulax.home`            | `kubernetes.krapulax.home` | App-cluster internal Home Assistant                  |
 
 ## 🚚 External endpoint migration
 

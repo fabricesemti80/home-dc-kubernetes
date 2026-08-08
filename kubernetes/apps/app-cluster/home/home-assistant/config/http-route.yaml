@@ -1,0 +1,20 @@
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: home-assistant-internal
+  namespace: home
+  annotations:
+    external-dns.alpha.kubernetes.io/target: kubernetes.krapulax.home
+spec:
+  parentRefs:
+    - name: envoy-internal
+      namespace: network
+      sectionName: http
+  hostnames:
+    - ha.krapulax.home
+  rules:
+    - backendRefs:
+        - name: home-assistant
+          namespace: home
+          port: 80
