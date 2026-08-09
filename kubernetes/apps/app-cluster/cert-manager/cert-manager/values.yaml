@@ -8,14 +8,13 @@ prometheus:
   enabled: true
   servicemonitor:
     enabled: true
-controller:
-  resources:
-    requests:
-      cpu: 50m
-      memory: 128Mi
-    limits:
-      cpu: 250m
-      memory: 512Mi
+resources:
+  requests:
+    cpu: 50m
+    memory: 128Mi
+  limits:
+    cpu: 250m
+    memory: 512Mi
 webhook:
   resources:
     requests:
