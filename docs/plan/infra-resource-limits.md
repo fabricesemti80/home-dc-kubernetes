@@ -26,7 +26,7 @@ everything else (including Kestra itself, which runs critical automation).
 | reloader               | 10m / 64Mi   | 250m / 256Mi |                        |
 | local-path-provisioner | 50m / 64Mi   | 250m / 256Mi |                        |
 | tailscale-operator     | 50m / 64Mi   | 250m / 256Mi |                        |
-| pulse                  | 100m / 256Mi | 500m / 1Gi   | added CPU limit        |
+| pulse                  | 250m / 512Mi | 1 / 2Gi      | OOMKilled at 1Gi       |
 | envoy (gateway)        | 100m / 128Mi | 500m / 512Mi | added CPU limit        |
 | Argo CD app controller | 100m / 512Mi | 500m / 1Gi   | OOMKilled at 512Mi     |
 
