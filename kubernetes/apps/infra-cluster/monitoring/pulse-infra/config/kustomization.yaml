@@ -6,3 +6,10 @@ resources:
   - ./http-route-internal.yaml
   - ./http-route.yaml
   - ./doppler-secret.yaml
+configMapGenerator:
+  - name: pulse-system-config
+    namespace: monitoring
+    files:
+      - system.json
+generatorOptions:
+  disableNameSuffixHash: true

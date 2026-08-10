@@ -15,7 +15,7 @@ controllers:
           - /bin/sh
           - -c
         args:
-          - chown -R 1000:1000 /data
+          - cp /config/system.json /data/system.json && chown -R 1000:1000 /data
         resources:
           requests:
             cpu: 10m
@@ -103,6 +103,13 @@ persistence:
         type: DirectoryOrCreate
     globalMounts:
       - path: /data
+  system-config:
+    type: configMap
+    name: pulse-system-config
+    globalMounts:
+      - path: /config/system.json
+        subPath: system.json
+        readOnly: true
   tmp:
     type: emptyDir
     globalMounts:
