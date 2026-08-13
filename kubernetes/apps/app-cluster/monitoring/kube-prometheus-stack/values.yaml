@@ -45,6 +45,9 @@ alertmanager:
         - receiver: "null"
           matchers:
             - alertname = "Watchdog"
+        - receiver: "null"
+          matchers:
+            - alertname = "InfoInhibitor"
     receivers:
       - name: "null"
       - name: slack-monitoring

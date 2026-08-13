@@ -134,13 +134,14 @@ Decision:
 
 -   Add a basic Alertmanager Slack receiver for the monitoring stack.
 -   Source the Slack incoming webhook from Doppler and mount it into the Alertmanager pods as a Kubernetes secret file instead of embedding it in the Alertmanager config.
+-   Route `Watchdog` and `InfoInhibitor` to the null receiver; `InfoInhibitor` is an internal suppression alert and should not notify Slack.
 
 Assumptions:
 
 -   The Doppler `home-dc-kubernetes/apps` config is the correct source of truth for `SLACK_WEBHOOK_MONITORING`.
 -   The intended Slack destination is the `#monitoring` channel.
 -   `https://alertmanager.krapulax.dev` is the intended external Alertmanager address.
--   The initial routing policy should stay simple: send normal alerts to Slack and continue discarding the default `Watchdog` alert.
+-   The initial routing policy should stay simple: send normal alerts to Slack and continue discarding internal `Watchdog` and `InfoInhibitor` alerts.
 
 Validation checks:
 
@@ -152,11 +153,13 @@ Validation checks:
 -   `kubectl get httproute -n monitoring alertmanager`
 -   `kubectl rollout status statefulset/alertmanager-kube-prometheus-stack-alertmanager -n monitoring`
 -   `kubectl logs -n monitoring statefulset/alertmanager-kube-prometheus-stack-alertmanager --tail=100`
+-   `kubectl --kubeconfig ./kubeconfig get --raw '/api/v1/namespaces/monitoring/services/http:kube-prometheus-stack-alertmanager:9093/proxy/api/v2/status'`
 
 Rollback:
 
 -   Remove the Slack route and receiver from the kube-prometheus-stack values file if notifications behave unexpectedly.
 -   Remove the Doppler-managed `alertmanager-slack-webhook` secret if Alertmanager Slack notifications are rolled back entirely.
+-   Remove the null route for `InfoInhibitor` only if internal inhibitor alerts should notify directly.
 
 ### 🏠 Homepage dashboard deployment
 
