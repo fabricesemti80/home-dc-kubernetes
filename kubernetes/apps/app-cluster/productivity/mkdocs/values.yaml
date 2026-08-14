@@ -6,20 +6,21 @@ controllers:
   mkdocs:
     replicas: 1
     strategy: Recreate
+    initContainers:
+      seed-docs:
+        image:
+          repository: docker.io/library/alpine
+          tag: latest
+        command:
+          - /bin/sh
+          - -c
+        args:
+          - cp /mnt/seed/* /docs/
     containers:
       app:
         image:
           repository: squidfunk/mkdocs-material
           tag: latest
-        initContainers:
-          - name: seed-docs
-            image: alpine:latest
-            command: ['sh', '-c', 'cp /mnt/seed/* /docs/']
-            volumeMounts:
-              - name: docs
-                mountPath: /docs
-              - name: seed
-                mountPath: /mnt/seed
         env:
           TZ: Europe/London
           MKDOCS_PORT: &port 8000
@@ -61,7 +62,6 @@ controllers:
             memory: 1Gi
 
 defaultPodOptions:
-  automountHomedir: false
   automountServiceAccountToken: false
   annotations:
     reloader.stakater.com/auto: "true"
