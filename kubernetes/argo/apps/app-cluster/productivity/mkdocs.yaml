@@ -5,10 +5,18 @@ metadata:
   namespace: argo-system
 spec:
   project: default
-  source:
-    repoURL: https://github.com/fabricesemti80/home-dc-kubernetes.git
-    targetRevision: HEAD
-    path: kubernetes/apps/app-cluster/productivity/mkdocs
+  sources:
+    - repoURL: https://github.com/fabricesemti80/home-dc-kubernetes.git
+      path: kubernetes/apps/app-cluster/productivity/mkdocs
+      targetRevision: HEAD
+      ref: repo
+    - repoURL: ghcr.io/bjw-s-labs/helm
+      chart: app-template
+      targetRevision: 5.0.1
+      helm:
+        releaseName: mkdocs
+        valueFiles:
+          - $repo/kubernetes/apps/app-cluster/productivity/mkdocs/values.yaml
   destination:
     server: https://kubernetes.default.svc
     namespace: productivity
