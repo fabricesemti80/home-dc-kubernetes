@@ -9,13 +9,22 @@ controllers:
     initContainers:
       seed-docs:
         image:
-          repository: docker.io/library/alpine
+          repository: squidfunk/mkdocs-material
           tag: latest
         command:
           - /bin/sh
           - -c
         args:
-          - mkdir -p /docs/docs && cp /mnt/seed/mkdocs.yml /docs/ && cp /mnt/seed/index.md /docs/docs/
+          - /mnt/scripts/init-docs.sh
+        env:
+          - name: DOCS_DIR
+            value: /docs
+          - name: REPO_URL
+            value: "https://github.com/fabricesemti80/home-dc-kubernetes.git"
+          - name: REPO_BRANCH
+            value: main
+          - name: GIT_DEPTH
+            value: "1"
     containers:
       app:
         image:
@@ -91,6 +100,12 @@ persistence:
     name: mkdocs-docs-seed
     globalMounts:
       - path: /mnt/seed
+  scripts:
+    type: configMap
+    name: mkdocs-init-scripts
+    defaultMode: 0755
+    globalMounts:
+      - path: /mnt/scripts
   tmp:
     type: emptyDir
     globalMounts:

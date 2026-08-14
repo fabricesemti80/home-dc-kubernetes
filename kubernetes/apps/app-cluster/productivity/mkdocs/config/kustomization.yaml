@@ -4,3 +4,4 @@ kind: Kustomization
 resources:
   - ./http-route.yaml
   - ./docs-seed/configmap.yaml
+  - ./init-scripts/configmap.yaml
