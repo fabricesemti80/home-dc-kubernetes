@@ -1,0 +1,97 @@
+---
+global:
+  createDefaultServiceAccount: false
+
+controllers:
+  mkdocs:
+    replicas: 1
+    strategy: Recreate
+    containers:
+      app:
+        image:
+          repository: squidfunk/mkdocs-material
+          tag: latest
+        initContainers:
+          - name: seed-docs
+            image: alpine:latest
+            command: ['sh', '-c', 'cp /mnt/seed/* /docs/']
+            volumeMounts:
+              - name: docs
+                mountPath: /docs
+              - name: seed
+                mountPath: /mnt/seed
+        env:
+          TZ: Europe/London
+          MKDOCS_PORT: &port 8000
+        probes:
+          liveness: &probes
+            enabled: true
+            custom: true
+            spec:
+              httpGet:
+                path: /
+                port: *port
+              initialDelaySeconds: 15
+              periodSeconds: 20
+              timeoutSeconds: 3
+              failureThreshold: 6
+          readiness: *probes
+          startup:
+            enabled: true
+            custom: true
+            spec:
+              httpGet:
+                path: /
+                port: *port
+              initialDelaySeconds: 5
+              periodSeconds: 10
+              timeoutSeconds: 3
+              failureThreshold: 30
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities: { drop: ["ALL"] }
+        resources:
+          requests:
+            cpu: 50m
+            memory: 256Mi
+          limits:
+            cpu: 500m
+            ephemeral-storage: 1Gi
+            memory: 1Gi
+
+defaultPodOptions:
+  automountHomedir: false
+  automountServiceAccountToken: false
+  annotations:
+    reloader.stakater.com/auto: "true"
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+    runAsGroup: 1000
+    fsGroup: 1000
+
+service:
+  app:
+    controller: mkdocs
+    ports:
+      http:
+        port: 8000
+
+persistence:
+  docs:
+    type: persistentVolumeClaim
+    accessMode: ReadWriteMany
+    storageClass: cephfs
+    size: 2Gi
+    globalMounts:
+      - path: /docs
+  seed:
+    type: configMap
+    name: mkdocs-docs-seed
+    globalMounts:
+      - path: /mnt/seed
+  tmp:
+    type: emptyDir
+    globalMounts:
+      - path: /tmp
