@@ -59,13 +59,8 @@ data:
       - tables
       - toc:
           permalink: true
-      - pymdownx.arithmatex:
-          block_start_string: $$
-          block_end_string: $$
-          inline_start_string: $
-          inline_end_string: $
-      - pymdownx.betterem:
-          smart_enable: all
+      - pymdownx.arithmatex
+      - pymdownx.betterem
       - pymdownx.caret
       - pymdownx.details
       - pymdownx.emoji:
@@ -94,10 +89,6 @@ data:
     plugins:
       - search:
           lang: en
-      - minify:
-          minify_html: true
-          minify_css: true
-          minify_js: true
     
     nav:
       - Home: index.md
