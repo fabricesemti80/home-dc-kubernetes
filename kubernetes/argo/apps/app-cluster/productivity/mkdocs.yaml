@@ -1,0 +1,20 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: mkdocs
+  namespace: argo-system
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/fabricesemti80/home-dc-kubernetes.git
+    targetRevision: HEAD
+    path: kubernetes/apps/app-cluster/productivity/mkdocs
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: productivity
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
