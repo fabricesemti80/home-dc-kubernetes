@@ -15,7 +15,7 @@ controllers:
           - /bin/sh
           - -c
         args:
-          - cp /mnt/seed/* /docs/
+          - mkdir -p /docs/docs && cp /mnt/seed/mkdocs.yml /docs/ && cp /mnt/seed/index.md /docs/docs/
     containers:
       app:
         image:

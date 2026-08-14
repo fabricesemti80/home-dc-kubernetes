@@ -161,6 +161,26 @@ Rollback:
 -   Remove the Doppler-managed `alertmanager-slack-webhook` secret if Alertmanager Slack notifications are rolled back entirely.
 -   Remove the null route for `InfoInhibitor` only if internal inhibitor alerts should notify directly.
 
+### 🔐 Argo CD Helm wrapper behavior
+
+Decision:
+
+-   Keep the repo-server Helm wrapper, but invoke `helm secrets` only when the Helm command references a SOPS or `secrets://` values file.
+
+Assumptions:
+
+-   Plain Helm applications should render with the bundled Helm binary and must not depend on the `helm-secrets` plugin.
+-   SOPS-backed Helm applications still require the existing helm-secrets integration.
+
+Validation checks:
+
+-   `kubectl --kubeconfig ./kubeconfig -n argo-system exec deploy/argocd-repo-server -c repo-server -- helm template --help`
+-   `kubectl --kubeconfig ./kubeconfig -n argo-system get application mkdocs`
+
+Rollback:
+
+-   Restore the upstream wrapper from the `gitops-tools` image if all Helm rendering should go through `helm secrets`.
+
 ### 🏠 Homepage dashboard deployment
 
 Decision:
