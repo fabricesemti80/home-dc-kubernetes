@@ -1,0 +1,27 @@
+{
+  "pvePollingInterval": 30,
+  "pbsPollingInterval": 60,
+  "pmgPollingInterval": 60,
+  "connectionTimeout": 45,
+  "updateChannel": "stable",
+  "autoUpdateEnabled": false,
+  "discoveryEnabled": false,
+  "discoverySubnet": "10.0.40.0/24, 10.0.30.0/24",
+  "discoveryConfig": {
+    "environment_override": "auto",
+    "subnet_blocklist": ["169.254.0.0/16"],
+    "max_hosts_per_scan": 128,
+    "max_concurrent": 10,
+    "enable_reverse_dns": true,
+    "scan_gateways": true,
+    "dial_timeout_ms": 1000,
+    "http_timeout_ms": 2000
+  },
+  "theme": "dark",
+  "fullWidthMode": false,
+  "allowEmbedding": false,
+  "temperatureMonitoringEnabled": true,
+  "dnsCacheTimeout": 300,
+  "hideLocalLogin": false,
+  "disableDockerUpdateActions": false
+}

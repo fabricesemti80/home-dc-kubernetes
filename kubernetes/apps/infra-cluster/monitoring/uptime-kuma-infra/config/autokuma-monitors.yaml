@@ -48,6 +48,14 @@ data:
       "interval": 60,
       "max_retries": 3
     }
+  docs.json: |-
+    {
+      "type": "http",
+      "name": "MkDocs",
+      "url": "https://docs.krapulax.dev",
+      "interval": 60,
+      "max_retries": 3
+    }
   echo.json: |-
     {
       "type": "http",

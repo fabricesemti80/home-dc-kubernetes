@@ -11,6 +11,15 @@ controllers:
         image:
           repository: squidfunk/mkdocs-material
           tag: latest
+        initContainers:
+          - name: seed-docs
+            image: alpine:latest
+            command: ['sh', '-c', 'cp /mnt/seed/* /docs/']
+            volumeMounts:
+              - name: docs
+                mountPath: /docs
+              - name: seed
+                mountPath: /mnt/seed
         env:
           TZ: Europe/London
           MKDOCS_PORT: &port 8000
@@ -77,6 +86,11 @@ persistence:
     size: 2Gi
     globalMounts:
       - path: /docs
+  seed:
+    type: configMap
+    name: mkdocs-docs-seed
+    globalMounts:
+      - path: /mnt/seed
   tmp:
     type: emptyDir
     globalMounts:

@@ -134,13 +134,14 @@ Decision:
 
 -   Add a basic Alertmanager Slack receiver for the monitoring stack.
 -   Source the Slack incoming webhook from Doppler and mount it into the Alertmanager pods as a Kubernetes secret file instead of embedding it in the Alertmanager config.
+-   Route `Watchdog` and `InfoInhibitor` to the null receiver; `InfoInhibitor` is an internal suppression alert and should not notify Slack.
 
 Assumptions:
 
 -   The Doppler `home-dc-kubernetes/apps` config is the correct source of truth for `SLACK_WEBHOOK_MONITORING`.
 -   The intended Slack destination is the `#monitoring` channel.
 -   `https://alertmanager.krapulax.dev` is the intended external Alertmanager address.
--   The initial routing policy should stay simple: send normal alerts to Slack and continue discarding the default `Watchdog` alert.
+-   The initial routing policy should stay simple: send normal alerts to Slack and continue discarding internal `Watchdog` and `InfoInhibitor` alerts.
 
 Validation checks:
 
@@ -152,11 +153,13 @@ Validation checks:
 -   `kubectl get httproute -n monitoring alertmanager`
 -   `kubectl rollout status statefulset/alertmanager-kube-prometheus-stack-alertmanager -n monitoring`
 -   `kubectl logs -n monitoring statefulset/alertmanager-kube-prometheus-stack-alertmanager --tail=100`
+-   `kubectl --kubeconfig ./kubeconfig get --raw '/api/v1/namespaces/monitoring/services/http:kube-prometheus-stack-alertmanager:9093/proxy/api/v2/status'`
 
 Rollback:
 
 -   Remove the Slack route and receiver from the kube-prometheus-stack values file if notifications behave unexpectedly.
 -   Remove the Doppler-managed `alertmanager-slack-webhook` secret if Alertmanager Slack notifications are rolled back entirely.
+-   Remove the null route for `InfoInhibitor` only if internal inhibitor alerts should notify directly.
 
 ### 🏠 Homepage dashboard deployment
 
@@ -450,12 +453,16 @@ Decision:
 -   Pin the workload to `infra-wk-01` with a `hostPath` volume at `/var/pulse/data` for the initial rollout.
 -   Use the Doppler operator to sync `PULSE_AUTH_USER` and `PULSE_AUTH_PASS` from `home-dc-kubernetes/infra`.
 -   Expose Pulse only on the internal Envoy gateway at `pulse.krapulax.home`.
+-   Keep Proxmox polling conservative on the 2-node infra cluster; 10s polls and broad discovery have caused slow UI loads, agent report timeouts, and `connection-degraded` alerts for the Proxmox connection named `h`.
+-   Manage `/data/system.json` from the `pulse-system-config` ConfigMap so restarts keep the reduced polling/discovery settings.
 
 Assumptions:
 
 -   `infra-wk-01` has enough local disk for the `hostPath` volume.
 -   `hostPath` is acceptable until a proper storage class is available on `infra-cluster`.
 -   The initial admin credentials will be added to the `home-dc-kubernetes/infra` Doppler config before the app is needed in production.
+-   Pulse can tolerate 30s Proxmox polling and disabled subnet discovery; manually configured Proxmox and Kubernetes sources provide the useful monitoring data.
+-   UI changes to Pulse system settings may be overwritten on restart unless they are reflected in `config/system.json`.
 
 Validation checks:
 
@@ -463,11 +470,14 @@ Validation checks:
 -   `kubectl --kubeconfig .private/infra-cluster/kubeconfig get pods -n monitoring`
 -   `kubectl --kubeconfig .private/infra-cluster/kubeconfig get secret -n monitoring pulse-secrets`
 -   `curl -fsSL https://pulse.krapulax.home`
+-   Confirm `kubectl --kubeconfig .private/infra-cluster/kubeconfig -n monitoring logs deploy/pulse` no longer shows agent request timeouts or repeated Proxmox poll deadlines.
+-   Confirm `kubectl --kubeconfig .private/infra-cluster/kubeconfig -n monitoring exec deploy/pulse -- cat /data/system.json` matches the Git-managed config.
 
 Rollback:
 
 -   Delete the Argo Application `pulse-infra` to remove Pulse from `infra-cluster`.
 -   Remove the `PULSE_AUTH_USER` and `PULSE_AUTH_PASS` secrets from Doppler if they are no longer needed.
+-   Restore the previous `/var/pulse/data/system.json` backup if the polling/discovery settings need to be reverted.
 
 ### ☸️ Pulse app-cluster agent removal
 
