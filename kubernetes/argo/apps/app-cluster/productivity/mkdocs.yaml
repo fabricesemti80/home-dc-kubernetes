@@ -6,17 +6,16 @@ metadata:
 spec:
   project: default
   sources:
-    - repoURL: https://github.com/fabricesemti80/home-dc-kubernetes.git
-      path: kubernetes/apps/app-cluster/productivity/mkdocs
-      targetRevision: HEAD
-      ref: repo
-    - repoURL: ghcr.io/bjw-s-labs/helm
+    - repoURL: https://bjw-s.github.io/helm
       chart: app-template
       targetRevision: 5.0.1
       helm:
         releaseName: mkdocs
         valueFiles:
-          - $repo/kubernetes/apps/app-cluster/productivity/mkdocs/values.yaml
+          - $values/kubernetes/apps/app-cluster/productivity/mkdocs/values.yaml
+    - repoURL: https://github.com/fabricesemti80/home-dc-kubernetes.git
+      targetRevision: HEAD
+      ref: values
   destination:
     server: https://kubernetes.default.svc
     namespace: productivity

@@ -8,8 +8,6 @@ metadata:
     reloader.stakater.com/auto: "true"
 data:
   configuration.yaml: |
-    default_config:
-
     homeassistant:
       name: Home
 
