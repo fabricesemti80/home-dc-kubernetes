@@ -18,7 +18,10 @@ spec:
       helm:
         releaseName: mkdocs
         valueFiles:
-          - $repo/kubernetes/apps/app-cluster/productivity/mkdocs/values.yaml
+          - $values/kubernetes/apps/app-cluster/productivity/mkdocs/values.yaml
+    - repoURL: https://github.com/fabricesemti80/home-dc-kubernetes.git
+      targetRevision: HEAD
+      ref: values
   destination:
     name: app-cluster
     namespace: productivity
