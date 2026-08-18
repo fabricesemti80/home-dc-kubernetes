@@ -13,7 +13,7 @@ controllers:
           repository: ghcr.io/gethomepage/homepage
           tag: v1.13.2
         env:
-          HOMEPAGE_ALLOWED_HOSTS: homepage.krapulax.dev
+          HOMEPAGE_ALLOWED_HOSTS: homepage.krapulax.dev,*.krapulax.dev,10.42.0.0/16
           PUID: "65534"
           PGID: "65534"
           PORT: &port 3000
