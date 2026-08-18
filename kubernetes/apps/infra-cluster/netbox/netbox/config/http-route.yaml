@@ -1,0 +1,28 @@
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: netbox-external
+  namespace: netbox
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: netbox.krapulax.dev
+    external-dns.alpha.kubernetes.io/target: external-infra.krapulax.dev
+    gethomepage.dev/description: "IPAM and DCIM"
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/group: "Infra Cluster - network"
+    gethomepage.dev/href: "https://netbox.krapulax.dev"
+    gethomepage.dev/icon: "mdi-server-network"
+    gethomepage.dev/name: "NetBox"
+    gethomepage.dev/weight: "10"
+spec:
+  parentRefs:
+    - name: envoy-external
+      namespace: network
+      sectionName: http
+  hostnames:
+    - netbox.krapulax.dev
+  rules:
+    - backendRefs:
+        - name: netbox
+          namespace: netbox
+          port: 80

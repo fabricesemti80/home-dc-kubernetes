@@ -82,3 +82,9 @@ resource "unifi_dns_record" "kestra_internal" {
   type   = "A"
   record = local.infra_internal_gateway_ip
 }
+
+resource "unifi_dns_record" "netbox_internal" {
+  name   = "netbox.${local.internal_domain}"
+  type   = "A"
+  record = local.infra_internal_gateway_ip
+}
