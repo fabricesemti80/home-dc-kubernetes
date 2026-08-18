@@ -3,10 +3,16 @@ kind: Application
 metadata:
   name: mkdocs
   namespace: argo-system
+  annotations:
+    argocd.argoproj.io/sync-wave: '0'
 spec:
-  project: default
+  project: kubernetes
   sources:
-    - repoURL: https://bjw-s.github.io/helm
+    - repoURL: "https://github.com/fabricesemti80/home-dc-kubernetes.git"
+      path: kubernetes/apps/app-cluster/productivity/mkdocs
+      targetRevision: main
+      ref: repo
+    - repoURL: ghcr.io/bjw-s-labs/helm
       chart: app-template
       targetRevision: 5.0.1
       helm:
@@ -17,11 +23,22 @@ spec:
       targetRevision: HEAD
       ref: values
   destination:
-    server: https://kubernetes.default.svc
+    name: app-cluster
     namespace: productivity
   syncPolicy:
     automated:
+      allowEmpty: true
       prune: true
       selfHeal: true
+    retry:
+      limit: 1
+      backoff:
+        duration: 10s
+        factor: 2
+        maxDuration: 3m
     syncOptions:
       - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true
+      - ServerSideApply=true
+      - PruneLast=true
+      - RespectIgnoreDifferences=true
