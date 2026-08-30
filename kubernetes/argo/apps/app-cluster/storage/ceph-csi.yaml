@@ -15,7 +15,7 @@ spec:
       ref: repo
     - repoURL: https://ceph.github.io/csi-charts
       chart: ceph-csi-cephfs
-      targetRevision: 3.17.0
+      targetRevision: 3.17.1
       helm:
         releaseName: ceph-csi
         valueFiles:
