@@ -24,7 +24,7 @@ controllers:
       app:
         image:
           repository: docker.io/louislam/uptime-kuma
-          tag: "2.5.0"
+          tag: "2.5.3"
         env:
           TZ: Europe/London
           UPTIME_KUMA_PORT: &port 3001
