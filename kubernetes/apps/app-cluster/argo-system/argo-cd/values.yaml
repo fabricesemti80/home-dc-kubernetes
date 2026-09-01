@@ -213,6 +213,7 @@ repoServer:
         - |
           mkdir -p /custom-tools/
           cp -rf /gitops-tools/* /custom-tools
+          cp /custom-tools/helm-plugins/helm-secrets/plugins/helm-secrets-cli/plugin.yaml /custom-tools/helm-plugins/helm-secrets/plugin.yaml
           cat >/custom-tools/helm <<'EOF'
           #!/usr/bin/env sh
 

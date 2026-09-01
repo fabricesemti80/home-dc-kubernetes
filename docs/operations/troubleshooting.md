@@ -26,6 +26,29 @@ Error: invalid argument "bash" for "--post-renderer" flag: plugin: {Name:bash Ty
 
 ---
 
+## 📌 Argo CD Apps Unknown — Helm Secrets Command Missing
+
+**Symptom:**
+
+```
+Error: unknown command "secrets" for "helm"
+```
+
+Apps using `values.sops.yaml` show `Unknown` because repo-server cannot render the Helm source.
+
+**Cause:** Helm 4 requires the Helm Secrets CLI plugin metadata. The `gitops-tools` image includes it under `helm-secrets/plugins/helm-secrets-cli/plugin.yaml`; Argo CD copies that file to the top-level `helm-secrets/plugin.yaml` during repo-server init.
+
+**Validation:**
+
+```sh
+kubectl exec -n argo-system deploy/argocd-repo-server -- /usr/local/bin/helm secrets --help
+kubectl get applications -n argo-system
+```
+
+**Rollback:** Revert the Argo CD values change and sync the `argo` Application.
+
+---
+
 ## 📌 Stuck Helm Releases (Another Operation in Progress)
 
 **Symptom:**
