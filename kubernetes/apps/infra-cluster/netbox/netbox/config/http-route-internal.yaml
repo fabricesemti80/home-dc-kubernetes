@@ -1,0 +1,18 @@
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: netbox-internal
+  namespace: netbox
+spec:
+  parentRefs:
+    - name: envoy-internal
+      namespace: network
+      sectionName: http
+  hostnames:
+    - netbox.krapulax.home
+  rules:
+    - backendRefs:
+        - name: netbox
+          namespace: netbox
+          port: 80

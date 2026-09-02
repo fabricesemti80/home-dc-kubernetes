@@ -14,4 +14,6 @@ data:
         service: http://technitium.network.svc.cluster.local:5380
       - hostname: uptime.krapulax.dev
         service: http://uptime-kuma.monitoring.svc.cluster.local:3001
+      - hostname: netbox.krapulax.dev
+        service: http://netbox.netbox.svc.cluster.local:80
       - service: http_status:404

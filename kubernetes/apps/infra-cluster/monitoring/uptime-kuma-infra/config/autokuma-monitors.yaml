@@ -128,6 +128,14 @@ data:
       "interval": 60,
       "max_retries": 3
     }
+  netbox.json: |-
+    {
+      "type": "http",
+      "name": "NetBox",
+      "url": "https://netbox.krapulax.dev",
+      "interval": 60,
+      "max_retries": 3
+    }
   nginx-test.json: |-
     {
       "type": "http",
