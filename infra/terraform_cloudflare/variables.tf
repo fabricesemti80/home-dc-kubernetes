@@ -97,19 +97,5 @@ locals {
       session_hours = 720
       auto_redirect = false
     }
-    "n8n" = {
-      name          = "n8n"
-      subdomain     = "n8n"
-      policy_type   = "allow"
-      session_hours = 24
-      auto_redirect = false
-    }
-    "hometube" = {
-      name          = "HomeTube"
-      subdomain     = "hometube"
-      policy_type   = "allow"
-      session_hours = 24
-      auto_redirect = false
-    }
   }
 }

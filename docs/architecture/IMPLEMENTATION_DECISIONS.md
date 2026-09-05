@@ -128,6 +128,30 @@ Rollback:
 -   Revert the strategy and startup install changes if the updated images still fail after investigation.
 -   Pin the affected image only after collecting pod logs and events for the failing rollout.
 
+### 🧹 Unused app decommission
+
+Decision:
+
+-   Decommission `hometube`, `copyparty`, `n8n`, `mkdocs`, and `convertx` on September 5, 2026.
+-   Remove their Kubernetes manifests, Argo Applications, public/internal routes, monitor definitions, and Terraform-managed access/DNS records.
+-   Supersedes the active deployment state for `n8n` and `mkdocs`; earlier rollout decisions remain historical context only.
+
+Assumptions:
+
+-   These apps are no longer user-facing dependencies.
+-   Persistent data is not destroyed by Git removal alone; any PVC/PV cleanup happens as an explicit post-merge operation.
+
+Validation checks:
+
+-   `rg -n "hometube|copyparty|n8n|mkdocs|convertx" infra kubernetes docs scripts templates .github`
+-   `tofu -chdir=infra/terraform_cloudflare validate`
+-   `tofu -chdir=infra/terraform_localdns validate`
+
+Rollback:
+
+-   Revert the decommission PR and re-sync the `apps` Argo Application.
+-   Rebind retained PVs before expecting old CephFS-backed app data to reappear.
+
 ### 📊 Monitoring Slack notifications via Alertmanager
 
 Decision:
@@ -175,7 +199,6 @@ Assumptions:
 Validation checks:
 
 -   `kubectl --kubeconfig ./kubeconfig -n argo-system exec deploy/argocd-repo-server -c repo-server -- helm template --help`
--   `kubectl --kubeconfig ./kubeconfig -n argo-system get application mkdocs`
 
 Rollback:
 

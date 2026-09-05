@@ -51,7 +51,6 @@ The migration from `external.krapulax.dev` is complete:
 | App        | Hostname                  | Config                                                                       |
 | ---------- | ------------------------- | ---------------------------------------------------------------------------- |
 | Linkwarden | `linkwarden.krapulax.dev` | `kubernetes/apps/app-cluster/productivity/linkwarden/config/http-route.yaml` |
-| ConvertX   | `convertx.krapulax.dev`   | `kubernetes/apps/app-cluster/productivity/convertx/config/http-route.yaml`   |
 
 ### 🎬 Media
 
