@@ -65,18 +65,6 @@ resource "unifi_dns_record" "tdarr_internal" {
   record = unifi_dns_record.kubernetes_internal_gateway.name
 }
 
-resource "unifi_dns_record" "n8n_internal" {
-  name   = "n8n.${local.internal_domain}"
-  type   = "CNAME"
-  record = unifi_dns_record.kubernetes_internal_gateway.name
-}
-
-resource "unifi_dns_record" "hometube_internal" {
-  name   = "hometube.${local.internal_domain}"
-  type   = "CNAME"
-  record = unifi_dns_record.kubernetes_internal_gateway.name
-}
-
 resource "unifi_dns_record" "kestra_internal" {
   name   = "kestra.${local.internal_domain}"
   type   = "A"

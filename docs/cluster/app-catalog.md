@@ -16,7 +16,7 @@ This document provides an index of all applications deployed in the Kubernetes c
 | kube-system             | 5         | System components (Cilium, CoreDNS, etc.)               |
 | default                 | 1         | Echo (test app)                                         |
 | doppler-operator-system | 1         | Doppler operator                                        |
-| infra-cluster           | 2         | Infra workloads managed by the app-cluster Argo hub     |
+| infra-cluster           | 12        | Infra workloads managed by the app-cluster Argo hub     |
 
 ---
 
@@ -103,11 +103,20 @@ This document provides an index of all applications deployed in the Kubernetes c
 
 Argo CD on `app-cluster` also deploys these `infra-cluster` workloads:
 
-| App                    | Type       | Image                                       | Notes                         |
-| ---------------------- | ---------- | ------------------------------------------- | ----------------------------- |
-| reloader-infra         | Reloader   | stakater/reloader                           | Config reload watcher         |
-| doppler-operator-infra | Secrets    | mirror.gcr.io/dopplerhq/kubernetes-operator | Doppler operator              |
-| pulse-infra            | Monitoring | docker.io/rcourtman/pulse                   | Proxmox/Docker/K8s monitoring |
+| App                          | Type       | Image                                       | Notes                         |
+| ---------------------------- | ---------- | ------------------------------------------- | ----------------------------- |
+| kestra-infra                 | Automation | kestra/kestra                               | Workflow orchestration        |
+| doppler-operator-infra       | Secrets    | mirror.gcr.io/dopplerhq/kubernetes-operator | Doppler operator              |
+| reloader-infra               | Reloader   | stakater/reloader                           | Config reload watcher         |
+| pulse-agent-infra            | Monitoring | ghcr.io/rcourtman/pulse-agent               | Pulse cluster agent           |
+| pulse-infra                  | Monitoring | docker.io/rcourtman/pulse                   | Proxmox/Docker/K8s monitoring |
+| uptime-kuma-infra            | Monitoring | louislam/uptime-kuma                        | Uptime monitoring             |
+| cloudflare-tunnel-infra      | Tunnel     | cloudflare/cloudflared                      | Cloudflare Tunnel             |
+| envoy-gateway-infra          | Gateway    | envoyproxy/gateway                          | Gateway API implementation    |
+| tailscale-infra              | Tailscale  | tailscale/tailscale                         | Tailscale operator            |
+| technitium-dns-infra         | DNS Sync   | external-dns                                | Internal DNS records          |
+| technitium-infra             | DNS        | technitium/dns-server                       | DNS admin/server              |
+| local-path-provisioner-infra | Storage    | rancher/local-path-provisioner              | Local PV provisioner          |
 
 ---
 
