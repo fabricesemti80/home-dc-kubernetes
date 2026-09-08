@@ -11,7 +11,7 @@ spec:
   sources:
     - repoURL: https://helm.kestra.io
       chart: kestra
-      targetRevision: 1.3.35
+      targetRevision: 1.3.37
       helm:
         releaseName: kestra
         valueFiles:
