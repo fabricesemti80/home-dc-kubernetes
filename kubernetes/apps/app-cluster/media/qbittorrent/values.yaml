@@ -5,6 +5,46 @@ global:
 controllers:
   qbittorrent:
     strategy: Recreate
+    initContainers:
+      webui-password:
+        image:
+          repository: lscr.io/linuxserver/qbittorrent
+          tag: latest
+        command:
+          - /usr/bin/python3
+          - -c
+        args:
+          - |
+            import base64
+            import hashlib
+            import os
+            import re
+            import secrets
+            from pathlib import Path
+
+            config = Path("/config/qBittorrent/qBittorrent.conf")
+            config.parent.mkdir(parents=True, exist_ok=True)
+            password = os.environ["QBITTORRENT_WEBUI_PASSWORD"].encode()
+            salt = secrets.token_bytes(16)
+            digest = hashlib.pbkdf2_hmac("sha512", password, salt, 100000)
+            value = "@ByteArray({}:{})".format(
+                base64.b64encode(salt).decode(), base64.b64encode(digest).decode()
+            )
+            setting = f'WebUI\\Password_PBKDF2="{value}"'
+            text = config.read_text() if config.exists() else "[Preferences]\n"
+            if re.search(r"^WebUI\\Password_PBKDF2=.*$", text, flags=re.MULTILINE):
+                text = re.sub(r"^WebUI\\Password_PBKDF2=.*$", setting, text, flags=re.MULTILINE)
+            elif "[Preferences]" in text:
+                text = text.replace("[Preferences]", f"[Preferences]\n{setting}", 1)
+            else:
+                text += f"\n[Preferences]\n{setting}\n"
+            config.write_text(text)
+        env:
+          QBITTORRENT_WEBUI_PASSWORD:
+            valueFrom:
+              secretKeyRef:
+                name: qbittorrent-secrets
+                key: QBITTORRENT_WEBUI_PASSWORD
     containers:
       app:
         image:

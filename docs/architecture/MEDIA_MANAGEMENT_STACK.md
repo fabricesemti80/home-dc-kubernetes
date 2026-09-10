@@ -116,7 +116,7 @@ This avoids coupling runtime app internals to guessed static secrets in Doppler.
 
 -   Public ingress is acceptable temporarily for test access, but each app still needs its own application authentication enabled in the UI
 -   SABnzbd server credentials should not be committed; if later automated, source them from Doppler
--   qBittorrent WebUI credentials should remain application-managed; if later automated, source them from Doppler
+-   qBittorrent WebUI password is sourced from Doppler (`home-dc-kubernetes/apps`, `QBITTORRENT_WEBUI_PASSWORD`). An init container derives qBittorrent's PBKDF2 setting on CephFS before the app starts; the plaintext password is never written to Git or exposed to the main container.
 -   qBittorrent peer efficiency depends on a manual router forward to the peer `LoadBalancer` IP and is not handled by Cloudflare
 -   Recyclarr API credentials should be sourced from Doppler rather than committed into Git
 -   Tdarr is deployed with UI auth disabled initially; enable application authentication in the UI before exposing it beyond trusted admin access
@@ -139,6 +139,7 @@ already exist or can be created on the NFS server before workloads start.
 -   pods mount both CephFS config and NFS library paths
 -   `sabnzbd` serves its UI and can write test files under `/downloads`
 -   `qbittorrent` serves its UI and can write test files under `/downloads` and `/incomplete-downloads`
+-   `qbittorrent-secrets` is synced by the Doppler operator and the qBittorrent init container completes before the app starts
 -   `sonarr` serves its UI and can see both `/media` and `/downloads`
 -   `sonarr` can resolve `ffprobe` from the container `PATH`
 -   `prowlarr` serves its UI and can reach Sonarr over the in-cluster service
@@ -152,4 +153,5 @@ already exist or can be created on the NFS server before workloads start.
 -   Delete the `sabnzbd`, `qbittorrent`, `sonarr`, `prowlarr`, `recyclarr`, `radarr`, `jellyseerr`, and `tdarr` Argo applications
 -   Remove their HTTPRoutes
 -   Delete their CephFS PVCs if app config should be discarded
+-   Remove the qBittorrent DopplerSecret and password init container; the existing CephFS config backup remains available for manual recovery
 -   Retain NFS media content and download directories
