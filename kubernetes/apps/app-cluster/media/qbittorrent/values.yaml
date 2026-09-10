@@ -33,7 +33,7 @@ controllers:
             setting = f'WebUI\\Password_PBKDF2="{value}"'
             text = config.read_text() if config.exists() else "[Preferences]\n"
             if re.search(r"^WebUI\\Password_PBKDF2=.*$", text, flags=re.MULTILINE):
-                text = re.sub(r"^WebUI\\Password_PBKDF2=.*$", setting, text, flags=re.MULTILINE)
+                text = re.sub(r"^WebUI\\Password_PBKDF2=.*$", lambda _: setting, text, flags=re.MULTILINE)
             elif "[Preferences]" in text:
                 text = text.replace("[Preferences]", f"[Preferences]\n{setting}", 1)
             else:
