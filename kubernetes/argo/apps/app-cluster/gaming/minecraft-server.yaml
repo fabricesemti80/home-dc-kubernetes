@@ -1,0 +1,21 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: minecraft-server
+  namespace: argo-system
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/fabricesemti80/home-dc-kubernetes
+    targetRevision: HEAD
+    path: kubernetes/apps/app-cluster/gaming/minecraft-server
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: gaming
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

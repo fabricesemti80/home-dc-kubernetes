@@ -1,0 +1,54 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: minecraft-server
+  namespace: gaming
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: minecraft-server
+  template:
+    metadata:
+      labels:
+        app: minecraft-server
+    spec:
+      containers:
+        - name: minecraft
+          image: itzg/minecraft-server:1.21.1 # I'll update this to a specific tag shortly
+          ports:
+            - containerPort: 25565
+              name: minecraft
+          resources:
+            requests:
+              memory: "6Gi"
+              cpu: "2"
+            limits:
+              memory: "8Gi" # Headroom for JVM
+              cpu: "4"
+          env:
+            - name: EULA
+              value: "TRUE"
+            - name: TYPE
+              value: "VANILLA"
+            - name: MEMORY
+              value: "6G"
+          startupProbe:
+            tcpSocket:
+              port: 25565
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            failureThreshold: 30
+          readinessProbe:
+            tcpSocket:
+              port: 25565
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          volumeMounts:
+            - name: minecraft-storage
+              mountPath: /data
+      volumes:
+        - name: minecraft-storage
+          persistentVolumeClaim:
+            claimName: minecraft-server-pvc
