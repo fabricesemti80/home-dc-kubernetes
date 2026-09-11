@@ -5,3 +5,4 @@ resources:
   - config/deployment.yaml
   - config/pvc.yaml
   - config/service.yaml
+  - config/dnsendpoint.yaml
