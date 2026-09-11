@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: minecraft
-          image: itzg/minecraft-server:1.21.1 # I'll update this to a specific tag shortly
+          image: itzg/minecraft-server:latest # I'll update this to a specific tag shortly
           ports:
             - containerPort: 25565
               name: minecraft
