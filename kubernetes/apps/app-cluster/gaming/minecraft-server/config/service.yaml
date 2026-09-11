@@ -4,6 +4,8 @@ kind: Service
 metadata:
   name: minecraft-server-service
   namespace: gaming
+  annotations:
+    io.cilium/lb-ipam-ips: 10.0.40.112
 spec:
   selector:
     app: minecraft-server

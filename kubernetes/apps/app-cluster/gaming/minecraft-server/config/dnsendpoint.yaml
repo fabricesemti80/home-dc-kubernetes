@@ -1,0 +1,12 @@
+---
+apiVersion: externaldns.k8s.io/v1alpha1
+kind: DNSEndpoint
+metadata:
+  name: minecraft-lan
+  namespace: gaming
+spec:
+  endpoints:
+    - dnsName: minecraft.krapulax.home
+      recordType: A
+      targets:
+        - 10.0.40.112
