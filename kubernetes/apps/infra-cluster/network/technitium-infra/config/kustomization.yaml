@@ -4,6 +4,7 @@ kind: Kustomization
 resources:
   - ./local-storage.yaml
   - ./dns-service.yaml
+  - ./peer-services.yaml
   - ./http-route.yaml
   - ./http-route-internal.yaml
   - ./doppler-secret.yaml
