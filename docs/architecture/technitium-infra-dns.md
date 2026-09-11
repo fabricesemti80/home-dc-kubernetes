@@ -39,12 +39,27 @@ Both writers are filtered to `krapulax.home`. They do not manage `krapulax.dev`.
 
 ## Clustering
 
-After deployment, initialize a new Technitium cluster on `technitium-0`, then join `technitium-1` as a secondary. Use pod DNS names as cluster node addresses:
+After deployment, initialize a new Technitium cluster on `technitium-0`, then join `technitium-1` as a secondary. Cluster node addresses must use the stable per-replica Services, never pod IPs:
 
--   `technitium-0.technitium-headless.network.svc.cluster.local`
--   `technitium-1.technitium-headless.network.svc.cluster.local`
+-   `technitium-peer-0.network.svc.cluster.local` for `technitium-0`
+-   `technitium-peer-1.network.svc.cluster.local` for `technitium-1`
+
+Each Service selects one StatefulSet ordinal and exposes DNS plus the HTTPS cluster API only inside the infra cluster. This keeps peer identities unchanged when a pod is recreated. The public `technitium-dns` LoadBalancer at `10.0.40.53` remains the resolver used by LAN and Tailscale clients.
 
 Create the `krapulax.home` primary zone in Technitium, enable RFC2136 dynamic updates with the Doppler-managed TSIG key, and include that zone in the cluster catalog so it replicates across nodes. `krapulax.dev` remains in Cloudflare and is not configured on these RFC2136 writers.
+
+## Recovery and Validation
+
+Run `task dns:technitium:repair` after the peer Services are deployed, and whenever a peer shows `Unreachable`. The task authenticates with the existing Doppler-managed password without printing it, repoints both nodes to their stable Service IPs, and resyncs the secondary.
+
+Validate with:
+
+```bash
+task dns:technitium:repair
+dig +short minecraft.krapulax.home @10.0.40.53
+```
+
+Both replicas must report the primary as `Connected`; the final query must return `10.0.40.112`.
 
 ## Rollback
 
@@ -52,4 +67,5 @@ Create the `krapulax.home` primary zone in Technitium, enable RFC2136 dynamic up
 -   Delete or disable `kubernetes/argo/apps/app-cluster/network/technitium-dns.yaml` and `kubernetes/argo/apps/infra-cluster/network/technitium-dns-infra.yaml`.
 -   Point the home router DHCP DNS option back to the previous resolver.
 -   Remove `10.0.40.53/32` from the infra Cilium LoadBalancer pool if unused.
+-   Delete the `technitium-peer-*` Services only after moving the cluster peers to replacement stable addresses.
 -   Local config remains in retained static node-local PVs for inspection or restore.

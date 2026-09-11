@@ -127,6 +127,13 @@ tasks:
     desc: Install and validate Cilium
     cmd: task infrastructure:platform-cilium
 
+  dns:technitium:repair:
+    desc: Repoint Technitium peers to stable Services and resync the secondary
+    cmd: bash {{.ROOT_DIR}}/scripts/repair-technitium-peers.sh
+    preconditions:
+      - test -f {{.ROOT_DIR}}/.private/infra-cluster/kubeconfig
+      - which kubectl curl jq base64
+
   platform:ingress:
     desc: Validate the Envoy Gateway ingress path
     cmd: task infrastructure:platform-ingress
