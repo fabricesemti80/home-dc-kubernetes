@@ -1,0 +1,32 @@
+---
+# Standard app-template values for Minecraft Server
+image:
+  repository: itzg/minecraft-server
+  tag: latest # Will be pinned in deployment
+  pullPolicy: IfNotPresent
+
+resources:
+  requests:
+    cpu: "2"
+    memory: "6Gi"
+  limits:
+    cpu: "4"
+    memory: "8Gi" # Raised to provide JVM overhead headroom
+
+env:
+  EULA: "TRUE"
+  TYPE: "VANILLA"
+  MEMORY: "6G"
+
+persistence:
+  storageClass: cephfs
+  size: 20Gi
+
+service:
+  port: 25565
+  targetPort: 25565
+  type: ClusterIP
+
+route:
+  hostname: "minecraft.krapulax.dev"
+  port: 25565
