@@ -50,7 +50,7 @@ Create the `krapulax.home` primary zone in Technitium, enable RFC2136 dynamic up
 
 ## Recovery and Validation
 
-Run `task dns:technitium:repair` after the peer Services are deployed, and whenever a peer shows `Unreachable`. The task authenticates with the existing Doppler-managed password without printing it, repoints both nodes to their stable Service IPs, and resyncs the secondary.
+Run `task dns:technitium:repair` after the peer Services are deployed, and whenever a peer shows `Unreachable`. The task authenticates with the existing Doppler-managed password without printing it, enables the existing cluster TSIG key for `krapulax.home` transfers, repoints both nodes to their stable Service IPs, and resyncs the secondary zone.
 
 Validate with:
 
