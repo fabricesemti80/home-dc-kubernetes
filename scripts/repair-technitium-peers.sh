@@ -31,6 +31,14 @@ login() {
 token_0="$(login 15380)"
 token_1="$(login 15381)"
 
+curl -ks -X POST -H "Authorization: Bearer $token_0" \
+    --data-urlencode 'zone=krapulax.home' \
+    --data-urlencode 'zoneTransferTsigKeyNames=cluster-catalog.krapulax.home' \
+    http://127.0.0.1:15380/api/zones/options/set >/dev/null
+curl -ks -X POST -H "Authorization: Bearer $token_1" \
+    --data-urlencode 'zone=krapulax.home' \
+    --data-urlencode 'primaryZoneTransferTsigKeyName=cluster-catalog.krapulax.home' \
+    http://127.0.0.1:15381/api/zones/options/set >/dev/null
 curl -ks -X POST -H "Authorization: Bearer $token_0" --data-urlencode "ipAddresses=$peer_0_ip" \
     http://127.0.0.1:15380/api/admin/cluster/updateIpAddress >/dev/null
 curl -ks -X POST -H "Authorization: Bearer $token_1" \
@@ -41,6 +49,8 @@ curl -ks -X POST -H "Authorization: Bearer $token_1" --data-urlencode "ipAddress
     http://127.0.0.1:15381/api/admin/cluster/updateIpAddress >/dev/null
 curl -ks -X POST -H "Authorization: Bearer $token_1" \
     http://127.0.0.1:15381/api/admin/cluster/secondary/resync >/dev/null
+curl -ks -X POST -H "Authorization: Bearer $token_1" --data-urlencode 'zone=krapulax.home' \
+    http://127.0.0.1:15381/api/zones/resync >/dev/null
 
 sleep 3
 for port in 15380 15381; do
