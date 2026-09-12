@@ -21,30 +21,19 @@ controllers:
     containers:
       app:
         image:
-          repository: docker.io/itzg/rcon
-          tag: "0.14.1-1"
+          repository: ghcr.io/tekikaito/mc-admin
+          tag: "v1.3.3@sha256:8c189639d0bdc91b50e4ffc76d7ddaf136a801cf0d113c6b0b662e1e464e6476"
           pullPolicy: IfNotPresent
         env:
-          RWA_ENV: "TRUE"
-          RWA_USERNAME: admin
-          RWA_ADMIN: "TRUE"
-          RWA_PASSWORD:
-            valueFrom:
-              secretKeyRef:
-                name: rcon-web-admin-secrets
-                key: RCON_WEB_ADMIN_PASSWORD
-          RWA_GAME: minecraft
-          RWA_SERVER_NAME: Minecraft
-          RWA_RCON_HOST: minecraft-rcon.gaming.svc.cluster.local
-          RWA_RCON_PORT: "25575"
-          RWA_RCON_PASSWORD:
+          RCON_HOST: minecraft-rcon.gaming.svc.cluster.local
+          RCON_PORT: "25575"
+          RCON_PASSWORD:
             valueFrom:
               secretKeyRef:
                 name: rcon-web-admin-secrets
                 key: RCON_PASSWORD
-          RWA_WEB_RCON: "FALSE"
-          RWA_WEBSOCKET_URL: ws://minecraft-admin.krapulax.dev/ws
-          RWA_WEBSOCKET_URL_SSL: wss://minecraft-admin.krapulax.dev/ws
+          SERVER_HOST: minecraft.krapulax.home
+          GAME_PORT: "25565"
         probes:
           liveness: &probes
             enabled: true
@@ -52,7 +41,7 @@ controllers:
             spec:
               httpGet:
                 path: /
-                port: 4326
+                port: 8080
               periodSeconds: 10
               timeoutSeconds: 3
               failureThreshold: 3
@@ -63,7 +52,7 @@ controllers:
             spec:
               httpGet:
                 path: /
-                port: 4326
+                port: 8080
               periodSeconds: 5
               failureThreshold: 30
         securityContext:
@@ -85,24 +74,4 @@ service:
     ports:
       http:
         port: 80
-        targetPort: 4326
-      ws:
-        port: 4327
-        targetPort: 4327
-
-persistence:
-  db:
-    type: persistentVolumeClaim
-    accessMode: ReadWriteMany
-    storageClass: cephfs
-    size: 1Gi
-    globalMounts:
-      - path: /opt/rcon-web-admin/db
-  logs:
-    type: emptyDir
-    globalMounts:
-      - path: /opt/rcon-web-admin/logs
-  tmp:
-    type: emptyDir
-    globalMounts:
-      - path: /tmp
+        targetPort: 8080
