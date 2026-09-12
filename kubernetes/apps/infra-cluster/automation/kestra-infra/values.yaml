@@ -28,7 +28,7 @@ common:
       value: unix:///dind/docker.sock
   initContainers:
     - name: ensure-kestra-bucket
-      image: amazon/aws-cli:2.36.40
+      image: amazon/aws-cli:2.36.42
       command:
         - sh
         - -lc
