@@ -43,8 +43,8 @@ controllers:
                 name: rcon-web-admin-secrets
                 key: RCON_PASSWORD
           RWA_WEB_RCON: "FALSE"
-          RWA_WEBSOCKET_URL: ws://minecraft-admin-ws.krapulax.dev
-          RWA_WEBSOCKET_URL_SSL: wss://minecraft-admin-ws.krapulax.dev
+          RWA_WEBSOCKET_URL: ws://minecraft-admin.krapulax.dev/ws
+          RWA_WEBSOCKET_URL_SSL: wss://minecraft-admin.krapulax.dev/ws
         probes:
           liveness: &probes
             enabled: true
