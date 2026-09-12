@@ -4,6 +4,14 @@ kind: HTTPRoute
 metadata:
   name: rcon-web-admin-websocket
   namespace: gaming
+  annotations:
+    gethomepage.dev/description: "Rcon Web Admin Websocket service"
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/group: "App Cluster - gaming"
+    gethomepage.dev/href: "https://minecraft-admin.krapulax.dev"
+    gethomepage.dev/icon: "mdi-application"
+    gethomepage.dev/name: "Rcon Web Admin Websocket"
+    gethomepage.dev/weight: "10"
 spec:
   parentRefs:
     - name: envoy-external
