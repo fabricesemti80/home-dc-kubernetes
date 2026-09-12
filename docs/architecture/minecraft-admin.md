@@ -10,7 +10,7 @@ Add browser-based RCON commands, user permissions and scheduled commands while A
 
 The app-template 5.0.1 chart deploys one RCON Web Admin instance in `gaming`, using image `itzg/rcon:0.14.1-1`. Its 1Gi CephFS configuration PVC stores accounts, server credentials and dashboard state. Recreate updates prevent concurrent database writers.
 
-Cloudflare's existing wildcard tunnel forwards to Envoy's `envoy-external` HTTPS listener. `minecraft-admin.krapulax.dev` routes to Service port 80 and `minecraft-admin-ws.krapulax.dev` routes to port 4327 for browser WebSockets. Homepage displays only the UI; AutoKuma excludes the WebSocket-only endpoint from HTTP checks.
+Cloudflare's existing wildcard tunnel forwards to Envoy's `envoy-external` HTTPS listener. `minecraft-admin.krapulax.dev` routes to Service port 80, while its `/ws` path routes to port 4327 for browser WebSockets. Keeping the WebSocket same-origin means Cloudflare Access uses the UI's authenticated session. Homepage displays only the UI.
 
 The existing world PVC and server remain in `gaming`. The UI connects to `minecraft-rcon.gaming.svc.cluster.local:25575`; the LAN LoadBalancer continues exposing only game port 25565. No shared world mount is added.
 
@@ -21,7 +21,7 @@ The existing world PVC and server remain in `gaming`. The UI connects to `minecr
 -   Create `RCON_PASSWORD` and `RCON_WEB_ADMIN_PASSWORD` in Doppler project `home-dc-kubernetes`, config `apps`, before syncing. No default password is supplied.
 -   Doppler projects the same RCON password into the two application Secrets in `gaming`. The UI password is projected only into the UI Secret. Secret values remain outside Git.
 -   Login is `admin` with the Doppler UI password. Treat this account as privileged: RCON can stop the server, change players and mutate the world.
--   HTTPS and the tunnel do not themselves restrict who can reach the login. Configure Cloudflare Access for both hostnames if identity gating is required, and verify WebSocket authentication through it. This PR does not create an Access policy.
+-   HTTPS and the tunnel do not themselves restrict who can reach the login. Configure Cloudflare Access for the admin hostname if identity gating is required, and verify the same-origin WebSocket through it. This PR does not create an Access policy.
 -   ClusterIP prevents LAN/WAN exposure of RCON but does not isolate it from other pods. No new NetworkPolicy is introduced; the password remains required.
 
 ## Rotation and availability
@@ -40,7 +40,7 @@ For rollback, first remove the two HTTPRoutes to withdraw administration access,
 
 1. Render both Kustomizations and the app-template chart. Check Service backend names/ports, secret references and PVC mounts; run repository lint and inventory checks.
 2. Confirm both managed Secrets contain the expected keys without printing values; confirm Argo sync and PVC Bound status.
-3. Verify both HTTPRoutes report Accepted and ResolvedRefs, DNS points through the tunnel, HTTPS login works, and the browser WebSocket upgrades successfully.
+3. Verify both HTTPRoutes report Accepted and ResolvedRefs, DNS points through the tunnel, HTTPS login works, and the browser WebSocket upgrades successfully at `/ws`.
 4. Run `list` through the console and verify its response. Check Homepage and AutoKuma. Confirm the LAN game endpoint still works and RCON is absent from the LoadBalancer ports.
 5. Rotate the RCON password during maintenance. Verify both workloads restart, only one Minecraft pod writes the world, and `list` succeeds again without manual password edits. Rotate the UI password and verify login with the new value.
 6. Record a successful backup restore test before relying on this for recovery.
