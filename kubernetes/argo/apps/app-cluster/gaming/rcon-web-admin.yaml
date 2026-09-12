@@ -10,19 +10,19 @@ spec:
   project: kubernetes
   sources:
     - repoURL: "https://github.com/fabricesemti80/home-dc-kubernetes.git"
-      path: kubernetes/apps/app-cluster/minecraft/rcon-web-admin
+      path: kubernetes/apps/app-cluster/gaming/rcon-web-admin
       targetRevision: main
       ref: repo
-    - repoURL: https://itzg.github.io/minecraft-server-charts
-      chart: rcon-web-admin
-      targetRevision: 1.2.1
+    - repoURL: ghcr.io/bjw-s-labs/helm
+      chart: app-template
+      targetRevision: 5.0.1
       helm:
         releaseName: rcon-web-admin
         valueFiles:
-          - $repo/kubernetes/apps/app-cluster/minecraft/rcon-web-admin/values.yaml
+          - $repo/kubernetes/apps/app-cluster/gaming/rcon-web-admin/values.yaml
   destination:
     name: app-cluster
-    namespace: minecraft
+    namespace: gaming
   syncPolicy:
     automated:
       allowEmpty: true
