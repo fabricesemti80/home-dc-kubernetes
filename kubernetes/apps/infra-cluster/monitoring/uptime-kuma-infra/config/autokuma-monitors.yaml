@@ -88,6 +88,14 @@ data:
       "interval": 60,
       "max_retries": 3
     }
+  minecraft-admin.json: |-
+    {
+      "type": "http",
+      "name": "Minecraft Admin",
+      "url": "https://minecraft-admin.krapulax.dev",
+      "interval": 60,
+      "max_retries": 3
+    }
   nginx-test.json: |-
     {
       "type": "http",

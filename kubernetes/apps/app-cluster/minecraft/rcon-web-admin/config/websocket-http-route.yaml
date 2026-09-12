@@ -5,6 +5,7 @@ metadata:
   name: rcon-web-admin-websocket
   namespace: minecraft
   annotations:
+    autokuma.io/enabled: "false"
     external-dns.alpha.kubernetes.io/hostname: minecraft-admin-ws.krapulax.dev
     external-dns.alpha.kubernetes.io/target: external-apps.krapulax.dev
     gethomepage.dev/description: "WebSocket transport for Minecraft Admin"
