@@ -46,6 +46,7 @@ DISPLAY_NAME_OVERRIDES = {
 
 YQ_QUERY = r'''
 select(.kind == "HTTPRoute") |
+select((.metadata.annotations."autokuma.io/enabled" // "true") != "false") |
 (.metadata.annotations."gethomepage.dev/name" // .metadata.name // "monitor") as $name |
 (.spec.hostnames // [])[] |
 [$name, .] | @tsv

@@ -4,8 +4,12 @@ kind: Deployment
 metadata:
   name: minecraft-server
   namespace: gaming
+  annotations:
+    secret.reloader.stakater.com/reload: "minecraft-server-secrets"
 spec:
   replicas: 1
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: minecraft-server
@@ -14,12 +18,15 @@ spec:
       labels:
         app: minecraft-server
     spec:
+      terminationGracePeriodSeconds: 120
       containers:
         - name: minecraft
           image: itzg/minecraft-server:latest # I'll update this to a specific tag shortly
           ports:
             - containerPort: 25565
               name: minecraft
+            - containerPort: 25575
+              name: rcon
           resources:
             requests:
               memory: "6Gi"
@@ -34,6 +41,13 @@ spec:
               value: "VANILLA"
             - name: MEMORY
               value: "6G"
+            - name: ENABLE_RCON
+              value: "TRUE"
+            - name: RCON_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: minecraft-server-secrets
+                  key: RCON_PASSWORD
           startupProbe:
             tcpSocket:
               port: 25565
