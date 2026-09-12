@@ -1,0 +1,42 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: rcon-web-admin
+  namespace: argo-system
+  annotations:
+    argocd.argoproj.io/sync-wave: '0'
+spec:
+  project: kubernetes
+  sources:
+    - repoURL: "https://github.com/fabricesemti80/home-dc-kubernetes.git"
+      path: kubernetes/apps/app-cluster/minecraft/rcon-web-admin
+      targetRevision: main
+      ref: repo
+    - repoURL: https://itzg.github.io/minecraft-server-charts
+      chart: rcon-web-admin
+      targetRevision: 1.2.1
+      helm:
+        releaseName: rcon-web-admin
+        valueFiles:
+          - $repo/kubernetes/apps/app-cluster/minecraft/rcon-web-admin/values.yaml
+  destination:
+    name: app-cluster
+    namespace: minecraft
+  syncPolicy:
+    automated:
+      allowEmpty: true
+      prune: true
+      selfHeal: true
+    retry:
+      limit: 1
+      backoff:
+        duration: 10s
+        factor: 2
+        maxDuration: 3m
+    syncOptions:
+      - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true
+      - ServerSideApply=true
+      - PruneLast=true
+      - RespectIgnoreDifferences=true

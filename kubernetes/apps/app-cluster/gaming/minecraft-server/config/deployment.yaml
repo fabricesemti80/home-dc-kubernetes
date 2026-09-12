@@ -20,6 +20,8 @@ spec:
           ports:
             - containerPort: 25565
               name: minecraft
+            - containerPort: 25575
+              name: rcon
           resources:
             requests:
               memory: "6Gi"
@@ -34,6 +36,13 @@ spec:
               value: "VANILLA"
             - name: MEMORY
               value: "6G"
+            - name: ENABLE_RCON
+              value: "TRUE"
+            - name: RCON_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: minecraft-server-secrets
+                  key: RCON_PASSWORD
           startupProbe:
             tcpSocket:
               port: 25565

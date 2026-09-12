@@ -1,0 +1,15 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: minecraft-rcon
+  namespace: gaming
+spec:
+  type: ClusterIP
+  selector:
+    app: minecraft-server
+  ports:
+    - name: rcon
+      protocol: TCP
+      port: 25575
+      targetPort: rcon

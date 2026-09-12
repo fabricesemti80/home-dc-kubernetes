@@ -28,6 +28,7 @@ cardBlur: md
 layout:
   App Cluster - argo-system:
   App Cluster - media:
+  App Cluster - minecraft:
   App Cluster - monitoring:
   App Cluster - productivity:
   App Cluster - web:

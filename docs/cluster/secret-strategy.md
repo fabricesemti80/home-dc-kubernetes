@@ -157,6 +157,8 @@ task secrets:validate-bootstrap
 | `cloudflare-tunnel-secret`   | `network`      | `TUNNEL_TOKEN_APPS` as `TUNNEL_TOKEN`                                       |
 | `code-server-secrets`        | `productivity` | `CODE_SERVER_PASSWORD`                                                      |
 | `linkwarden-secrets`         | `productivity` | `DATABASE_URL`, `NEXTAUTH_URL`, `NEXTAUTH_SECRET`, `LINKWARDEN_DB_PASSWORD` |
+| `minecraft-server-secrets`   | `gaming`       | `RCON_PASSWORD`                                                              |
+| `rcon-web-admin-secrets`     | `minecraft`    | `RCON_PASSWORD`, `RCON_WEB_ADMIN_PASSWORD`                                   |
 
 ### ☸️ Infra Cluster
 
