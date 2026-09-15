@@ -25,7 +25,7 @@ masterkeySecretKey: PROXY_MASTER_KEY
 environmentSecrets:
   - litellm-secrets
 
-podAnnotations:
+deploymentAnnotations:
   secret.reloader.stakater.com/reload: litellm-secrets,litellm-postgres
 
 proxy_config:
