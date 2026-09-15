@@ -1,9 +1,3 @@
-- Infra Cluster - ai:
-    - LiteLLM:
-        icon: litellm.png
-        href: https://litellm.krapulax.dev/ui
-        description: Shared LLM gateway
-
 - Infra Cluster - monitoring:
     - Pulse:
         icon: mdi-heart-pulse
