@@ -8,6 +8,8 @@ data:
     ingress:
       - hostname: kestra.krapulax.dev
         service: http://kestra.kestra.svc.cluster.local:8080
+      - hostname: litellm.krapulax.dev
+        service: http://litellm.ai.svc.cluster.local:4000
       - hostname: pulse.krapulax.dev
         service: http://pulse.monitoring.svc.cluster.local:7655
       - hostname: dns.krapulax.dev
