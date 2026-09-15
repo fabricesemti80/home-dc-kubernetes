@@ -47,18 +47,6 @@ db:
   secret:
     name: litellm-postgres
     usernameKey: LITELLM_USERDB_USER
-    # Migration Job Fix
-    migrationEnv:
-      - name: USERDB_USER
-        valueFrom:
-          secretKeyRef:
-            name: litellm-postgres
-            key: LITELLM_USERDB_USER
-      - name: USERDB_PASSWORD
-        valueFrom:
-          secretKeyRef:
-            name: litellm-postgres
-            key: LITELLM_USERDB_PASSWORD
     passwordKey: LITELLM_USERDB_PASSWORD
 
 redis:
@@ -66,6 +54,17 @@ redis:
 
 migrationJob:
   enabled: true
+  env:
+    - name: USERDB_USER
+      valueFrom:
+        secretKeyRef:
+          name: litellm-postgres
+          key: LITELLM_USERDB_USER
+    - name: USERDB_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: litellm-postgres
+          key: LITELLM_USERDB_PASSWORD
   hooks:
     argocd:
       enabled: true
