@@ -1,0 +1,37 @@
+---
+fullnameOverride: litellm-postgres
+useDeployment: true
+nodeSelector:
+  kubernetes.io/hostname: infra-cp-01
+tolerations:
+  - key: node-role.kubernetes.io/control-plane
+    operator: Exists
+    effect: NoSchedule
+affinity: {}
+settings:
+  existingSecret: litellm-postgres
+  superuser:
+    secretKey: POSTGRES_USER
+  superuserPassword:
+    secretKey: POSTGRES_PASSWORD
+userDatabase:
+  existingSecret: litellm-postgres
+  name:
+    secretKey: POSTGRES_DB
+  user:
+    secretKey: USERDB_USER
+  password:
+    secretKey: USERDB_PASSWORD
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: 500m
+    memory: 1Gi
+storage:
+  className: local-path
+  requestedSize: 10Gi
+  accessModes:
+    - ReadWriteOnce
+  keepPvc: true

@@ -1,0 +1,42 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: litellm-support-infra
+  namespace: argo-system
+  annotations:
+    argocd.argoproj.io/sync-wave: '1'
+spec:
+  project: kubernetes
+  sources:
+    - repoURL: https://groundhog2k.github.io/helm-charts/
+      chart: postgres
+      targetRevision: 1.5.7
+      helm:
+        releaseName: litellm-postgres
+        valueFiles:
+          - $repo/kubernetes/apps/infra-cluster/ai/litellm/postgres-values.yaml
+    - repoURL: "https://github.com/fabricesemti80/home-dc-kubernetes.git"
+      path: kubernetes/apps/infra-cluster/ai/litellm
+      targetRevision: main
+      ref: repo
+  destination:
+    name: infra-cluster
+    namespace: ai
+  syncPolicy:
+    automated:
+      allowEmpty: true
+      prune: true
+      selfHeal: true
+    retry:
+      limit: 5
+      backoff:
+        duration: 10s
+        factor: 2
+        maxDuration: 3m
+    syncOptions:
+      - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true
+      - ServerSideApply=true
+      - PruneLast=true
+      - RespectIgnoreDifferences=true
