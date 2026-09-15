@@ -46,7 +46,7 @@ db:
   database: litellm
   secret:
     name: litellm-postgres
-    usernameKey: LITELLM_USERDB_USER
+    usernameKey: LITELLM_POSTGRES_USER
     passwordKey: LITELLM_USERDB_PASSWORD
 
 redis:
