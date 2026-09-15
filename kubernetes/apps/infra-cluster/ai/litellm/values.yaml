@@ -59,7 +59,7 @@ migrationJob:
       valueFrom:
         secretKeyRef:
           name: litellm-postgres
-          key: LITELLM_USERDB_USER
+          key: LITELLM_POSTGRES_USER
     - name: USERDB_PASSWORD
       valueFrom:
         secretKeyRef:
