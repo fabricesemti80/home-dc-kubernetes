@@ -11,17 +11,17 @@ affinity: {}
 settings:
   existingSecret: litellm-postgres
   superuser:
-    secretKey: POSTGRES_USER
+    secretKey: LITELLM_POSTGRES_USER
   superuserPassword:
-    secretKey: POSTGRES_PASSWORD
+    secretKey: LITELLM_POSTGRES_PASSWORD
 userDatabase:
   existingSecret: litellm-postgres
   name:
-    secretKey: POSTGRES_DB
+    secretKey: LITELLM_POSTGRES_DB
   user:
-    secretKey: USERDB_USER
+    secretKey: LITELLM_USERDB_USER
   password:
-    secretKey: USERDB_PASSWORD
+    secretKey: LITELLM_USERDB_PASSWORD
 resources:
   requests:
     cpu: 100m
