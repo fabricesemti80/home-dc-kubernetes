@@ -49,6 +49,12 @@ db:
     usernameKey: LITELLM_POSTGRES_USER
     passwordKey: LITELLM_USERDB_PASSWORD
 
+environment:
+  - name: DATABASE_URL
+    valueFrom:
+      secretKeyRef:
+        name: litellm-postgres
+        key: DATABASE_URL
 redis:
   enabled: false
 
