@@ -21,7 +21,7 @@ service:
   port: 4000
 
 masterkeySecretName: litellm-secrets
-masterkeySecretKey: PROXY_MASTER_KEY
+masterkeySecretKey: LITELLM_MASTER_KEY
 environmentSecrets:
   - litellm-secrets
 
@@ -35,7 +35,7 @@ proxy_config:
         model: openai/gpt-5-mini
         api_key: os.environ/OPENAI_API_KEY
   general_settings:
-    master_key: os.environ/PROXY_MASTER_KEY
+    master_key: os.environ/LITELLM_MASTER_KEY
     store_model_in_db: true
     enable_drain_endpoint: true
 
@@ -46,8 +46,8 @@ db:
   database: litellm
   secret:
     name: litellm-postgres
-    usernameKey: USERDB_USER
-    passwordKey: USERDB_PASSWORD
+    usernameKey: LITELLM_USERDB_USER
+    passwordKey: LITELLM_USERDB_PASSWORD
 
 redis:
   enabled: false
