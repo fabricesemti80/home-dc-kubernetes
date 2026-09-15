@@ -16,42 +16,42 @@ flowchart LR
     Doppler -->|Keys and credentials| LiteLLM
 ```
 
-- Namespace: `ai`
-- Runtime: upstream LiteLLM Helm chart pinned to release `v1.101.0`.
-- Database: dedicated PostgreSQL Helm release with a retained `local-path` PVC.
-- Placement: LiteLLM and PostgreSQL are pinned to `infra-cp-01`.
-- Networking: the infra Envoy gateway serves `litellm.krapulax.home`; the infra
-  Cloudflare tunnel serves `litellm.krapulax.dev`.
-- Initial model: `gpt-5-mini`, backed by the `OPENAI_API_KEY` Doppler secret.
+-   Namespace: `ai`
+-   Runtime: upstream LiteLLM Helm chart pinned to release `v1.101.0`.
+-   Database: dedicated PostgreSQL Helm release with a retained `local-path` PVC.
+-   Placement: LiteLLM and PostgreSQL are pinned to `infra-cp-01`.
+-   Networking: the infra Envoy gateway serves `litellm.krapulax.home`; the infra
+    Cloudflare tunnel serves `litellm.krapulax.dev`.
+-   Initial model: `gpt-5-mini`, backed by the `OPENAI_API_KEY` Doppler secret.
 
 ## Security
 
-- `LITELLM_MASTER_KEY`, `LITELLM_SALT_KEY`, provider credentials, and PostgreSQL
-  credentials are synced from Doppler (`home-dc-kubernetes/infra`).
-- No secret values are stored in Git.
-- The master key is required for proxy API calls and the Admin UI.
-- Public access should be protected by a Cloudflare Access policy before merging.
-- The Service remains `ClusterIP`; only Envoy and the Cloudflare tunnel expose it.
+-   `LITELLM_MASTER_KEY`, `LITELLM_SALT_KEY`, provider credentials, and PostgreSQL
+    credentials are synced from Doppler (`home-dc-kubernetes/infra`).
+-   No secret values are stored in Git.
+-   The master key is required for proxy API calls and the Admin UI.
+-   Public access should be protected by a Cloudflare Access policy before merging.
+-   The Service remains `ClusterIP`; only Envoy and the Cloudflare tunnel expose it.
 
 ## Required Doppler secrets
 
-- `LITELLM_MASTER_KEY` (must start with `sk-`)
-- `LITELLM_SALT_KEY` (generate once and never rotate after keys are created)
-- `OPENAI_API_KEY`
-- `LITELLM_POSTGRES_USER`
-- `LITELLM_POSTGRES_PASSWORD`
-- `LITELLM_POSTGRES_DB` (recommended value: `litellm`)
-- `LITELLM_USERDB_USER` (recommended value: `litellm`)
-- `LITELLM_USERDB_PASSWORD`
+-   `LITELLM_MASTER_KEY` (must start with `sk-`)
+-   `LITELLM_SALT_KEY` (generate once and never rotate after keys are created)
+-   `OPENAI_API_KEY`
+-   `LITELLM_POSTGRES_USER`
+-   `LITELLM_POSTGRES_PASSWORD`
+-   `LITELLM_POSTGRES_DB` (recommended value: `litellm`)
+-   `LITELLM_USERDB_USER` (recommended value: `litellm`)
+-   `LITELLM_USERDB_PASSWORD`
 
 ## Assumptions
 
-- `infra-cp-01` remains the preferred node for infra support services using
-  retained local storage.
-- The `local-path` StorageClass and infra Envoy gateways already exist.
-- The app-cluster Cloudflare external-dns controller continues managing public
-  DNS records for infra services.
-- One replica is appropriate while PostgreSQL uses a single local volume.
+-   `infra-cp-01` remains the preferred node for infra support services using
+    retained local storage.
+-   The `local-path` StorageClass and infra Envoy gateways already exist.
+-   The app-cluster Cloudflare external-dns controller continues managing public
+    DNS records for infra services.
+-   One replica is appropriate while PostgreSQL uses a single local volume.
 
 ## Validation
 
