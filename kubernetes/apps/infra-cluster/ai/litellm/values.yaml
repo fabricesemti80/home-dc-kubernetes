@@ -66,29 +66,6 @@ proxy_config:
         model: openrouter/google/gemini-2.5-pro
         api_key: os.environ/AI_OPENROUTER_API_KEY
 
-    # OpenCode Zen: cheap chat, coding, and frontier non-OpenAI models.
-    - model_name: zen/deepseek-v4-flash
-      litellm_params:
-        model: deepseek-v4-flash
-        custom_llm_provider: openai
-        api_base: https://opencode.ai/zen/v1
-        api_key: os.environ/AI_OPENCODE_ZEN_API_KEY
-    - model_name: zen/minimax-m3
-      litellm_params:
-        model: minimax-m3
-        custom_llm_provider: openai
-        api_base: https://opencode.ai/zen/v1
-        api_key: os.environ/AI_OPENCODE_ZEN_API_KEY
-    - model_name: zen/claude-sonnet-4.6
-      litellm_params:
-        model: anthropic/claude-sonnet-4-6
-        api_base: https://opencode.ai/zen
-        api_key: os.environ/AI_OPENCODE_ZEN_API_KEY
-    - model_name: zen/claude-opus-5
-      litellm_params:
-        model: anthropic/claude-opus-5
-        api_base: https://opencode.ai/zen
-        api_key: os.environ/AI_OPENCODE_ZEN_API_KEY
   general_settings:
     master_key: os.environ/LITELLM_MASTER_KEY
     store_model_in_db: true
