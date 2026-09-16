@@ -19,6 +19,9 @@ flowchart LR
 -   Namespace: `ai`
 -   Runtime: upstream LiteLLM Helm chart pinned to release `v1.101.0`.
 -   Database: dedicated PostgreSQL Helm release with a retained `local-path` PVC.
+    LiteLLM and its migration Job authenticate as the dedicated
+    `LITELLM_USERDB_USER`; the Postgres bootstrap superuser is not used by the
+    application.
 -   Placement: LiteLLM and PostgreSQL are pinned to `infra-cp-01`.
 -   Networking: the infra Envoy gateway serves `litellm.krapulax.home`; the infra
     Cloudflare tunnel serves `litellm.krapulax.dev`.
@@ -57,6 +60,7 @@ flowchart LR
 
 1. `kubectl kustomize kubernetes/apps/infra-cluster/ai/litellm`
 2. Confirm Argo sync for `litellm-support-infra`, followed by `litellm-infra`.
+   Confirm the migration Job succeeds before the proxy Deployment starts.
 3. `kubectl -n ai get pods,pvc,svc,httproute`
 4. Confirm both LiteLLM and PostgreSQL are scheduled on `infra-cp-01`.
 5. `curl -fsS http://litellm.ai.svc.cluster.local:4000/health/readiness`

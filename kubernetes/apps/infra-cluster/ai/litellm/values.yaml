@@ -46,7 +46,7 @@ db:
   database: litellm
   secret:
     name: litellm-postgres
-    usernameKey: LITELLM_POSTGRES_USER
+    usernameKey: LITELLM_USERDB_USER
     passwordKey: LITELLM_USERDB_PASSWORD
 
 environment:
@@ -60,17 +60,6 @@ redis:
 
 migrationJob:
   enabled: true
-  env:
-    - name: USERDB_USER
-      valueFrom:
-        secretKeyRef:
-          name: litellm-postgres
-          key: LITELLM_POSTGRES_USER
-    - name: USERDB_PASSWORD
-      valueFrom:
-        secretKeyRef:
-          name: litellm-postgres
-          key: LITELLM_USERDB_PASSWORD
   hooks:
     argocd:
       enabled: true
