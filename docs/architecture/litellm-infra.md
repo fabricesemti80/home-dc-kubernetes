@@ -19,9 +19,8 @@ flowchart LR
 -   Namespace: `ai`
 -   Runtime: upstream LiteLLM Helm chart pinned to release `v1.101.0`.
 -   Database: dedicated PostgreSQL Helm release with a retained `local-path` PVC.
-    LiteLLM and its migration Job authenticate as the dedicated
-    `LITELLM_USERDB_USER`; the Postgres bootstrap superuser is not used by the
-    application.
+    LiteLLM and its migration Job use the chart's configured Postgres bootstrap
+    credential pair. The chart does not create the optional application user.
 -   Placement: LiteLLM and PostgreSQL are pinned to `infra-cp-01`.
 -   Networking: the infra Envoy gateway serves `litellm.krapulax.home`; the infra
     Cloudflare tunnel serves `litellm.krapulax.dev`.

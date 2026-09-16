@@ -46,8 +46,8 @@ db:
   database: litellm
   secret:
     name: litellm-postgres
-    usernameKey: LITELLM_USERDB_USER
-    passwordKey: LITELLM_USERDB_PASSWORD
+    usernameKey: LITELLM_POSTGRES_USER
+    passwordKey: LITELLM_POSTGRES_PASSWORD
 
 environment:
   - name: DATABASE_URL
