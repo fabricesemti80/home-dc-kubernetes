@@ -47,7 +47,7 @@ proxy_config:
     # OpenRouter: low-cost, multimodal, coding, and flagship alternatives.
     - model_name: openrouter/free
       litellm_params:
-        model: openrouter/deepseek/free
+        model: openrouter/free
         api_key: os.environ/AI_OPENROUTER_API_KEY    
     # - model_name: openrouter/deepseek-v3.1
     #   litellm_params:
