@@ -45,26 +45,30 @@ proxy_config:
         api_key: os.environ/AI_OPENAI_API_KEY
 
     # OpenRouter: low-cost, multimodal, coding, and flagship alternatives.
-    - model_name: openrouter/deepseek-v3.1
+    - model_name: openrouter/free
       litellm_params:
-        model: openrouter/deepseek/deepseek-chat-v3.1
-        api_key: os.environ/AI_OPENROUTER_API_KEY
-    - model_name: openrouter/gemini-2.5-flash
-      litellm_params:
-        model: openrouter/google/gemini-2.5-flash
-        api_key: os.environ/AI_OPENROUTER_API_KEY
-    - model_name: openrouter/qwen3-235b
-      litellm_params:
-        model: openrouter/qwen/qwen3-235b-a22b
-        api_key: os.environ/AI_OPENROUTER_API_KEY
-    - model_name: openrouter/claude-sonnet-4.5
-      litellm_params:
-        model: openrouter/anthropic/claude-sonnet-4.5
-        api_key: os.environ/AI_OPENROUTER_API_KEY
-    - model_name: openrouter/gemini-2.5-pro
-      litellm_params:
-        model: openrouter/google/gemini-2.5-pro
-        api_key: os.environ/AI_OPENROUTER_API_KEY
+        model: openrouter/deepseek/free
+        api_key: os.environ/AI_OPENROUTER_API_KEY    
+    # - model_name: openrouter/deepseek-v3.1
+    #   litellm_params:
+    #     model: openrouter/deepseek/deepseek-chat-v3.1
+    #     api_key: os.environ/AI_OPENROUTER_API_KEY
+    # - model_name: openrouter/gemini-2.5-flash
+    #   litellm_params:
+    #     model: openrouter/google/gemini-2.5-flash
+    #     api_key: os.environ/AI_OPENROUTER_API_KEY
+    # - model_name: openrouter/qwen3-235b
+    #   litellm_params:
+    #     model: openrouter/qwen/qwen3-235b-a22b
+    #     api_key: os.environ/AI_OPENROUTER_API_KEY
+    # - model_name: openrouter/claude-sonnet-4.5
+    #   litellm_params:
+    #     model: openrouter/anthropic/claude-sonnet-4.5
+    #     api_key: os.environ/AI_OPENROUTER_API_KEY
+    # - model_name: openrouter/gemini-2.5-pro
+    #   litellm_params:
+    #     model: openrouter/google/gemini-2.5-pro
+    #     api_key: os.environ/AI_OPENROUTER_API_KEY
 
   general_settings:
     master_key: os.environ/LITELLM_MASTER_KEY
