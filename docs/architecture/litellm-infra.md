@@ -24,7 +24,9 @@ flowchart LR
 -   Placement: LiteLLM and PostgreSQL are pinned to `infra-cp-01`.
 -   Networking: the infra Envoy gateway serves `litellm.krapulax.home`; the infra
     Cloudflare tunnel serves `litellm.krapulax.dev`.
--   Initial model: `gpt-5-mini`, backed by the `OPENAI_API_KEY` Doppler secret.
+-   Model catalog: direct OpenAI, OpenRouter, and OpenCode Zen. Names are
+    provider-qualified (for example, `openai/gpt-5-mini`) so callers explicitly
+    select the provider and cost/quality tier.
 
 ## Security
 
@@ -39,7 +41,9 @@ flowchart LR
 
 -   `LITELLM_MASTER_KEY` (must start with `sk-`)
 -   `LITELLM_SALT_KEY` (generate once and never rotate after keys are created)
--   `OPENAI_API_KEY`
+-   `AI_OPENAI_API_KEY`
+-   `AI_OPENROUTER_API_KEY`
+-   `AI_OPENCODE_ZEN_API_KEY`
 -   `LITELLM_POSTGRES_USER`
 -   `LITELLM_POSTGRES_PASSWORD`
 -   `LITELLM_POSTGRES_DB` (recommended value: `litellm`)
@@ -68,7 +72,8 @@ flowchart LR
    `external-infra.krapulax.dev`.
 8. Open `https://litellm.krapulax.dev/ui` through Cloudflare Access and sign in
    with `LITELLM_MASTER_KEY`.
-9. Create a virtual key and make a test request to `gpt-5-mini`.
+9. Create a virtual key and make test requests to `openai/gpt-5-mini`,
+   `openrouter/gemini-2.5-flash`, and `zen/gpt-5.4-mini`.
 
 ## Rollback
 

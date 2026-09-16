@@ -30,10 +30,58 @@ deploymentAnnotations:
 
 proxy_config:
   model_list:
-    - model_name: gpt-5-mini
+    # Direct OpenAI: inexpensive, balanced, then best available quality.
+    - model_name: openai/gpt-5-nano
+      litellm_params:
+        model: openai/gpt-5-nano
+        api_key: os.environ/AI_OPENAI_API_KEY
+    - model_name: openai/gpt-5-mini
       litellm_params:
         model: openai/gpt-5-mini
-        api_key: os.environ/OPENAI_API_KEY
+        api_key: os.environ/AI_OPENAI_API_KEY
+    - model_name: openai/gpt-5
+      litellm_params:
+        model: openai/gpt-5
+        api_key: os.environ/AI_OPENAI_API_KEY
+
+    # OpenRouter: low-cost, multimodal, coding, and flagship alternatives.
+    - model_name: openrouter/deepseek-v3.1
+      litellm_params:
+        model: openrouter/deepseek/deepseek-chat-v3.1
+        api_key: os.environ/AI_OPENROUTER_API_KEY
+    - model_name: openrouter/gemini-2.5-flash
+      litellm_params:
+        model: openrouter/google/gemini-2.5-flash
+        api_key: os.environ/AI_OPENROUTER_API_KEY
+    - model_name: openrouter/qwen3-235b
+      litellm_params:
+        model: openrouter/qwen/qwen3-235b-a22b
+        api_key: os.environ/AI_OPENROUTER_API_KEY
+    - model_name: openrouter/claude-sonnet-4.5
+      litellm_params:
+        model: openrouter/anthropic/claude-sonnet-4.5
+        api_key: os.environ/AI_OPENROUTER_API_KEY
+    - model_name: openrouter/gemini-2.5-pro
+      litellm_params:
+        model: openrouter/google/gemini-2.5-pro
+        api_key: os.environ/AI_OPENROUTER_API_KEY
+
+    # OpenCode Zen's OpenAI-compatible Responses API models.
+    - model_name: zen/gpt-5.4-mini
+      litellm_params:
+        model: openai/gpt-5.4-mini
+        api_base: https://opencode.ai/zen/v1
+        api_key: os.environ/AI_OPENCODE_ZEN_API_KEY
+    - model_name: zen/gpt-5.6-terra
+      litellm_params:
+        model: openai/gpt-5.6-terra
+        api_base: https://opencode.ai/zen/v1
+        api_key: os.environ/AI_OPENCODE_ZEN_API_KEY
+    - model_name: zen/gpt-6-astra
+      litellm_params:
+        model: openai/gpt-6-astra
+        api_base: https://opencode.ai/zen/v1
+        api_key: os.environ/AI_OPENCODE_ZEN_API_KEY
   general_settings:
     master_key: os.environ/LITELLM_MASTER_KEY
     store_model_in_db: true
