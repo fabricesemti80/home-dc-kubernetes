@@ -73,7 +73,7 @@ flowchart LR
 8. Open `https://litellm.krapulax.dev/ui` through Cloudflare Access and sign in
    with `LITELLM_MASTER_KEY`.
 9. Create a virtual key and make test requests to `openai/gpt-5-mini`,
-   `openrouter/gemini-2.5-flash`, and `zen/gpt-5.4-mini`.
+   `openrouter/gemini-2.5-flash`, and `zen/deepseek-v4-flash`.
 
 ## Rollback
 
