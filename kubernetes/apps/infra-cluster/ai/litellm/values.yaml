@@ -44,11 +44,21 @@ proxy_config:
         model: openai/gpt-5
         api_key: os.environ/AI_OPENAI_API_KEY
 
-    # OpenRouter: low-cost, multimodal, coding, and flagship alternatives.
+    # Keep the public model name stable, but use explicit free endpoints.
+    # OpenRouter's openrouter/free meta-router can return 404 when it has no
+    # eligible endpoint; duplicate model names form one LiteLLM model group.
     - model_name: openrouter/free
       litellm_params:
-        model: openrouter/free
-        api_key: os.environ/AI_OPENROUTER_API_KEY    
+        model: openrouter/nvidia/nemotron-3.5-lightning:free
+        api_key: os.environ/AI_OPENROUTER_API_KEY
+    - model_name: openrouter/free
+      litellm_params:
+        model: openrouter/google/gemma-4-31b-it:free
+        api_key: os.environ/AI_OPENROUTER_API_KEY
+    - model_name: openrouter/free
+      litellm_params:
+        model: openrouter/z-ai/glm-5.2:free
+        api_key: os.environ/AI_OPENROUTER_API_KEY
     # - model_name: openrouter/deepseek-v3.1
     #   litellm_params:
     #     model: openrouter/deepseek/deepseek-chat-v3.1
@@ -91,6 +101,7 @@ environment:
       secretKeyRef:
         name: litellm-postgres
         key: DATABASE_URL
+
 redis:
   enabled: false
 
