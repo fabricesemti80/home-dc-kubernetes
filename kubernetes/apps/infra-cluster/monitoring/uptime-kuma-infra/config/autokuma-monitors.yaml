@@ -88,6 +88,14 @@ data:
       "interval": 60,
       "max_retries": 3
     }
+  litellm.json: |-
+    {
+      "type": "http",
+      "name": "LiteLLM",
+      "url": "https://litellm.krapulax.dev",
+      "interval": 60,
+      "max_retries": 3
+    }
   minecraft-admin.json: |-
     {
       "type": "http",
