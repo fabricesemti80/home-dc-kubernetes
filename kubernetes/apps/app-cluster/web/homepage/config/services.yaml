@@ -1,15 +1,21 @@
+- Infra Cluster - ai:
+    - LiteLLM:
+        icon: https://cdn.jsdelivr.net/gh/selfhst/icons/png/litellm.png
+        href: https://litellm.krapulax.dev/ui
+        description: Shared LLM gateway
+
 - Infra Cluster - monitoring:
     - Pulse:
-        icon: mdi-heart-pulse
+        icon: https://raw.githubusercontent.com/rcourtman/Pulse/main/docs/images/pulse-logo.png
         href: https://pulse.krapulax.dev
         description: Infrastructure monitoring
     - Uptime Kuma:
-        icon: mdi-monitor-eye
+        icon: uptime-kuma.png
         href: https://uptime.krapulax.dev
         description: External availability monitoring
 
 - Infra Cluster - network:
     - Technitium:
-        icon: mdi-dns
+        icon: technitium.png
         href: https://dns.krapulax.dev
         description: Authoritative local DNS
