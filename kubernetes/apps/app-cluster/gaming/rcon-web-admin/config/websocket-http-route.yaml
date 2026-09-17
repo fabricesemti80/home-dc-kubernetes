@@ -6,13 +6,7 @@ metadata:
   namespace: gaming
   annotations:
     autokuma.io/enabled: "false"
-    gethomepage.dev/description: "Rcon Web Admin Websocket service"
-    gethomepage.dev/enabled: "true"
-    gethomepage.dev/group: "App Cluster - gaming"
-    gethomepage.dev/href: "https://minecraft-admin.krapulax.dev"
-    gethomepage.dev/icon: "mdi-application"
-    gethomepage.dev/name: "Rcon Web Admin Websocket"
-    gethomepage.dev/weight: "10"
+    homepage.kubernetes.io/enabled: "false"
 spec:
   parentRefs:
     - name: envoy-external

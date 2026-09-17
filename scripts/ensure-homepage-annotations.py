@@ -36,14 +36,16 @@ ICON_MAP = {
     "linkwarden": "linkwarden.png",
     "prowlarr": "prowlarr.png",
     "prometheus": "prometheus.png",
-    "pulse": "mdi-heart-pulse",
+    "pulse": "https://raw.githubusercontent.com/rcourtman/Pulse/main/docs/images/pulse-logo.png",
     "qbittorrent": "qbittorrent.png",
     "radarr": "radarr.png",
     "sabnzbd": "sabnzbd.png",
     "sonarr": "sonarr.png",
     "sterling-pdf": "stirling-pdf.png",
     "tdarr": "tdarr.png",
-    "uptime-kuma": "mdi-monitor-eye",
+    "technitium": "technitium.png",
+    "uptime-kuma": "uptime-kuma.png",
+    "litellm": "https://cdn.jsdelivr.net/gh/selfhst/icons/png/litellm.png",
 }
 
 DESCRIPTIONS = {
@@ -133,6 +135,9 @@ def determine_href(doc: dict) -> str | None:
 
 
 def desired_annotations(doc: dict, cluster_key: str, namespace: str, app: str) -> dict | None:
+    annotations = doc.get("metadata", {}).get("annotations", {})
+    if annotations.get("homepage.kubernetes.io/enabled") == "false":
+        return None
     if not is_public_route(doc):
         return None
 
@@ -287,7 +292,8 @@ def update_route_file(path: str, changed: set, groups: set) -> dict | None:
         text = f.read()
 
     docs = list(yaml.safe_load_all(text))
-    desired = None
+    desired_for_update = None
+    homepage_route = None
     for doc in docs:
         if not doc or doc.get("kind") != "HTTPRoute":
             continue
@@ -305,7 +311,7 @@ def update_route_file(path: str, changed: set, groups: set) -> dict | None:
         if desired is None:
             # Internal route: strip any existing homepage annotations.
             if existing_homepage:
-                desired = {}
+                desired_for_update = {}
             continue
 
         for k, v in existing_homepage.items():
@@ -317,19 +323,20 @@ def update_route_file(path: str, changed: set, groups: set) -> dict | None:
             desired[k] = v
 
         groups.add(desired["gethomepage.dev/group"])
+        desired_for_update = desired
+        homepage_route = desired
 
-    # desired is None and no existing homepage annotations -> nothing to do
-    if desired is None:
+    if desired_for_update is None:
         return None
 
     lines = text.splitlines(keepends=True)
-    new_lines, modified = update_annotations_block(lines, desired)
+    new_lines, modified = update_annotations_block(lines, desired_for_update)
     if modified:
         with open(path, "w", encoding="utf-8") as f:
             f.writelines(new_lines)
         changed.add(os.path.relpath(path, REPO))
 
-    return desired if desired else None
+    return homepage_route
 
 
 def update_settings(groups: set) -> bool:
