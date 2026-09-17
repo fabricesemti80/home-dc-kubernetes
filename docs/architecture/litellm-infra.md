@@ -37,7 +37,10 @@ flowchart LR
     credentials are synced from Doppler (`home-dc-kubernetes/infra`).
 -   No secret values are stored in Git.
 -   The master key is required for proxy API calls and the Admin UI.
--   Public access should be protected by a Cloudflare Access policy before merging.
+-   The public API intentionally bypasses Cloudflare Access so non-browser
+    OpenAI-compatible clients do not receive an authentication redirect.
+    LiteLLM's master or virtual API key remains mandatory; do not expose this
+    hostname without one.
 -   The Service remains `ClusterIP`; only Envoy and the Cloudflare tunnel expose it.
 
 ## Required Doppler secrets
@@ -72,10 +75,12 @@ flowchart LR
 6. `dig +short litellm.krapulax.home` should return the infra Envoy address.
 7. `dig +short litellm.krapulax.dev CNAME` should return
    `external-infra.krapulax.dev`.
-8. Open `https://litellm.krapulax.dev/ui` through Cloudflare Access and sign in
-   with `LITELLM_MASTER_KEY`.
-9. Create a virtual key and make test requests to `openai/gpt-5-mini`,
-   `openrouter/gemini-2.5-flash`.
+8. Call `https://litellm.krapulax.dev/v1/models` with a LiteLLM API key and
+   confirm it returns JSON rather than a Cloudflare redirect.
+9. Open `https://litellm.krapulax.dev/ui` and sign in with
+   `LITELLM_MASTER_KEY`.
+10. Create a virtual key and make test requests to `openai/gpt-5-mini`,
+    `openrouter/gemini-2.5-flash`.
 
 ## Rollback
 

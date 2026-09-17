@@ -190,6 +190,10 @@ tasks:
     desc: Plan the Cloudflare OpenTofu stack
     cmd: task infrastructure:tf-cloudflare-plan
 
+  tf:cloudflare:migrate-doppler-state:
+    desc: Rebind legacy Doppler tunnel-secret state to home-dc-kubernetes
+    cmd: task infrastructure:tf-cloudflare-migrate-doppler-state
+
   tf:cloudflare:apply:
     desc: Apply the Cloudflare OpenTofu stack
     cmd: task infrastructure:tf-cloudflare-apply

@@ -135,9 +135,13 @@ task tf:init
 task tf:plan
 ```
 
-These tasks read infrastructure credentials from `home-dc-kubernetes/infra`.
-Cloudflare tunnel outputs are written back to `home-dc-kubernetes/apps` or
-`home-dc-kubernetes/infra` according to the cluster that consumes them.
+Proxmox and local-DNS tasks read infrastructure credentials from
+`home-dc-kubernetes/infra`; Cloudflare Terraform requires an explicit
+`CLOUDFLARE_DOPPLER_CONFIG` selection. Cloudflare tunnel outputs are written
+back to `home-dc-kubernetes/apps` or `home-dc-kubernetes/infra` according to
+the cluster that consumes them. The selected config contains separate
+`DOPPLER_APPS_TOKEN` and `DOPPLER_INFRA_TOKEN` service tokens, scoped to their
+respective destination configs.
 
 Apply only after the plan matches the intended rebuild:
 

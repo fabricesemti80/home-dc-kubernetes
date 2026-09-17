@@ -121,29 +121,37 @@ tasks:
 
   tf-cloudflare-init:
     desc: Initialize the Cloudflare OpenTofu stack
-    cmd: doppler run --project home-dc-kubernetes --config infra --name-transformer tf-var -- tofu -chdir={{.TF_CLOUDFLARE_DIR}} init -upgrade
+    cmd: doppler run --project home-dc-kubernetes --config "${CLOUDFLARE_DOPPLER_CONFIG:?Set CLOUDFLARE_DOPPLER_CONFIG}" --name-transformer tf-var -- tofu -chdir={{.TF_CLOUDFLARE_DIR}} init -upgrade
     preconditions:
       - which doppler tofu
 
   tf-cloudflare-plan:
     desc: Plan the Cloudflare OpenTofu stack
-    cmd: doppler run --project home-dc-kubernetes --config infra --name-transformer tf-var -- tofu -chdir={{.TF_CLOUDFLARE_DIR}} plan -out=tfplan
+    cmd: doppler run --project home-dc-kubernetes --config "${CLOUDFLARE_DOPPLER_CONFIG:?Set CLOUDFLARE_DOPPLER_CONFIG}" --name-transformer tf-var -- tofu -chdir={{.TF_CLOUDFLARE_DIR}} plan -out=tfplan
     preconditions:
       - which doppler tofu
       - test -d {{.TF_CLOUDFLARE_DIR}}/.terraform
 
+  tf-cloudflare-migrate-doppler-state:
+    desc: Rebind legacy project-homelab Doppler state to home-dc-kubernetes
+    cmd: doppler run --project home-dc-kubernetes --config "${CLOUDFLARE_DOPPLER_CONFIG:?Set CLOUDFLARE_DOPPLER_CONFIG}" --name-transformer tf-var -- bash {{.ROOT_DIR}}/scripts/migrate-cloudflare-doppler-state.sh
+    preconditions:
+      - which doppler tofu jq
+      - test -d {{.TF_CLOUDFLARE_DIR}}/.terraform
+      - test -f {{.TF_CLOUDFLARE_DIR}}/terraform.tfstate
+
   tf-cloudflare-apply:
     desc: Apply the Cloudflare OpenTofu stack
     cmds:
-      - doppler run --project home-dc-kubernetes --config infra --name-transformer tf-var -- tofu -chdir={{.TF_CLOUDFLARE_DIR}} plan -out=tfplan
-      - doppler run --project home-dc-kubernetes --config infra --name-transformer tf-var -- tofu -chdir={{.TF_CLOUDFLARE_DIR}} apply tfplan
+      - doppler run --project home-dc-kubernetes --config "${CLOUDFLARE_DOPPLER_CONFIG:?Set CLOUDFLARE_DOPPLER_CONFIG}" --name-transformer tf-var -- tofu -chdir={{.TF_CLOUDFLARE_DIR}} plan -out=tfplan
+      - doppler run --project home-dc-kubernetes --config "${CLOUDFLARE_DOPPLER_CONFIG:?Set CLOUDFLARE_DOPPLER_CONFIG}" --name-transformer tf-var -- tofu -chdir={{.TF_CLOUDFLARE_DIR}} apply tfplan
     preconditions:
       - which doppler tofu
       - test -d {{.TF_CLOUDFLARE_DIR}}/.terraform
 
   tf-cloudflare-destroy:
     desc: Destroy the Cloudflare OpenTofu stack
-    cmd: doppler run --project home-dc-kubernetes --config infra --name-transformer tf-var -- tofu -chdir={{.TF_CLOUDFLARE_DIR}} destroy -auto-approve
+    cmd: doppler run --project home-dc-kubernetes --config "${CLOUDFLARE_DOPPLER_CONFIG:?Set CLOUDFLARE_DOPPLER_CONFIG}" --name-transformer tf-var -- tofu -chdir={{.TF_CLOUDFLARE_DIR}} destroy -auto-approve
     preconditions:
       - which doppler tofu
       - test -d {{.TF_CLOUDFLARE_DIR}}/.terraform
