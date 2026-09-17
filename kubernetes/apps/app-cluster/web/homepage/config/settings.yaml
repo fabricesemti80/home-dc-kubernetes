@@ -29,6 +29,8 @@ layout:
   App Cluster - argo-system:
   App Cluster - gaming:
   App Cluster - media:
+    style: row
+    columns: 3
   App Cluster - monitoring:
   App Cluster - productivity:
   App Cluster - web:
