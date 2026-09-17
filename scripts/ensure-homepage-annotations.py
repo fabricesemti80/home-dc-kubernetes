@@ -345,11 +345,14 @@ def update_settings(groups: set) -> bool:
     with open(SETTINGS_PATH, "r", encoding="utf-8") as f:
         text = f.read()
 
-    sorted_groups = sorted(groups)
-    layout_block = "layout:\n" + "".join(f"  {g}:\n" for g in sorted_groups)
+    layout_block = "layout:\n"
+    for group in sorted(groups):
+        layout_block += f"  {group}:\n"
+        if group == "App Cluster - media":
+            layout_block += "    style: row\n    columns: 3\n"
 
     if "layout:" in text:
-        new_text = re.sub(r"layout:\n(?:  .*:\n)*", layout_block, text)
+        new_text = re.sub(r"(?ms)^layout:\n.*\Z", layout_block, text)
     else:
         new_text = text.rstrip() + "\n\n" + layout_block
 

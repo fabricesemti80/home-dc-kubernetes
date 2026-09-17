@@ -16,4 +16,6 @@ for f in "${required[@]}"; do
   }
 done
 
+yq eval '.' "kubernetes/apps/app-cluster/web/homepage/config/settings.yaml" >/dev/null
+
 echo "Validation passed: required files present."
