@@ -29,6 +29,12 @@ layout:
   App Cluster - argo-system:
   App Cluster - gaming:
   App Cluster - media:
+  App Cluster - monitoring:
+  App Cluster - productivity:
+  App Cluster - web:
+  Infra Cluster - ai:
+  Infra Cluster - monitoring:
+  Infra Cluster - network:
     style: row
     columns: 3
   App Cluster - monitoring:
