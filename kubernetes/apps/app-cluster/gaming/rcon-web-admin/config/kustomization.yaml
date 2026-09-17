@@ -4,4 +4,3 @@ kind: Kustomization
 resources:
   - ./doppler-secret.yaml
   - ./http-route.yaml
-  - ./websocket-http-route.yaml
