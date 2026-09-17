@@ -35,11 +35,16 @@ variable "tunnel_secret" {
   default     = ""
 }
 
-variable "doppler_token" {
-  description = "Doppler token used to publish generated Cloudflare tunnel material."
+variable "doppler_apps_token" {
+  description = "Doppler apps-config token used to publish app-cluster tunnel material."
   type        = string
   sensitive   = true
-  default     = ""
+}
+
+variable "doppler_infra_token" {
+  description = "Doppler infra-config token used to publish infra-cluster tunnel material."
+  type        = string
+  sensitive   = true
 }
 
 locals {
@@ -93,6 +98,13 @@ locals {
     "immich" = {
       name          = "Immich"
       subdomain     = "photos"
+      policy_type   = "bypass"
+      session_hours = 720
+      auto_redirect = false
+    }
+    "litellm" = {
+      name          = "LiteLLM API"
+      subdomain     = "litellm"
       policy_type   = "bypass"
       session_hours = 720
       auto_redirect = false

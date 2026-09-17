@@ -41,9 +41,37 @@ Each stack also has a scoped task path:
 
 ```bash
 task tf:proxmox:plan
-task tf:cloudflare:plan
+CLOUDFLARE_DOPPLER_CONFIG=dev task tf:cloudflare:plan
 task tf:localdns:plan
 ```
+
+Cloudflare Terraform requires an explicit Doppler config, for example
+`CLOUDFLARE_DOPPLER_CONFIG=dev`; Proxmox and local-DNS tasks use `infra`.
+Generated tunnel credentials continue to be written to the `apps` or `infra`
+config for the cluster that consumes them. The selected config must contain the
+Cloudflare token, account ID, zone ID, plus `DOPPLER_APPS_TOKEN` and
+`DOPPLER_INFRA_TOKEN`: separate write-enabled service tokens for the `apps`
+and `infra` configs respectively.
+
+### Legacy Doppler state migration
+
+Older local Cloudflare state can retain tunnel-secret records under
+`project-homelab/dev_homelab`, even though the Terraform configuration writes
+to `home-dc-kubernetes`. After confirming the existing `TUNNEL_TOKEN_APPS`
+and `TUNNEL_TOKEN_INFRA` secrets are in the destination configs, run:
+
+```bash
+CLOUDFLARE_DOPPLER_CONFIG=dev CONFIRM_STATE_MIGRATION=1 task tf:cloudflare:migrate-doppler-state
+CLOUDFLARE_DOPPLER_CONFIG=dev task tf:cloudflare:plan
+```
+
+The task first verifies all six legacy bindings, copies the local state file,
+then removes them before importing the two existing tunnel-token records. The
+next plan creates the four missing credential and ID secrets in the target
+configs. If an import fails, the task restores the local state backup. It never
+deletes Doppler secrets. Review the resulting plan; stale N8N Cloudflare Access
+entries may still be proposed for deletion if their decommissioning has not
+previously been applied.
 
 ## 🚚 Migration Notes
 

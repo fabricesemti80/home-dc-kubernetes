@@ -3,14 +3,12 @@ provider "cloudflare" {
 }
 
 provider "doppler" {
-  doppler_token = var.doppler_token
+  doppler_token = var.doppler_apps_token
 }
 
-data "doppler_secrets" "cloudflare" {
-  count = var.doppler_token != "" ? 1 : 0
-
-  config  = "infra"
-  project = "home-dc-kubernetes"
+provider "doppler" {
+  alias         = "infra"
+  doppler_token = var.doppler_infra_token
 }
 
 resource "random_id" "kubernetes_tunnel_secret" {
@@ -28,14 +26,14 @@ resource "cloudflare_zero_trust_tunnel_cloudflared" "kubernetes" {
 }
 
 resource "local_file" "kubernetes_tunnel_credentials" {
-  count = var.doppler_token != "" ? 1 : 0
+  count = 1
 
   content  = local.kubernetes_tunnel_credentials_json
   filename = pathexpand("${path.module}/../../cloudflare-tunnel.json")
 }
 
 resource "doppler_secret" "kubernetes_tunnel_credentials" {
-  count = var.doppler_token != "" ? 1 : 0
+  count = 1
 
   config     = "apps"
   project    = "home-dc-kubernetes"
@@ -45,7 +43,7 @@ resource "doppler_secret" "kubernetes_tunnel_credentials" {
 }
 
 resource "doppler_secret" "kubernetes_tunnel_id" {
-  count = var.doppler_token != "" ? 1 : 0
+  count = 1
 
   config  = "apps"
   project = "home-dc-kubernetes"
@@ -54,7 +52,7 @@ resource "doppler_secret" "kubernetes_tunnel_id" {
 }
 
 resource "doppler_secret" "kubernetes_tunnel_token" {
-  count = var.doppler_token != "" ? 1 : 0
+  count = 1
 
   config  = "apps"
   project = "home-dc-kubernetes"
@@ -73,7 +71,7 @@ resource "cloudflare_zero_trust_tunnel_cloudflared" "kubernetes_infra" {
 }
 
 resource "local_file" "kubernetes_infra_tunnel_credentials" {
-  count = var.doppler_token != "" ? 1 : 0
+  count = 1
 
   content = jsonencode({
     AccountTag   = var.cloudflare_account_id
@@ -85,7 +83,8 @@ resource "local_file" "kubernetes_infra_tunnel_credentials" {
 }
 
 resource "doppler_secret" "kubernetes_infra_tunnel_credentials" {
-  count = var.doppler_token != "" ? 1 : 0
+  provider = doppler.infra
+  count    = 1
 
   config  = "infra"
   project = "home-dc-kubernetes"
@@ -100,7 +99,8 @@ resource "doppler_secret" "kubernetes_infra_tunnel_credentials" {
 }
 
 resource "doppler_secret" "kubernetes_infra_tunnel_id" {
-  count = var.doppler_token != "" ? 1 : 0
+  provider = doppler.infra
+  count    = 1
 
   config  = "infra"
   project = "home-dc-kubernetes"
@@ -109,7 +109,8 @@ resource "doppler_secret" "kubernetes_infra_tunnel_id" {
 }
 
 resource "doppler_secret" "kubernetes_infra_tunnel_token" {
-  count = var.doppler_token != "" ? 1 : 0
+  provider = doppler.infra
+  count    = 1
 
   config  = "infra"
   project = "home-dc-kubernetes"
