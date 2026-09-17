@@ -25,7 +25,8 @@ flowchart LR
 -   Networking: the infra Envoy gateway serves `litellm.krapulax.home`; the infra
     Cloudflare tunnel serves `litellm.krapulax.dev`.
 -   Homepage runs on the app cluster and cannot discover infra-cluster routes, so
-    LiteLLM is mirrored in Homepage's static services configuration.
+    the Homepage annotation generator mirrors LiteLLM in its static services
+    configuration.
 -   Model catalog: direct OpenAI and OpenRouter. Names are
     provider-qualified (for example, `openai/gpt-5-mini`) so callers explicitly
     select the provider and cost/quality tier.

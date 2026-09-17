@@ -11,7 +11,7 @@ metadata:
     gethomepage.dev/enabled: "true"
     gethomepage.dev/group: "Infra Cluster - monitoring"
     gethomepage.dev/href: "https://pulse.krapulax.dev"
-    gethomepage.dev/icon: "mdi-heart-pulse"
+    gethomepage.dev/icon: "https://raw.githubusercontent.com/rcourtman/Pulse/main/docs/images/pulse-logo.png"
     gethomepage.dev/name: "Pulse"
     gethomepage.dev/weight: "20"
 spec:

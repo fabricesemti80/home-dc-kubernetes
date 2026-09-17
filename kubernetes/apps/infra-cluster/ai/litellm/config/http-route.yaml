@@ -11,7 +11,7 @@ metadata:
     gethomepage.dev/enabled: "true"
     gethomepage.dev/group: "Infra Cluster - ai"
     gethomepage.dev/href: "https://litellm.krapulax.dev/ui"
-    gethomepage.dev/icon: "litellm.png"
+    gethomepage.dev/icon: "https://cdn.jsdelivr.net/gh/selfhst/icons/png/litellm.png"
     gethomepage.dev/name: "LiteLLM"
     gethomepage.dev/weight: "20"
 spec:
