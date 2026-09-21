@@ -5,7 +5,7 @@ global:
 controllers:
   technitium:
     type: statefulset
-    replicas: 2
+    replicas: 1
     strategy: RollingUpdate
     statefulset:
       podManagementPolicy: Parallel
@@ -27,21 +27,6 @@ controllers:
           size: 1Gi
           globalMounts:
             - path: /var/log/technitium/dns
-    pod:
-      affinity:
-        podAntiAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            - labelSelector:
-                matchExpressions:
-                  - key: app.kubernetes.io/instance
-                    operator: In
-                    values:
-                      - technitium
-                  - key: app.kubernetes.io/controller
-                    operator: In
-                    values:
-                      - technitium
-              topologyKey: kubernetes.io/hostname
     containers:
       app:
         image:

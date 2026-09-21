@@ -4,12 +4,12 @@
 
 Date: 2026-07-30
 
-Deploy Technitium DNS Server on the infra cluster as a two-replica StatefulSet. Each replica keeps its own config on a retained static node-local PVC; Technitium clustering is responsible for consistency.
+Deploy Technitium DNS Server on the infra cluster as a single-replica StatefulSet using the existing `technitium-0` retained static node-local PVC. This removes the failed cluster replication path while preserving RFC2136 updates for `krapulax.home`.
 
 ## Assumptions
 
--   Infra nodes are currently `infra-cp-01` and `infra-wk-01`; two replicas with required hostname anti-affinity place one Technitium pod on each node.
--   Static `technitium-local` PVs bind `technitium-0` storage to `infra-cp-01` and `technitium-1` storage to `infra-wk-01`.
+-   `technitium-0` uses the static `technitium-local` PVs on `infra-cp-01`.
+-   The retained `technitium-1` PVs remain unused for recovery and are not deleted by this change.
 -   Control-plane scheduling remains allowed for infra support services.
 -   `10.0.40.53` is free on the LAN and should be used as the home-router DNS target.
 -   The intended local DNS zone is `krapulax.home`.
@@ -37,29 +37,22 @@ Two RFC2136 ExternalDNS deployments publish internal Kubernetes routes into Tech
 
 Both writers are filtered to `krapulax.home`. They do not manage `krapulax.dev`.
 
-## Clustering
+## Single-instance operation
 
-After deployment, initialize a new Technitium cluster on `technitium-0`, then join `technitium-1` as a secondary. Cluster node addresses must use the stable per-replica Services, never pod IPs:
+`technitium-0` is the sole authoritative `krapulax.home` server. The public `technitium-dns` LoadBalancer at `10.0.40.53` remains the resolver used by LAN and Tailscale clients.
 
--   `technitium-peer-0.network.svc.cluster.local` for `technitium-0`
--   `technitium-peer-1.network.svc.cluster.local` for `technitium-1`
-
-Each Service selects one StatefulSet ordinal and exposes DNS plus the HTTPS cluster API only inside the infra cluster. This keeps peer identities unchanged when a pod is recreated. The public `technitium-dns` LoadBalancer at `10.0.40.53` remains the resolver used by LAN and Tailscale clients.
-
-Create the `krapulax.home` primary zone in Technitium, enable RFC2136 dynamic updates with the Doppler-managed TSIG key, and include that zone in the cluster catalog so it replicates across nodes. `krapulax.dev` remains in Cloudflare and is not configured on these RFC2136 writers.
+Create the `krapulax.home` primary zone in Technitium and enable RFC2136 dynamic updates with the Doppler-managed TSIG key. `krapulax.dev` remains in Cloudflare and is not configured on these RFC2136 writers.
 
 ## Recovery and Validation
-
-Run `task dns:technitium:repair` after the peer Services are deployed, and whenever a peer shows `Unreachable`. The task authenticates with the existing Doppler-managed password without printing it, enables the existing cluster TSIG key for `krapulax.home` transfers, repoints both nodes to their stable Service IPs, and resyncs the secondary zone.
 
 Validate with:
 
 ```bash
-task dns:technitium:repair
+kubectl rollout status statefulset/technitium -n network
 dig +short minecraft.krapulax.home @10.0.40.53
 ```
 
-Both replicas must report the primary as `Connected`; the final query must return `10.0.40.112`.
+The StatefulSet must report `1/1` ready and the final query must return `10.0.40.112`.
 
 ## Rollback
 
@@ -67,5 +60,4 @@ Both replicas must report the primary as `Connected`; the final query must retur
 -   Delete or disable `kubernetes/argo/apps/app-cluster/network/technitium-dns.yaml` and `kubernetes/argo/apps/infra-cluster/network/technitium-dns-infra.yaml`.
 -   Point the home router DHCP DNS option back to the previous resolver.
 -   Remove `10.0.40.53/32` from the infra Cilium LoadBalancer pool if unused.
--   Delete the `technitium-peer-*` Services only after moving the cluster peers to replacement stable addresses.
 -   Local config remains in retained static node-local PVs for inspection or restore.
