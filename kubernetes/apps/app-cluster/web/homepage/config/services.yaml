@@ -18,4 +18,8 @@
     - Pi-hole:
         icon: pi-hole.png
         href: https://dns.krapulax.dev
-        description: Local DNS and ad blocking
+        description: Pihole External service
+    - Technitium:
+        icon: technitium.png
+        href: https://dns.krapulax.dev
+        description: Authoritative local DNS
