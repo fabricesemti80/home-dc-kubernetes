@@ -15,10 +15,6 @@
         description: External availability monitoring
 
 - Infra Cluster - network:
-    - Pi-hole:
-        icon: pi-hole.png
-        href: https://dns.krapulax.dev
-        description: Pihole External service
     - Technitium:
         icon: technitium.png
         href: https://dns.krapulax.dev
