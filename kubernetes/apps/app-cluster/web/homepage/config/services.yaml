@@ -15,7 +15,7 @@
         description: External availability monitoring
 
 - Infra Cluster - network:
-    - Technitium:
-        icon: technitium.png
+    - Pi-hole:
+        icon: pi-hole.png
         href: https://dns.krapulax.dev
-        description: Authoritative local DNS
+        description: Local DNS and ad blocking

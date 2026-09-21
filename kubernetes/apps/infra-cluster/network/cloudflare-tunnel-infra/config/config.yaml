@@ -13,7 +13,7 @@ data:
       - hostname: pulse.krapulax.dev
         service: http://pulse.monitoring.svc.cluster.local:7655
       - hostname: dns.krapulax.dev
-        service: http://pihole.network.svc.cluster.local:80
+        service: http://10.0.40.105:80
       - hostname: uptime.krapulax.dev
         service: http://uptime-kuma.monitoring.svc.cluster.local:3001
       - service: http_status:404

@@ -5,10 +5,11 @@ metadata:
   name: technitium-external
   namespace: network
   annotations:
+    autokuma.io/enabled: "false"
     external-dns.alpha.kubernetes.io/hostname: dns.krapulax.dev
     external-dns.alpha.kubernetes.io/target: external-infra.krapulax.dev
     gethomepage.dev/description: "Authoritative local DNS"
-    gethomepage.dev/enabled: "true"
+    gethomepage.dev/enabled: "false"
     gethomepage.dev/group: "Infra Cluster - network"
     gethomepage.dev/href: "https://dns.krapulax.dev"
     gethomepage.dev/icon: "technitium.png"
