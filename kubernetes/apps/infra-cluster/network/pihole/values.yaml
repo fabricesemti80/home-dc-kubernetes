@@ -1,0 +1,69 @@
+---
+controllers:
+  pihole:
+    replicas: 1
+    strategy: Recreate
+    containers:
+      app:
+        image:
+          repository: docker.io/pihole/pihole
+          tag: "2025.08.0"
+        env:
+          TZ: Europe/Istanbul
+          FTLCONF_dns_listeningMode: all
+          FTLCONF_dns_upstreams: "1.1.1.1;1.0.0.1"
+          FTLCONF_misc_etc_dnsmasq_d: "true"
+          FTLCONF_webserver_api_password:
+            valueFrom:
+              secretKeyRef:
+                name: pihole-secrets
+                key: PIHOLE_WEB_PASSWORD
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop: ["ALL"]
+            add: ["NET_BIND_SERVICE"]
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            memory: 512Mi
+
+defaultPodOptions:
+  automountServiceAccountToken: false
+
+service:
+  app:
+    controller: pihole
+    ports:
+      http:
+        port: 80
+  dns:
+    controller: pihole
+    type: LoadBalancer
+    annotations:
+      io.cilium/lb-ipam-ips: 10.0.40.53
+    ports:
+      tcp:
+        port: 53
+        protocol: TCP
+      udp:
+        port: 53
+        protocol: UDP
+
+persistence:
+  etc-pihole:
+    type: persistentVolumeClaim
+    accessMode: ReadWriteOnce
+    storageClass: cephfs
+    size: 1Gi
+    globalMounts:
+      - path: /etc/pihole
+  dnsmasq:
+    type: configMap
+    name: pihole-dnsmasq
+    globalMounts:
+      - path: /etc/dnsmasq.d/99-krapulax-home.conf
+        subPath: 99-krapulax-home.conf
+        readOnly: true

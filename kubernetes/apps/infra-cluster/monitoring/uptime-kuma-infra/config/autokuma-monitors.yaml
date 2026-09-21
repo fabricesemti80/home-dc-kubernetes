@@ -35,7 +35,7 @@ data:
   dns.json: |-
     {
       "type": "http",
-      "name": "Technitium",
+      "name": "Pi-hole",
       "url": "https://dns.krapulax.dev",
       "interval": 60,
       "max_retries": 3
