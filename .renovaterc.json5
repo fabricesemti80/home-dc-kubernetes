@@ -40,6 +40,16 @@
   },
   packageRules: [
     {
+      description: 'Hold ExternalDNS updates until Cloudflare Tunnel HTTPRoute CNAME reconciliation is validated',
+      matchDatasources: [
+        'helm',
+      ],
+      matchPackageNames: [
+        'external-dns',
+      ],
+      enabled: false,
+    },
+    {
       description: 'Hold Linkwarden image updates until the v2.15.1 crashloop is resolved',
       matchDatasources: [
         'docker',

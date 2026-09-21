@@ -2,6 +2,17 @@
 
 This document captures architectural and automation work that is intentionally deferred. Items should be converted into implementation pull requests when time permits.
 
+## ☁️ Validate ExternalDNS upgrades before re-enabling Renovate
+
+ExternalDNS chart `1.22.0` changed Cloudflare Tunnel HTTPRoute reconciliation: it attempted to publish proxied A records for the private Envoy address (`10.0.40.103`) instead of the configured tunnel CNAME targets. Cloudflare rejected those records and withdrew public `*.krapulax.dev` DNS during sync.
+
+### 🔹 Completion criteria
+
+-   reproduce and resolve the `1.22.0` reconciliation behavior in a non-production zone or cluster;
+-   confirm HTTPRoute records remain CNAMEs to `external-apps.krapulax.dev` or `external-infra.krapulax.dev`;
+-   validate both public DNS and HTTPS after upgrade;
+-   remove the ExternalDNS Renovate hold only after the validation succeeds.
+
 ## 🔧 Create GitHub Actions for Taskfile tasks that do not need to be manual
 
 Review the repository Taskfile targets and identify deterministic tasks that should run automatically in GitHub Actions rather than relying on a developer to remember them.

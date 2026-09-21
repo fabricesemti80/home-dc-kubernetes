@@ -100,6 +100,39 @@ Rollback:
 
 -   Remove the Linkwarden-specific package rule from `.renovaterc.json5` after a newer image is manually tested and rolled out successfully.
 
+### 🔖 ExternalDNS Renovate hold
+
+Decision:
+
+-   Roll the `cloudflare-dns` Argo application back to ExternalDNS chart `1.21.1` and disable Renovate updates for the `external-dns` Helm chart.
+
+Context:
+
+-   The automated upgrade to chart `1.22.0` on 2026-09-20 deployed ExternalDNS `v0.22.0`.
+-   It attempted to publish Cloudflare-proxied A records for the private Envoy address `10.0.40.103` instead of the configured Cloudflare Tunnel CNAME targets. Cloudflare rejected the records, producing a public DNS outage for `*.krapulax.dev`.
+
+Assumptions:
+
+-   Chart `1.21.1` / ExternalDNS `v0.21.0` is the last known-good release for the current Cloudflare Tunnel and Gateway HTTPRoute configuration.
+-   A tested correction must preserve CNAME records to `external-apps.krapulax.dev` and `external-infra.krapulax.dev`.
+
+Validation checks:
+
+-   `kubectl -n argo-system get application cloudflare-dns`
+-   `kubectl -n network get deploy cloudflare-dns -o jsonpath='{.spec.template.spec.containers[0].image}'`
+-   `dig +short qbittorrent.krapulax.dev CNAME @1.1.1.1`
+-   `curl -I https://qbittorrent.krapulax.dev`
+
+Rollback:
+
+-   Revert the chart target revision to `1.22.0` only after non-production validation confirms public CNAME and HTTPS routing.
+-   Remove the ExternalDNS-specific Renovate rule only with that validated upgrade.
+
+Next actions:
+
+-   [ ] Reproduce the chart `1.22.0` reconciliation in non-production and document the corrected configuration.
+-   [ ] Re-enable Renovate after public DNS and HTTPS validation succeeds.
+
 ### 🚀 App rollout fixes for July 2026 image updates
 
 Decision:
