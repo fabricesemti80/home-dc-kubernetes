@@ -31,7 +31,7 @@ controllers:
       app:
         image:
           repository: docker.io/technitium/dns-server
-          tag: "15.4.0"
+          tag: "15.5.0"
         env:
           TZ: Europe/London
           DNS_SERVER_WEB_SERVICE_HTTP_PORT: "5380"
