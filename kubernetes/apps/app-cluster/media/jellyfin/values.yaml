@@ -4,6 +4,8 @@ global:
 
 defaultPodOptions:
   automountServiceAccountToken: false
+  nodeSelector:
+    kubernetes.io/hostname: k8s-ctrl-03
 
 controllers:
   jellyfin:
@@ -92,6 +94,3 @@ persistence:
     existingClaim: media-library-pvc
     globalMounts:
       - path: /data
-
-nodeSelector:
-  kubernetes.io/hostname: k8s-ctrl-03
