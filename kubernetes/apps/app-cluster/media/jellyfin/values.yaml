@@ -94,4 +94,4 @@ persistence:
       - path: /data
 
 nodeSelector:
-  kubernetes.io/hostname: k8s-ctrl-03
+  kubernetes.io/hostname: k8s-ctrl-01
