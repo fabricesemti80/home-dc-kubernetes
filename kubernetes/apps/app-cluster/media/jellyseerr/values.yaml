@@ -4,6 +4,8 @@ global:
 
 defaultPodOptions:
   automountServiceAccountToken: false
+  nodeSelector:
+    kubernetes.io/hostname: k8s-ctrl-02
 
 controllers:
   jellyseerr:
@@ -54,6 +56,3 @@ persistence:
     size: 2Gi
     globalMounts:
       - path: /app/config
-
-nodeSelector:
-  kubernetes.io/hostname: k8s-ctrl-02
