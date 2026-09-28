@@ -4,6 +4,8 @@ global:
 
 defaultPodOptions:
   automountServiceAccountToken: false
+  nodeSelector:
+    kubernetes.io/hostname: k8s-ctrl-03
 
 controllers:
   immich:
@@ -217,6 +219,3 @@ persistence:
       database:
         app:
           - path: /var/lib/postgresql/data
-
-nodeSelector:
-  kubernetes.io/hostname: k8s-ctrl-03
