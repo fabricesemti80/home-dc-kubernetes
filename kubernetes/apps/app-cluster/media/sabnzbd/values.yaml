@@ -92,6 +92,8 @@ controllers:
 defaultPodOptions:
   automountServiceAccountToken: false
   hostname: sabnzbd
+  nodeSelector:
+    kubernetes.io/hostname: k8s-ctrl-01
 
 service:
   app:

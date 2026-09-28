@@ -4,6 +4,8 @@ global:
 
 defaultPodOptions:
   automountServiceAccountToken: false
+  nodeSelector:
+    kubernetes.io/hostname: k8s-ctrl-02
 
 controllers:
   radarr:
