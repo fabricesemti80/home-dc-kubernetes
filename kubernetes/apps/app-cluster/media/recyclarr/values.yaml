@@ -37,6 +37,8 @@ defaultPodOptions:
     runAsUser: 0
     runAsGroup: 0
     fsGroup: 0
+  nodeSelector:
+    kubernetes.io/hostname: k8s-ctrl-02
 
 persistence:
   config:
@@ -53,6 +55,3 @@ persistence:
       - path: /config/configs/recyclarr.yml
         subPath: recyclarr.yml
         readOnly: true
-
-nodeSelector:
-  kubernetes.io/hostname: k8s-ctrl-02
