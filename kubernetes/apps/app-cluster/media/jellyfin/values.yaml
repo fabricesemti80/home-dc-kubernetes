@@ -92,3 +92,6 @@ persistence:
     existingClaim: media-library-pvc
     globalMounts:
       - path: /data
+
+nodeSelector:
+  kubernetes.io/hostname: k8s-ctrl-03

@@ -117,3 +117,6 @@ persistence:
     globalMounts:
       - path: /incomplete-downloads
         subPath: downloads/incomplete
+
+nodeSelector:
+  kubernetes.io/hostname: k8s-ctrl-01

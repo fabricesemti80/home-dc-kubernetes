@@ -53,3 +53,6 @@ persistence:
       - path: /config/configs/recyclarr.yml
         subPath: recyclarr.yml
         readOnly: true
+
+nodeSelector:
+  kubernetes.io/hostname: k8s-ctrl-02

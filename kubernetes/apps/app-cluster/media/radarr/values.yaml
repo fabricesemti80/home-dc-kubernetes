@@ -66,3 +66,6 @@ persistence:
     globalMounts:
       - path: /downloads
         subPath: downloads/complete
+
+nodeSelector:
+  kubernetes.io/hostname: k8s-ctrl-02

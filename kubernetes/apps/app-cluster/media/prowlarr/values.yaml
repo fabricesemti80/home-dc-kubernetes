@@ -55,3 +55,6 @@ persistence:
     size: 2Gi
     globalMounts:
       - path: /config
+
+nodeSelector:
+  kubernetes.io/hostname: k8s-ctrl-02
