@@ -80,6 +80,8 @@ controllers:
 defaultPodOptions:
   automountServiceAccountToken: false
   hostname: qbittorrent
+  nodeSelector:
+    kubernetes.io/hostname: k8s-ctrl-01
 
 service:
   app:
@@ -117,6 +119,3 @@ persistence:
     globalMounts:
       - path: /incomplete-downloads
         subPath: downloads/incomplete
-
-nodeSelector:
-  kubernetes.io/hostname: k8s-ctrl-01
