@@ -14,7 +14,7 @@ flowchart TD
     Immich -->|Manual pg_dump| Dump
 ```
 
-### 🗄️ PostgreSQL Databases
+### 🗄️ Database Inventory
 
 | App            | Namespace    | Data / PVC                             | Backup Strategy                                                     |
 | -------------- | ------------ | -------------------------------------- | ------------------------------------------------------------------- |
