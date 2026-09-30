@@ -6,9 +6,9 @@ The app cluster is IPv4-only: Cilium has IPv6 disabled and nodes have no IPv6 de
 
 ## Assumptions and security impact
 
-- No workload requires IPv6 egress or IPv6-only DNS records.
-- The policy changes DNS answers only; it does not expose services, alter credentials, or bypass TLS validation.
-- A future dual-stack rollout must remove this policy after IPv6 addressing, routing, and Cilium support are verified end-to-end.
+-   No workload requires IPv6 egress or IPv6-only DNS records.
+-   The policy changes DNS answers only; it does not expose services, alter credentials, or bypass TLS validation.
+-   A future dual-stack rollout must remove this policy after IPv6 addressing, routing, and Cilium support are verified end-to-end.
 
 ## Validation and rollback
 

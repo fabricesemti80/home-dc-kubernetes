@@ -20,8 +20,12 @@ Deploy Home Assistant to the app-cluster (`app-cluster`, Talos) as a single-repl
 -   **Network**: HA is reachable only on VLAN 30 via `ha.krapulax.home`; no public HTTPRoute/Cloudflare exposure. The VLAN 30 firewall profile is governed by the repo's network configuration.
 -   **Pod**: UID 0 is required by the official image, mitigated by `allowPrivilegeEscalation: false`, `capabilities: drop ALL`, read-only rootfs, and writable paths limited to `/config` (PVC), `/run` and `/tmp` (emptyDirs).
 -   **Secrets**: no credentials are embedded; any integrations needing tokens will use the repo's established secret strategy (SOPS/Doppler) rather than plaintext values.
--   **Backup**: HA state is on CephFS; the repo's database-backup strategy covers the recorder DB, and CephFS snapshots are the recovery baseline for `/config`.
+-   **Backup**: The SQLite recorder and HA state are on the CephFS `/config` PVC. The repository's database-backup strategy does not configure an HA application backup. The storage guide describes external Proxmox CephFS backups, but their cadence and restore have not been verified here; do not treat CephFS replication or PVC retention as a tested backup.
 -   **ServiceAccount**: a dedicated `home-assistant` ServiceAccount exists with `automountServiceAccountToken: false`; the pod does not mount the token.
+
+## Backup Status (2026-09-30)
+
+This supersedes the previous statement that the repository's database-backup strategy covers the Home Assistant recorder. That strategy covers PostgreSQL services only and does not configure an HA application backup. The storage guide describes external Proxmox CephFS backups, but this repository does not verify their schedule, retention, or restore success.
 
 ## Validation
 
