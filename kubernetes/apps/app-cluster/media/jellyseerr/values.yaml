@@ -15,6 +15,7 @@ controllers:
         image:
           repository: fallenbagel/jellyseerr
           tag: latest
+          digest: sha256:4538137bc5af902dece165f2bf73776d9cf4eafb6dd714670724af8f3eb77764
         env:
           TZ: Europe/London
           PUID: "0"

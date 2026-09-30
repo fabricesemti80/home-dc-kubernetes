@@ -15,6 +15,7 @@ controllers:
         image:
           repository: lscr.io/linuxserver/prowlarr
           tag: latest
+          digest: sha256:7ab5769616c1929247c8e7944453253f0b777fac2724c3bc9976ae2ff4023257
         env:
           TZ: Europe/London
           PUID: "0"

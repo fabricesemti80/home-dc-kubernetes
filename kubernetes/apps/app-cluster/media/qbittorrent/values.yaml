@@ -10,6 +10,7 @@ controllers:
         image:
           repository: lscr.io/linuxserver/qbittorrent
           tag: latest
+          digest: sha256:abbf2aeeb58b641977a012d0ab69939eb277cb827078450b142f782b1cd6893c
         command:
           - /usr/bin/python3
           - -c
@@ -50,6 +51,7 @@ controllers:
         image:
           repository: lscr.io/linuxserver/qbittorrent
           tag: latest
+          digest: sha256:abbf2aeeb58b641977a012d0ab69939eb277cb827078450b142f782b1cd6893c
         env:
           TZ: Europe/London
           PUID: "0"
