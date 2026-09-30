@@ -8,22 +8,26 @@ This document tracks the backup strategy for databases in the cluster.
 flowchart TD
     Linkwarden[(Linkwarden Postgres)] -->|No auto backup| Risk[Data Loss Risk]
     Immich[(Immich Postgres)] -->|No auto backup| Risk
-    CephFS[CephFS Replication] -->|Protects storage| PVC[Database PVCs]
+    CephFS[CephFS Replication] -->|Availability, not backup| PVC[Stateful PVCs]
+    HomeAssistant[(Home Assistant SQLite)] -->|No verified app backup| Risk
     Linkwarden -->|Manual pg_dump| Dump[Operator Backup]
     Immich -->|Manual pg_dump| Dump
 ```
 
-### 🗄️ PostgreSQL Databases
+### 🗄️ Database Inventory
 
-| App        | Namespace    | PVC                               | Backup Strategy |
-| ---------- | ------------ | --------------------------------- | --------------- |
-| Linkwarden | productivity | linkwarden-postgres-data (CephFS) | None currently  |
-| Immich     | media        | immich-database-data (CephFS)     | None currently  |
+| App            | Namespace    | Data / PVC                             | Backup Strategy                                                     |
+| -------------- | ------------ | -------------------------------------- | ------------------------------------------------------------------- |
+| Linkwarden     | productivity | linkwarden-postgres-data (CephFS)      | None currently                                                      |
+| Immich         | media        | immich-database-data (CephFS)          | None currently                                                      |
+| Home Assistant | home         | SQLite recorder and `/config` (CephFS) | External CephFS backup is described; cadence and restore unverified |
 
 ## 📝 Notes
 
--   All database PVCs are backed by CephFS with replication
--   No automated backup solution currently implemented
+-   CephFS replication protects storage availability; it is not a backup
+-   No application-level automated database backup is defined in this repository
+-   The storage guide says CephFS backups are handled by Proxmox jobs configured in Ansible. Those jobs, their retention, and a successful restore are outside this repository and must be verified independently.
+-   Home Assistant's SQLite recorder and UI state live in `/config`. The database backup strategy does not configure an application-level Home Assistant backup.
 -   For production, consider:
     -   [Kasten K10](https://www.kasten.io/) - Kubernetes-native backup
     -   [Velero](https://velero.io/) - Generic K8s backup
