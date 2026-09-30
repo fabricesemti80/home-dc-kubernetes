@@ -53,6 +53,19 @@ controllers:
               timeoutSeconds: 10
               failureThreshold: 3
           readiness: *probes
+          # Jellyfin validates ffmpeg capabilities during startup. Keep it out
+          # of service endpoints until /health succeeds, without liveness
+          # restarts interrupting that validation.
+          startup:
+            enabled: true
+            custom: true
+            spec:
+              httpGet:
+                path: /health
+                port: 8096
+              periodSeconds: 10
+              timeoutSeconds: 10
+              failureThreshold: 60
         resources:
           requests:
             cpu: 2000m
