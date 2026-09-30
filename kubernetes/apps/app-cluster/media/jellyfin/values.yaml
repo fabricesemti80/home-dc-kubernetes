@@ -9,7 +9,9 @@ defaultPodOptions:
 
 controllers:
   jellyfin:
-    strategy: RollingUpdate
+    # Config includes SQLite state and the workload is pinned to one node;
+    # do not require two 3GiB pods during an update.
+    strategy: Recreate
     pod:
       affinity:
         podAntiAffinity:
