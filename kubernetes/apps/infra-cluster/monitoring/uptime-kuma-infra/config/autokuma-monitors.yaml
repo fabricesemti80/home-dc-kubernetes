@@ -112,6 +112,14 @@ data:
       "interval": 60,
       "max_retries": 3
     }
+  notes.json: |-
+    {
+      "type": "http",
+      "name": "AFFiNE",
+      "url": "https://notes.krapulax.dev",
+      "interval": 60,
+      "max_retries": 3
+    }
   pdf.json: |-
     {
       "type": "http",
