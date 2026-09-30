@@ -118,6 +118,7 @@ This avoids coupling runtime app internals to guessed static secrets in Doppler.
 -   SABnzbd server credentials should not be committed; if later automated, source them from Doppler
 -   qBittorrent WebUI password is sourced from Doppler (`home-dc-kubernetes/apps`, `QBITTORRENT_WEBUI_PASSWORD`). An init container derives qBittorrent's PBKDF2 setting on CephFS before the app starts; the plaintext password is never written to Git or exposed to the main container.
 -   qBittorrent peer efficiency depends on a manual router forward to the peer `LoadBalancer` IP and is not handled by Cloudflare
+
 -   Recyclarr API credentials should be sourced from Doppler rather than committed into Git
 -   Tdarr is deployed with UI auth disabled initially; enable application authentication in the UI before exposing it beyond trusted admin access
 -   Tdarr transcode cache is intentionally disposable and isolated under `/media/tdarr-cache`; do not store source media or retained outputs under `/temp`
@@ -144,6 +145,15 @@ already exist or can be created on the NFS server before workloads start.
 -   `qbittorrent-secrets` is synced by the Doppler operator and the qBittorrent init container completes before the app starts
 -   `sonarr` serves its UI and can see both `/media` and `/downloads`
 -   `sonarr` can resolve `ffprobe` from the container `PATH`
+
+## 📦 Container Image Pinning (2026-09-30)
+
+The Jellyseerr, Prowlarr, and qBittorrent containers retain their upstream `latest` tags for Renovate discovery, while Kubernetes receives an explicit immutable digest. Renovate must update the digest through a reviewed PR; workloads do not silently change when an upstream tag moves.
+
+This supersedes tag-only image resolution for these three workloads. The pinned digests were taken from their running pods and validated against rendered app-template manifests, including both qBittorrent containers.
+
+Rollback by reverting the digest fields to restore tag-only resolution. Validate image updates by reviewing the digest and rendering the affected app-template release before merge.
+
 -   `prowlarr` serves its UI and can reach Sonarr over the in-cluster service
 -   `recyclarr` can run against Sonarr without authentication failures
 -   `radarr` serves its UI and can see both `/media` and `/downloads`
