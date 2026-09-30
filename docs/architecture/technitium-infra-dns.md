@@ -49,10 +49,10 @@ Validate with:
 
 ```bash
 kubectl rollout status statefulset/technitium -n network
-dig +short minecraft.krapulax.home @10.0.40.53
+dig +short SOA krapulax.home @10.0.40.53
 ```
 
-The StatefulSet must report `1/1` ready and the final query must return `10.0.40.112`.
+The StatefulSet must report `1/1` ready and the final query must return the zone's SOA record.
 
 ## Rollback
 
