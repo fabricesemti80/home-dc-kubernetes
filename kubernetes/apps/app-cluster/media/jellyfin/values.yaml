@@ -43,7 +43,20 @@ controllers:
           JELLYFIN_EncodingThreadCount: "8"
           JELLYFIN_CACHE_DIR: /cache
         probes:
-          liveness: &probes
+          # Kestrel is live while Jellyfin's ffmpeg capability scan temporarily
+          # makes /health return 503. Do not restart a healthy process mid-scan.
+          liveness:
+            enabled: true
+            custom: true
+            spec:
+              tcpSocket:
+                port: 8096
+              initialDelaySeconds: 60
+              periodSeconds: 30
+              timeoutSeconds: 10
+              failureThreshold: 3
+          # Keep traffic gated on the application-level health endpoint.
+          readiness:
             enabled: true
             custom: true
             spec:
@@ -54,7 +67,6 @@ controllers:
               periodSeconds: 30
               timeoutSeconds: 10
               failureThreshold: 3
-          readiness: *probes
           # Jellyfin validates ffmpeg capabilities during startup. Keep it out
           # of service endpoints until /health succeeds, without liveness
           # restarts interrupting that validation.

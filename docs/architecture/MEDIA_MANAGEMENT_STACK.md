@@ -135,7 +135,7 @@ already exist or can be created on the NFS server before workloads start.
 ## ✅ Validation
 
 -   Argo sync succeeds for the deployed apps
--   Jellyfin may take up to ten minutes for FFmpeg capability validation; its startup probe must pass before liveness checks begin, and `/health` remains the readiness gate.
+-   Jellyfin may take up to ten minutes for FFmpeg capability validation. TCP liveness confirms Kestrel is running without interrupting that scan, while `/health` remains the readiness gate.
 -   Jellyfin uses `Recreate` because its SQLite-backed configuration and node-pinned resource request cannot safely support concurrent old and new pods.
 -   PVCs bind on CephFS
 -   pods mount both CephFS config and NFS library paths
