@@ -1,4 +1,11 @@
 fullnameOverride: "argocd"
+global:
+  # GHCR blob downloads select IPv6 by default, but this cluster has no IPv6
+  # egress. Limit the override to GitHub's documented IPv4 endpoint.
+  hostAliases:
+    - ip: 185.199.108.154
+      hostnames:
+        - pkg-containers.githubusercontent.com
 crds:
   install: true
   # -- Keep CRDs on chart uninstall
@@ -207,7 +214,7 @@ repoServer:
           memory: 128Mi
         limits:
           cpu: 250m
-          memory: 256Mi
+          memory: 512Mi
       command: [sh, -ec]
       args:
         - |
