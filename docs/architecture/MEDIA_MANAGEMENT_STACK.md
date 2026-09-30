@@ -92,7 +92,12 @@ Planned pod paths:
     -   `/media` on NFS
     -   `/temp` on NFS subpath `tdarr-cache` for shared transient transcode cache
     -   server/UI runs as a single pod with its internal node disabled
-    -   three `tdarr_node` worker pods are pinned one per Kubernetes node, with a total CPU limit of 12 cores across the 24-core cluster
+    -   the server and one `tdarr_node` worker are active on `k8s-ctrl-01`; the `k8s-ctrl-02` worker remains disabled after causing heavy I/O during control-plane recovery, and no `k8s-ctrl-03` worker is configured
+    -   active Tdarr CPU limits total 4 cores (500m for the server and 3.5 cores for the worker)
+
+## 🎞️ Current Tdarr Placement (2026-09-30)
+
+This supersedes the earlier plan for three workers and a 12-core Tdarr limit. The current configuration runs one worker on `k8s-ctrl-01`; `k8s-ctrl-02` remains disabled after heavy I/O during control-plane recovery, and no worker is configured on `k8s-ctrl-03`. Re-enable or add workers only after checking node I/O and CPU headroom.
 
 ## 📌 API-Key Automation Direction
 
