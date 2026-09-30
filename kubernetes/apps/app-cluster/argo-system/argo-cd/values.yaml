@@ -204,10 +204,12 @@ repoServer:
       resources:
         requests:
           cpu: 50m
-          memory: 128Mi
+          memory: 256Mi
         limits:
           cpu: 250m
-          memory: 256Mi
+          # The tools image is copied into an emptyDir during init and exceeds
+          # 256Mi; leave headroom so a repo-server replacement can start.
+          memory: 512Mi
       command: [sh, -ec]
       args:
         - |
