@@ -136,6 +136,7 @@ already exist or can be created on the NFS server before workloads start.
 
 -   Argo sync succeeds for the deployed apps
 -   Jellyfin may take up to ten minutes for FFmpeg capability validation; its startup probe must pass before liveness checks begin, and `/health` remains the readiness gate.
+-   Jellyfin uses `Recreate` because its SQLite-backed configuration and node-pinned resource request cannot safely support concurrent old and new pods.
 -   PVCs bind on CephFS
 -   pods mount both CephFS config and NFS library paths
 -   `sabnzbd` serves its UI and can write test files under `/downloads`
@@ -152,6 +153,7 @@ already exist or can be created on the NFS server before workloads start.
 ## ↩️ Rollback
 
 -   Remove Jellyfin's startup probe only after confirming its startup duration remains below the liveness budget; otherwise retain it to avoid restart loops.
+-   Restoring Jellyfin `RollingUpdate` requires enough capacity for two 3GiB pods and a safe concurrent SQLite access model.
 -   Delete the `sabnzbd`, `qbittorrent`, `sonarr`, `prowlarr`, `recyclarr`, `radarr`, `jellyseerr`, and `tdarr` Argo applications
 -   Remove their HTTPRoutes
 -   Delete their CephFS PVCs if app config should be discarded
