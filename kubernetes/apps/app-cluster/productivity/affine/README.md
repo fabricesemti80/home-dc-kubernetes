@@ -6,8 +6,8 @@ AFFiNE is available at `https://notes.krapulax.dev` through the external Envoy G
 
 Add these values to the Doppler `home-dc-kubernetes` / `apps` config:
 
-- `AFFINE_DB_PASSWORD`: a unique generated password.
-- `DATABASE_URL`: `postgresql://affine:<URL-ENCODED-PASSWORD>@affine-postgres:5432/affine` (use the same password as above; URL-encode reserved characters).
+-   `AFFINE_DB_PASSWORD`: a unique generated password.
+-   `DATABASE_URL`: `postgresql://affine:<URL-ENCODED-PASSWORD>@affine-postgres:5432/affine` (use the same password as above; URL-encode reserved characters).
 
 The Doppler operator syncs both values into `productivity/affine-secrets`. No credentials are stored in Git. Verify the secret and PostgreSQL readiness before expecting the server to start. A failed init migration blocks the server startup; check `kubectl -n productivity logs deployment/affine -c migrate`.
 
@@ -17,9 +17,9 @@ CephFS claims store uploads (`/root/.affine/storage`), AFFiNE config (`/root/.af
 
 ## Validation
 
-- Confirm the Argo `affine` Application syncs to `app-cluster` and all three controllers become healthy.
-- Confirm the migration init container completes and `https://notes.krapulax.dev` opens and saves a test document.
-- Confirm `notes.krapulax.dev` resolves to the gateway and generated links use HTTPS.
-- Confirm the CephFS claims and PostgreSQL backup job/policy cover this deployment before storing important notes.
+-   Confirm the Argo `affine` Application syncs to `app-cluster` and all three controllers become healthy.
+-   Confirm the migration init container completes and `https://notes.krapulax.dev` opens and saves a test document.
+-   Confirm `notes.krapulax.dev` resolves to the gateway and generated links use HTTPS.
+-   Confirm the CephFS claims and PostgreSQL backup job/policy cover this deployment before storing important notes.
 
-AFFiNE's official self-hosted Compose reference uses `ghcr.io/toeverything/affine:stable`, a predeploy migration, Redis, and `pgvector/pgvector:pg16`: https://github.com/toeverything/AFFiNE/blob/canary/.docker/selfhost/compose.yml . Validate the current upstream requirements before upgrading `stable`; it is a moving tag.
+The AFFiNE server and migration use the same immutable multi-platform image digest. It was resolved from the upstream `stable` tag on 2026-09-30; update it deliberately after validating upstream requirements and migration compatibility. The official self-hosted Compose reference uses a predeploy migration, Redis, and `pgvector/pgvector:pg16`: https://github.com/toeverything/AFFiNE/blob/canary/.docker/selfhost/compose.yml.

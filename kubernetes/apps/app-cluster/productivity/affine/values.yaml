@@ -13,7 +13,7 @@ controllers:
       migrate:
         image:
           repository: ghcr.io/toeverything/affine
-          tag: stable
+          digest: sha256:b649f5ce2384ffdf13c23bccf81d759e15973d59d0b0058af65d895a84373099
         command: [sh, -c, 'node ./scripts/self-host-predeploy.js']
         env:
           DEPLOYMENT_TYPE: selfhosted
@@ -31,7 +31,7 @@ controllers:
       app:
         image:
           repository: ghcr.io/toeverything/affine
-          tag: stable
+          digest: sha256:b649f5ce2384ffdf13c23bccf81d759e15973d59d0b0058af65d895a84373099
         env:
           DEPLOYMENT_TYPE: selfhosted
           REDIS_SERVER_HOST: affine-redis
