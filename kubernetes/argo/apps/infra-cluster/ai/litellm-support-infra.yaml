@@ -11,7 +11,7 @@ spec:
   sources:
     - repoURL: https://groundhog2k.github.io/helm-charts/
       chart: postgres
-      targetRevision: 1.5.7
+      targetRevision: 1.6.8
       helm:
         releaseName: litellm-postgres
         valueFiles:
