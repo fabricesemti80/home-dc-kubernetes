@@ -1,0 +1,146 @@
+---
+global:
+  createDefaultServiceAccount: false
+
+defaultPodOptions:
+  automountServiceAccountToken: false
+
+controllers:
+  affine:
+    replicas: 1
+    strategy: Recreate
+    initContainers:
+      migrate:
+        image:
+          repository: ghcr.io/toeverything/affine
+          digest: sha256:b649f5ce2384ffdf13c23bccf81d759e15973d59d0b0058af65d895a84373099
+        command: [sh, -c, 'node ./scripts/self-host-predeploy.js']
+        env:
+          DEPLOYMENT_TYPE: selfhosted
+          REDIS_SERVER_HOST: affine-redis
+          AFFINE_SERVER_EXTERNAL_URL: https://notes.krapulax.dev
+          DATABASE_URL:
+            valueFrom:
+              secretKeyRef:
+                name: affine-secrets
+                key: DATABASE_URL
+        resources:
+          requests: { cpu: 100m, memory: 256Mi }
+          limits: { cpu: '1', memory: 1Gi }
+    containers:
+      app:
+        image:
+          repository: ghcr.io/toeverything/affine
+          digest: sha256:b649f5ce2384ffdf13c23bccf81d759e15973d59d0b0058af65d895a84373099
+        env:
+          DEPLOYMENT_TYPE: selfhosted
+          REDIS_SERVER_HOST: affine-redis
+          AFFINE_SERVER_EXTERNAL_URL: https://notes.krapulax.dev
+          DATABASE_URL:
+            valueFrom:
+              secretKeyRef:
+                name: affine-secrets
+                key: DATABASE_URL
+        probes:
+          startup:
+            enabled: true
+            custom: true
+            spec:
+              tcpSocket: { port: 3010 }
+              periodSeconds: 10
+              failureThreshold: 30
+          readiness:
+            enabled: true
+            custom: true
+            spec:
+              tcpSocket: { port: 3010 }
+              periodSeconds: 10
+          liveness:
+            enabled: true
+            custom: true
+            spec:
+              tcpSocket: { port: 3010 }
+              periodSeconds: 20
+        resources:
+          requests: { cpu: 250m, memory: 512Mi }
+          limits: { cpu: '2', memory: 2Gi }
+
+  redis:
+    replicas: 1
+    containers:
+      app:
+        image:
+          repository: docker.io/library/redis
+          tag: '7.4'
+        resources:
+          requests: { cpu: 50m, memory: 64Mi }
+          limits: { cpu: 250m, memory: 256Mi }
+
+  database:
+    type: statefulset
+    replicas: 1
+    containers:
+      app:
+        image:
+          repository: docker.io/pgvector/pgvector
+          tag: pg16
+        env:
+          POSTGRES_USER: affine
+          POSTGRES_DB: affine
+          POSTGRES_INITDB_ARGS: --data-checksums
+          POSTGRES_PASSWORD:
+            valueFrom:
+              secretKeyRef:
+                name: affine-secrets
+                key: AFFINE_DB_PASSWORD
+        probes:
+          readiness:
+            enabled: true
+            custom: true
+            spec:
+              exec:
+                command: [sh, -c, 'pg_isready -U affine -d affine']
+              periodSeconds: 10
+        resources:
+          requests: { cpu: 100m, memory: 256Mi }
+          limits: { cpu: '1', memory: 1Gi }
+
+service:
+  app:
+    controller: affine
+    ports:
+      http: { port: 80, targetPort: 3010 }
+  redis:
+    controller: redis
+    ports:
+      redis: { port: 6379, targetPort: 6379 }
+  postgres:
+    controller: database
+    ports:
+      postgres: { port: 5432, targetPort: 5432 }
+
+persistence:
+  storage:
+    type: persistentVolumeClaim
+    accessMode: ReadWriteMany
+    storageClass: cephfs
+    size: 10Gi
+    advancedMounts:
+      affine:
+        app: [{ path: /root/.affine/storage }]
+  config:
+    type: persistentVolumeClaim
+    accessMode: ReadWriteMany
+    storageClass: cephfs
+    size: 1Gi
+    advancedMounts:
+      affine:
+        app: [{ path: /root/.affine/config }]
+  postgres-data:
+    type: persistentVolumeClaim
+    accessMode: ReadWriteMany
+    storageClass: cephfs
+    size: 10Gi
+    advancedMounts:
+      database:
+        app: [{ path: /var/lib/postgresql/data }]
