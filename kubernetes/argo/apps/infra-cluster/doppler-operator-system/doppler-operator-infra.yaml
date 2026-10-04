@@ -15,7 +15,7 @@ spec:
       ref: repo
     - repoURL: https://helm.doppler.com
       chart: doppler-kubernetes-operator
-      targetRevision: 1.7.1
+      targetRevision: 1.7.2
       helm:
         releaseName: doppler-operator
         valueFiles:
