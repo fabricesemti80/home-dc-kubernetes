@@ -46,6 +46,10 @@ proxy_config:
 
     # Distinct names make health checks identify the actual free endpoint.
     # openrouter/free remains a router alias for existing clients.
+    - model_name: openrouter/qwen/qwen3.8-27b:free
+      litellm_params:
+        model: openrouter/qwen/qwen3.8-27b:free
+        api_key: os.environ/AI_OPENROUTER_API_KEY
     - model_name: openrouter/nvidia/nemotron-3.5-lightning:free
       litellm_params:
         model: openrouter/nvidia/nemotron-3.5-lightning:free
@@ -78,11 +82,12 @@ proxy_config:
   router_settings:
     num_retries: 1
     model_group_alias:
-      openrouter/free: openrouter/nvidia/nemotron-3.5-lightning:free
+      openrouter/free: openrouter/qwen/qwen3.8-27b:free
     # Free-only fallback; shared account quota exhaustion can still return 429.
     fallbacks:
-      - "openrouter/nvidia/nemotron-3.5-lightning:free":
+      - "openrouter/qwen/qwen3.8-27b:free":
           - openrouter/google/gemma-4-31b-it:free
+          - openrouter/nvidia/nemotron-3.5-lightning:free
 
   general_settings:
     master_key: os.environ/LITELLM_MASTER_KEY

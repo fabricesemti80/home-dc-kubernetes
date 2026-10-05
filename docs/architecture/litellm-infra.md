@@ -31,21 +31,29 @@ flowchart LR
     provider-qualified (for example, `openai/gpt-5-mini`) so callers explicitly
     select the provider and cost/quality tier.
 
-## Free-model routing (2026-10-02)
+## Free-model routing (2026-10-05)
 
-Supersedes the three deployments sharing the `openrouter/free` name.
+Supersedes the 2026-10-02 Nemotron-first routing decision.
 
--   Expose Nemotron and Gemma under their full provider-qualified free model
-    names so the health page identifies each endpoint.
--   Keep `openrouter/free` as a router model-group alias for Nemotron. After
-    one retry, general provider errors fall back to Gemma. Direct Nemotron
-    requests use the same fallback; direct Gemma requests select Gemma only.
+-   Expose Qwen3.8 27B, Gemma, and Nemotron under their full provider-qualified
+    free model names so the health page identifies each endpoint.
+-   Keep `openrouter/free` as a router model-group alias for Qwen. After one
+    retry, general provider errors (including upstream 429s and availability
+    failures) try Gemma, then Nemotron, in that order. Direct Qwen requests use
+    the same fallback list; direct Gemma and Nemotron requests select only
+    their named model. Use the alias for the full preference policy.
+-   This is request-time failover, not a capacity reservation or proactive
+    availability scan. Router cooldowns can temporarily skip failed deployments.
+    If all candidates fail, return the error. Failover cannot repair an already
+    started response stream or guarantee meaningful/nonempty model output.
+-   The generic fallback policy does not cover context-window or content-policy
+    errors; clients must use inputs and options compatible with their targets.
 -   Remove `z-ai/glm-5.2:free`: that variant is absent from the current
     OpenRouter catalogue. Do not replace it with the paid variant.
 -   All configured fallback destinations are free. Shared OpenRouter account
-    limits can still exhaust both endpoints; retries do not increase the quota.
--   Assumption: virtual keys used with the alias allow the underlying Nemotron
-    and Gemma groups (or all models). Check restricted keys after sync.
+    limits can still exhaust all three endpoints; retries do not increase the quota.
+-   Assumption: virtual keys used with the alias allow the underlying Qwen,
+    Gemma, and Nemotron groups (or all models). Check restricted keys after sync.
 -   Manage these routes in Git. Database-created models or router overrides
     must be checked separately if stale entries remain after reconciliation.
 -   Security: reuse the existing Doppler credential; no new secrets or access
@@ -54,7 +62,7 @@ Supersedes the three deployments sharing the `openrouter/free` name.
 ### Routing validation and rollback
 
 1. Confirm Argo sync and the proxy restart with the updated config.
-2. In Models + Endpoints, confirm the two distinct free endpoint names and
+2. In Models + Endpoints, confirm the three distinct free endpoint names and
    inspect any remaining database-created entries separately.
 3. With an authorized key, send a short chat completion to `openrouter/free`
    and each distinct free name. Check provider errors and routing in Logs.
