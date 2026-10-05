@@ -31,6 +31,39 @@ flowchart LR
     provider-qualified (for example, `openai/gpt-5-mini`) so callers explicitly
     select the provider and cost/quality tier.
 
+## Free-model routing (2026-10-02)
+
+Supersedes the three deployments sharing the `openrouter/free` name.
+
+-   Expose Nemotron and Gemma under their full provider-qualified free model
+    names so the health page identifies each endpoint.
+-   Keep `openrouter/free` as a router model-group alias for Nemotron. After
+    one retry, general provider errors fall back to Gemma. Direct Nemotron
+    requests use the same fallback; direct Gemma requests select Gemma only.
+-   Remove `z-ai/glm-5.2:free`: that variant is absent from the current
+    OpenRouter catalogue. Do not replace it with the paid variant.
+-   All configured fallback destinations are free. Shared OpenRouter account
+    limits can still exhaust both endpoints; retries do not increase the quota.
+-   Assumption: virtual keys used with the alias allow the underlying Nemotron
+    and Gemma groups (or all models). Check restricted keys after sync.
+-   Manage these routes in Git. Database-created models or router overrides
+    must be checked separately if stale entries remain after reconciliation.
+-   Security: reuse the existing Doppler credential; no new secrets or access
+    paths. The retry setting applies to all configured model groups.
+
+### Routing validation and rollback
+
+1. Confirm Argo sync and the proxy restart with the updated config.
+2. In Models + Endpoints, confirm the two distinct free endpoint names and
+   inspect any remaining database-created entries separately.
+3. With an authorized key, send a short chat completion to `openrouter/free`
+   and each distinct free name. Check provider errors and routing in Logs.
+4. In an isolated test configuration, make the Nemotron endpoint fail and
+   confirm a request to the alias falls back to Gemma. Account-wide quota
+   exhaustion is expected to fail both endpoints.
+5. Roll back by reverting the routing PR and syncing Argo; no database or
+   secret migration is required.
+
 ## Security
 
 -   `LITELLM_MASTER_KEY`, `LITELLM_SALT_KEY`, provider credentials, and PostgreSQL
@@ -80,7 +113,7 @@ flowchart LR
 9. Open `https://litellm.krapulax.dev/ui` and sign in with
    `LITELLM_MASTER_KEY`.
 10. Create a virtual key and make test requests to `openai/gpt-5-mini`,
-    `openrouter/gemini-2.5-flash`.
+    `openrouter/free`.
 
 ## Rollback
 
@@ -90,3 +123,8 @@ flowchart LR
 3. The PostgreSQL PVC remains because `keepPvc` is enabled.
 4. Recreate the Argo Application to restore LiteLLM against the retained data.
 5. Delete the PVC manually only after confirming the deployment will not be restored.
+
+## Next actions
+
+-   [ ] Sync the routing change and verify the free alias and endpoint health.
+-   [ ] Check restricted virtual-key access and any database router overrides.
