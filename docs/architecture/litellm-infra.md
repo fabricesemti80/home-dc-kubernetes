@@ -17,7 +17,8 @@ flowchart LR
 ```
 
 -   Namespace: `ai`
--   Runtime: upstream LiteLLM Helm chart pinned to release `v1.101.0`.
+-   Runtime: upstream LiteLLM OCI Helm chart `1.104.0`, with the proxy image
+    independently pinned to `v1.101.0`.
 -   Database: dedicated PostgreSQL Helm release with a retained `local-path` PVC.
     LiteLLM and its migration Job use the chart's configured Postgres bootstrap
     credential pair. The chart does not create the optional application user.
@@ -30,6 +31,27 @@ flowchart LR
 -   Model catalog: direct OpenAI and OpenRouter. Names are
     provider-qualified (for example, `openai/gpt-5-mini`) so callers explicitly
     select the provider and cost/quality tier.
+
+## Chart source (2026-10-06)
+
+-   Fetch the published `ghcr.io/berriai/litellm-helm` OCI chart instead of
+    cloning the upstream Git repository. Argo's full Git fetch repeatedly
+    exceeded 90 seconds and left LiteLLM sync status `Unknown`.
+-   Keep the chart at `1.104.0` and the existing image pin and values. The
+    chart source change does not add credentials or alter public access.
+-   Assumption: Argo can anonymously pull the public GHCR chart, as it does
+    for other OCI charts in this repository.
+-   Validate the pinned chart with `helm show chart` and `helm template` using
+    the committed values. After sync, confirm Argo is `Synced`, the migration
+    Job succeeds, the deployment has a ready endpoint, and public readiness
+    reports a connected database.
+-   Roll back by reverting the chart source commit and syncing Argo. The prior
+    Git source may time out again; the running deployment remains available.
+
+Next actions:
+
+-   [ ] Merge the chart source change and confirm Argo sync.
+-   [ ] Check the migration Job, deployment, endpoint, and readiness response.
 
 ## Free-model routing (2026-10-05)
 
