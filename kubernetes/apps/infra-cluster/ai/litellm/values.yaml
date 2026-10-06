@@ -5,7 +5,7 @@ replicaCount: 1
 
 image:
   repository: ghcr.io/berriai/litellm
-  tag: v1.101.0
+  tag: v1.104.0
   pullPolicy: IfNotPresent
 
 nodeSelector:
@@ -45,18 +45,22 @@ proxy_config:
         api_key: os.environ/AI_OPENAI_API_KEY
 
     # Distinct names make health checks identify the actual free endpoint.
-    # openrouter/free remains a router alias for existing clients.
-    - model_name: openrouter/qwen/qwen3.8-27b:free
+    # openrouter/free calls OpenRouter's actual Free Models Router.
+    - model_name: openrouter/qwen:free
       litellm_params:
         model: openrouter/qwen/qwen3.8-27b:free
         api_key: os.environ/AI_OPENROUTER_API_KEY
-    - model_name: openrouter/nvidia/nemotron-3.5-lightning:free
+    - model_name: openrouter/nemotron:free
       litellm_params:
         model: openrouter/nvidia/nemotron-3.5-lightning:free
         api_key: os.environ/AI_OPENROUTER_API_KEY
-    - model_name: openrouter/google/gemma-4-31b-it:free
+    - model_name: openrouter/gemma:free
       litellm_params:
         model: openrouter/google/gemma-4-31b-it:free
+        api_key: os.environ/AI_OPENROUTER_API_KEY
+    - model_name: openrouter/free
+      litellm_params:
+        model: openrouter/openrouter/free
         api_key: os.environ/AI_OPENROUTER_API_KEY
     # - model_name: openrouter/deepseek-v3.1
     #   litellm_params:
@@ -81,18 +85,26 @@ proxy_config:
 
   router_settings:
     num_retries: 1
-    model_group_alias:
-      openrouter/free: openrouter/qwen/qwen3.8-27b:free
-    # Free-only fallback; shared account quota exhaustion can still return 429.
+    # Rate limits come from shared upstream pools. Retrying the same
+    # model seconds later rarely helps, so fall back immediately.
+    retry_policy:
+      RateLimitErrorRetries: 0
+    # Named free models fall back to the actual free router; no paid fallback.
     fallbacks:
-      - "openrouter/qwen/qwen3.8-27b:free":
-          - openrouter/google/gemma-4-31b-it:free
-          - openrouter/nvidia/nemotron-3.5-lightning:free
+      - "openrouter/qwen:free":
+          - openrouter/free
+      - "openrouter/gemma:free":
+          - openrouter/free
+      - "openrouter/nemotron:free":
+          - openrouter/free
 
   general_settings:
     master_key: os.environ/LITELLM_MASTER_KEY
     store_model_in_db: true
     enable_drain_endpoint: true
+    # Every fallback must respect the caller's model access and budget.
+    enforce_fallback_model_access: true
+    enforce_fallback_budget: true
 
 db:
   useExisting: true
