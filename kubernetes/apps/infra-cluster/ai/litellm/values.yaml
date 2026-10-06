@@ -46,15 +46,15 @@ proxy_config:
 
     # Distinct names make health checks identify the actual free endpoint.
     # openrouter/free remains a router alias for existing clients.
-    - model_name: openrouter/qwen/qwen3.8-27b:free
+    - model_name: openrouter/qwen:free
       litellm_params:
         model: openrouter/qwen/qwen3.8-27b:free
         api_key: os.environ/AI_OPENROUTER_API_KEY
-    - model_name: openrouter/nvidia/nemotron-3.5-lightning:free
+    - model_name: openrouter/nemotron:free
       litellm_params:
         model: openrouter/nvidia/nemotron-3.5-lightning:free
         api_key: os.environ/AI_OPENROUTER_API_KEY
-    - model_name: openrouter/google/gemma-4-31b-it:free
+    - model_name: openrouter/gemma:free
       litellm_params:
         model: openrouter/google/gemma-4-31b-it:free
         api_key: os.environ/AI_OPENROUTER_API_KEY
@@ -86,17 +86,17 @@ proxy_config:
     retry_policy:
       RateLimitErrorRetries: 0
     model_group_alias:
-      openrouter/free: openrouter/qwen/qwen3.8-27b:free
+      openrouter/free: openrouter/qwen:free
     # Each free model falls back to the others (different upstream
     # providers), then to a paid model so requests do not fail outright.
     fallbacks:
-      - "openrouter/qwen/qwen3.8-27b:free":
-          - openrouter/nvidia/nemotron-3.5-lightning:free
-          - openrouter/google/gemma-4-31b-it:free
+      - "openrouter/qwen:free":
+          - openrouter/nemotron:free
+          - openrouter/gemma:free
           - openai/gpt-5-nano
-      - "openrouter/google/gemma-4-31b-it:free":
-          - openrouter/nvidia/nemotron-3.5-lightning:free
-          - openrouter/qwen/qwen3.8-27b:free
+      - "openrouter/gemma:free":
+          - openrouter/nemotron:free
+          - openrouter/qwen:free
           - openai/gpt-5-nano
 
   general_settings:
