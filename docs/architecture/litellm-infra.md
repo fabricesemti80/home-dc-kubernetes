@@ -18,7 +18,7 @@ flowchart LR
 
 -   Namespace: `ai`
 -   Runtime: upstream LiteLLM OCI Helm chart `1.104.0`, with the proxy image
-    independently pinned to `v1.101.0`.
+    independently pinned to `v1.104.0`.
 -   Database: dedicated PostgreSQL Helm release with a retained `local-path` PVC.
     LiteLLM and its migration Job use the chart's configured Postgres bootstrap
     credential pair. The chart does not create the optional application user.
@@ -93,6 +93,45 @@ Supersedes the 2026-10-02 Nemotron-first routing decision.
    exhaustion is expected to fail both endpoints.
 5. Roll back by reverting the routing PR and syncing Argo; no database or
    secret migration is required.
+
+## OpenAI auto-routing (2026-10-06)
+
+-   Add `openai/auto` using LiteLLM's built-in heuristic complexity router.
+    Classification runs locally without JEV, embeddings, a classifier API call,
+    or new credentials.
+-   Map SIMPLE to `openai/gpt-6-luna`, MEDIUM to `openai/gpt-5.6-terra`,
+    COMPLEX to `openai/gpt-6-sol`, and REASONING to existing `openai/gpt-5`.
+    Terra is the default model. Add those four direct model definitions.
+    Luna and Sol default to `reasoning_effort: none` for Chat Completions
+    tool support. Astra remains directly selectable, but tool-bearing Astra
+    requests must use the Responses API; it is excluded from this router.
+    Preserve direct model selection and existing OpenRouter routes.
+-   Classify every request with session affinity disabled. Response model names
+    retain the router alias; inspect Logs for the selected underlying model.
+-   Heuristic complexity is an estimate, not a quality guarantee or availability
+    failover. Paid generation is billed against the selected OpenAI model.
+-   Restricted virtual keys need access to `openai/auto` and all four underlying
+    OpenAI groups. Do not broaden existing keys automatically.
+-   Assumption: pinned LiteLLM v1.104.0 supports the beta complexity router.
+    Keep this configuration in Git rather than creating a duplicate in the UI.
+
+Validation and rollback:
+
+1. After Argo sync, confirm readiness and `openai/auto` in the model catalog.
+2. Send a greeting and a multi-step reasoning request in Playground, explicitly
+   selecting `openai/auto` each time; inspect Logs for tier and selected model.
+   Exact tier selection depends on the heuristic score.
+3. Send tool-bearing Chat Completions requests covering each tier and verify
+   the tool call round trip, including the reasoning tier. Keep Luna/Sol tool
+   requests at `reasoning_effort: none`; client overrides can break compatibility.
+4. Verify spend attribution and an authorized restricted key with all dependencies.
+5. Revert the auto-router change and sync Argo to remove it; no secret or database
+   migration is required.
+
+Next actions:
+
+-   [ ] Confirm Argo sync and readiness after merge.
+-   [ ] Test selected tiers, spend attribution, and restricted key permissions.
 
 ## Security
 
