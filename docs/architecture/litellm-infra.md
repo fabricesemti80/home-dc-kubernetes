@@ -100,9 +100,11 @@ Supersedes the 2026-10-02 Nemotron-first routing decision.
     Classification runs locally without JEV, embeddings, a classifier API call,
     or new credentials.
 -   Map SIMPLE to `openai/gpt-6-luna`, MEDIUM to `openai/gpt-5.6-terra`,
-    COMPLEX to `openai/gpt-6-sol`, and REASONING to `openai/gpt-6-astra`.
+    COMPLEX to `openai/gpt-6-sol`, and REASONING to existing `openai/gpt-5`.
     Terra is the default model. Add those four direct model definitions.
-    Luna defaults to `reasoning_effort: none` for Chat Completions tool support.
+    Luna and Sol default to `reasoning_effort: none` for Chat Completions
+    tool support. Astra remains directly selectable, but tool-bearing Astra
+    requests must use the Responses API; it is excluded from this router.
     Preserve direct model selection and existing OpenRouter routes.
 -   Classify every request with session affinity disabled. Response model names
     retain the router alias; inspect Logs for the selected underlying model.
@@ -119,8 +121,11 @@ Validation and rollback:
 2. Send a greeting and a multi-step reasoning request in Playground, explicitly
    selecting `openai/auto` each time; inspect Logs for tier and selected model.
    Exact tier selection depends on the heuristic score.
-3. Verify spend attribution and an authorized restricted key with all dependencies.
-4. Revert the auto-router change and sync Argo to remove it; no secret or database
+3. Send tool-bearing Chat Completions requests covering each tier and verify
+   the tool call round trip, including the reasoning tier. Keep Luna/Sol tool
+   requests at `reasoning_effort: none`; client overrides can break compatibility.
+4. Verify spend attribution and an authorized restricted key with all dependencies.
+5. Revert the auto-router change and sync Argo to remove it; no secret or database
    migration is required.
 
 Next actions:
