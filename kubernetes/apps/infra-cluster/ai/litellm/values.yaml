@@ -44,6 +44,20 @@ proxy_config:
         model: openai/gpt-5
         api_key: os.environ/AI_OPENAI_API_KEY
 
+    # Local heuristic classification; no external classifier or API call.
+    - model_name: openai/auto
+      litellm_params:
+        model: auto_router/complexity_router
+        complexity_router_config:
+          tiers:
+            SIMPLE: openai/gpt-5-nano
+            MEDIUM: openai/gpt-5-mini
+            COMPLEX: openai/gpt-5
+            REASONING: openai/gpt-5
+          classification_mode: every_request
+          session_affinity: false
+        complexity_router_default_model: openai/gpt-5-mini
+
     # Distinct names make health checks identify the actual free endpoint.
     # openrouter/free calls OpenRouter's actual Free Models Router.
     - model_name: openrouter/qwen:free
