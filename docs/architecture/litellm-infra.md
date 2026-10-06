@@ -99,14 +99,16 @@ Supersedes the 2026-10-02 Nemotron-first routing decision.
 -   Add `openai/auto` using LiteLLM's built-in heuristic complexity router.
     Classification runs locally without JEV, embeddings, a classifier API call,
     or new credentials.
--   Map SIMPLE to `openai/gpt-5-nano`, MEDIUM to `openai/gpt-5-mini`,
-    and COMPLEX/REASONING to `openai/gpt-5`. The default model is mini.
+-   Map SIMPLE to `openai/gpt-6-luna`, MEDIUM to `openai/gpt-5.6-terra`,
+    COMPLEX to `openai/gpt-6-sol`, and REASONING to `openai/gpt-6-astra`.
+    Terra is the default model. Add those four direct model definitions.
+    Luna defaults to `reasoning_effort: none` for Chat Completions tool support.
     Preserve direct model selection and existing OpenRouter routes.
 -   Classify every request with session affinity disabled. Response model names
     retain the router alias; inspect Logs for the selected underlying model.
 -   Heuristic complexity is an estimate, not a quality guarantee or availability
     failover. Paid generation is billed against the selected OpenAI model.
--   Restricted virtual keys need access to `openai/auto` and all three underlying
+-   Restricted virtual keys need access to `openai/auto` and all four underlying
     OpenAI groups. Do not broaden existing keys automatically.
 -   Assumption: pinned LiteLLM v1.104.0 supports the beta complexity router.
     Keep this configuration in Git rather than creating a duplicate in the UI.
