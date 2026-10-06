@@ -9,9 +9,9 @@ metadata:
 spec:
   project: kubernetes
   sources:
-    - repoURL: https://github.com/BerriAI/litellm.git
-      path: helm/litellm-helm
-      targetRevision: v1.104.0
+    - repoURL: ghcr.io/berriai
+      chart: litellm-helm
+      targetRevision: 1.104.0
       helm:
         releaseName: litellm
         valueFiles:
