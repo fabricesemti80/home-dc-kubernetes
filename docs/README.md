@@ -10,6 +10,7 @@ This is the main documentation hub for `home-dc-kubernetes`.
 
 ## 🏗️ Infrastructure
 
+-   [Hardware Replacement Options](architecture/hardware-replacement-options.md)
 -   [OpenTofu Setup](infrastructure/terraform.md)
 
 ## ☸️ Cluster
