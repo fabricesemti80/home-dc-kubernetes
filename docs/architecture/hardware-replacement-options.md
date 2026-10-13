@@ -26,6 +26,10 @@ Existing storage is CephFS from Ceph on three Proxmox hosts, plus NAS NFS for me
 
 Earlier context identifies three Minisforum UN1265 machines, an RTX 3080 desktop, a QNAP TS-462 and Dell U4025QW monitor. Treat NAS and monitor model identity as historical context to check against actual devices before ordering model-specific upgrades. This note does not invent missing desktop CPU, PSU or drive details.
 
+## Dated UK example budgets
+
+See the [separate UK budget files](hardware-budgets/README.md) for each option, exact product links, VAT-inclusive unit prices, quantities, stock qualifications and price history. The 2026-10-13 linked examples supersede the preliminary cost allowances below for those specific baskets: A £680.84; B £5,494.01; C £7,897.05; D £3,851.35; E £5,570.63, including stated delivery/accessory allowances and 10% contingency. B/E with 1TB usable mirrors instead of 2TB fit under £5,000. D's exact two-unit availability remains a supplier check. Current linked DDR5 prices materially change the cost comparison; the earlier ranges should not be used as purchase quotes.
+
 ## Recommendation
 
 **Separate gaming from always-on servers. Choose between one expandable server and three modest expandable servers according to the required outage tolerance.**

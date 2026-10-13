@@ -1,0 +1,405 @@
+{
+  "checked_date": "2026-10-13",
+  "currency": "GBP",
+  "vat_basis": "Displayed inclusive VAT",
+  "products": {
+    "cpu7900": {
+      "name": "AMD Ryzen 9 7900 (12C/24T)",
+      "sku": "100-100000590BOX / LN131630",
+      "price": 296.99,
+      "url": "https://www.scan.co.uk/products/amd-ryzen-9-7900-am5-zen-4-12-core-24-thread-37ghz-54ghz-turbo-64mb-cache-pcie-50-65w-cpu",
+      "shop": "Scan",
+      "stock": "In stock"
+    },
+    "cpu7600": {
+      "name": "AMD Ryzen 5 7600 (6C/12T)",
+      "sku": "100-100001015BOX / LN131632",
+      "price": 169.99,
+      "url": "https://www.scan.co.uk/products/amd-ryzen-5-7600-am5-zen-4-6-core-12-thread-38ghz-51ghz-turbo-32mb-cache-pcie-50-65w-cpu",
+      "shop": "Scan",
+      "stock": "In stock"
+    },
+    "cpu9950": {
+      "name": "AMD Ryzen 9 9950X (16C/32T)",
+      "sku": "100-100001277WOF / LN149410",
+      "price": 499.99,
+      "url": "https://www.scan.co.uk/products/amd-ryzen-9-9950x-am5-zen-5-16-core-32-thread-43ghz-57ghz-turbo-64mb-cache-pcie-50-170w",
+      "shop": "Scan",
+      "stock": "In stock"
+    },
+    "board": {
+      "name": "MSI MAG B850M MORTAR WIFI",
+      "sku": "LN160846",
+      "price": 169.99,
+      "url": "https://www.scan.co.uk/products/msi-mag-b850m-mortar-wifi-amd-b850-am5-ddr5-pcie-50-3x-m2-5g-wifi7-usb-32-aplusc-amd-expo-atx",
+      "shop": "Scan",
+      "stock": "In stock"
+    },
+    "ram128": {
+      "name": "Corsair Vengeance 128GB (2×64GB) DDR5-6000 CL40",
+      "sku": "CMK128GX5M2D6000C40 / LN163479",
+      "price": 2522.48,
+      "url": "https://www.scan.co.uk/products/128gb-2x64gb-corsair-ddr5-vengeance-black-pc5-48000-6000-non-ecc-unbuffered-cas-40-xmp-30-135v",
+      "shop": "Scan",
+      "stock": "In stock"
+    },
+    "ram64": {
+      "name": "Kingston FURY Beast 64GB (2×32GB) DDR5-5600",
+      "sku": "KF556C40BBK2-64 / MY-29W-KS",
+      "price": 799.99,
+      "url": "https://www.overclockers.co.uk/kingston-fury-beast-64gb-2x32gb-ddr5-pc5-44800c40-5600mhz-dual-channel-kit-kf556c40bbk2-64/MY-29W-KS.html",
+      "shop": "Overclockers UK",
+      "stock": "In stock"
+    },
+    "ssd2": {
+      "name": "Samsung 990 PRO 2TB NVMe",
+      "sku": "MZ-V9P2T0BW / LN130047",
+      "price": 469.99,
+      "url": "https://www.scan.co.uk/products/2tb-samsung-990-pro-m2-2280-pcie-40-x4-nvme-ssd-mlc-3d-v-nand-7450mb-s-read-6900mb-s-write-pc-ps5",
+      "shop": "Scan",
+      "stock": "In stock"
+    },
+    "ssd1": {
+      "name": "WD Black SN7100 1TB NVMe",
+      "sku": "WDS100T4X0E-00CJA0 / LN154943",
+      "price": 159.98,
+      "url": "https://www.scan.co.uk/products/1tb-wd-black-sn7100-m2-2280-pcie-40-x4-nvme-ssd-7250mb-s-read-6900mb-s-write-1000k-1400k-iops",
+      "shop": "Scan",
+      "stock": "In stock"
+    },
+    "cool": {
+      "name": "Noctua NH-U12S redux",
+      "sku": "NH-U12S-REDUX / LN123865",
+      "price": 49.99,
+      "url": "https://www.scan.co.uk/products/noctua-nh-u12s-redux-cpu-cooler-intel-amd-120mm-fan-450-1700rpm-707cfm-airflow-251db-4-pin-pwm-grey",
+      "shop": "Scan",
+      "stock": "In stock"
+    },
+    "caseMini": {
+      "name": "Fractal Pop Mini Silent Black Solid (fans included)",
+      "sku": "FD-C-POS1M-01 / LN119150",
+      "price": 79.99,
+      "url": "https://www.scan.co.uk/products/fractal-design-pop-mini-silent-black-solid",
+      "shop": "Scan",
+      "stock": "In stock"
+    },
+    "caseATX": {
+      "name": "Fractal Meshify 2 Compact Black Solid (fans included)",
+      "sku": "FD-C-MES2C-01 / LN110396",
+      "price": 79.99,
+      "url": "https://www.scan.co.uk/products/fractal-meshify-2-compact-black-mid-tower-chassis-2x-140mm-1x-120mm-fans-usb-31-gen2-type-c-atx-matx",
+      "shop": "Scan",
+      "stock": "In stock"
+    },
+    "psu650": {
+      "name": "Corsair RM650e 650W (UK)",
+      "sku": "CP-9020302-UK / LN162482",
+      "price": 79.99,
+      "url": "https://www.scan.co.uk/products/650w-corsair-rme-series-rm650e-fully-modular-cybenetics-gold-pcie-51-single-rail-542a-120mm-fan-atx",
+      "shop": "Scan",
+      "stock": "In stock"
+    },
+    "psu850": {
+      "name": "Corsair RM850e 850W (UK)",
+      "sku": "CP-9020296-UK / LN154144",
+      "price": 89.99,
+      "url": "https://www.scan.co.uk/products/850w-corsair-rm850e-fully-modular-cybenetics-gold-pcie-51-single-rail-708a-120mm-fan-atx-31-psu",
+      "shop": "Scan",
+      "stock": "In stock"
+    },
+    "nic": {
+      "name": "Intel X710-DA2 dual-port 10GbE SFP+ PCIe",
+      "sku": "X710DA2BLK / LN64475",
+      "price": 109.99,
+      "url": "https://www.scan.co.uk/products/2-port-intel-x710-da2-10gbe-ethernet-plus-optical-converged-network-adapter-2x-sfpplus-pcie-30-x8-oe",
+      "shop": "Scan",
+      "stock": "In stock"
+    },
+    "switch25": {
+      "name": "TP-Link Omada SG3210X-M2 (8×2.5GbE + 2×SFP+)",
+      "sku": "SG3210X-M2",
+      "price": 216.84,
+      "url": "https://ithardwaregroup.co.uk/tp-link-omada-8-port-2-5g-l2-managed-switch/",
+      "shop": "IT Hardware Group",
+      "stock": "In stock"
+    },
+    "switch10": {
+      "name": "MikroTik CRS309-1G-8S+IN (8×SFP+)",
+      "sku": "CRS309-1G-8S+IN",
+      "price": 201.49,
+      "url": "https://www.netxl.com/network-switches/mikrotik-crs309-1g-8s-in-sfp-cloud-router-switch/",
+      "shop": "NetXL",
+      "stock": "1 in stock"
+    },
+    "dac": {
+      "name": "MikroTik XS+DA0003 3m DAC (run at 10GbE)",
+      "sku": "XS+DA0003 / LinITX 16614",
+      "price": 33.35,
+      "url": "https://linitx.com/product/mikrotik-3m-sfp-sfp%2B-sfp28-direct-attach-cable---xs%2Bda0003/16614",
+      "shop": "LinITX",
+      "stock": "13 in stock"
+    },
+    "ups": {
+      "name": "APC BX1600MI 1600VA / 900W UPS (IEC outlets)",
+      "sku": "BX1600MI / RS 287-7237",
+      "price": 266.8,
+      "url": "https://uk.rs-online.com/web/p/uninterruptible-power-supplies/2877237",
+      "shop": "RS UK",
+      "stock": "6 ready to ship; more stock also listed"
+    },
+    "usb": {
+      "name": "Belkin USB-C to 2.5Gb Ethernet",
+      "sku": "Apple HRG32ZM/A / EAN 745883889006",
+      "price": 29.95,
+      "url": "https://www.apple.com/uk/shop/product/hrg32zm/a/belkin-usb-c-to-25gb-ethernet-adapter",
+      "shop": "Apple UK",
+      "stock": "Orderable; delivery date not exposed"
+    },
+    "p520": {
+      "name": "Refurbished Lenovo P520, W-2155 10-core, 128GB DDR4, 2×1TB NVMe",
+      "sku": "eBay item 126714071518",
+      "price": 1320,
+      "url": "https://www.ebay.co.uk/itm/126714071518",
+      "shop": "Bargain Hardware UK via eBay",
+      "stock": "UK listing active; exact quantity not exposed"
+    },
+    "ally": {
+      "name": "ASUS ROG Xbox Ally X (2025), 24GB / 1TB",
+      "sku": "RC73XA-NH011W",
+      "price": 859,
+      "url": "https://rog.asus.com/uk/gaming-handhelds/rog-ally/rog-xbox-ally-x-2025/spec/",
+      "shop": "ASUS UK",
+      "stock": "UK Buy Now shown; delivery quantity not exposed"
+    }
+  },
+  "budgets": [
+    {
+      "key": "A",
+      "slug": "a-network-first",
+      "title": "A — Network-first refresh",
+      "rows": [
+        [
+          "switch25",
+          1
+        ],
+        [
+          "usb",
+          3
+        ],
+        [
+          "ups",
+          1
+        ]
+      ],
+      "delivery": 50,
+      "subtotal": 573.49,
+      "contingency": 57.35,
+      "total": 680.84
+    },
+    {
+      "key": "B",
+      "slug": "b-single-server",
+      "title": "B — One expandable server; retain gaming desktop",
+      "rows": [
+        [
+          "cpu7900",
+          1
+        ],
+        [
+          "board",
+          1
+        ],
+        [
+          "ram128",
+          1
+        ],
+        [
+          "ssd2",
+          2
+        ],
+        [
+          "ssd1",
+          1
+        ],
+        [
+          "cool",
+          1
+        ],
+        [
+          "caseMini",
+          1
+        ],
+        [
+          "psu650",
+          1
+        ],
+        [
+          "nic",
+          1
+        ],
+        [
+          "switch25",
+          1
+        ],
+        [
+          "dac",
+          1
+        ],
+        [
+          "ups",
+          1
+        ]
+      ],
+      "delivery": 75,
+      "subtotal": 4926.37,
+      "contingency": 492.64,
+      "total": 5494.01
+    },
+    {
+      "key": "C",
+      "slug": "c-three-servers",
+      "title": "C — Three expandable servers with Ceph",
+      "rows": [
+        [
+          "cpu7600",
+          3
+        ],
+        [
+          "board",
+          3
+        ],
+        [
+          "ram64",
+          3
+        ],
+        [
+          "ssd1",
+          3
+        ],
+        [
+          "ssd2",
+          3
+        ],
+        [
+          "cool",
+          3
+        ],
+        [
+          "caseMini",
+          3
+        ],
+        [
+          "psu650",
+          3
+        ],
+        [
+          "nic",
+          3
+        ],
+        [
+          "switch25",
+          1
+        ],
+        [
+          "switch10",
+          1
+        ],
+        [
+          "dac",
+          4
+        ],
+        [
+          "ups",
+          1
+        ]
+      ],
+      "delivery": 100,
+      "subtotal": 7088.23,
+      "contingency": 708.82,
+      "total": 7897.05
+    },
+    {
+      "key": "D",
+      "slug": "d-refurbished-workstations",
+      "title": "D — Two refurbished workstation towers",
+      "rows": [
+        [
+          "p520",
+          2
+        ],
+        [
+          "nic",
+          2
+        ],
+        [
+          "switch25",
+          1
+        ],
+        [
+          "dac",
+          2
+        ],
+        [
+          "ups",
+          1
+        ]
+      ],
+      "delivery": 100,
+      "subtotal": 3410.32,
+      "contingency": 341.03,
+      "total": 3851.35
+    },
+    {
+      "key": "E",
+      "slug": "e-combined-gaming-server",
+      "title": "E — One combined gaming/server tower; reuse RTX 3080",
+      "rows": [
+        [
+          "cpu9950",
+          1
+        ],
+        [
+          "board",
+          1
+        ],
+        [
+          "ram128",
+          1
+        ],
+        [
+          "ssd2",
+          2
+        ],
+        [
+          "ssd1",
+          1
+        ],
+        [
+          "cool",
+          1
+        ],
+        [
+          "caseATX",
+          1
+        ],
+        [
+          "psu850",
+          1
+        ],
+        [
+          "switch25",
+          1
+        ],
+        [
+          "ups",
+          1
+        ]
+      ],
+      "delivery": 75,
+      "subtotal": 4996.03,
+      "contingency": 499.6,
+      "total": 5570.63
+    }
+  ],
+  "automatic_refresh": false
+}
