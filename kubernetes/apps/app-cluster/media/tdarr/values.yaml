@@ -85,7 +85,7 @@ controllers:
             memory: 1Gi
           limits:
             cpu: 3500m
-            memory: 1Gi
+            memory: 4Gi
 
   worker-k8s-ctrl-02:
     replicas: 0
