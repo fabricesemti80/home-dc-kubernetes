@@ -8,6 +8,7 @@ parameters:
   clusterID: a74bdf84-c6e5-4a3c-acf2-6c307f5c15a4
   fsName: cephfs-vm
   pool: cephfs-vm_data
+  mounter: fuse
   csi.storage.k8s.io/controller-expand-secret-name: csi-cephfs-secret
   csi.storage.k8s.io/controller-expand-secret-namespace: kube-system
   csi.storage.k8s.io/node-stage-secret-name: csi-cephfs-secret

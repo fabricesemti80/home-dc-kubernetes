@@ -262,11 +262,11 @@ kubectl get storageclass cephfs
 ```bash
 # First check values
 
-cat kubernetes/apps/app-cluster/storage/ceph-csi/values.sops.yaml
+cat kubernetes/apps/app-cluster/storage/ceph-csi/values.yaml
 
 # Add the helm repo
 
-helm repo add ceph-csi https://ceph.github.io/ceph-csi
+helm repo add ceph-csi https://ceph.github.io/csi-charts
 helm repo update
 
 # Install (adjust values as needed)
@@ -274,7 +274,7 @@ helm repo update
 helm install ceph-csi ceph-csi/ceph-csi-cephfs \
   -n storage \
   --create-namespace \
-  -f kubernetes/apps/app-cluster/storage/ceph-csi/values.sops.yaml
+  -f kubernetes/apps/app-cluster/storage/ceph-csi/values.yaml
 ```
 
 ### 📦 5. Deploy Test Application

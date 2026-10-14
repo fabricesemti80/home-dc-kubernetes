@@ -22,15 +22,6 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
-      - name: Install Task
-        env:
-          TASK_VERSION: v3.48.0
-        run: |
-          wget --quiet "https://github.com/go-task/task/releases/download/${TASK_VERSION}/task_linux_amd64.tar.gz"
-          tar -xzf task_linux_amd64.tar.gz
-          sudo mv task /usr/local/bin/task
-          task --version
-
       - name: Install Go yq
         env:
           YQ_VERSION: v4.45.4
@@ -57,5 +48,5 @@ jobs:
       - name: Run Linters (pre-commit)
         run: pre-commit run --all-files
 
-      - name: Run Repository Validation (task validate)
-        run: task validate
+      - name: Run Repository Validation
+        run: bash scripts/validate.sh

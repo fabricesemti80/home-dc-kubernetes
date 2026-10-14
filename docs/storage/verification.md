@@ -1,7 +1,9 @@
 # 💾 CephFS Storage Setup Verification
 
-**Status**: ✅ All Kubernetes components deployed and ready
-**Last Updated**: 2026-03-14
+**Status**: Historical setup checklist; verify live readiness before use.
+**Last Updated**: 2026-10-14
+
+For current FUSE mount requirements, credential ownership and rollback, see [CephFS on Talos](../architecture/cephfs-talos-recovery.md) and the [maintenance incident report](../operations/2026-10-14-cephfs-mount-outage.md).
 
 ## 📌 Setup Checklist
 
@@ -51,6 +53,7 @@ kubectl describe secret csi-cephfs-secret -n kube-system
     provisioner: cephfs.csi.ceph.com
     clusterID: a74bdf84-c6e5-4a3c-acf2-6c307f5c15a4
     fsName: cephfs-vm
+    mounter: fuse
     reclaimPolicy: Retain
     allowVolumeExpansion: true
     ```
