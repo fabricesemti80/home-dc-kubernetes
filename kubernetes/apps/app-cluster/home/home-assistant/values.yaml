@@ -4,6 +4,8 @@ global:
 
 controllers:
   home-assistant:
+    # Disabled per operator direction; retain the app and PVC for safe retirement.
+    replicas: 0
     # HA keeps state (recorder SQLite, automations) in /config. RollingUpdate
     # can briefly run two instances against the same PVC, contending on the
     # SQLite DB and double-firing automations. Recreate is the safe strategy.

@@ -19,7 +19,7 @@ spec:
       helm:
         releaseName: ceph-csi
         valueFiles:
-          - $repo/kubernetes/apps/app-cluster/storage/ceph-csi/values.sops.yaml
+          - $repo/kubernetes/apps/app-cluster/storage/ceph-csi/values.yaml
   destination:
     name: app-cluster
     namespace: storage

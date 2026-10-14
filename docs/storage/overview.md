@@ -231,7 +231,7 @@ kubectl get --raw=/readyz
 
 Rollback:
 
--   Increase `provisioner.replicaCount` in `kubernetes/apps/app-cluster/storage/ceph-csi/values.sops.yaml` and allow Argo CD to resync `ceph-csi`.
+-   Increase `provisioner.replicaCount` in `kubernetes/apps/app-cluster/storage/ceph-csi/values.yaml` and allow Argo CD to resync `ceph-csi`.
 
 ---
 

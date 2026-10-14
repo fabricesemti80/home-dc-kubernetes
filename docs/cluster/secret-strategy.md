@@ -79,8 +79,8 @@ These are needed before or during cluster bootstrap:
 | `kubernetes/apps/app-cluster/doppler-operator-system/doppler-operator/config/secret.sops.yaml`         | App-cluster Doppler operator token                               |
 | `kubernetes/apps/infra-cluster/doppler-operator-system/doppler-operator-infra/config/secret.sops.yaml` | Infra-cluster Doppler operator token                             |
 | `kubernetes/apps/app-cluster/kube-system/ceph-csi/secret.sops.yaml`                                    | Ceph credentials needed before app storage is reliable           |
-| `kubernetes/apps/app-cluster/kube-system/ceph-csi/values.sops.yaml`                                    | Ceph CSI sensitive values                                        |
-| `kubernetes/apps/app-cluster/storage/ceph-csi/values.sops.yaml`                                        | Ceph CSI sensitive values                                        |
+
+Ceph CSI chart settings are public in `kubernetes/apps/app-cluster/storage/ceph-csi/values.yaml`; never add credentials under `csiConfig`, which is rendered into a ConfigMap. Generate the CSI Secret from Doppler `home-dc-kubernetes/apps` `CEPH_KEYRING` and keep the identities consistent with that key. See [the CephFS recovery decision](../architecture/cephfs-talos-recovery.md).
 
 If Doppler is replaced by another operator, the two Doppler token secrets should
 be replaced by the equivalent bootstrap token/credentials for that operator.
