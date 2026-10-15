@@ -11,6 +11,9 @@ controllers:
   immich:
     replicas: 1
     strategy: RollingUpdate
+    pod:
+      annotations:
+        kubectl.kubernetes.io/restartedAt: "2026-10-15T15:53:08Z"
     containers:
       app:
         image:
