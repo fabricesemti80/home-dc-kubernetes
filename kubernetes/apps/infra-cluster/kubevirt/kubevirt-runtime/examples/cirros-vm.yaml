@@ -14,8 +14,6 @@ spec:
         kubevirt.io/domain: cirros-spike
         kubevirt-manager.io/managed: "true"
     spec:
-      nodeSelector:
-        homelab.krapulax.dev/kubevirt-spike: 'true'
       tolerations:
         - key: node-role.kubernetes.io/control-plane
           operator: Exists

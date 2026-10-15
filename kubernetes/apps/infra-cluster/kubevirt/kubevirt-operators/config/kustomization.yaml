@@ -25,8 +25,6 @@ patches:
         replicas: 1
         template:
           spec:
-            nodeSelector:
-              homelab.krapulax.dev/kubevirt-spike: 'true'
             tolerations:
             - key: node-role.kubernetes.io/control-plane
               operator: Exists
@@ -43,8 +41,6 @@ patches:
         replicas: 1
         template:
           spec:
-            nodeSelector:
-              homelab.krapulax.dev/kubevirt-spike: 'true'
             tolerations:
             - key: node-role.kubernetes.io/control-plane
               operator: Exists

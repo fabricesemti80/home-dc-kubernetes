@@ -9,13 +9,10 @@ spec:
   infra:
     replicas: 1
     nodePlacement:
-      nodeSelector: &id001
-        homelab.krapulax.dev/kubevirt-spike: 'true'
-      tolerations: &id002
+      tolerations: &id001
         - key: node-role.kubernetes.io/control-plane
           operator: Exists
           effect: NoSchedule
   workloads:
     nodePlacement:
-      nodeSelector: *id001
-      tolerations: *id002
+      tolerations: *id001
