@@ -111,13 +111,13 @@ persistence:
       - path: /config
   downloads:
     enabled: true
-    existingClaim: media-library-pvc
+    existingClaim: media-library-pvc-recovery
     globalMounts:
       - path: /downloads
         subPath: downloads/complete
   incomplete-downloads:
     enabled: true
-    existingClaim: media-library-pvc
+    existingClaim: media-library-pvc-recovery
     globalMounts:
       - path: /incomplete-downloads
         subPath: downloads/incomplete

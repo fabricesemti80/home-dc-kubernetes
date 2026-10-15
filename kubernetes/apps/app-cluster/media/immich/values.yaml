@@ -177,7 +177,7 @@ service:
 persistence:
   uploads:
     enabled: true
-    existingClaim: media-library-pvc
+    existingClaim: media-library-pvc-recovery
     advancedMounts:
       immich:
         app:
@@ -185,7 +185,7 @@ persistence:
             subPath: immich
   external-library:
     enabled: true
-    existingClaim: media-library-pvc
+    existingClaim: media-library-pvc-recovery
     advancedMounts:
       immich:
         app:

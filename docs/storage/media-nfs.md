@@ -12,13 +12,30 @@ This cluster can consume the existing media library over NFS for workloads such 
     -   NFS is for the large retained media library mounted at `/data`
     -   CephFS remains the default for cluster-owned app state such as Jellyfin config and cache
 
-## 📌 Current Consumer
+## 📌 Consumers
 
--   `media/jellyfin`
-    -   mounts the static NFS library claim at `/data`
-    -   uses CephFS PVCs for `/config` and `/cache`
-    -   is exposed at `https://jelly.krapulax.dev` via the shared `external-apps.krapulax.dev` Cloudflare tunnel target and the `envoy-external` Gateway
-    -   has a dedicated Cloudflare Access application configured for full bypass so Jellyfin handles authentication itself
+-   Media applications share the NFS library through a `ReadWriteMany` claim in
+    the `media` namespace; their configuration PVCs remain on CephFS.
+-   `media/jellyfin` mounts the library at `/data`, and is exposed at
+    `https://jelly.krapulax.dev` via the shared `external-apps.krapulax.dev`
+    Cloudflare tunnel target and `envoy-external` Gateway.
+-   Jellyfin has a dedicated Cloudflare Access application configured for full
+    bypass so Jellyfin handles authentication itself.
+
+## Temporary claim recovery (2026-10-15)
+
+The original `media-library-pv` and `media-library-pvc` objects entered deletion
+while workloads still referenced the claim. Kubernetes protects the bound
+objects with finalizers, so new pods cannot schedule against that claim. Both
+objects use `Retain`; the backing NAS export remains intact.
+
+Use `media-library-pv-recovery` and `media-library-pvc-recovery` as a new static
+pair pointing at the same `10.0.40.2:/media` export. Move every media consumer to
+the recovery claim through Git so existing pods can keep their old mounts while
+replacements use the new identity. Sync-wave ordering creates the PV and PVC
+before the application workloads. Do not remove finalizers or delete the NFS
+export. Retire the old Kubernetes objects only after no pods reference the old
+claim; keep the recovered claim until a separately reviewed cleanup.
 
 ## 🤔 Assumptions
 
@@ -34,8 +51,8 @@ This cluster can consume the existing media library over NFS for workloads such 
 After Argo syncs:
 
 ```bash
-kubectl get pv media-library-pv
-kubectl get pvc -n media media-library-pvc
+kubectl get pv media-library-pv-recovery
+kubectl get pvc -n media media-library-pvc-recovery
 kubectl get pods -n media
 kubectl describe pod -n media -l app.kubernetes.io/name=jellyfin
 kubectl get httproute -n media jellyfin -o yaml
@@ -67,6 +84,8 @@ If the hostname still returns `404`, confirm the DNS record resolves to `externa
 
 ## ↩️ Rollback
 
+-   Keep using the recovery claim until the old PV/PVC deletion has completed; reverting early would return workloads to a terminating claim.
+-   After the old objects are gone, restore their original names and claim references in Git, then let Argo sync before removing the recovery pair.
 -   Remove the external-dns annotations from `kubernetes/apps/app-cluster/media/jellyfin/config/http-route.yaml`
 -   Re-sync the Jellyfin Argo CD application so external-dns can withdraw the record
 -   Restore the prior DNS mapping only if a direct Cloudflare tunnel route is intentionally reintroduced

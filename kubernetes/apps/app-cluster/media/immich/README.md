@@ -13,10 +13,10 @@ Current intent:
 Storage layout:
 
 -   `/data`
-    -   NFS `media-library-pvc`
+    -   NFS `media-library-pvc-recovery`
     -   `subPath: immich`
 -   `/external-library`
-    -   NFS `media-library-pvc`
+    -   NFS `media-library-pvc-recovery`
     -   `subPath: immich/library`
     -   mounted read-only
 -   PostgreSQL, Redis, and ML cache
