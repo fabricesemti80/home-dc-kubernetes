@@ -1,0 +1,31 @@
+---
+apiVersion: cdi.kubevirt.io/v1beta1
+kind: CDI
+metadata:
+  name: cdi
+spec:
+  uninstallStrategy: BlockUninstallIfWorkloadsExist
+  infra:
+    nodeSelector: &id001
+      homelab.krapulax.dev/kubevirt-spike: 'true'
+    tolerations: &id002
+      - key: node-role.kubernetes.io/control-plane
+        operator: Exists
+        effect: NoSchedule
+    apiServerReplicas: 1
+    deploymentReplicas: 1
+    uploadProxyReplicas: 1
+  workload:
+    nodeSelector: *id001
+    tolerations: *id002
+  config:
+    featureGates:
+      - HonorWaitForFirstConsumer
+    scratchSpaceStorageClass: local-path
+    podResourceRequirements:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        cpu: '1'
+        memory: 1Gi
