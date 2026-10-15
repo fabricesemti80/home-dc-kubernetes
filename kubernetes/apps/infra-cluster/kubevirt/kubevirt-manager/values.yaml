@@ -38,6 +38,8 @@ controllers:
               initialDelaySeconds: 5
               periodSeconds: 10
 defaultPodOptions:
+  nodeSelector:
+    kubernetes.io/os: linux
   securityContext:
     fsGroup: 30000
   tolerations:
