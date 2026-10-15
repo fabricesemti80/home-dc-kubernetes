@@ -4,6 +4,8 @@ kind: Application
 metadata:
   name: kubevirt-manager-infra
   namespace: argo-system
+  annotations:
+    argocd.argoproj.io/sync-wave: '-1'
 spec:
   project: kubernetes
   destination:
