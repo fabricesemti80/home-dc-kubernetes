@@ -6,6 +6,7 @@ metadata:
   namespace: argo-system
   annotations:
     argocd.argoproj.io/sync-wave: "5"
+    argocd.argoproj.io/compare-options: ServerSideDiff=false
 spec:
   destination:
     namespace: storage
