@@ -1,0 +1,19 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: kubevirt-runtime-infra
+  namespace: argo-system
+spec:
+  project: kubernetes
+  source:
+    repoURL: https://github.com/fabricesemti80/home-dc-kubernetes.git
+    targetRevision: main
+    path: kubernetes/apps/infra-cluster/kubevirt/kubevirt-runtime
+  destination:
+    name: infra-cluster
+    namespace: kubevirt
+  syncPolicy:
+    syncOptions:
+      - ServerSideApply=true
+      - PruneLast=true
