@@ -116,6 +116,9 @@ controllers:
     type: statefulset
     replicas: 1
     strategy: RollingUpdate
+    pod:
+      annotations:
+        kubectl.kubernetes.io/restartedAt: "2026-10-15T15:49:38Z"
     containers:
       app:
         image:
