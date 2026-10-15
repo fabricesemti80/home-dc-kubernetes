@@ -84,6 +84,9 @@ controllers:
   redis:
     replicas: 1
     strategy: RollingUpdate
+    pod:
+      annotations:
+        kubectl.kubernetes.io/restartedAt: "2026-10-15T15:44:53Z"
     containers:
       app:
         image:
