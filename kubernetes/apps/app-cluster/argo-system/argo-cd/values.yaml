@@ -124,6 +124,11 @@ notifications:
     serviceMonitor: *service-monitor
 repoServer:
   replicas: 2
+  topologySpreadConstraints:
+    - maxSkew: 1
+      minDomains: 2
+      topologyKey: kubernetes.io/hostname
+      whenUnsatisfiable: DoNotSchedule
   resources:
     requests:
       cpu: 250m
