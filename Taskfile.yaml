@@ -120,7 +120,7 @@ tasks:
     cmd: task infrastructure:argo-sync-bootstrap
 
   reconcile:
-    desc: Force Argo to pull in changes from your Git repository
+    desc: Request an immediate Argo CD refresh of all applications
     cmd: task infrastructure:argo-reconcile
 
   platform:cilium:
@@ -216,7 +216,7 @@ tasks:
     cmd: task infrastructure:argo-sync-bootstrap
 
   cluster:reconcile:
-    desc: Force Argo to reconcile the cluster apps
+    desc: Request an immediate Argo CD refresh of all applications
     cmd: task infrastructure:argo-reconcile
 
   mgmt:init:

@@ -1,8 +1,10 @@
 # KubeVirt GUI trial (infra-cluster)
 
-This PR registers three **manual-sync** Argo applications. Merging does not start
-operators or a VM. No production application, Talos network or Proxmox setting is
-changed. Design: [KubeVirt spike](../../../../docs/architecture/kubevirt-spike.md).
+This change registers three automatically synced Argo applications. The parent
+`apps` Application stages operators, runtime, and GUI through sync waves and
+waits for each child Application to become healthy before creating the next.
+No VM starts by default. No production application, Talos network or Proxmox
+setting is changed. Design: [KubeVirt spike](../../../../docs/architecture/kubevirt-spike.md).
 
 | Component                         | Pin     | Purpose                                 |
 | --------------------------------- | ------- | --------------------------------------- |
@@ -67,20 +69,22 @@ there (for example the existing `cephfs`), rather than assuming `local-path`
 exists. Do not deploy both copies accidentally. No Proxmox or Talos machine
 configuration changes are bundled with this trial.
 
-## 2. Sync operators, then runtime, then GUI
+## 2. Verify GitOps deployment: operators, runtime, then GUI
 
-After merge, let the existing root `apps` application discover the three child
-applications. In Argo, sync **kubevirt-operators-infra only** first. Alternatively:
+After the live preflight and node label are in place, Argo discovers and deploys
+the applications automatically in dependency order: operators (`-3`), runtime
+(`-2`), then GUI (`-1`). The existing Argo Application health customization
+lets the parent `apps` Application wait for each child's health between waves.
+Watch progress with:
 
 ```bash
-argocd app sync kubevirt-operators-infra
-argocd app wait kubevirt-operators-infra --sync --health --timeout 300
+kubectl --context "$SPIKE_CONTEXT" -n argo-system get applications \
+  kubevirt-operators-infra kubevirt-runtime-infra kubevirt-manager-infra -w
 kubectl --context "$SPIKE_CONTEXT" wait --for=condition=Established \
   crd/kubevirts.kubevirt.io crd/cdis.cdi.kubevirt.io --timeout=180s
 kubectl --context "$SPIKE_CONTEXT" -n kubevirt rollout status deploy/virt-operator --timeout=300s
 kubectl --context "$SPIKE_CONTEXT" -n cdi rollout status deploy/cdi-operator --timeout=300s
 
-argocd app sync kubevirt-runtime-infra
 kubectl --context "$SPIKE_CONTEXT" -n kubevirt wait kubevirt/kubevirt \
   --for=condition=Available --timeout=600s
 kubectl --context "$SPIKE_CONTEXT" wait cdi/cdi --for=condition=Available --timeout=600s
@@ -96,8 +100,6 @@ inspect its events/operator logs before proceeding. If headroom has disappeared,
 stop here and uninstall using the sequence below.
 
 ```bash
-argocd app sync kubevirt-manager-infra
-argocd app wait kubevirt-manager-infra --sync --health --timeout 300
 kubectl --context "$SPIKE_CONTEXT" -n kubevirt-manager \
   port-forward --address 127.0.0.1 svc/kubevirt-manager 8080:8080
 ```
@@ -108,8 +110,8 @@ NetworkPolicy blocks ordinary pod-network access; kubectl port-forward uses the
 API/kubelet channel. Validate this behaviour with the installed Cilium policy.
 Kubernetes port-forward permission is the access gate; do not bind it to 0.0.0.0.
 
-Manual sync is intentional: child application sync waves alone would not guarantee
-that CRDs/controllers become ready across separate Applications.
+The parent waits on the child Application health before advancing each wave, so
+runtime custom resources are not applied until the operators are healthy.
 
 ## 3. Put a stopped VM in the GUI
 
@@ -194,8 +196,9 @@ impact on DNS, monitoring, Argo and automation before deciding to keep it.
 
 ## 6. Uninstall in dependency order
 
-All three child applications have no automatic sync or automatic prune. Keep this
-true during removal; delete operator custom resources while operators still run.
+Delete test guests and disks first. Do not manually delete the Git-managed
+KubeVirt/CDI custom resources while the runtime application is active; Argo will
+recreate them.
 
 ```bash
 kubectl --context "$SPIKE_CONTEXT" -n kubevirt-lab delete vm --all --wait=true
@@ -204,17 +207,18 @@ kubectl --context "$SPIKE_CONTEXT" -n kubevirt-lab get pvc
 # Inspect the list; delete only spike PVCs that are no longer needed.
 kubectl --context "$SPIKE_CONTEXT" -n kubevirt-lab delete pvc cirros-spike-root --ignore-not-found
 
-kubectl --context "$SPIKE_CONTEXT" -n kubevirt delete kubevirt kubevirt --wait=true --timeout=300s
-kubectl --context "$SPIKE_CONTEXT" delete cdi cdi --wait=true --timeout=300s
 ```
 
-Revert/remove this PR's three Argo Application manifests from Git and sync the root
-`apps` Application. Its `Prune=false` means the child Applications may remain;
-remove them explicitly after the revert. On the Argo management cluster:
+Remove the three Argo Application manifests from Git in a reviewed PR and merge
+it. The root `apps` Application has `Prune=false`, so delete the child
+Applications explicitly in dependency order on the Argo management cluster:
 
 ```bash
 argocd app delete kubevirt-manager-infra --cascade --yes
 argocd app delete kubevirt-runtime-infra --cascade --yes
+# Confirm the KubeVirt and CDI custom resources are gone before removing operators.
+kubectl --context "$SPIKE_CONTEXT" -n kubevirt get kubevirt kubevirt --ignore-not-found
+kubectl --context "$SPIKE_CONTEXT" get cdi cdi --ignore-not-found
 argocd app delete kubevirt-operators-infra --cascade --yes
 kubectl --context "$SPIKE_CONTEXT" label node "$SPIKE_NODE" \
   homelab.krapulax.dev/kubevirt-spike-

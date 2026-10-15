@@ -282,7 +282,8 @@ git commit -m "feat: add <app> application"
 git push
 ```
 
-Argo CD will automatically detect the changes and deploy your application. To force an immediate sync:
+Argo CD detects repository changes and auto-syncs applications from Git. To
+request an immediate hard refresh:
 
 ```sh
 task reconcile

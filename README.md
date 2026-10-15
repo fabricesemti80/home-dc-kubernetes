@@ -197,6 +197,9 @@ task sync-argo-bootstrap
 task reconcile
 ```
 
+`task reconcile` requests a hard refresh through the cluster kubeconfig. Argo
+auto-syncs applications from Git, including the KubeVirt test stack.
+
 Before syncing, confirm both scoped Doppler operator token Secrets are present
 in Git and decryptable:
 
@@ -290,7 +293,7 @@ Expected state:
 
 ## ↩️ Rollback and Reset
 
-For GitOps changes, revert the PR and reconcile Argo:
+For GitOps changes, revert the PR and request an Argo refresh:
 
 ```bash
 git revert <merge-commit>
