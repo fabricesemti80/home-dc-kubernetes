@@ -20,6 +20,28 @@ CI rejects a non-FUSE or non-Retain StorageClass and credentials in CSI ConfigMa
 
 Revert chart values or probe changes through GitOps after inspecting affected workloads. Do not revert repaired PVs to kernel mounting on these nodes. If rebinding is necessary, stop all volume consumers, save the current objects, retain the original Ceph handles and Retain policy, then verify each new PVC UID matches its PV claim reference before restoring workloads. A StorageClass change needs a reviewed recreation of the class while preserving all existing volumes.
 
+## Disconnected client recovery
+
+When a CephFS consumer reports `Transport endpoint is not connected` while
+CephFS and its MDS remain available, test a fresh client mount before restarting
+stateful consumers. Change the pod-template
+`kubectl.kubernetes.io/restartedAt` annotation on the non-critical
+`storage/nginx-test` Deployment through GitOps. Keep its existing PVC, PV, CephFS
+handle and `Retain` policy unchanged. Verify the replacement pod can read the
+test page and that `df -T /usr/share/nginx/html` reports CephFS. If the pilot
+fails, stop and preserve all claims; do not restart databases or mass-roll CSI
+plugins. If it succeeds, recover affected applications one at a time through
+reviewed pod-template changes, checking database logs, PVC binding, service
+endpoints and application health after each restart. This remounts the client
+but does not repair Ceph redundancy; keep the cluster degraded until the
+missing host/OSD is recovered.
+
+Assumptions: the active MDS and placement groups remain available for I/O, the
+pilot PVC contains disposable test data, and restarting one test pod is safe.
+Before restarting any database, verify its backup or account for PostgreSQL
+crash recovery on the existing retained CephFS volume. Rollback by reverting the
+annotation through GitOps; the PVC and data remain unchanged.
+
 ## Next actions
 
 -   [ ] Review the 12 unused legacy PVs before any new consumer mounts them.
