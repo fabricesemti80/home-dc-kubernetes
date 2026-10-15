@@ -11,10 +11,10 @@ runs inside Proxmox VMs and would need nested KVM exposed and verified first.
 
 The recorded infra capacity is approximately 16 GiB + 8 GiB. Historical audit data
 does not establish current free capacity. No live kubeconfig or metrics are available
-in this development environment. Therefore installation is manual-sync and gated on
-a live capacity/KVM/version check; this PR does not claim infra is presently large
-enough. If the check fails, use the documented app-cluster adaptation after verifying
-nested virtualisation, rather than deploying blindly onto critical infra services.
+in this development environment. Argo deploys the applications automatically from
+Git; verify live capacity, KVM and version before starting a guest. If the check
+fails, use the documented app-cluster adaptation after verifying nested
+virtualisation.
 
 ## Proposed architecture
 
@@ -66,7 +66,7 @@ No existing cluster applications or Proxmox hosts are removed by this spike.
 ## Next actions
 
 -   [ ] Run the live preflight and choose infra or the documented app fallback.
--   [ ] Sync operator, runtime and GUI applications in order.
+-   [ ] Verify Argo auto-syncs the operator, runtime and GUI applications.
 -   [ ] Evaluate the GUI and one guest; record measured resource use.
 -   [ ] Remove the spike or design durable storage/availability separately.
 

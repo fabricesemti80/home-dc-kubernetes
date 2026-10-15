@@ -186,12 +186,13 @@ task talos:infra:cilium
 
     The `apps` Application and shared Argo settings are bootstrap-managed rather
     than watched by Argo itself. After changing files under
-    `kubernetes/components/common/`, apply them to the live hub and verify its
-    applications with:
+    `kubernetes/components/common/`, apply them to the live hub, request a hard
+    refresh, then inspect application status:
 
     ```bash
     task sync-argo-bootstrap
     task reconcile
+    kubectl -n argo-system get applications
     ```
 
 2. **Register `infra-cluster` as a Target Destination**:
