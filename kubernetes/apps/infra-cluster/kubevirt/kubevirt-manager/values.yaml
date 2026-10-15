@@ -38,6 +38,8 @@ controllers:
               initialDelaySeconds: 5
               periodSeconds: 10
 defaultPodOptions:
+  securityContext:
+    fsGroup: 30000
   nodeSelector:
     homelab.krapulax.dev/kubevirt-spike: 'true'
   tolerations:
