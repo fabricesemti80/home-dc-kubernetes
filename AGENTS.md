@@ -78,6 +78,13 @@ This repository is the main deployment home for the Talos clusters, Kubernetes r
 -   `storageClass: cephfs` for config
 -   `existingClaim: media-library-pvc` (NFS) for media/downloads
 
+**TEMPORARY RECOVERY (2026-10-15)**: The original `media-library-pv` and
+`media-library-pvc` objects are terminating. The media applications temporarily
+use `media-library-pvc-recovery`, a second `Retain` PV/PVC identity for the same
+NFS export, until the old objects finish deletion. Keep this exception in Git;
+do not remove finalizers or delete the export. Return to the canonical claim only
+in a reviewed cleanup after the original objects are gone.
+
 ## Definition of done (for infra tasks)
 
 -   Architecture or design doc updated.

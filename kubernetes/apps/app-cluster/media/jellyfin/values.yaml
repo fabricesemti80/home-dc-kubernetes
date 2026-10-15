@@ -122,6 +122,6 @@ persistence:
       - path: /cache
   media:
     enabled: true
-    existingClaim: media-library-pvc
+    existingClaim: media-library-pvc-recovery
     globalMounts:
       - path: /data

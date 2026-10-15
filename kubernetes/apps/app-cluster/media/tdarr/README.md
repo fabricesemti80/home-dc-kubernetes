@@ -15,8 +15,8 @@ Initial setup:
 The pod mounts:
 
 -   `/app/server`, `/app/configs`, and `/app/logs` on a CephFS-backed config PVC
--   `/media` from the shared `media-library-pvc`
--   `/temp` from the shared `media-library-pvc` subpath `tdarr-cache`
+-   `/media` from the shared `media-library-pvc-recovery`
+-   `/temp` from the shared `media-library-pvc-recovery` subpath `tdarr-cache`
 
 Rollback:
 

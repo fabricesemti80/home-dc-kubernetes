@@ -161,7 +161,7 @@ persistence:
             subPath: logs/worker-k8s-ctrl-02
   media:
     enabled: true
-    existingClaim: media-library-pvc
+    existingClaim: media-library-pvc-recovery
     advancedMounts:
       tdarr:
         app:
@@ -175,7 +175,7 @@ persistence:
   transcode-cache:
     type: persistentVolumeClaim
     enabled: true
-    existingClaim: media-library-pvc
+    existingClaim: media-library-pvc-recovery
     advancedMounts:
       tdarr:
         app:
