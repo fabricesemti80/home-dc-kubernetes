@@ -29,6 +29,8 @@ stateful consumers. Change the pod-template
 `storage/nginx-test` Deployment through GitOps. Keep its existing PVC, PV, CephFS
 handle and `Retain` policy unchanged. Use the `Recreate` Deployment strategy so
 the old pod unmounts its node's CSI staging path before the replacement starts.
+Argo replaces this Deployment to clear its old defaulted `rollingUpdate` field
+when applying `Recreate`.
 Verify the replacement pod can read the test page and that
 `df -T /usr/share/nginx/html` reports CephFS. If the pilot fails, stop and
 preserve all claims; do not restart databases or mass-roll CSI plugins. If it
