@@ -184,6 +184,16 @@ task talos:infra:cilium
     task apps:bootstrap
     ```
 
+    The `apps` Application and shared Argo settings are bootstrap-managed rather
+    than watched by Argo itself. After changing files under
+    `kubernetes/components/common/`, apply them to the live hub and verify its
+    applications with:
+
+    ```bash
+    task sync-argo-bootstrap
+    task reconcile
+    ```
+
 2. **Register `infra-cluster` as a Target Destination**:
 
     ```bash
@@ -287,11 +297,18 @@ If an installation step fails or requires reversal, follow the corresponding pha
 
 ### ↩️ Rollback Phase 6/7: Workload GitOps Rollback
 
--   **Disable Auto-Sync**: Prevent Argo CD from syncing broken workload manifests:
+-   **Disable Auto-Sync**: Pause the `apps` parent first so its self-heal does
+    not restore the child's Git-declared policy while you investigate:
     ```bash
+    argocd app set apps --sync-policy none
     argocd app set <app-name> --sync-policy none
     ```
--   **Revert Git State**: Revert the workload commit on your git branch and push to trigger an automated rollback sync.
+-   **Revert Git State**: Revert the workload commit on your git branch and push.
+-   **Resume GitOps**: Reapply the bootstrap policy and reconcile the apps:
+    ```bash
+    task sync-argo-bootstrap
+    task reconcile
+    ```
 
 ---
 
