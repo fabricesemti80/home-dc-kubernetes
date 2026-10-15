@@ -27,10 +27,12 @@ CephFS and its MDS remain available, test a fresh client mount before restarting
 stateful consumers. Change the pod-template
 `kubectl.kubernetes.io/restartedAt` annotation on the non-critical
 `storage/nginx-test` Deployment through GitOps. Keep its existing PVC, PV, CephFS
-handle and `Retain` policy unchanged. Verify the replacement pod can read the
-test page and that `df -T /usr/share/nginx/html` reports CephFS. If the pilot
-fails, stop and preserve all claims; do not restart databases or mass-roll CSI
-plugins. If it succeeds, recover affected applications one at a time through
+handle and `Retain` policy unchanged. Use the `Recreate` Deployment strategy so
+the old pod unmounts its node's CSI staging path before the replacement starts.
+Verify the replacement pod can read the test page and that
+`df -T /usr/share/nginx/html` reports CephFS. If the pilot fails, stop and
+preserve all claims; do not restart databases or mass-roll CSI plugins. If it
+succeeds, recover affected applications one at a time through
 reviewed pod-template changes, checking database logs, PVC binding, service
 endpoints and application health after each restart. This remounts the client
 but does not repair Ceph redundancy; keep the cluster degraded until the
