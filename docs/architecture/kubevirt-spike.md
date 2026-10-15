@@ -22,8 +22,9 @@ virtualisation.
     so CRDs can become established before runtime sync.
 -   KubeVirt Manager via the repository's app-template chart, ClusterIP only, accessed
     through a localhost kubectl port-forward. Ingress is denied by NetworkPolicy.
--   Opt-in node label confines operator/runtime/GUI pods to preflight-approved nodes.
-    Initially label only infra-cp-01, keeping the smaller infra worker untouched.
+-   Operator, runtime and GUI pods can schedule on any eligible infra-cluster node;
+    no KubeVirt-specific node label is required. Existing control-plane tolerations
+    remain so the Dell control plane is eligible when it has capacity.
 -   One manually created, initially stopped CirrOS guest in kubevirt-lab; one vCPU,
     512 MiB guest RAM, disposable container disk. No default guest starts on merge.
 -   CDI supports the GUI's disk-import workflow. Optional persistent disk testing

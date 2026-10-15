@@ -41,13 +41,9 @@ Proceed only if:
     If missing, check BIOS virtualisation and the loaded KVM driver first.
 -   Metrics are available. Missing metrics is not a pass.
 
-Label only the approved Dell initially. Every spike component is constrained to
-this opt-in label; the 8 GiB worker is excluded.
-
-```bash
-kubectl --context "$SPIKE_CONTEXT" label node "$SPIKE_NODE" \
-  homelab.krapulax.dev/kubevirt-spike=true --overwrite
-```
+No KubeVirt-specific node label is needed. Components may schedule on either
+infra node when its taints and available capacity permit; the control-plane
+toleration allows the Dell to run them as well.
 
 The headroom figure is a planning gate, not a measured or enforced cap on all
 operator-created pods. Measure again after installation and before starting a VM.
@@ -63,15 +59,15 @@ For a reviewed fallback change, move `kubernetes/apps/infra-cluster/kubevirt` to
 `kubernetes/apps/app-cluster/kubevirt`, move the three Argo application files to
 `kubernetes/argo/apps/app-cluster/kubevirt`, rename their `-infra` names to `-app`,
 change every source/valueFiles path and `destination.name` to app-cluster.
-Use the same opt-in label on one approved app node. Change CDI's scratch class and
-persistent VM example to an explicitly verified, Retain storage class available
+No KubeVirt-specific node label is needed on app nodes either. Change CDI's
+scratch class and persistent VM example to an explicitly verified, Retain storage class available
 there (for example the existing `cephfs`), rather than assuming `local-path`
 exists. Do not deploy both copies accidentally. No Proxmox or Talos machine
 configuration changes are bundled with this trial.
 
 ## 2. Verify GitOps deployment: operators, runtime, then GUI
 
-After the live preflight and node label are in place, Argo discovers and deploys
+After the live preflight, Argo discovers and deploys
 the applications automatically in dependency order: operators (`-3`), runtime
 (`-2`), then GUI (`-1`). The existing Argo Application health customization
 lets the parent `apps` Application wait for each child's health between waves.
@@ -220,8 +216,6 @@ argocd app delete kubevirt-runtime-infra --cascade --yes
 kubectl --context "$SPIKE_CONTEXT" -n kubevirt get kubevirt kubevirt --ignore-not-found
 kubectl --context "$SPIKE_CONTEXT" get cdi cdi --ignore-not-found
 argocd app delete kubevirt-operators-infra --cascade --yes
-kubectl --context "$SPIKE_CONTEXT" label node "$SPIKE_NODE" \
-  homelab.krapulax.dev/kubevirt-spike-
 kubectl --context "$SPIKE_CONTEXT" get pv
 ```
 
