@@ -8,11 +8,15 @@ metadata:
     app: nginx-test
 spec:
   replicas: 1
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: nginx-test
   template:
     metadata:
+      annotations:
+        kubectl.kubernetes.io/restartedAt: "2026-10-15T15:31:45Z"
       labels:
         app: nginx-test
     spec:
