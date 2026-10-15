@@ -6,6 +6,8 @@ metadata:
 spec:
   uninstallStrategy: BlockUninstallIfWorkloadsExist
   infra:
+    nodeSelector: &linuxNodes
+      kubernetes.io/os: linux
     tolerations: &id001
       - key: node-role.kubernetes.io/control-plane
         operator: Exists
@@ -14,6 +16,7 @@ spec:
     deploymentReplicas: 1
     uploadProxyReplicas: 1
   workload:
+    nodeSelector: *linuxNodes
     tolerations: *id001
   config:
     featureGates:
