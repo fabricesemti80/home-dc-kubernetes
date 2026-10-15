@@ -4,12 +4,15 @@ kind: Deployment
 metadata:
   name: nginx-test
   namespace: storage
+  annotations:
+    argocd.argoproj.io/sync-options: Replace=true
   labels:
     app: nginx-test
 spec:
   replicas: 1
   strategy:
     type: Recreate
+    rollingUpdate: null
   selector:
     matchLabels:
       app: nginx-test
