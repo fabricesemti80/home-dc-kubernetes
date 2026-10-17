@@ -30,6 +30,18 @@ flowchart LR
 -   Local storage is intentionally infra-cluster scoped; it should not be scheduled onto the app cluster.
 -   Kestra is intended to orchestrate clean Proxmox, Ceph, VM, Kubernetes, and cluster stop/start workflows.
 
+## 🛠️ Full-cluster maintenance workflow
+
+The `home-kestra` repository owns the `homelab.ops` flow definitions. The maintenance flow runs on the physical infra cluster so it remains available while the Proxmox-hosted app cluster is down. It defaults to an inspection-only run. A live run requires an exact outage confirmation plus backup and external Ceph-client acknowledgements; it must never be scheduled.
+
+Order: inventory and package simulation on all three Proxmox hosts; download reviewed packages; disable guest autostart and gracefully stop every running QEMU/LXC guest; verify no guests or known Ceph clients remain; stop Ceph MDS, OSD, manager, and monitor instances; install pinned package versions; reboot Proxmox hosts one at a time with quorum checks; restore Ceph monitor quorum and health; start previously running service guests before app-cluster VMs; restore each guest's original autostart setting and host timers. Kestra and its secrets remain on infra-cluster local storage.
+
+Assumptions: the three target hosts are `pve-0` through `pve-2`; Proxmox HA is absent; all Ceph daemons and guests are discoverable through those hosts; package updates remain within the current Debian, PVE, and Ceph major versions; an operator has verified backups and any Ceph clients outside those hosts. The flow refuses unsupported layouts rather than guessing. It does not update Talos, the infra-cluster nodes, or application images. Those require separate procedures.
+
+Validation: review the inspection artifact and preflight refusal reasons; validate the Kestra flow and namespace files; confirm the flow is unscheduled and starts in inspection mode. After an authorized live run, check Proxmox quorum, Ceph `HEALTH_OK`, original guest power and autostart states, app-cluster node readiness, ready service endpoints, and route behavior. Guest `running` alone does not prove Kubernetes recovery.
+
+Rollback: maintenance records original state on all three hosts. If a step fails, stop and follow the `home-kestra` recovery runbook; do not run the legacy shutdown/startup flows over an incomplete maintenance operation. Package downgrades are not automatic; restore from host backups if a package upgrade itself must be reverted. Retained storage is never deleted by the flow.
+
 ## 🤔 Assumptions
 
 -   `infra-cp-01` is the preferred node for critical automation because it should remain online while app-cluster VMs are restarted.
