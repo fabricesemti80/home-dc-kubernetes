@@ -15,7 +15,7 @@ controllers:
       app:
         image:
           repository: docker.io/stirlingtools/stirling-pdf
-          tag: 3.1.0
+          tag: 3.2.0
         env:
           TZ: Europe/London
           DOCKER_ENABLE_SECURITY: "false"
