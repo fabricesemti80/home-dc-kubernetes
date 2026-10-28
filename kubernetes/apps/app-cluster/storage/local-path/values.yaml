@@ -1,0 +1,20 @@
+---
+# Talos mounts the dedicated worker user volume at this path.
+nodePathMap:
+  - node: DEFAULT_PATH_FOR_NON_LISTED_NODES
+    paths: []
+  - node: k8s-wrkr-01-gpu
+    paths: [/var/mnt/local-path-provisioner]
+  - node: k8s-wrkr-02
+    paths: [/var/mnt/local-path-provisioner]
+  - node: k8s-wrkr-03
+    paths: [/var/mnt/local-path-provisioner]
+storageClass:
+  name: local-path
+  create: true
+  defaultClass: false
+  defaultVolumeType: local
+  reclaimPolicy: Retain
+  volumeBindingMode: WaitForFirstConsumer
+nodeSelector:
+  kubernetes.io/os: linux

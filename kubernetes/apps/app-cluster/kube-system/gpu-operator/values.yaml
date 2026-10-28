@@ -1,0 +1,11 @@
+---
+# Talos supplies the NVIDIA driver and container toolkit as system extensions.
+driver:
+  enabled: false
+toolkit:
+  enabled: false
+hostPaths:
+  driverInstallDir: /usr/local
+operator:
+  # The operator itself runs on general-purpose nodes, not only the GPU guest.
+  runtimeClass: ""

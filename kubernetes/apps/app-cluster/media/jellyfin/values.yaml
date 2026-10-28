@@ -4,27 +4,15 @@ global:
 
 defaultPodOptions:
   automountServiceAccountToken: false
+  runtimeClassName: nvidia
   nodeSelector:
-    kubernetes.io/hostname: k8s-ctrl-03
+    kubernetes.io/hostname: k8s-wrkr-01-gpu
 
 controllers:
   jellyfin:
     # Config includes SQLite state and the workload is pinned to one node;
     # do not require two 3GiB pods during an update.
     strategy: Recreate
-    pod:
-      affinity:
-        podAntiAffinity:
-          preferredDuringSchedulingIgnoredDuringExecution:
-            - weight: 100
-              podAffinityTerm:
-                labelSelector:
-                  matchExpressions:
-                    - key: app.kubernetes.io/instance
-                      operator: In
-                      values:
-                        - immich
-                topologyKey: kubernetes.io/hostname
     containers:
       app:
         image:
@@ -38,10 +26,18 @@ controllers:
           JELLYFIN_Codepage: ""
           JELLYFIN_MaxStreamBitrate: "80000000"
           JELLYFIN_TranscodeMaxAudioChannels: "2"
-          # Software transcoding tuning — 10 cores available
-          JELLYFIN_FFmpeg_CpuThreads: "8"
-          JELLYFIN_EncodingThreadCount: "8"
+          # GPU transcoding path; CPU fallback retained by keeping threads <= vCPU count
+          JELLYFIN_FFmpeg_CpuThreads: "4"
+          JELLYFIN_EncodingThreadCount: "4"
           JELLYFIN_CACHE_DIR: /cache
+        resources:
+          requests:
+            cpu: 2000m
+            memory: 3Gi
+          limits:
+            cpu: "4"
+            memory: 8Gi
+            nvidia.com/gpu: "1"
         probes:
           # Kestrel is live while Jellyfin's ffmpeg capability scan temporarily
           # makes /health return 503. Do not restart a healthy process mid-scan.
@@ -55,38 +51,32 @@ controllers:
               periodSeconds: 30
               timeoutSeconds: 10
               failureThreshold: 3
-          # Keep traffic gated on the application-level health endpoint.
+          # Jellyfin may return HTTP 200 with body Degraded; gate traffic on Healthy.
           readiness:
             enabled: true
             custom: true
             spec:
-              httpGet:
-                path: /health
-                port: 8096
+              exec:
+                command:
+                  - /bin/sh
+                  - -c
+                  - test "$(curl -fsS http://127.0.0.1:8096/health)" = Healthy
               initialDelaySeconds: 60
               periodSeconds: 30
               timeoutSeconds: 10
               failureThreshold: 3
-          # Jellyfin validates ffmpeg capabilities during startup. Keep it out
-          # of service endpoints until /health succeeds, without liveness
-          # restarts interrupting that validation.
           startup:
             enabled: true
             custom: true
             spec:
-              httpGet:
-                path: /health
-                port: 8096
+              exec:
+                command:
+                  - /bin/sh
+                  - -c
+                  - test "$(curl -fsS http://127.0.0.1:8096/health)" = Healthy
               periodSeconds: 10
               timeoutSeconds: 10
               failureThreshold: 60
-        resources:
-          requests:
-            cpu: 2000m
-            memory: 3Gi
-          limits:
-            cpu: 9500m
-            memory: 8Gi
 
 service:
   app:
@@ -104,15 +94,15 @@ persistence:
       - path: /transcode
   config:
     type: persistentVolumeClaim
-    accessMode: ReadWriteMany
-    storageClass: cephfs
+    accessMode: ReadWriteOnce
+    storageClass: local-path
     size: 5Gi
     globalMounts:
       - path: /config
   cache:
     type: persistentVolumeClaim
-    accessMode: ReadWriteMany
-    storageClass: cephfs
+    accessMode: ReadWriteOnce
+    storageClass: local-path
     size: 20Gi
     globalMounts:
       - path: /cache

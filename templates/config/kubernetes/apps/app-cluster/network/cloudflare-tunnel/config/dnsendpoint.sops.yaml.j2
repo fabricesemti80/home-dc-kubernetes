@@ -11,12 +11,6 @@ spec:
     - dnsName: "external-infra.#{ cloudflare_domain }#"
       recordType: CNAME
       targets: ["#{ cloudflare_tunnel_id('cloudflare-tunnel-infra.json') }#.cfargotunnel.com"]
-    - dnsName: "nginx-test.#{ cloudflare_domain }#"
-      recordType: CNAME
-      targets: ["external-apps.#{ cloudflare_domain }#"]
     - dnsName: "pulse.#{ cloudflare_domain }#"
       recordType: CNAME
       targets: ["external-infra.#{ cloudflare_domain }#"]
-    - dnsName: "grafana.#{ cloudflare_domain }#"
-      recordType: CNAME
-      targets: ["external-apps.#{ cloudflare_domain }#"]

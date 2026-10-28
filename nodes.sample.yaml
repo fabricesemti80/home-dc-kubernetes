@@ -6,7 +6,6 @@ nodes: []
   #   started: true       # (OPTIONAL) Whether Terraform should keep the VM powered on in Proxmox. DEFAULT: true
   #   disk: ""            # (REQUIRED) Device path or serial number of the disk for this node (talosctl get blockdevices -n <ip> --insecure)
   #   mac_addr: ""        # (REQUIRED) MAC address of the NIC for this node (talosctl get links -n <ip> --insecure)
-  #   ceph_mac_addr: ""   # (OPTIONAL) MAC address of the secondary NIC for Ceph storage traffic (only needed when ceph_network is configured in cluster.yaml)
   #   schematic_id: ""    # (REQUIRED) Schematic ID from https://factory.talos.dev/
   #   mtu: 1500           # (ADVANCED/OPTIONAL) MTU for the NIC. DEFAULT: 1500
   #   secureboot: false   # (ADVANCED/OPTIONAL) SecureBoot mode on UEFI platforms. Ref: https://www.talos.dev/latest/talos-guides/install/bare-metal-platforms/secureboot

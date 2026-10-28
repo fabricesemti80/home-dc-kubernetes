@@ -35,6 +35,12 @@ configs:
         end
       end
       return hs
+  clusterCredentials:
+    app-cluster:
+      server: https://kubernetes.default.svc
+      config:
+        tlsClientConfig:
+          insecure: false
 controller:
   replicas: 2
   resources:
@@ -55,10 +61,6 @@ controller:
     enabled: true
     applicationLabels:
       enabled: true
-    serviceMonitor: &service-monitor
-      enabled: true
-      additionalLabels:
-        release: kube-prometheus-stack
 dex:
   replicas: 2
   resources:
@@ -89,7 +91,6 @@ redis:
       memory: 256Mi
   metrics:
     enabled: true
-    serviceMonitor: *service-monitor
 server:
   replicas: 2
   allowAnyNamespace: true
@@ -109,7 +110,6 @@ server:
     failureThreshold: 3
   metrics:
     enabled: true
-    serviceMonitor: *service-monitor
 notifications:
   replicas: 2
   resources:
@@ -121,7 +121,6 @@ notifications:
       memory: 256Mi
   metrics:
     enabled: true
-    serviceMonitor: *service-monitor
 repoServer:
   replicas: 2
   resources:

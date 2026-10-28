@@ -20,7 +20,7 @@ Recommended first settings:
 
 The pod mounts:
 
--   `/config` on CephFS
+-   `/config` on a local-path ReadWriteOnce PVC
 -   `/downloads` on the shared NFS completed-downloads path
 -   `/incomplete-downloads` on the shared NFS incomplete-downloads path
 

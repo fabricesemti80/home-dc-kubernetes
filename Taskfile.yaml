@@ -11,7 +11,6 @@ vars:
   TALOS_DIR: '{{.ROOT_DIR}}/talos/app'
   PRIVATE_DIR: '{{.ROOT_DIR}}/.private'
   TALOSCONFIG: '{{.ROOT_DIR}}/talos/app/clusterconfig/talosconfig'
-  TF_PROXMOX_DIR: '{{.ROOT_DIR}}/infra/terraform_proxmox'
   TF_CLOUDFLARE_DIR: '{{.ROOT_DIR}}/infra/terraform_cloudflare'
   TF_LOCALDNS_DIR: '{{.ROOT_DIR}}/infra/terraform_localdns'
 
@@ -79,7 +78,6 @@ tasks:
   tf:fmt:
     desc: Format all OpenTofu stacks
     cmds:
-      - tofu -chdir={{.TF_PROXMOX_DIR}} fmt -recursive
       - tofu -chdir={{.TF_CLOUDFLARE_DIR}} fmt -recursive
       - |
         if find {{.TF_LOCALDNS_DIR}} -maxdepth 1 -name '*.tf' | grep -q .; then
@@ -158,22 +156,6 @@ tasks:
   tf:destroy:
     desc: Destroy all OpenTofu stacks in reverse dependency order
     cmd: task infrastructure:tf-destroy
-
-  tf:proxmox:init:
-    desc: Initialize the Proxmox/Talos OpenTofu stack
-    cmd: task infrastructure:tf-proxmox-init
-
-  tf:proxmox:plan:
-    desc: Plan the Proxmox/Talos OpenTofu stack
-    cmd: task infrastructure:tf-proxmox-plan
-
-  tf:proxmox:apply:
-    desc: Apply the Proxmox/Talos OpenTofu stack
-    cmd: task infrastructure:tf-proxmox-apply
-
-  tf:proxmox:destroy:
-    desc: Destroy the Proxmox/Talos OpenTofu stack
-    cmd: task infrastructure:tf-proxmox-destroy
 
   tf:cloudflare:init:
     desc: Initialize the Cloudflare OpenTofu stack

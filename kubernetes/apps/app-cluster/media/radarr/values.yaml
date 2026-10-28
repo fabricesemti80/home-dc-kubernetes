@@ -5,7 +5,7 @@ global:
 defaultPodOptions:
   automountServiceAccountToken: false
   nodeSelector:
-    kubernetes.io/hostname: k8s-ctrl-02
+    kubernetes.io/hostname: k8s-wrkr-03
 
 controllers:
   radarr:
@@ -52,8 +52,8 @@ service:
 persistence:
   config:
     type: persistentVolumeClaim
-    accessMode: ReadWriteMany
-    storageClass: cephfs
+    accessMode: ReadWriteOnce
+    storageClass: local-path
     size: 2Gi
     globalMounts:
       - path: /config

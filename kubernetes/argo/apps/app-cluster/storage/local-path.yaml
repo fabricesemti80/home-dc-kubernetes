@@ -1,0 +1,32 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: local-path
+  namespace: argo-system
+  annotations:
+    argocd.argoproj.io/sync-wave: '0'
+spec:
+  project: kubernetes
+  sources:
+    - repoURL: "https://github.com/fabricesemti80/home-dc-kubernetes.git"
+      path: kubernetes/apps/app-cluster/storage/local-path
+      targetRevision: main
+      ref: repo
+    - repoURL: https://github.com/rancher/local-path-provisioner.git
+      path: deploy/chart/local-path-provisioner
+      targetRevision: v0.0.31
+      helm:
+        releaseName: local-path
+        valueFiles:
+          - $repo/kubernetes/apps/app-cluster/storage/local-path/values.yaml
+  destination:
+    name: app-cluster
+    namespace: local-path-storage
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true

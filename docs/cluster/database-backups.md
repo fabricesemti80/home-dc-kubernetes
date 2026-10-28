@@ -1,46 +1,51 @@
 # 💾 Database Backups
 
-This document tracks the backup strategy for databases in the cluster.
+This document tracks the backup strategy for databases and stateful app data in the app cluster.
 
 ## 📌 Current State
 
 ```mermaid
 flowchart TD
-    Linkwarden[(Linkwarden Postgres)] -->|No auto backup| Risk[Data Loss Risk]
-    Immich[(Immich Postgres)] -->|No auto backup| Risk
-    CephFS[CephFS Replication] -->|Availability, not backup| PVC[Stateful PVCs]
-    HomeAssistant[(Home Assistant SQLite)] -->|No verified app backup| Risk
-    Linkwarden -->|Manual pg_dump| Dump[Operator Backup]
-    Immich -->|Manual pg_dump| Dump
+    Immich[(Immich Postgres)] -->|No auto backup| Risk[Data Loss Risk]
+    LocalPath[Node-local local-path volumes] -->|No node redundancy| Risk
+    Immich -->|Manual pg_dump| Dump[Operator Backup]
 ```
 
-### 🗄️ Database Inventory
+### 🗄️ Database / Stateful Inventory
 
-| App            | Namespace    | Data / PVC                             | Backup Strategy                                                     |
-| -------------- | ------------ | -------------------------------------- | ------------------------------------------------------------------- |
-| Linkwarden     | productivity | linkwarden-postgres-data (CephFS)      | None currently                                                      |
-| Immich         | media        | immich-database-data (CephFS)          | None currently                                                      |
-| Home Assistant | home         | SQLite recorder and `/config` (CephFS) | External CephFS backup is described; cadence and restore unverified |
+| App    | Namespace | Data / PVC           | Storage class | Backup Strategy                           |
+| ------ | --------- | -------------------- | ------------- | ----------------------------------------- |
+| Immich | media     | immich-database-data | local-path    | None currently; manual `pg_dump` possible |
 
-## 📝 Notes
+### 💾 Storage Context
 
--   CephFS replication protects storage availability; it is not a backup
--   No application-level automated database backup is defined in this repository
--   The storage guide says CephFS backups are handled by Proxmox jobs configured in Ansible. Those jobs, their retention, and a successful restore are outside this repository and must be verified independently.
--   Home Assistant's SQLite recorder and UI state live in `/config`. The database backup strategy does not configure an application-level Home Assistant backup.
--   For production, consider:
-    -   [Kasten K10](https://www.kasten.io/) - Kubernetes-native backup
-    -   [Velero](https://velero.io/) - Generic K8s backup
-    -   Custom cron job with pg_dump
+-   App config and database PVCs use the node-local `local-path` StorageClass (`ReadWriteOnce`, `Retain`).
+-   `Retain` only preserves the PV object when a PVC is deleted; it does **not** protect against worker disk failure, host corruption, or accidental PV deletion.
+-   Node-local volumes are bound to the worker that first consumed them. A pod rescheduled to another worker cannot mount the original volume.
+-   The NAS NFS media claim (`media-library-pvc`) is for media/downloads only, not for database or config state.
 
-## 💾 Manual Backup Example
+## 🚑 Operational Backup Gates
 
-To manually backup Linkwarden database:
+Before any of the following operations, take an application-consistent backup and verify a restore to a fresh local-path volume:
 
-```bash
-kubectl exec -n productivity linkwarden-database-0 -- pg_dump -U linkwarden -d linkwarden > linkwarden-backup.sql
-```
+1.  **Worker disk/host replacement** — RWO volumes do not survive; restore is mandatory.
+2.  **Major app image or schema update** — rollback may require restoring the previous database.
+3.  **Cluster reset or Talos upgrade** — etcd and local-path data must be recoverable.
+4.  **Cutover to a rebuilt app cluster** — export from the old cluster and import into the new local-path volumes before DNS switches.
 
 ## 🔄 Recovery
 
-For recovery instructions, see [Troubleshooting](/docs/operations/troubleshooting.md).
+Recovery steps are application-specific, but the general pattern for local-path volumes is:
+
+1.  Ensure the replacement PVC is created and bound on the target worker.
+2.  Restore the backup into the running app container or database pod.
+3.  Verify ownership/permissions and application consistency before exposing the service.
+4.  For a complete worker rebuild, restore all affected app backups onto the new worker's user volume.
+
+For application-level troubleshooting, see [Troubleshooting](/docs/operations/troubleshooting.md).
+
+## 📝 Next Steps
+
+-   Define an automated backup schedule (e.g., `volsync`, Kasten K10, Velero, or cron-based `pg_dump`) that copies local-path data to the NAS or another off-node target.
+-   Document per-application restore runbooks and test them at least once per quarter.
+-   Define RPO/RTO tiers for critical services.

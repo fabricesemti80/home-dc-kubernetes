@@ -10,33 +10,38 @@ This guide provides a comprehensive, step-by-step installation and deployment pr
 
 ```mermaid
 flowchart TD
-    subgraph Hub["app-cluster (Proxmox Talos VMs)"]
+    subgraph App["app-cluster (Proxmox Talos VMs: 1 controller + 3 workers)"]
         ArgoCD["Argo CD Hub"]
         AppWorkloads["Application Workloads\n(Nextcloud, Immich, Media, etc.)"]
+        LocalPath["Node-local local-path volumes"]
+        NFS["NAS NFS media"]
         EnvoyApp["Envoy Gateway\n(external-apps.krapulax.dev)"]
+        ArgoCD -->|Manages| AppWorkloads
+        AppWorkloads -->|config/state| LocalPath
+        AppWorkloads -->|media| NFS
     end
 
-    subgraph Spokes["infra-cluster (Bare-metal Mini PCs)"]
+    subgraph Infra["infra-cluster (Bare-metal Mini PCs)"]
         InfraWorkloads["Infra Services\n(Pulse, Kestra, Reloader, Uptime Kuma)"]
         EnvoyInfra["Envoy Gateway\n(external-infra.krapulax.dev)"]
     end
 
     subgraph IaC["OpenTofu / IaC Stacks"]
-        TF_Proxmox["infra/terraform_proxmox"]
         TF_CF["infra/terraform_cloudflare"]
         TF_DNS["infra/terraform_localdns"]
     end
 
-    ArgoCD -->|Manages| AppWorkloads
     ArgoCD -->|Manages Remote Cluster| InfraWorkloads
-    IaC -->|Provisions| Hub
-    IaC -->|Provisions| Spokes
+    IaC -->|Configures DNS/Tunnels| App
+    IaC -->|Configures DNS/Tunnels| Infra
 ```
 
-| Cluster             | Platform                          | Role                                                     | Kubeconfig Path                       |
-| :------------------ | :-------------------------------- | :------------------------------------------------------- | :------------------------------------ |
-| **`app-cluster`**   | Proxmox VMs (Talos Linux)         | General workloads & Argo CD GitOps Hub                   | `./kubeconfig`                        |
-| **`infra-cluster`** | Bare-metal Mini PCs (Talos Linux) | Baseline infrastructure, monitoring, & fallback services | `./.private/infra-cluster/kubeconfig` |
+| Cluster             | Platform                          | Role                                                                                            | Kubeconfig Path                       |
+| :------------------ | :-------------------------------- | :---------------------------------------------------------------------------------------------- | :------------------------------------ |
+| **`app-cluster`**   | Proxmox VMs (Talos Linux)         | 1 controller + 3 workers; general workloads & Argo CD GitOps Hub                                | `./kubeconfig`                        |
+| **`infra-cluster`** | Bare-metal Mini PCs (Talos Linux) | Independent 1 control-plane + 1 worker baseline infrastructure, monitoring, & fallback services | `./.private/infra-cluster/kubeconfig` |
+
+The `infra-cluster` is a separate physical two-node cluster and is not changed by app-cluster rebuilds. Proxmox VM and host provisioning for the app cluster are owned by the standalone Terraform repositories (`home-dc-proxmox` and `home-dc-terraform`); this repository owns Talos configuration, Kubernetes manifests, and GitOps.
 
 ---
 
@@ -102,99 +107,66 @@ doppler setup --project home-dc-kubernetes --config apps
 
 ---
 
-## 🏗️ Phase 3: Infrastructure Provisioning (OpenTofu)
+## 🏗️ Phase 3: Infrastructure Provisioning
 
-Infrastructure stacks are managed independently using OpenTofu under `infra/`:
+Provision the app-cluster guests from `../home-dc-terraform` using a reviewed Proxmox plan. That repository owns the standalone VM state; **do not** use this repository's `tf:apply` to create VMs.
+
+Cloudflare and local DNS remain independent OpenTofu stacks under `infra/`. Review their scoped plans now, but **defer apply until the replacement cluster, ingress and application routes are healthy** so DNS does not cut over prematurely:
 
 ```bash
-# Initialize all OpenTofu modules (Proxmox, Cloudflare, Local DNS)
-
-task tf:init
-
-# Review execution plan
-
-task tf:plan
-
-# Apply infrastructure changes
-
-task tf:apply
+CLOUDFLARE_DOPPLER_CONFIG=dev task tf:cloudflare:plan
+task tf:localdns:plan
 ```
 
-Or apply specific stacks individually:
-
--   **Proxmox VMs**: `task tf:proxmox:plan` && `task tf:proxmox:apply`
--   **Cloudflare Tunnels & DNS**: `task tf:cloudflare:plan` && `task tf:cloudflare:apply`
--   **Local DNS Records**: `task tf:localdns:plan` && `task tf:localdns:apply`
-
-_Note_: The Proxmox VM provisioning script automatically updates `nodes.yaml` with IP and MAC address assignments.
+The Cloudflare plan currently removes only the retired Linkwarden Access application; defer that apply until the route cutover. The local-DNS plan is **blocked** because the scoped Doppler `infra` config lacks `UNIFI_USERNAME`, `UNIFI_PASSWORD` and `UNIFI_API_URL`. Do not invent credentials or apply an unreviewed UniFi stack: Technitium, not UniFi, is authoritative for the active `krapulax.home` zone. The Tdarr UniFi record removal can be reviewed separately if that stack is still owned here.
 
 ---
 
 ## ☸️ Phase 4: Talos Cluster Bootstrap
 
-### ☸️ 1. Provisioning `app-cluster` (Proxmox VMs)
+### ☸️ 1. Provisioning `app-cluster`
 
-Target the control-plane nodes configured in `talos/app/talconfig.yaml` (`10.0.40.90`, `10.0.40.91`, `10.0.40.92`):
+The replacement app cluster has one controller (`k8s-ctrl-01`, `10.0.40.90`) and three workers (`k8s-wrkr-01-gpu` `10.0.40.95`, `k8s-wrkr-02` `10.0.40.96`, `k8s-wrkr-03` `10.0.40.97`). Confirm the VMs have the new dedicated data disks and are in Talos maintenance mode before proceeding. Verify the worker user-volume mounts **after** applying configuration; they do not exist before Talos config is applied.
 
 ```bash
-# 1. Generate machine configurations
-
-task talos:app:generate-config
-
-# 2. Apply machine configs to control-plane nodes
-
-task talos:app:apply-node IP=10.0.40.90
-task talos:app:apply-node IP=10.0.40.91
-task talos:app:apply-node IP=10.0.40.92
-
-# 3. Bootstrap etcd on the first control plane node
-
+# Run once on a fresh app cluster only. This generates configs, applies to all
+# four maintenance-mode nodes insecurely, bootstraps etcd and fetches kubeconfig.
 task talos:app:bootstrap
-
-# 4. Fetch kubeconfig
-
-task talos:app:kubeconfig
 ```
 
-### ☸️ 2. Provisioning `infra-cluster` (Physical Mini PCs)
+Do not run `task talos:app:apply-node` for initial maintenance-mode installation: that task checks authenticated machine config first. Never rerun the Talos bootstrap task against an existing etcd cluster. Confirm the three worker user volumes at `/var/mnt/local-path-provisioner`, then run `task bootstrap:network` to install Cilium while nodes are `NotReady`. Verify all four nodes become `Ready` before installing the remaining platform charts.
 
-Follow [docs/INFRA_CLUSTER_BOOTSTRAP.md](../INFRA_CLUSTER_BOOTSTRAP.md) for bare-metal setup:
+On a workstation routing `10.0.0.0/16` through Tailscale, the app-cluster VIP may be unreachable even when it is healthy from the PVE LAN. `task talos:app:kubeconfig-direct` switches only the **ignored local kubeconfig** to the controller IP for bootstrap operations; `task talos:app:kubeconfig-vip` restores the intended VIP after client routing is fixed. Do not change the Talos cluster endpoint or the physical infra-cluster route to work around a workstation problem.
 
-```bash
-# Generate infra cluster machine configs
+### ☸️ 2. Existing `infra-cluster` (Physical Mini PCs)
 
-task talos:infra:bootstrap
-
-# Fetch infra cluster kubeconfig
-
-task talos:infra:kubeconfig
-
-# Install Cilium CNI on infra-cluster
-
-task talos:infra:cilium
-```
+The independent two-node physical cluster is **unchanged**. Do not run `talos:infra:bootstrap`, `talos:infra:kubeconfig` or `talos:infra:cilium` during this app-cluster migration. Read-only checks may use `.private/infra-cluster/kubeconfig`; see [the existing infra-cluster runbook](../INFRA_CLUSTER_BOOTSTRAP.md) only if separately recovering that cluster.
 
 ---
 
 ## ☸️ Phase 5: GitOps Hub & Dual-Cluster Argo CD Bootstrap
 
-1. **Deploy Argo CD Hub on `app-cluster`**:
+1. **Install the platform without starting applications**:
 
     ```bash
-    task apps:bootstrap
+    task bootstrap:platform
     ```
 
-2. **Register `infra-cluster` as a Target Destination**:
+    This installs the remaining Helmfile bootstrap charts, including Argo CD, but does not create the Argo app-of-apps. Keep existing stateful applications stopped until backups and restore/fresh-start decisions are recorded. Do not run `task sync-argo-bootstrap` earlier: it bypasses this gate.
+
+2. **Verify the local GitOps destination**: Fresh Argo CD knows its own cluster as `in-cluster`, but these Applications use the stable destination name `app-cluster`. `task bootstrap:platform` creates that alias declaratively through the Argo CD Helm values; verify `app-cluster` appears in `argocd --core cluster list`. No second app-cluster registration task or token Secret is needed.
+
+3. **Reconnect the existing `infra-cluster` destination**: The new Argo hub has no reusable remote-cluster credential. With explicit operator approval for the limited `argocd-manager` ServiceAccount/RBAC registration (not a Talos or workload change), run the reproducible task:
 
     ```bash
-    # Add remote cluster credentials into Argo CD running on app-cluster
-    argocd cluster add infra-cluster --kubeconfig .private/infra-cluster/kubeconfig --name infra-cluster
+    task clusters:register-infra
     ```
 
-3. **Verify Cluster Registration**:
-    ```bash
-    argocd cluster list
-    ```
+    This creates the `argocd` client context locally and adds the infra-cluster credential to the new app-cluster hub. Verify with `task clusters:status`. To roll back registration, remove only the `infra-cluster` cluster Secret from the app-cluster `argo-system` namespace; leave the previously existing infra ServiceAccount/RBAC intact. Do not rerun the physical cluster bootstrap.
+
+4. **Start GitOps only after the storage, source-revision and data gates**: Record per-application restore or deliberate fresh-start decisions and run `task secrets:validate-bootstrap`. Merge the reviewed refactor to remote `main`: all Argo Applications and their sources track `main`, and syncing sooner would recreate retired apps and Ceph. Then run `task apps:bootstrap` to create the root Argo Applications; it does not bootstrap the physical cluster.
+
+    Initial GitOps sync does **not** make apps public: the app-cluster `cloudflare-tunnel` ingress permits only the exact `argo.krapulax.dev/api/webhook` path (needed for webhook delivery), with a 404 fallback; `cloudflare-dns` has no automated sync. Existing DNS records may already point at this tunnel, so deferring Terraform alone is **not** a safety gate. Inspect the live tunnel rule matches, verify app hostnames and other Argo paths do not reach their origins (Cloudflare Access may challenge before the tunnel's 404), and test the webhook externally. After app health, off-host backup and restore checks, promote a reviewed Git revision restoring the public ingress and DNS automation; see `docs/plan/app-cluster-standalone-refactor.md`. Never enable the wildcard connector during initial app bootstrap.
 
 ---
 
@@ -220,8 +192,9 @@ kubernetes/
 
 ### 💾 Storage Conventions (Strict Rule)
 
--   **Application Configs**: Use `storageClass: cephfs` for all configuration PVCs across all namespaces.
+-   **Application Configs / Databases**: Use `storageClass: local-path` for all configuration and database PVCs across all namespaces. Use `accessMode: ReadWriteOnce` and rely on the `Retain` reclaim policy so PVC deletion preserves the underlying PV. Workloads that share a volume must be co-located on the same worker; do not reschedule a pod to another worker without restoring its data.
 -   **Media & Downloads**: Use `existingClaim: media-library-pvc` (NFS share at `10.0.40.2:/media`). Never create new PVs with `Delete` reclaim policy.
+-   **Backup Gate**: Do not mark a stateful app "live" until an off-node backup has been taken and a restore to a fresh local-path volume has been verified. Node-local volumes do not survive worker disk or host failure.
 
 ---
 
@@ -253,10 +226,6 @@ If an installation step fails or requires reversal, follow the corresponding pha
 
 ### 🏗️ Rollback Phase 3: Infrastructure Provisioning (OpenTofu)
 
--   **Proxmox VMs**: To destroy provisioned control-plane VMs without removing Cloudflare tunnels:
-    ```bash
-    task tf:proxmox:destroy
-    ```
 -   **Cloudflare Tunnels & DNS**: To revert DNS or tunnel changes:
     ```bash
     task tf:cloudflare:destroy
@@ -272,7 +241,8 @@ If an installation step fails or requires reversal, follow the corresponding pha
     ```bash
     task talos:reset
     ```
--   **Reintroduce Worker Nodes**: To restore worker node capacity, re-add worker entries in `nodes.yaml`, regenerate Talos config (`task talos:genconfig`), and re-apply machine configs.
+-   **Reintroduce or Replace Workers**: To restore worker capacity, update `talos/app/talconfig.yaml`, regenerate Talos config (`task talos:app:generate-config`), and re-apply machine configs. Restore stateful app data from off-node backups onto the new local-path volumes; RWO volumes cannot be moved between workers.
+-   **Controller Failure**: With a single controller, loss of `k8s-ctrl-01` makes the Kubernetes API unavailable. Recover from Talos/etcd backups or rebuild the controller; worker local-path data remains on disk but cannot be managed until the control plane is restored.
 
 ### ☸️ Rollback Phase 5: Argo CD & Remote Cluster Registration
 

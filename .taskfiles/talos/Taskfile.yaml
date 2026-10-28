@@ -16,6 +16,26 @@ tasks:
     desc: Generate Talos configuration for app-cluster
     cmd: task talos:generate-config
 
+  app:kubeconfig-direct:
+    desc: Use the app controller IP in the ignored local kubeconfig when the VIP route is unavailable
+    cmd: kubectl --kubeconfig {{.ROOT_DIR}}/kubeconfig config set-cluster kubernetes --server=https://{{.APP_CONTROLLER_IP}}:6443
+    vars:
+      APP_CONTROLLER_IP:
+        sh: yq -r '.nodes[] | select(.controlPlane == true) | .ipAddress' {{.ROOT_DIR}}/talos/app/talconfig.yaml
+    preconditions:
+      - test -f {{.ROOT_DIR}}/kubeconfig
+      - which kubectl yq
+
+  app:kubeconfig-vip:
+    desc: Restore the app-cluster VIP in the ignored local kubeconfig
+    cmd: kubectl --kubeconfig {{.ROOT_DIR}}/kubeconfig config set-cluster kubernetes --server={{.APP_ENDPOINT}}
+    vars:
+      APP_ENDPOINT:
+        sh: yq -r '.endpoint' {{.ROOT_DIR}}/talos/app/talconfig.yaml
+    preconditions:
+      - test -f {{.ROOT_DIR}}/kubeconfig
+      - which kubectl yq
+
   app:bootstrap:
     desc: Bootstrap app-cluster Talos and write kubeconfig
     cmd: task bootstrap:talos

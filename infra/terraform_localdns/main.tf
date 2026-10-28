@@ -59,12 +59,6 @@ resource "unifi_dns_record" "sonarr_internal" {
   record = unifi_dns_record.kubernetes_internal_gateway.name
 }
 
-resource "unifi_dns_record" "tdarr_internal" {
-  name   = "tdarr.${local.internal_domain}"
-  type   = "CNAME"
-  record = unifi_dns_record.kubernetes_internal_gateway.name
-}
-
 resource "unifi_dns_record" "kestra_internal" {
   name   = "kestra.${local.internal_domain}"
   type   = "A"

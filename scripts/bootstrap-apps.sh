@@ -27,14 +27,14 @@ function wait_for_nodes() {
 function apply_namespaces() {
   log debug "Applying namespaces"
 
-  local -r apps_dir="${ROOT_DIR}/kubernetes/apps"
+  local -r argo_apps_dir="${ROOT_DIR}/kubernetes/argo/apps/app-cluster"
 
-  if [[ ! -d ${apps_dir} ]]; then
-    log error "Directory does not exist" "directory=${apps_dir}"
+  if [[ ! -d ${argo_apps_dir} ]]; then
+    log fatal "Directory does not exist" "directory=${argo_apps_dir}"
   fi
 
   while IFS= read -r namespace; do
-    [[ -n ${namespace} ]] || continue
+    [[ ${namespace} =~ ^[a-z0-9]([-a-z0-9]*[a-z0-9])?$ ]] || continue
 
     # Check if the namespace resources are up-to-date
     if kubectl get namespace "${namespace}" &>/dev/null; then
@@ -50,18 +50,14 @@ function apply_namespaces() {
       log error "Failed to apply namespace resource" "resource=${namespace}"
     fi
   done < <(
-    {
-      for app in "${apps_dir}"/*/; do
-        namespace=$(basename "${app}")
-        [[ ${namespace} == "app-cluster" || ${namespace} == "infra-cluster" ]] && continue
-        printf '%s\n' "${namespace}"
-      done
-
-      for app in "${apps_dir}/app-cluster"/*/; do
-        [[ -d ${app} ]] || continue
+    for app in "${argo_apps_dir}"/*/; do
+      [[ -d ${app} ]] || continue
+      for manifest in "${app}"/*.yaml; do
+        [[ -f ${manifest} ]] || continue
         printf '%s\n' "$(basename "${app}")"
+        break
       done
-    } | sort -u
+    done
   )
 }
 
@@ -104,11 +100,11 @@ function apply_crds() {
     log fatal "File does not exist" "file" "${helmfile_file}"
   fi
 
-  if ! all_resources=$(helmfile --file "${helmfile_file}" template --quiet); then
+  if ! all_resources=$(helmfile --file "${helmfile_file}" template --include-crds --quiet); then
     log fatal "Failed to render resources from Helmfile" "file" "${helmfile_file}"
   fi
 
-  if ! crds=$(echo "${all_resources}" | yq eval-all 'select(.kind == "CustomResourceDefinition")' - 2>/dev/null) || [[ -z ${crds} ]]; then
+  if ! crds=$(printf '%s\n' "${all_resources}" | yq -y --explicit-start 'select(.kind == "CustomResourceDefinition")' - 2>/dev/null) || [[ -z ${crds} ]]; then
     log warn "No CRDs found in the rendered templates" "file" "${helmfile_file}"
     return
 
@@ -126,33 +122,6 @@ function apply_crds() {
   log info "CRDs applied successfully"
 }
 
-# Clean up stuck helm releases
-function cleanup_stuck_releases() {
-  log debug "Cleaning up stuck helm releases"
-
-  local stuck_releases
-  stuck_releases=$(helm ls -A --pending 2>/dev/null | tail -n +1 || true)
-
-  if [[ -z ${stuck_releases} ]]; then
-    log info "No stuck helm releases found"
-    return
-  fi
-
-  log warn "Found stuck helm releases, cleaning up..."
-
-  while IFS= read -r line; do
-    if [[ -z ${line} ]] || [[ ${line} == "NAME" ]]; then
-      continue
-    fi
-    release=$(echo "${line}" | awk '{print $1}')
-    namespace=$(echo "${line}" | awk '{print $2}')
-    log info "Removing stuck release" "release=${release}" "namespace=${namespace}"
-    helm uninstall "${release}" -n "${namespace}" &>/dev/null || true
-  done <<<"${stuck_releases}"
-
-  log info "Stuck helm releases cleaned up"
-}
-
 # Sync Helm releases
 function sync_helm_releases() {
   log debug "Syncing Helm releases"
@@ -163,7 +132,8 @@ function sync_helm_releases() {
     log error "File does not exist" "file=${helmfile_file}"
   fi
 
-  if ! helmfile --file "${helmfile_file}" sync --hide-notes; then
+  # Argo updates its own Secret; Helm 4 server-side apply conflicts on the next sync.
+  if ! helmfile --file "${helmfile_file}" sync --hide-notes --args '--server-side=false'; then
     log error "Failed to sync Helm releases"
   fi
 
@@ -202,19 +172,32 @@ function sync_argo_apps() {
 }
 
 function main() {
+  local stage="${1:-all}"
+  if [[ ${stage} != network && ${stage} != platform && ${stage} != all ]]; then
+    log fatal "Unknown bootstrap stage" "stage=${stage}"
+  fi
+
   check_env KUBECONFIG TALOSCONFIG
   check_cli helmfile kubectl kustomize sops talhelper yq
+
+  if [[ ${stage} == network ]]; then
+    apply_crds
+    helmfile --file "${ROOT_DIR}/bootstrap/helmfile.d/01-apps.yaml" --selector name=cilium sync --args '--server-side=false'
+    return
+  fi
 
   # Apply resources and Helm releases
   wait_for_nodes
   apply_namespaces
   apply_sops_secrets
   apply_crds
-  cleanup_stuck_releases
   sync_helm_releases
-  sync_argo_apps
-
-  log info "Congrats! The cluster is bootstrapped and Argo is syncing the Git repository"
+  if [[ ${stage} == all ]]; then
+    sync_argo_apps
+    log info "Argo is syncing the Git repository"
+  else
+    log info "Platform installed; restore data before syncing Argo Applications"
+  fi
 }
 
 main "$@"

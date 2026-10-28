@@ -20,7 +20,7 @@ Storage layout:
     -   `subPath: immich/library`
     -   mounted read-only
 -   PostgreSQL, Redis, and ML cache
-    -   CephFS PVCs
+    -   local-path ReadWriteOnce PVCs
 
 Controller note:
 

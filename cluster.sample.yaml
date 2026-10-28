@@ -107,11 +107,3 @@ grafana_admin_user: ""
 # -- Grafana admin password for the kube-prometheus-stack dashboard
 #    (REQUIRED) / (e.g. "my-grafana-password")
 grafana_admin_password: ""
-
-# -- Ceph storage network configuration (secondary NIC, for storage traffic separation).
-#    Each node gets an IP in this range derived from the last octet of its primary address
-#    (e.g. 10.0.40.90 → 10.0.70.90). Mirrors the Terraform ceph_network variable.
-#    (OPTIONAL) / Remove or comment out this block to disable the secondary interface.
-# ceph_network:
-#   vlan_id: 70          # (REQUIRED if ceph_network enabled) / VLAN ID for the storage network (1-4094)
-#   cidr: "10.0.70.0/24" # (REQUIRED if ceph_network enabled) / CIDR for the storage network

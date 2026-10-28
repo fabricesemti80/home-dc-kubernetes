@@ -43,7 +43,7 @@ flowchart LR
 
 Use a non-destructive fresh-rebuild migration:
 
-1. Build the Kubernetes Immich stack with fresh CephFS-backed service state.
+1. Build the Kubernetes Immich stack with fresh local-path ReadWriteOnce service state.
 2. Let the new Kubernetes Immich instance create a fresh database and re-import the media from the existing NFS-backed paths.
 
 The old Swarm storage paths remain untouched. No source directories are deleted or repurposed as part of this migration.
@@ -73,7 +73,7 @@ This is acceptable for the current migration because the priority is to keep the
     -   `redis`
 -   Storage:
     -   NFS `media-library-pvc` reused with subpaths for Immich media
-    -   CephFS PVCs for PostgreSQL, Redis, and ML cache
+    -   local-path ReadWriteOnce PVCs for PostgreSQL, Redis, and ML cache
 
 ## 💾 Storage Model
 
@@ -85,11 +85,11 @@ This is acceptable for the current migration because the priority is to keep the
     -   `subPath: immich/library`
     -   mounted read-only for migration safety
 -   PostgreSQL data
-    -   CephFS PVC
+    -   local-path ReadWriteOnce PVC
 -   Redis data
-    -   CephFS PVC
+    -   local-path ReadWriteOnce PVC
 -   Machine learning cache
-    -   CephFS PVC
+    -   local-path ReadWriteOnce PVC
 
 ## 📌 Cutover Model
 

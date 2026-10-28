@@ -32,10 +32,6 @@ import (
 	doppler_service_token: string
 	grafana_admin_user: string & !=""
 	grafana_admin_password: string & !=""
-	ceph_network?: {
-		vlan_id: int & >0 & <=4094
-		cidr:    net.IPCIDR
-	}
 }
 
 #Config

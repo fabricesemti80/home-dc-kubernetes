@@ -1,20 +1,22 @@
 # ⚖️ Implementation Decisions
 
+> **Historical note:** Decisions and commands below record earlier cluster states; do not execute retired Proxmox/Ceph workflows. The `infra/terraform_proxmox/` root was removed from version control, while its ignored local state was preserved for ownership recovery. Current topology and validation are in [the standalone app-cluster plan](../plan/app-cluster-standalone-refactor.md).
+
 ## 📌 Confirmed
 
--   Network: VLAN30 (`10.0.30.0/24`).
+-   App-cluster primary network: VLAN 40 (`10.0.40.0/24`); the old Ceph-only VLAN 70 NIC is removed. VLAN 30 remains an access network outside this app-cluster topology.
 -   Access model: Tailscale for both node-level and subnet routing scenarios.
 -   CNI: Cilium (target configuration enables kube-proxy replacement).
 -   Ingress: the migrated cluster currently uses Envoy Gateway; Traefik remains only a historical design idea.
--   Storage: the migrated cluster currently uses Ceph CSI; Longhorn remains optional future work rather than current state.
+-   Storage: app-cluster config/database PVCs use node-local `local-path` on dedicated worker disks; the NAS NFS claim hosts media and downloads. No Ceph cluster remains.
 -   GitOps: Argo CD.
--   Media service: remains on NAS Docker initially, routed via cluster ingress as external upstream.
--   Cluster relocation: the cluster is operated directly from the `home-dc-kubernetes` repo root with local state kept in the workspace.
--   Worker handling during cutover: keep worker VMs represented in Terraform state, but allow them to remain provisioned and powered off by using per-node `started = false`.
+-   Media services: run on app-cluster workers; Jellyfin uses the GPU worker once NVIDIA support is verified.
+-   Ownership: `home-dc-terraform` provisions the standalone VMs; this repository owns Talos, Argo and Kubernetes, plus Cloudflare/local-DNS Terraform. The separate two-node physical infra cluster is unchanged.
+-   App cluster: one unschedulable controller and three workers, including the NVIDIA GPU worker.
 
-## ⚖️ Active Decisions
+## Historical decisions (superseded by the standalone migration)
 
-### 📝 Multi-replica control-plane and edge services
+### Multi-replica control-plane and edge services
 
 Decision:
 
@@ -47,7 +49,7 @@ Rollback:
 Decision:
 
 -   Add a dedicated `productivity` namespace and deploy Linkwarden there behind Argo CD.
--   Keep both Linkwarden archive storage and its PostgreSQL data on CephFS-backed PVCs so the app state stays inside the cluster storage layer already used elsewhere in the repo.
+-   Keep both Linkwarden archive storage and its PostgreSQL data on local-path ReadWriteOnce PVCs so the app state stays on the worker node and survives pod restarts.
 -   Source runtime secrets from Doppler via the existing operator pattern instead of committing new encrypted application secrets into Git.
 -   Source the Linkwarden `NEXTAUTH_URL` from the same Doppler-managed secret so the external callback URL can vary by environment without another manifest edit.
 
@@ -78,7 +80,7 @@ Rollback:
 -   Restore the literal `NEXTAUTH_URL` entry in the Linkwarden values file if the Doppler-managed key is missing or incorrect.
 -   Delete the Argo CD `linkwarden` application and the `productivity` namespace resources if the rollout is not acceptable.
 -   Remove the Doppler-managed Linkwarden secrets after the application is decommissioned.
--   Keep the CephFS PVCs intact until data export or cleanup is explicitly confirmed.
+-   Keep the local-path PVCs intact until data export or cleanup is explicitly confirmed; recovery requires restoring backups onto the same worker volume.
 
 ### 🔖 Linkwarden Renovate hold
 
@@ -311,7 +313,7 @@ Rollback:
 Decision:
 
 -   Deploy `code-server` in the `productivity` namespace as a self-hosted browser IDE at `https://code.krapulax.dev`.
--   Store `/root` and `/workspace` on CephFS PVCs so editor state, Codex auth state, Doppler auth state, and checked-out repositories survive pod restarts.
+-   Store `/root` and `/workspace` on local-path ReadWriteOnce PVCs so editor state, Codex auth state, Doppler auth state, and checked-out repositories survive pod restarts on the pinned worker.
 -   Install `kubectl`, Doppler CLI, and Codex CLI during container startup instead of maintaining a custom image for the first rollout.
 -   Run the pod with a dedicated `code-server` service account bound to `cluster-admin` so `kubectl` works from the browser IDE.
 -   Source `CODE_SERVER_PASSWORD` from Doppler via the existing operator pattern.
@@ -465,7 +467,7 @@ Decision:
 Assumptions:
 
 -   `kubernetes.krapulax.home` should continue to point at `10.0.40.102`.
--   `photos.krapulax.home`, `jellyfin.krapulax.home`, `requests.krapulax.home`, `prowlarr.krapulax.home`, `qbittorrent.krapulax.home`, `radarr.krapulax.home`, `sabnzbd.krapulax.home`, `sonarr.krapulax.home`, `tdarr.krapulax.home` should CNAME to `kubernetes.krapulax.home`.
+-   `photos.krapulax.home`, `jellyfin.krapulax.home`, `requests.krapulax.home`, `prowlarr.krapulax.home`, `qbittorrent.krapulax.home`, `radarr.krapulax.home`, `sabnzbd.krapulax.home`, `sonarr.krapulax.home` should CNAME to `kubernetes.krapulax.home`.
 -   Recyclarr is not exposed through a local HTTPRoute because it has no existing external HTTPRoute or user-facing service in the current media namespace config.
 -   Doppler `home-dc-kubernetes/infra` will provide `UNIFI_USERNAME`, `UNIFI_PASSWORD`, `UNIFI_API_URL`, and optionally `UNIFI_ALLOW_INSECURE`.
 -   The UniFi API is reachable from operator workstations at `https://192.168.1.1`; the provider must allow its self-signed TLS certificate.
@@ -484,7 +486,6 @@ Validation checks:
 -   `dig +short radarr.krapulax.home`
 -   `dig +short sabnzbd.krapulax.home`
 -   `dig +short sonarr.krapulax.home`
--   `dig +short tdarr.krapulax.home`
 
 Rollback:
 

@@ -25,12 +25,30 @@ tasks:
       - test -f {{.CLUSTERS_INFRA_KUBECONFIG}}
       - which kubectl
 
+  register-infra:
+    desc: Register the existing physical cluster with the app-cluster Argo CD hub
+    cmd: |
+      set -eu
+      kubectl --kubeconfig {{.CLUSTERS_APP_KUBECONFIG}} config set-context argocd --cluster=kubernetes --user=admin@kubernetes --namespace=argo-system
+      kubectl --kubeconfig {{.CLUSTERS_APP_KUBECONFIG}} config use-context argocd
+      merged="$(mktemp .private/argo-registration.XXXXXX)"
+      trap 'rm -f "$merged"' EXIT
+      KUBECONFIG={{.CLUSTERS_APP_KUBECONFIG}}:{{.CLUSTERS_INFRA_KUBECONFIG}} kubectl config view --raw --flatten > "$merged"
+      kubectl --kubeconfig "$merged" config set-context argocd --cluster=kubernetes --user=admin@kubernetes --namespace=argo-system
+      kubectl --kubeconfig "$merged" config use-context argocd
+      argocd cluster add infra-cluster --core --kube-context argocd --kubeconfig "$merged" --name infra-cluster --service-account argocd-manager --upsert --yes
+      KUBECONFIG={{.CLUSTERS_APP_KUBECONFIG}} argocd cluster list --core --kube-context argocd
+    preconditions:
+      - test -f {{.CLUSTERS_APP_KUBECONFIG}}
+      - test -f {{.CLUSTERS_INFRA_KUBECONFIG}}
+      - which argocd kubectl
+
   status:
     desc: Show app-cluster, infra-cluster, and Argo cluster status
     cmds:
       - kubectl --kubeconfig {{.CLUSTERS_APP_KUBECONFIG}} get nodes -o wide
       - kubectl --kubeconfig {{.CLUSTERS_INFRA_KUBECONFIG}} get nodes -o wide
-      - argocd cluster list --core
+      - KUBECONFIG={{.CLUSTERS_APP_KUBECONFIG}} argocd cluster list --core --kube-context argocd
     preconditions:
       - test -f {{.CLUSTERS_APP_KUBECONFIG}}
       - test -f {{.CLUSTERS_INFRA_KUBECONFIG}}

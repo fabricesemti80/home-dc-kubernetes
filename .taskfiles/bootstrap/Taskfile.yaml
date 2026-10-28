@@ -18,12 +18,30 @@ tasks:
       - test -f {{.TALOS_DIR}}/talconfig.yaml
       - which talhelper talosctl sops
 
-  apps:
-    desc: Bootstrap apps into the Talos cluster
-    cmd: bash {{.SCRIPTS_DIR}}/bootstrap-apps.sh
+  network:
+    desc: Install Cilium before the fresh cluster can report Ready nodes
+    cmd: bash {{.SCRIPTS_DIR}}/bootstrap-apps.sh network
     preconditions:
-      - msg: Unsupported bash version, run `brew install bash` to upgrade
-        sh: '{{if eq OS "darwin"}}test -f /opt/homebrew/bin/bash || test -f /usr/local/bin/bash{{end}}'
+      - test -f {{.KUBECONFIG}}
+      - which helmfile kubectl
+
+  platform:
+    desc: Install bootstrap platform charts without syncing Argo Applications
+    cmd: bash {{.SCRIPTS_DIR}}/bootstrap-apps.sh platform
+    preconditions:
+      - msg: Bash 4 or newer is required
+        sh: "bash -c '(( BASH_VERSINFO[0] >= 4 ))'"
+      - test -f {{.KUBECONFIG}}
+      - test -f {{.ROOT_DIR}}/.sops.yaml
+      - test -f {{.SCRIPTS_DIR}}/bootstrap-apps.sh
+      - test -f {{.SOPS_AGE_KEY_FILE}}
+
+  apps:
+    desc: Sync merged Argo Applications with the webhook-only public tunnel gate
+    cmd: bash {{.SCRIPTS_DIR}}/bootstrap-apps.sh all
+    preconditions:
+      - msg: Bash 4 or newer is required
+        sh: "bash -c '(( BASH_VERSINFO[0] >= 4 ))'"
       - test -f {{.KUBECONFIG}}
       - test -f {{.ROOT_DIR}}/.sops.yaml
       - test -f {{.SCRIPTS_DIR}}/bootstrap-apps.sh

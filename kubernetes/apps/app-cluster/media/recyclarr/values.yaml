@@ -38,13 +38,13 @@ defaultPodOptions:
     runAsGroup: 0
     fsGroup: 0
   nodeSelector:
-    kubernetes.io/hostname: k8s-ctrl-02
+    kubernetes.io/hostname: k8s-wrkr-03
 
 persistence:
   config:
     type: persistentVolumeClaim
-    accessMode: ReadWriteMany
-    storageClass: cephfs
+    accessMode: ReadWriteOnce
+    storageClass: local-path
     size: 1Gi
     globalMounts:
       - path: /config

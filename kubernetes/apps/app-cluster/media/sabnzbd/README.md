@@ -27,7 +27,7 @@ Usenet server details can be added in the UI for now.
 
 The pod mounts:
 
--   `/config` on CephFS
+-   `/config` on a local-path ReadWriteOnce PVC
 -   `/media` on the shared NFS library
 -   `/downloads` on `downloads/complete`
 -   `/incomplete-downloads` on `downloads/incomplete`
