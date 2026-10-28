@@ -21,12 +21,12 @@ tasks:
       - which kubectl
 
   argo-reconcile:
-    desc: Force Argo to pull in changes from your Git repository
+    desc: Request a hard refresh of all Argo CD Applications
     deps: [argo-sync-bootstrap]
-    cmd: argocd app list --project kubernetes -o name | xargs -I {} argocd app wait {} --sync --timeout 300
+    cmd: kubectl --namespace argo-system annotate applications.argoproj.io --all argocd.argoproj.io/refresh=hard --overwrite
     preconditions:
       - test -f {{.KUBECONFIG}}
-      - which argocd
+      - which kubectl
 
   platform-cilium:
     desc: Install and validate Cilium

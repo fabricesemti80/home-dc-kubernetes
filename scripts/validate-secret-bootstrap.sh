@@ -37,6 +37,7 @@ required_files=(
   "kubernetes/argo/repositories/github.sops.yaml"
   "kubernetes/apps/app-cluster/argo-system/argo-cd/values.sops.yaml"
   "kubernetes/apps/app-cluster/doppler-operator-system/doppler-operator/config/secret.sops.yaml"
+
   "kubernetes/apps/infra-cluster/doppler-operator-system/doppler-operator-infra/config/secret.sops.yaml"
 )
 

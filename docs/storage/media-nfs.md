@@ -22,8 +22,7 @@ Media apps in the `media` namespace (Jellyfin, Sonarr, Radarr, Prowlarr, qBittor
 -   The NFS server `10.0.40.2` is reachable from all app-cluster worker nodes.
 -   The export path `/media` already exists and contains the current shared library.
 -   Permissions on the export allow the apps to read/write media files as configured.
--   `external-apps.krapulax.dev` terminates through the Cloudflare tunnel to the cluster `envoy-external` Gateway.
--   `external-dns` is reconciling `HTTPRoute` hostname annotations into Cloudflare DNS records.
+-   During the first GitOps sync, the app tunnel only serves the Argo webhook and `cloudflare-dns` is manually synced; no app route is public until backup and restore checks pass.
 
 ## ✅ Validation
 
@@ -37,7 +36,7 @@ kubectl describe pod -n media -l app.kubernetes.io/name=jellyfin
 kubectl get httproute -n media jellyfin -o yaml
 ```
 
-Then verify public routing:
+Only after the reviewed public cutover, verify routing:
 
 ```bash
 kubectl get httproute -n media jellyfin -o jsonpath='{.metadata.annotations}'
@@ -47,7 +46,7 @@ curl -I https://jelly.krapulax.dev/
 
 If the pod starts but libraries are empty, verify NFS connectivity and path contents from the storage server side.
 
-If the hostname still returns `404`, confirm the DNS record resolves to `external-apps.krapulax.dev` rather than a stale direct tunnel target.
+Before public cutover, a 404 for the hostname is expected. After cutover, if it still returns 404, confirm the DNS record resolves to `external-apps.krapulax.dev` rather than a stale direct tunnel target.
 
 ## ↩️ Rollback
 

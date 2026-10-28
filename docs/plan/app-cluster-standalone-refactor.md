@@ -21,7 +21,7 @@ The `local-path-storage` helper namespace and `gpu-operator` namespace require p
 ## Stateful application cutover decisions
 
 -   Jellyfin, Immich and the media-management apps (Radarr, Sonarr, Prowlarr, qBittorrent, SABnzbd, Jellyseerr, Recyclarr): deliberately start with new application state; existing NAS media files are retained. Do not delete any old backup as part of this choice.
--   Home Assistant, Linkwarden, Code Server, Sterling PDF, Glance, nginx-test and the entire app-cluster Grafana/Prometheus stack are retired. Homepage stays. Remove only their app-cluster GitOps resources and their obsolete DNS/Access entries; do not alter physical infra-cluster monitoring or workloads. The `ha.krapulax.home` record was dynamically managed from its HTTPRoute, not Terraform.
+-   Home Assistant, Linkwarden, Code Server, Sterling PDF, Glance, nginx-test and the entire app-cluster Grafana/Prometheus stack are retired. Homepage stays. Remove only their app-cluster GitOps resources and their obsolete DNS/Access entries; regenerate the infra-cluster AutoKuma inventory to withdraw monitors for these retired app-cluster routes without changing physical infra nodes or their own services. The `ha.krapulax.home` record was dynamically managed from its HTTPRoute, not Terraform.
 -   The other small app state starts fresh. Doppler manages secrets, not PVC contents; verify scoped Doppler tokens and encrypted bootstrap references before creating GitOps Applications. The remote GitOps `main` branch must contain this refactor before syncing the root Argo Application; otherwise it will deploy old Ceph and retired apps.
 
 ### Public exposure gate
