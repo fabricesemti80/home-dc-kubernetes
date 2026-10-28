@@ -16,14 +16,9 @@ for f in "${required[@]}"; do
   }
 done
 
-# The dev shell uses Python yq; CI installs mikefarah/yq. Normalize to JSON
-# once so the safety checks use the same jq expressions in both environments.
+# CI and the dev shell both use mikefarah/yq to emit JSON for jq checks.
 yaml_json() {
-  if [[ $(yq --version) == *mikefarah* ]]; then
-    yq -o=json '.' "$1"
-  else
-    yq '.' "$1"
-  fi
+  yq -o=json '.' "$1"
 }
 
 yaml_json kubernetes/apps/app-cluster/web/homepage/config/settings.yaml | jq -e '. != null' >/dev/null
