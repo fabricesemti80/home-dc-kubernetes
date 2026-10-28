@@ -104,7 +104,7 @@ function apply_crds() {
     log fatal "Failed to render resources from Helmfile" "file" "${helmfile_file}"
   fi
 
-  if ! crds=$(printf '%s\n' "${all_resources}" | yq -y --explicit-start 'select(.kind == "CustomResourceDefinition")' - 2>/dev/null) || [[ -z ${crds} ]]; then
+  if ! crds=$(printf '%s\n' "${all_resources}" | yq eval-all 'select(.kind == "CustomResourceDefinition")' - 2>/dev/null) || [[ -z ${crds} ]]; then
     log warn "No CRDs found in the rendered templates" "file" "${helmfile_file}"
     return
 

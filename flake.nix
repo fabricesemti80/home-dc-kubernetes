@@ -47,7 +47,7 @@
           tflint
           uv
           yamllint
-          yq
+          yq-go
         ];
 
         shellHook = ''
