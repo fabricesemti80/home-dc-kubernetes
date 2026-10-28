@@ -2,7 +2,7 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: media-library-pvc-recovery
+  name: media-library-pvc
   namespace: media
   annotations:
     argocd.argoproj.io/sync-wave: "-2"
@@ -13,4 +13,4 @@ spec:
     requests:
       storage: 8Ti
   storageClassName: ""
-  volumeName: media-library-pv-recovery
+  volumeName: media-library-pv

@@ -24,25 +24,17 @@ CLUSTER_LABELS = {
 
 ICON_MAP = {
     "argo-cd": "argo-cd.png",
-    "alertmanager": "alertmanager.png",
-    "code-server": "vscode.png",
-    "glance": "glance.png",
-    "grafana": "grafana.png",
     "homepage": "homepage.png",
     "immich": "immich.png",
     "jellyfin": "jellyfin.png",
     "jellyseerr": "jellyseerr.png",
     "kestra": "mdi-rocket-launch",
-    "linkwarden": "linkwarden.png",
     "prowlarr": "prowlarr.png",
-    "prometheus": "prometheus.png",
     "pulse": "https://raw.githubusercontent.com/rcourtman/Pulse/main/docs/images/pulse-logo.png",
     "qbittorrent": "qbittorrent.png",
     "radarr": "radarr.png",
     "sabnzbd": "sabnzbd.png",
     "sonarr": "sonarr.png",
-    "sterling-pdf": "stirling-pdf.png",
-    "tdarr": "tdarr.png",
     "technitium": "technitium.png",
     "uptime-kuma": "uptime-kuma.png",
     "litellm": "https://cdn.jsdelivr.net/gh/selfhst/icons/png/litellm.png",
@@ -50,31 +42,22 @@ ICON_MAP = {
 
 DESCRIPTIONS = {
     "argo-cd": "GitOps control plane",
-    "alertmanager": "Alert routing and silences",
-    "code-server": "Browser IDE with cluster tooling",
-    "glance": "Lightweight landing page",
-    "grafana": "Dashboards and metrics exploration",
     "homepage": "Kubernetes-native homelab dashboard",
     "immich": "Photo and video management",
     "jellyfin": "Media streaming server",
     "jellyseerr": "Media requests and approvals",
     "kestra": "Infra automation and orchestration",
-    "linkwarden": "Bookmark and knowledge archive",
     "prowlarr": "Indexer aggregation",
-    "prometheus": "PromQL queries and time-series exploration",
     "pulse": "Infrastructure monitoring",
     "qbittorrent": "BitTorrent client",
     "radarr": "Movie library automation",
     "sabnzbd": "Usenet downloader",
     "sonarr": "Series library automation",
-    "sterling-pdf": "PDF editor and manipulation tool",
-    "tdarr": "Distributed media transcoding and health checks",
     "uptime-kuma": "External availability monitoring",
 }
 
 SKIP_PATTERNS = [
     ".sops.",
-    "nginx-test",
 ]
 
 

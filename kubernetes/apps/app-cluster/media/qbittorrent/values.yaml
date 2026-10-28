@@ -83,7 +83,7 @@ defaultPodOptions:
   automountServiceAccountToken: false
   hostname: qbittorrent
   nodeSelector:
-    kubernetes.io/hostname: k8s-ctrl-01
+    kubernetes.io/hostname: k8s-wrkr-03
 
 service:
   app:
@@ -104,20 +104,20 @@ service:
 persistence:
   config:
     type: persistentVolumeClaim
-    accessMode: ReadWriteMany
-    storageClass: cephfs
+    accessMode: ReadWriteOnce
+    storageClass: local-path
     size: 2Gi
     globalMounts:
       - path: /config
   downloads:
     enabled: true
-    existingClaim: media-library-pvc-recovery
+    existingClaim: media-library-pvc
     globalMounts:
       - path: /downloads
         subPath: downloads/complete
   incomplete-downloads:
     enabled: true
-    existingClaim: media-library-pvc-recovery
+    existingClaim: media-library-pvc
     globalMounts:
       - path: /incomplete-downloads
         subPath: downloads/incomplete

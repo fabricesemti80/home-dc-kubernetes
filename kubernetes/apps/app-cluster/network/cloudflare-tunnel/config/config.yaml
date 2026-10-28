@@ -5,14 +5,10 @@ metadata:
 data:
   config.yaml: |
     ingress:
-      - hostname: krapulax.dev
-        service: https://envoy-external.network.svc.cluster.local
-        originRequest:
-          originServerName: external.krapulax.dev
-      - hostname: "*.krapulax.dev"
-        service: https://envoy-external.network.svc.cluster.local
-        originRequest:
-          originServerName: external.krapulax.dev
+      # Keep the first GitOps sync private: only the path-scoped Argo webhook
+      # may traverse the retained public tunnel. Promote apex/wildcard ingress
+      # in a reviewed Git revision after backup and restore verification.
+      - hostname: argo.krapulax.dev
+        path: ^/api/webhook$
+        service: http://argocd-server.argo-system.svc.cluster.local:80
       - service: http_status:404
-        originRequest:
-          originServerName: external.krapulax.dev

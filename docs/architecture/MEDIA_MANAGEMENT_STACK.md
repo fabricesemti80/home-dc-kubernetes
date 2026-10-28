@@ -16,18 +16,17 @@ flowchart LR
     Jellyseerr --> Radarr
     Recyclarr[Config Sync] --> Sonarr
     Recyclarr --> Radarr
-    Tdarr[Transcode] --> Jellyfin
 ```
 
 Add media-management services that feed Jellyfin while preserving the existing storage split:
 
--   CephFS for application-owned config and state
+-   `local-path` `ReadWriteOnce` for application-owned config and state
 -   NFS for shared media library and download paths
 -   small, reversible rollout starting with `sabnzbd` and `sonarr`
 
 ## 📌 Scope
 
-Initial rollout includes:
+Current rollout includes:
 
 -   `sabnzbd`
 -   `qbittorrent`
@@ -36,9 +35,10 @@ Initial rollout includes:
 -   `recyclarr`
 -   `radarr`
 -   `jellyseerr`
--   `tdarr`
 
-Deferred until the first two apps are stable:
+`tdarr` was removed; transcode/health-check duties will be handled by Jellyfin hardware transcoding on the GPU worker once the NVIDIA device plugin is available.
+
+Deferred until the first apps are stable:
 
 -   API-key automation between services
 
@@ -54,50 +54,45 @@ Rationale:
 
 ## 💾 Storage Model
 
--   Each app gets its own CephFS-backed PVC for `/config`
+-   Each app gets its own `local-path` `ReadWriteOnce` PVC for `/config`
 -   Shared media content remains on the NFS export at `10.0.40.2:/media`
 -   The existing `media-library-pvc` remains the shared claim for the full library mount
 -   Download paths are mounted from the same NFS claim using subpaths under `/media/downloads`
+-   Pods are pinned to a worker via `nodeSelector` so RWO volumes stay co-located with their consumers
 
 Planned pod paths:
 
 -   `sonarr`
-    -   `/config` on CephFS
+    -   `/config` on local-path
     -   `/media` on NFS
     -   `/downloads` on NFS subpath `downloads/complete`
     -   `PATH` includes `/app/sonarr/bin` so the bundled `ffprobe` is available during completed-download sample detection
 -   `sabnzbd`
-    -   `/config` on CephFS
+    -   `/config` on local-path
     -   `/media` on NFS
     -   `/downloads` on NFS subpath `downloads/complete`
     -   `/incomplete-downloads` on NFS subpath `downloads/incomplete`
 -   `qbittorrent`
-    -   `/config` on CephFS
+    -   `/config` on local-path
     -   `/downloads` on NFS subpath `downloads/complete`
     -   `/incomplete-downloads` on NFS subpath `downloads/incomplete`
     -   peer traffic exposed through a dedicated `LoadBalancer` service on `6881/TCP` and `6881/UDP`
 -   `prowlarr`
-    -   `/config` on CephFS
+    -   `/config` on local-path
 -   `recyclarr`
-    -   `/config` on CephFS
+    -   `/config` on local-path
     -   reads API keys from Kubernetes secrets synced from Doppler
 -   `radarr`
-    -   `/config` on CephFS
+    -   `/config` on local-path
     -   `/media` on NFS
     -   `/downloads` on NFS subpath `downloads/complete`
 -   `jellyseerr`
-    -   `/app/config` on CephFS
--   `tdarr`
-    -   `/app/server`, `/app/configs`, and `/app/logs` on CephFS
-    -   `/media` on NFS
-    -   `/temp` on NFS subpath `tdarr-cache` for shared transient transcode cache
-    -   server/UI runs as a single pod with its internal node disabled
-    -   the server and one `tdarr_node` worker are active on `k8s-ctrl-01`; the `k8s-ctrl-02` worker remains disabled after causing heavy I/O during control-plane recovery, and no `k8s-ctrl-03` worker is configured
-    -   active Tdarr CPU limits total 4 cores (500m for the server and 3.5 cores for the worker)
-
-## 🎞️ Current Tdarr Placement (2026-09-30)
-
-This supersedes the earlier plan for three workers and a 12-core Tdarr limit. The current configuration runs one worker on `k8s-ctrl-01`; `k8s-ctrl-02` remains disabled after heavy I/O during control-plane recovery, and no worker is configured on `k8s-ctrl-03`. Re-enable or add workers only after checking node I/O and CPU headroom.
+    -   `/app/config` on local-path
+-   `jellyfin`
+    -   `/config` and `/cache` on local-path
+    -   `/data` on NFS
+    -   `/transcode` on an in-memory `emptyDir`
+    -   scheduled on `k8s-wrkr-01-gpu` with `runtimeClassName: nvidia` and `nvidia.com/gpu: "1"` once the device plugin is ready
 
 ## 📌 API-Key Automation Direction
 
@@ -121,13 +116,9 @@ This avoids coupling runtime app internals to guessed static secrets in Doppler.
 
 -   Public ingress is acceptable temporarily for test access, but each app still needs its own application authentication enabled in the UI
 -   SABnzbd server credentials should not be committed; if later automated, source them from Doppler
--   qBittorrent WebUI password is sourced from Doppler (`home-dc-kubernetes/apps`, `QBITTORRENT_WEBUI_PASSWORD`). An init container derives qBittorrent's PBKDF2 setting on CephFS before the app starts; the plaintext password is never written to Git or exposed to the main container.
+-   qBittorrent WebUI password is sourced from Doppler (`home-dc-kubernetes/apps`, `QBITTORRENT_WEBUI_PASSWORD`). An init container derives qBittorrent's PBKDF2 setting on local-path storage before the app starts; the plaintext password is never written to Git or exposed to the main container.
 -   qBittorrent peer efficiency depends on a manual router forward to the peer `LoadBalancer` IP and is not handled by Cloudflare
-
 -   Recyclarr API credentials should be sourced from Doppler rather than committed into Git
--   Tdarr is deployed with UI auth disabled initially; enable application authentication in the UI before exposing it beyond trusted admin access
--   Tdarr transcode cache is intentionally disposable and isolated under `/media/tdarr-cache`; do not store source media or retained outputs under `/temp`
--   Tdarr workers are Kubernetes-only; external Docker workers are not part of this rollout
 -   The NFS-backed media library remains shared state and should be treated as retained data
 
 ## 🤔 Assumptions
@@ -138,20 +129,29 @@ This avoids coupling runtime app internals to guessed static secrets in Doppler.
 
 already exist or can be created on the NFS server before workloads start.
 
+-   The local-path provisioner is installed and restricted to workers with dedicated data disks.
+-   Jellyfin remains `Pending` until the NVIDIA device plugin advertises GPUs; CPU transcoding is retained as a documented fallback.
+
 ## ✅ Validation
 
 -   Argo sync succeeds for the deployed apps
 -   Jellyfin may take up to ten minutes for FFmpeg capability validation. TCP liveness confirms Kestrel is running without interrupting that scan, while `/health` remains the readiness gate.
 -   Jellyfin uses `Recreate` because its SQLite-backed configuration and node-pinned resource request cannot safely support concurrent old and new pods.
--   PVCs bind on CephFS
--   pods mount both CephFS config and NFS library paths
+-   PVCs bind on `local-path` and remain on the scheduled worker
+-   pods mount both local-path config and NFS library paths
 -   `sabnzbd` serves its UI and can write test files under `/downloads`
 -   `qbittorrent` serves its UI and can write test files under `/downloads` and `/incomplete-downloads`
 -   `qbittorrent-secrets` is synced by the Doppler operator and the qBittorrent init container completes before the app starts
 -   `sonarr` serves its UI and can see both `/media` and `/downloads`
 -   `sonarr` can resolve `ffprobe` from the container `PATH`
+-   `prowlarr` serves its UI and can reach Sonarr over the in-cluster service
+-   `recyclarr` can run against Sonarr without authentication failures
+-   `radarr` serves its UI and can see both `/media` and `/downloads`
+-   `jellyseerr` serves its UI and can reach Jellyfin, Sonarr, and Radarr over the configured URLs
+-   `jellyfin` serves its UI, can see `/data`, and reports `Healthy` at `/health`
+-   GPU transcode is verified in Jellyfin logs once `nvidia.com/gpu` is available
 
-## 📦 Container Image Pinning (2026-09-30)
+## 📝 Container Image Pinning (2026-09-30)
 
 The Jellyseerr, Prowlarr, and qBittorrent containers retain their upstream `latest` tags for Renovate discovery, while Kubernetes receives an explicit immutable digest. Renovate must update the digest through a reviewed PR; workloads do not silently change when an upstream tag moves.
 
@@ -159,18 +159,12 @@ This supersedes tag-only image resolution for these three workloads. The pinned 
 
 Rollback by reverting the digest fields to restore tag-only resolution. Validate image updates by reviewing the digest and rendering the affected app-template release before merge.
 
--   `prowlarr` serves its UI and can reach Sonarr over the in-cluster service
--   `recyclarr` can run against Sonarr without authentication failures
--   `radarr` serves its UI and can see both `/media` and `/downloads`
--   `jellyseerr` serves its UI and can reach Jellyfin, Sonarr, and Radarr over the configured URLs
--   `tdarr` serves its UI, creates its internal node, can see `/media`, and can write temporary transcode data under `/temp`
-
 ## ↩️ Rollback
 
 -   Remove Jellyfin's startup probe only after confirming its startup duration remains below the liveness budget; otherwise retain it to avoid restart loops.
 -   Restoring Jellyfin `RollingUpdate` requires enough capacity for two 3GiB pods and a safe concurrent SQLite access model.
--   Delete the `sabnzbd`, `qbittorrent`, `sonarr`, `prowlarr`, `recyclarr`, `radarr`, `jellyseerr`, and `tdarr` Argo applications
+-   Delete the `sabnzbd`, `qbittorrent`, `sonarr`, `prowlarr`, `recyclarr`, `radarr`, `jellyseerr`, and `jellyfin` Argo applications
 -   Remove their HTTPRoutes
--   Delete their CephFS PVCs if app config should be discarded
--   Remove the qBittorrent DopplerSecret and password init container; the existing CephFS config backup remains available for manual recovery
+-   Delete their local-path PVCs only if app config should be discarded; retain NFS media content
+-   Remove the qBittorrent DopplerSecret and password init container; the existing config backup remains available for manual recovery
 -   Retain NFS media content and download directories

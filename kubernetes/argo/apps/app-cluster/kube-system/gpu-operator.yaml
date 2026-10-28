@@ -1,0 +1,32 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: gpu-operator
+  namespace: argo-system
+  annotations:
+    argocd.argoproj.io/sync-wave: '1'
+spec:
+  project: kubernetes
+  sources:
+    - repoURL: "https://github.com/fabricesemti80/home-dc-kubernetes.git"
+      path: kubernetes/apps/app-cluster/kube-system/gpu-operator
+      targetRevision: main
+      ref: repo
+    - repoURL: https://helm.ngc.nvidia.com/nvidia
+      chart: gpu-operator
+      targetRevision: v26.3.1
+      helm:
+        releaseName: gpu-operator
+        valueFiles:
+          - $repo/kubernetes/apps/app-cluster/kube-system/gpu-operator/values.yaml
+  destination:
+    name: app-cluster
+    namespace: gpu-operator
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true

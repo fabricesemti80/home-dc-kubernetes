@@ -37,63 +37,70 @@ nodes:
         mtu: 1500
         vip:
           ip: "10.0.40.101"
-      - deviceSelector:
-          hardwareAddr: "bc:24:11:ce:0c:fb"
-        dhcp: false
-        addresses:
-          - "10.0.70.90/24"
-        mtu: 1500
-  - hostname: "k8s-ctrl-02"
-    ipAddress: "10.0.40.91"
+  - hostname: "k8s-wrkr-01-gpu"
+    ipAddress: "10.0.40.95"
     installDisk: "/dev/sda"
     machineSpec:
       secureboot: false
-    talosImageURL: factory.talos.dev/installer/376567988ad370138ad8b2698212367b8edcb69b5fd68c80be1f2ec7d603b4ba
-    controlPlane: true
+    talosImageURL: factory.talos.dev/installer/af8eb82417d3deaa94d2ef19c3b590b0dac1b2549d0b9b35b3da2bc325de75f7
+    controlPlane: false
+    patches:
+      - "@./patches/k8s-wrkr-01-gpu/machine-kernel.yaml"
     networkInterfaces:
       - deviceSelector:
-          hardwareAddr: "bc:24:11:95:de:4d"
+          hardwareAddr: "bc:24:11:40:00:95"
         dhcp: false
         addresses:
-          - "10.0.40.91/24"
+          - "10.0.40.95/24"
         routes:
           - network: "0.0.0.0/0"
             gateway: "10.0.40.1"
         mtu: 1500
-        vip:
-          ip: "10.0.40.101"
-      - deviceSelector:
-          hardwareAddr: "bc:24:11:33:c5:5d"
-        dhcp: false
-        addresses:
-          - "10.0.70.91/24"
-        mtu: 1500
-  - hostname: "k8s-ctrl-03"
-    ipAddress: "10.0.40.92"
+  - hostname: "k8s-wrkr-02"
+    ipAddress: "10.0.40.96"
     installDisk: "/dev/sda"
     machineSpec:
       secureboot: false
     talosImageURL: factory.talos.dev/installer/376567988ad370138ad8b2698212367b8edcb69b5fd68c80be1f2ec7d603b4ba
-    controlPlane: true
+    controlPlane: false
     networkInterfaces:
       - deviceSelector:
-          hardwareAddr: "bc:24:11:72:f8:31"
+          hardwareAddr: "bc:24:11:40:00:96"
         dhcp: false
         addresses:
-          - "10.0.40.92/24"
+          - "10.0.40.96/24"
         routes:
           - network: "0.0.0.0/0"
             gateway: "10.0.40.1"
         mtu: 1500
-        vip:
-          ip: "10.0.40.101"
+  - hostname: "k8s-wrkr-03"
+    ipAddress: "10.0.40.97"
+    installDisk: "/dev/sda"
+    machineSpec:
+      secureboot: false
+    talosImageURL: factory.talos.dev/installer/376567988ad370138ad8b2698212367b8edcb69b5fd68c80be1f2ec7d603b4ba
+    controlPlane: false
+    networkInterfaces:
       - deviceSelector:
-          hardwareAddr: "bc:24:11:16:28:ab"
+          hardwareAddr: "bc:24:11:40:00:97"
         dhcp: false
         addresses:
-          - "10.0.70.92/24"
+          - "10.0.40.97/24"
+        routes:
+          - network: "0.0.0.0/0"
+            gateway: "10.0.40.1"
         mtu: 1500
 # Global patches
+
+# Dedicated data disk on each worker; verify the non-system device before applying.
+worker:
+  userVolumes:
+    - name: local-path-provisioner
+      provisioning:
+        diskSelector:
+          match: "!system_disk"
+        minSize: 80GiB
+        maxSize: 90GiB
 patches:
   - "@./patches/global/machine-files.yaml"
   - "@./patches/global/machine-kubelet.yaml"

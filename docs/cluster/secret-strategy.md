@@ -78,9 +78,6 @@ These are needed before or during cluster bootstrap:
 | `kubernetes/apps/app-cluster/argo-system/argo-cd/values.sops.yaml`                                     | Argo bootstrap secret settings                                   |
 | `kubernetes/apps/app-cluster/doppler-operator-system/doppler-operator/config/secret.sops.yaml`         | App-cluster Doppler operator token                               |
 | `kubernetes/apps/infra-cluster/doppler-operator-system/doppler-operator-infra/config/secret.sops.yaml` | Infra-cluster Doppler operator token                             |
-| `kubernetes/apps/app-cluster/kube-system/ceph-csi/secret.sops.yaml`                                    | Ceph credentials needed before app storage is reliable           |
-
-Ceph CSI chart settings are public in `kubernetes/apps/app-cluster/storage/ceph-csi/values.yaml`; never add credentials under `csiConfig`, which is rendered into a ConfigMap. Generate the CSI Secret from Doppler `home-dc-kubernetes/apps` `CEPH_KEYRING` and keep the identities consistent with that key. See [the CephFS recovery decision](../architecture/cephfs-talos-recovery.md).
 
 If Doppler is replaced by another operator, the two Doppler token secrets should
 be replaced by the equivalent bootstrap token/credentials for that operator.
@@ -96,7 +93,6 @@ external secret manager later:
 | `kubernetes/apps/app-cluster/network/cloudflare-dns/config/secret.sops.yaml`     | Doppler runtime secret                                       |
 | `kubernetes/apps/app-cluster/network/cloudflare-dns/values.sops.yaml`            | Split token into Doppler, keep non-secret chart values plain |
 | `kubernetes/apps/app-cluster/network/k8s-gateway/values.sops.yaml`               | Plain values if only domain config remains                   |
-| `kubernetes/apps/app-cluster/monitoring/kube-prometheus-stack/values.sops.yaml`  | Doppler runtime secret or plain values if no secret remains  |
 | HTTPRoute/Gateway/Certificate SOPS manifests                                     | Plain Git if only hostnames/object names are hidden          |
 
 Move these only after the Doppler project split has proven stable.
@@ -148,15 +144,12 @@ task secrets:validate-bootstrap
 
 ### ☸️ App Cluster
 
-| Managed Secret               | Namespace      | Keys                                                                        |
-| ---------------------------- | -------------- | --------------------------------------------------------------------------- |
-| `arc-github-app-secret`      | `arc-system`   | `GITHUB_APP_ID`, `GITHUB_APP_INSTALLATION_ID`, `GITHUB_APP_PRIVATE_KEY`     |
-| `immich-secrets`             | `media`        | `IMMICH_DB_PASSWORD`                                                        |
-| `recyclarr-secrets`          | `media`        | `SONARR_API_KEY`, `RADARR_API_KEY`                                          |
-| `alertmanager-slack-webhook` | `monitoring`   | `SLACK_WEBHOOK_MONITORING`                                                  |
-| `cloudflare-tunnel-secret`   | `network`      | `TUNNEL_TOKEN_APPS` as `TUNNEL_TOKEN`                                       |
-| `code-server-secrets`        | `productivity` | `CODE_SERVER_PASSWORD`                                                      |
-| `linkwarden-secrets`         | `productivity` | `DATABASE_URL`, `NEXTAUTH_URL`, `NEXTAUTH_SECRET`, `LINKWARDEN_DB_PASSWORD` |
+| Managed Secret             | Namespace    | Keys                                                                    |
+| -------------------------- | ------------ | ----------------------------------------------------------------------- |
+| `arc-github-app-secret`    | `arc-system` | `GITHUB_APP_ID`, `GITHUB_APP_INSTALLATION_ID`, `GITHUB_APP_PRIVATE_KEY` |
+| `immich-secrets`           | `media`      | `IMMICH_DB_PASSWORD`                                                    |
+| `recyclarr-secrets`        | `media`      | `SONARR_API_KEY`, `RADARR_API_KEY`                                      |
+| `cloudflare-tunnel-secret` | `network`    | `TUNNEL_TOKEN_APPS` as `TUNNEL_TOKEN`                                   |
 
 ### ☸️ Infra Cluster
 

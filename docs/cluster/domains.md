@@ -14,16 +14,15 @@ flowchart LR
     LAN[LAN] -->|*.krapulax.home| InternalGW[Internal Gateway]
 ```
 
-| Domain                        | Target                     | Description                                          |
-| ----------------------------- | -------------------------- | ---------------------------------------------------- |
-| `krapulax.dev`                | -                          | Primary domain                                       |
-| `external-apps.krapulax.dev`  | `kubernetes-apps` tunnel   | New canonical public endpoint for app-cluster routes |
-| `external-infra.krapulax.dev` | `kubernetes-infra` tunnel  | Canonical public endpoint for infra-cluster services |
-| `internal.krapulax.dev`       | -                          | Internal routing                                     |
-| `krapulax.home`               | `10.0.40.53`               | Internal zone served by Technitium                   |
-| `kubernetes.krapulax.home`    | `10.0.40.102`              | Internal gateway target                              |
-| `kestra.krapulax.home`        | `10.0.40.106`              | Infra-cluster internal Kestra                        |
-| `ha.krapulax.home`            | `kubernetes.krapulax.home` | App-cluster internal Home Assistant                  |
+| Domain                        | Target                    | Description                                          |
+| ----------------------------- | ------------------------- | ---------------------------------------------------- |
+| `krapulax.dev`                | -                         | Primary domain                                       |
+| `external-apps.krapulax.dev`  | `kubernetes-apps` tunnel  | New canonical public endpoint for app-cluster routes |
+| `external-infra.krapulax.dev` | `kubernetes-infra` tunnel | Canonical public endpoint for infra-cluster services |
+| `internal.krapulax.dev`       | -                         | Internal routing                                     |
+| `krapulax.home`               | `10.0.40.53`              | Internal zone served by Technitium                   |
+| `kubernetes.krapulax.home`    | `10.0.40.102`             | Internal gateway target                              |
+| `kestra.krapulax.home`        | `10.0.40.106`             | Infra-cluster internal Kestra                        |
 
 ## 🚚 External endpoint migration
 
@@ -46,12 +45,6 @@ The migration from `external.krapulax.dev` is complete:
 -   **URL:** `https://argo.krapulax.dev`
 -   **Config:** `kubernetes/apps/app-cluster/argo-system/argo-cd/config/http-route.yaml`
 
-### 🔹 Productivity
-
-| App        | Hostname                  | Config                                                                       |
-| ---------- | ------------------------- | ---------------------------------------------------------------------------- |
-| Linkwarden | `linkwarden.krapulax.dev` | `kubernetes/apps/app-cluster/productivity/linkwarden/config/http-route.yaml` |
-
 ### 🎬 Media
 
 | App         | Hostname                   | Config                                                                 |
@@ -63,18 +56,15 @@ The migration from `external.krapulax.dev` is complete:
 | Radarr      | `radarr.krapulax.dev`      | `kubernetes/apps/app-cluster/media/radarr/config/http-route.yaml`      |
 | Prowlarr    | `prowlarr.krapulax.dev`    | `kubernetes/apps/app-cluster/media/prowlarr/config/http-route.yaml`    |
 | Jellyseerr  | `requests.krapulax.dev`    | `kubernetes/apps/app-cluster/media/jellyseerr/config/http-route.yaml`  |
-| Tdarr       | `tdarr.krapulax.dev`       | `kubernetes/apps/app-cluster/media/tdarr/config/http-route.yaml`       |
 | Immich      | `photos.krapulax.dev`      | `kubernetes/apps/app-cluster/media/immich/config/http-route.yaml`      |
 
 ### 📊 Monitoring
 
-| App          | Hostname                    | Cluster | Config                                                                                                                                                                                                                                               |
-| ------------ | --------------------------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Grafana      | `grafana.krapulax.dev`      | apps    | `kubernetes/apps/app-cluster/monitoring/kube-prometheus-stack/config/http-route.yaml`                                                                                                                                                                |
-| Alertmanager | `alertmanager.krapulax.dev` | apps    | `kubernetes/apps/app-cluster/monitoring/kube-prometheus-stack/values.yaml`                                                                                                                                                                           |
-| Pulse        | `pulse.krapulax.dev`        | infra   | `kubernetes/apps/infra-cluster/monitoring/pulse-infra/config/http-route.yaml`                                                                                                                                                                        |
-| Technitium   | `dns.krapulax.dev`          | infra   | `kubernetes/apps/infra-cluster/network/technitium-infra/config/http-route.yaml`, `kubernetes/apps/app-cluster/network/cloudflare-tunnel/config/dnsendpoint.yaml`, `kubernetes/apps/infra-cluster/network/cloudflare-tunnel-infra/config/config.yaml` |
-| Uptime Kuma  | `uptime.krapulax.dev`       | infra   | `kubernetes/apps/infra-cluster/monitoring/uptime-kuma-infra/config/http-route.yaml`                                                                                                                                                                  |
+| App         | Hostname              | Cluster | Config                                                                                                                                                                                                                                               |
+| ----------- | --------------------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Pulse       | `pulse.krapulax.dev`  | infra   | `kubernetes/apps/infra-cluster/monitoring/pulse-infra/config/http-route.yaml`                                                                                                                                                                        |
+| Technitium  | `dns.krapulax.dev`    | infra   | `kubernetes/apps/infra-cluster/network/technitium-infra/config/http-route.yaml`, `kubernetes/apps/app-cluster/network/cloudflare-tunnel/config/dnsendpoint.yaml`, `kubernetes/apps/infra-cluster/network/cloudflare-tunnel-infra/config/config.yaml` |
+| Uptime Kuma | `uptime.krapulax.dev` | infra   | `kubernetes/apps/infra-cluster/monitoring/uptime-kuma-infra/config/http-route.yaml`                                                                                                                                                                  |
 
 ### 🔹 Automation
 
@@ -84,15 +74,14 @@ The migration from `external.krapulax.dev` is complete:
 
 ### 🔹 Web
 
-| App    | Hostname              | Config                                                          |
-| ------ | --------------------- | --------------------------------------------------------------- |
-| Glance | `glance.krapulax.dev` | `kubernetes/apps/app-cluster/web/glance/config/http-route.yaml` |
-| Echo   | `echo.krapulax.dev`   | `kubernetes/apps/app-cluster/default/echo/values.sops.yaml`     |
+| App      | Hostname                | Config                                                            |
+| -------- | ----------------------- | ----------------------------------------------------------------- |
+| Homepage | `homepage.krapulax.dev` | `kubernetes/apps/app-cluster/web/homepage/config/http-route.yaml` |
+| Echo     | `echo.krapulax.dev`     | `kubernetes/apps/app-cluster/default/echo/values.sops.yaml`       |
 
 ## 📌 Deprecated / Inactive
 
 -   `plex.krapulax.net` - External Plex server (not in this repo)
--   `nginx-test.krapulax.dev` - Test endpoint
 -   `traefik.krapulax.dev` - Unused
 
 ## 📝 Notes

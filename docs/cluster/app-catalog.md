@@ -4,19 +4,17 @@ This document provides an index of all applications deployed in the Kubernetes c
 
 ## ☸️ Cluster Overview
 
-| Namespace               | App Count | Description                                             |
-| ----------------------- | --------- | ------------------------------------------------------- |
-| media                   | 10        | Media management stack (Jellyfin, Sonarr, Radarr, etc.) |
-| home                    | 1         | Home Assistant                                          |
-| productivity            | 3         | Linkwarden, Code Server, Sterling PDF                   |
-| monitoring              | 1         | Prometheus/Grafana stack                                |
-| network                 | 2         | Cloudflare DNS and Tunnel                               |
-| web                     | 1         | Glance dashboard                                        |
-| argo-system             | 1         | Argo CD                                                 |
-| kube-system             | 5         | System components (Cilium, CoreDNS, etc.)               |
-| default                 | 1         | Echo (test app)                                         |
-| doppler-operator-system | 1         | Doppler operator                                        |
-| infra-cluster           | 12        | Infra workloads managed by the app-cluster Argo hub     |
+| Namespace               | App Count | Description                                         |
+| ----------------------- | --------- | --------------------------------------------------- |
+| media                   | 9         | Media management and playback                       |
+| network                 | 5         | DNS, Cloudflare tunnel and gateway                  |
+| argo-system             | 1         | Argo CD                                             |
+| kube-system             | 6         | Cilium, CoreDNS, GPU operator and system components |
+| default                 | 2         | Homepage and Echo                                   |
+| storage                 | 1         | Local-path provisioner                              |
+| ci-cd                   | 2         | Actions runner controller and runner set            |
+| cert-manager            | 1         | Certificate manager                                 |
+| doppler-operator-system | 1         | Doppler operator                                    |
 
 ---
 
@@ -35,41 +33,20 @@ This document provides an index of all applications deployed in the Kubernetes c
 | sonarr      | TV Manager       | lscr.io/linuxserver/sonarr       | 8989 | sonarr.krapulax.dev      | TV automation            |
 | sabnzbd     | Usenet Client    | lscr.io/linuxserver/sabnzbd      | 8080 | sabnzbd.krapulax.dev     | Usenet downloads         |
 | recyclarr   | Sync Tool        | ghcr.io/recyclarr/recyclarr      | -    | -                        | Aria2/Radarr sync (cron) |
-| tdarr       | Transcoder       | ghcr.io/haveagitgat/tdarr        | 8265 | tdarr.krapulax.dev       | Media transcode checks   |
-
-### 🏠 home
-
-| App            | Type            | Image                                 | Port | Domain           | Notes                 |
-| -------------- | --------------- | ------------------------------------- | ---- | ---------------- | --------------------- |
-| home-assistant | Home Automation | ghcr.io/home-assistant/home-assistant | 8123 | ha.krapulax.home | Smart home automation |
-
-### 🔹 productivity
-
-| App          | Type             | Image                                | Port | Domain                  | Notes                             |
-| ------------ | ---------------- | ------------------------------------ | ---- | ----------------------- | --------------------------------- |
-| code-server  | Browser IDE      | ghcr.io/coder/code-server            | 8080 | code.krapulax.dev       | Browser editor with cluster tools |
-| linkwarden   | Bookmark Manager | ghcr.io/linkwarden/linkwarden        | 3000 | linkwarden.krapulax.dev | Self-hosted bookmark manager      |
-| sterling-pdf | PDF Tools        | docker.io/stirlingtools/stirling-pdf | 8080 | pdf.krapulax.dev        | PDF editor and manipulation tool  |
-
-### 📊 monitoring
-
-| App                   | Type       | Image                    | Port      | Domain               | Notes                |
-| --------------------- | ---------- | ------------------------ | --------- | -------------------- | -------------------- |
-| kube-prometheus-stack | Monitoring | prom/prometheus-operator | 9090/3000 | grafana.krapulax.dev | Prometheus + Grafana |
 
 ### 🔹 network
 
-| App               | Type           | Image                     | Port | Notes             |
-| ----------------- | -------------- | ------------------------- | ---- | ----------------- |
-| cloudflare-dns    | DNS Controller | bitnami/k8s-sidecar       | -    | External DNS      |
-| cloudflare-tunnel | Tunnel         | cloudflare/cloudflared    | -    | Cloudflare Tunnel |
-| k8s-gateway       | Gateway        | projectsorted/k8s-gateway | -    | DNS discovery     |
+| App               | Type           | Image                     | Port | Notes               |
+| ----------------- | -------------- | ------------------------- | ---- | ------------------- |
+| cloudflare-dns    | DNS Controller | bitnami/k8s-sidecar       | -    | External DNS        |
+| cloudflare-tunnel | Tunnel         | cloudflare/cloudflared    | -    | Cloudflare Tunnel   |
+| k8s-gateway       | Gateway        | projectsorted/k8s-gateway | -    | DNS discovery       |
+| envoy-gateway     | Gateway API    | envoyproxy/gateway        | -    | App-cluster ingress |
+| technitium-dns    | DNS Controller | external-dns              | -    | Internal DNS sync   |
 
-### 🔹 web
+### 💾 storage
 
-| App    | Type      | Image                    | Port | Domain              | Notes          |
-| ------ | --------- | ------------------------ | ---- | ------------------- | -------------- |
-| glance | Dashboard | ghcr.io/glanceapp/glance | 8080 | glance.krapulax.dev | Home dashboard |
+The `local-path` provisioner supplies worker-local `ReadWriteOnce` volumes.
 
 ### 🔹 argo-system
 
@@ -79,19 +56,21 @@ This document provides an index of all applications deployed in the Kubernetes c
 
 ### 🔹 kube-system
 
-| App            | Type            | Image                          | Notes |
-| -------------- | --------------- | ------------------------------ | ----- |
-| cilium         | CNI             | cilium/cilium                  |
-| coredns        | DNS             | registry.k8s.io/coredns        |
-| reloader       | Config Reloader | stakater/reloader              |
-| metrics-server | Metrics         | registry.k8s.io/metrics-server |
-| spegel         | Mirror          | ghcr.io/spegel/spegel          |
+| App            | Type            | Image                                    | Notes                    |
+| -------------- | --------------- | ---------------------------------------- | ------------------------ |
+| cilium         | CNI             | cilium/cilium                            | App-cluster networking   |
+| coredns        | DNS             | registry.k8s.io/coredns                  | Cluster DNS              |
+| reloader       | Config Reloader | stakater/reloader                        | Config restart watcher   |
+| metrics-server | Metrics         | registry.k8s.io/metrics-server           | Resource metrics         |
+| spegel         | Mirror          | ghcr.io/spegel/spegel                    | Image mirror             |
+| gpu-operator   | GPU             | nvcr.io/nvidia/cloud-native/gpu-operator | NVIDIA device management |
 
 ### 🔹 default
 
-| App  | Type | Image               | Port | Domain            | Notes         |
-| ---- | ---- | ------------------- | ---- | ----------------- | ------------- |
-| echo | Test | hashicorp/http-echo | 5678 | echo.krapulax.dev | Test endpoint |
+| App      | Type      | Image                        | Port | Domain                | Notes          |
+| -------- | --------- | ---------------------------- | ---- | --------------------- | -------------- |
+| echo     | Test      | hashicorp/http-echo          | 5678 | echo.krapulax.dev     | Test endpoint  |
+| homepage | Dashboard | ghcr.io/gethomepage/homepage | 3000 | homepage.krapulax.dev | Home dashboard |
 
 ### 🔹 doppler-operator-system
 
@@ -128,21 +107,14 @@ Argo CD on `app-cluster` also deploys these `infra-cluster` workloads:
 
 ### 🔹 GHCR.IO
 
--   coder/code-server
 -   immich-app/immich-server, immich-app/immich-machine-learning
--   linkwarden/linkwarden
--   glanceapp/glance
 -   recyclarr/recyclarr
 -   spegel/spegel
-
-### 🐳 Docker Hub
-
--   stirlingtools/stirling-pdf
 
 ### 🔹 Official
 
 -   argoproj/argo-cd, bitnami/k8s-sidecar, cloudflare/cloudflared, hashicorp/http-echo
--   prom/prometheus-operator, stakater/reloader, cilium/cilium
+-   stakater/reloader, cilium/cilium
 -   projectsorted/k8s-gateway, registry.k8s.io/coredns
 
 ---

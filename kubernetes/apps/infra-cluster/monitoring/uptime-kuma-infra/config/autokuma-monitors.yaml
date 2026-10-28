@@ -8,27 +8,11 @@ metadata:
   name: autokuma-monitors
   namespace: monitoring
 data:
-  alertmanager.json: |-
-    {
-      "type": "http",
-      "name": "Alertmanager",
-      "url": "https://alertmanager.krapulax.dev",
-      "interval": 60,
-      "max_retries": 3
-    }
   argo.json: |-
     {
       "type": "http",
       "name": "Argo CD",
       "url": "https://argo.krapulax.dev",
-      "interval": 60,
-      "max_retries": 3
-    }
-  code.json: |-
-    {
-      "type": "http",
-      "name": "Code Server",
-      "url": "https://code.krapulax.dev",
       "interval": 60,
       "max_retries": 3
     }
@@ -48,22 +32,6 @@ data:
       "interval": 60,
       "max_retries": 3
     }
-  glance.json: |-
-    {
-      "type": "http",
-      "name": "Glance",
-      "url": "https://glance.krapulax.dev",
-      "interval": 60,
-      "max_retries": 3
-    }
-  grafana.json: |-
-    {
-      "type": "http",
-      "name": "Grafana",
-      "url": "https://grafana.krapulax.dev",
-      "interval": 60,
-      "max_retries": 3
-    }
   homepage.json: |-
     {
       "type": "http",
@@ -80,14 +48,6 @@ data:
       "interval": 60,
       "max_retries": 3
     }
-  linkwarden.json: |-
-    {
-      "type": "http",
-      "name": "Linkwarden",
-      "url": "https://linkwarden.krapulax.dev",
-      "interval": 60,
-      "max_retries": 3
-    }
   litellm.json: |-
     {
       "type": "http",
@@ -96,35 +56,11 @@ data:
       "interval": 60,
       "max_retries": 3
     }
-  nginx-test.json: |-
-    {
-      "type": "http",
-      "name": "NGINX Test",
-      "url": "https://nginx-test.krapulax.dev",
-      "interval": 60,
-      "max_retries": 3
-    }
-  pdf.json: |-
-    {
-      "type": "http",
-      "name": "Stirling PDF",
-      "url": "https://pdf.krapulax.dev",
-      "interval": 60,
-      "max_retries": 3
-    }
   photos.json: |-
     {
       "type": "http",
       "name": "Immich",
       "url": "https://photos.krapulax.dev",
-      "interval": 60,
-      "max_retries": 3
-    }
-  prometheus.json: |-
-    {
-      "type": "http",
-      "name": "Prometheus",
-      "url": "https://prometheus.krapulax.dev",
       "interval": 60,
       "max_retries": 3
     }
@@ -181,14 +117,6 @@ data:
       "type": "http",
       "name": "Sonarr",
       "url": "https://sonarr.krapulax.dev",
-      "interval": 60,
-      "max_retries": 3
-    }
-  tdarr.json: |-
-    {
-      "type": "http",
-      "name": "Tdarr",
-      "url": "https://tdarr.krapulax.dev",
       "interval": 60,
       "max_retries": 3
     }

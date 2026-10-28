@@ -2,7 +2,6 @@
 version: '3'
 
 vars:
-  TF_PROXMOX_DIR: '{{.ROOT_DIR}}/infra/terraform_proxmox'
   TF_CLOUDFLARE_DIR: '{{.ROOT_DIR}}/infra/terraform_cloudflare'
   TF_LOCALDNS_DIR: '{{.ROOT_DIR}}/infra/terraform_localdns'
 
@@ -65,21 +64,18 @@ tasks:
   tf-init:
     desc: Initialize all OpenTofu stacks in execution order
     cmds:
-      - task: tf-proxmox-init
       - task: tf-cloudflare-init
       - task: tf-localdns-init
 
   tf-plan:
     desc: Plan all OpenTofu stacks in execution order
     cmds:
-      - task: tf-proxmox-plan
       - task: tf-cloudflare-plan
       - task: tf-localdns-plan
 
   tf-apply:
     desc: Apply all OpenTofu stacks in execution order
     cmds:
-      - task: tf-proxmox-apply
       - task: tf-cloudflare-apply
       - task: tf-localdns-apply
 
@@ -88,36 +84,6 @@ tasks:
     cmds:
       - task: tf-localdns-destroy
       - task: tf-cloudflare-destroy
-      - task: tf-proxmox-destroy
-
-  tf-proxmox-init:
-    desc: Initialize the Proxmox/Talos OpenTofu stack
-    cmd: doppler run --project home-dc-kubernetes --config infra --name-transformer tf-var -- tofu -chdir={{.TF_PROXMOX_DIR}} init -upgrade
-    preconditions:
-      - which doppler tofu
-
-  tf-proxmox-plan:
-    desc: Plan the Proxmox/Talos OpenTofu stack
-    cmd: doppler run --project home-dc-kubernetes --config infra --name-transformer tf-var -- tofu -chdir={{.TF_PROXMOX_DIR}} plan -out=tfplan
-    preconditions:
-      - which doppler tofu
-      - test -d {{.TF_PROXMOX_DIR}}/.terraform
-
-  tf-proxmox-apply:
-    desc: Apply the Proxmox/Talos OpenTofu stack
-    cmds:
-      - doppler run --project home-dc-kubernetes --config infra --name-transformer tf-var -- tofu -chdir={{.TF_PROXMOX_DIR}} plan -out=tfplan
-      - doppler run --project home-dc-kubernetes --config infra --name-transformer tf-var -- tofu -chdir={{.TF_PROXMOX_DIR}} apply tfplan
-    preconditions:
-      - which doppler tofu
-      - test -d {{.TF_PROXMOX_DIR}}/.terraform
-
-  tf-proxmox-destroy:
-    desc: Destroy the Proxmox/Talos OpenTofu stack
-    cmd: doppler run --project home-dc-kubernetes --config infra --name-transformer tf-var -- tofu -chdir={{.TF_PROXMOX_DIR}} destroy -auto-approve
-    preconditions:
-      - which doppler tofu
-      - test -d {{.TF_PROXMOX_DIR}}/.terraform
 
   tf-cloudflare-init:
     desc: Initialize the Cloudflare OpenTofu stack
@@ -200,14 +166,3 @@ tasks:
       fi
     preconditions:
       - which doppler tofu
-
-  rolling-restart-cluster-vms:
-    desc: Reboot cluster VMs through Proxmox one at a time and wait for nodes to recover [PROXMOX_SSH_HOST=required]
-    dir: '{{.ROOT_DIR}}'
-    cmd: bash {{.ROOT_DIR}}/scripts/rolling-proxmox-restart.sh
-    requires:
-      vars: [PROXMOX_SSH_HOST]
-    preconditions:
-      - which kubectl
-      - which ssh
-      - test -f {{.ROOT_DIR}}/kubeconfig

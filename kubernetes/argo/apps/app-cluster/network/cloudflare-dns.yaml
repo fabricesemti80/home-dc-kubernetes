@@ -24,10 +24,6 @@ spec:
     name: app-cluster
     namespace: network
   syncPolicy:
-    automated:
-      allowEmpty: true
-      prune: true
-      selfHeal: true
     retry:
       limit: 1
       backoff:

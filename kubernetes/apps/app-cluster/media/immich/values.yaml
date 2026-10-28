@@ -5,7 +5,7 @@ global:
 defaultPodOptions:
   automountServiceAccountToken: false
   nodeSelector:
-    kubernetes.io/hostname: k8s-ctrl-03
+    kubernetes.io/hostname: k8s-wrkr-02
 
 controllers:
   immich:
@@ -55,7 +55,10 @@ controllers:
 
   machine-learning:
     replicas: 1
-    strategy: RollingUpdate
+    strategy: Recreate
+    pod:
+      nodeSelector:
+        kubernetes.io/hostname: k8s-wrkr-03
     containers:
       app:
         image:
@@ -86,10 +89,7 @@ controllers:
 
   redis:
     replicas: 1
-    strategy: RollingUpdate
-    pod:
-      annotations:
-        kubectl.kubernetes.io/restartedAt: "2026-10-15T15:44:53Z"
+    strategy: Recreate
     containers:
       app:
         image:
@@ -186,7 +186,7 @@ service:
 persistence:
   uploads:
     enabled: true
-    existingClaim: media-library-pvc-recovery
+    existingClaim: media-library-pvc
     advancedMounts:
       immich:
         app:
@@ -194,7 +194,7 @@ persistence:
             subPath: immich
   external-library:
     enabled: true
-    existingClaim: media-library-pvc-recovery
+    existingClaim: media-library-pvc
     advancedMounts:
       immich:
         app:
@@ -203,8 +203,8 @@ persistence:
             readOnly: true
   model-cache:
     type: persistentVolumeClaim
-    accessMode: ReadWriteMany
-    storageClass: cephfs
+    accessMode: ReadWriteOnce
+    storageClass: local-path
     size: 10Gi
     advancedMounts:
       machine-learning:
@@ -212,8 +212,8 @@ persistence:
           - path: /cache
   redis-data:
     type: persistentVolumeClaim
-    accessMode: ReadWriteMany
-    storageClass: cephfs
+    accessMode: ReadWriteOnce
+    storageClass: local-path
     size: 2Gi
     advancedMounts:
       redis:
@@ -221,8 +221,8 @@ persistence:
           - path: /data
   postgres-data:
     type: persistentVolumeClaim
-    accessMode: ReadWriteMany
-    storageClass: cephfs
+    accessMode: ReadWriteOnce
+    storageClass: local-path
     size: 20Gi
     advancedMounts:
       database:

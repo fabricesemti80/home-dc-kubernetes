@@ -1,7 +1,5 @@
 kubernetes-k8s-ctrl-01.yaml
-kubernetes-k8s-ctrl-02.yaml
-kubernetes-k8s-ctrl-03.yaml
-kubernetes-k8s-wrkr-01.yaml
+kubernetes-k8s-wrkr-01-gpu.yaml
 kubernetes-k8s-wrkr-02.yaml
 kubernetes-k8s-wrkr-03.yaml
 talosconfig

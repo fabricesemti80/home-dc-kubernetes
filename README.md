@@ -27,8 +27,10 @@ Talos, bootstrap Argo, then verify GitOps.
 | App cluster   | `app-cluster`   | Talos VMs on Proxmox | Argo CD hub and general workloads |
 | Infra cluster | `infra-cluster` | Physical Talos nodes | Core infra services and monitors  |
 
-Argo CD runs on `app-cluster` and manages both clusters. The cluster-aware app
-layout is:
+The app cluster runs as one controller and three workers; the infra cluster is
+an independent two-node physical cluster that is not changed by app-cluster
+rebuilds. Argo CD runs on `app-cluster` and manages both clusters. The
+cluster-aware app layout is:
 
 ```text
 kubernetes/argo/apps/app-cluster/<namespace>/*.yaml
@@ -81,9 +83,12 @@ Also confirm access to:
 -   Proxmox, if rebuilding the app-cluster VMs
 -   Cloudflare account, DNS zone, and tunnel credentials
 -   Doppler project `home-dc-kubernetes` with configs `apps` and `infra`
--   `CEPH_KEYRING` in the `home-dc-kubernetes/apps` Doppler config for template rendering
 -   GitHub deploy key or repository credentials for Argo CD
--   Ceph on Proxmox for the app-cluster `cephfs` storage class
+-   NAS NFS export at `10.0.40.2:/media` for media workloads
+
+App-cluster VM disks and Proxmox host configuration are owned by the standalone
+Terraform repositories (`home-dc-proxmox` and `home-dc-terraform`). This
+repository owns Talos, Kubernetes, and GitOps manifests.
 
 If these inputs are unavailable, treat the rebuild as new infrastructure and plan
 OpenTofu imports before applying.
@@ -128,30 +133,16 @@ Useful docs:
 
 ## 🏗️ Stage 2: Infrastructure
 
-For VM-based app-cluster rebuilds, initialize and review OpenTofu first:
+The standalone guest VMs are provisioned by `../home-dc-terraform`, not the OpenTofu tasks in this repository. Review its `task nodes-plan` and apply only an explicitly reviewed plan; verify the three dedicated worker data disks and primary NICs before configuring Talos. `../home-dc-proxmox` manages the physical host.
+
+This repository still owns Cloudflare and local-DNS OpenTofu roots. Their plans can be reviewed independently, but defer their applies until app-cluster ingress and application routes have passed the cutover checks:
 
 ```bash
-task tf:init
-task tf:plan
+CLOUDFLARE_DOPPLER_CONFIG=dev task tf:cloudflare:plan
+task tf:localdns:plan
 ```
 
-Proxmox and local-DNS tasks read infrastructure credentials from
-`home-dc-kubernetes/infra`; Cloudflare Terraform requires an explicit
-`CLOUDFLARE_DOPPLER_CONFIG` selection. Cloudflare tunnel outputs are written
-back to `home-dc-kubernetes/apps` or `home-dc-kubernetes/infra` according to
-the cluster that consumes them. The selected config contains separate
-`DOPPLER_APPS_TOKEN` and `DOPPLER_INFRA_TOKEN` service tokens, scoped to their
-respective destination configs.
-
-Apply only after the plan matches the intended rebuild:
-
-```bash
-task tf:apply
-```
-
-For physical Talos hosts, skip Proxmox provisioning and instead prepare Talos
-boot media, static IPs, NIC MAC addresses, and install disks. The infra-cluster
-physical flow is documented in [docs/INFRA_CLUSTER_BOOTSTRAP.md](docs/INFRA_CLUSTER_BOOTSTRAP.md).
+Do not bootstrap or reprovision the unchanged physical infra-cluster.
 
 Useful docs:
 
@@ -161,15 +152,14 @@ Useful docs:
 
 ## ☸️ Stage 3: App Cluster Talos
 
-Generate Talos machine config and bootstrap the app cluster:
+For the **fresh, maintenance-mode app cluster only**, the bootstrap task generates machine configs, applies them insecurely to the four nodes, bootstraps etcd once and fetches a kubeconfig:
 
 ```bash
-task talos:app:generate-config
 task talos:app:bootstrap
 ```
 
 Do not run `task template:configure` as a routine rebuild step. It re-renders
-repository templates and needs bootstrap-only `CEPH_KEYRING` from the
+repository templates and may need bootstrap-only secrets from the
 `home-dc-kubernetes/apps` Doppler config; use it only when intentionally regenerating
 templated source files.
 
@@ -180,20 +170,29 @@ task talos:genconfig
 task talos:bootstrap
 ```
 
-After bootstrap, verify local access:
+After the one-time Talos bootstrap, install Cilium via the task before expecting
+nodes to become Ready:
 
 ```bash
+task bootstrap:network
 kubectl --kubeconfig ./kubeconfig get nodes -o wide
 talosctl --talosconfig talos/app/clusterconfig/talosconfig get members
 ```
 
 ## ☸️ Stage 4: App Cluster GitOps
 
-Bootstrap the base apps and Argo CD app-of-apps:
+The Helmfile bootstrap installs only foundational components. Argo CD remains
+the deployment controller for application workloads. Keep application sync
+disabled until the per-app fresh-start/restore decisions are recorded and the
+reviewed refactor is merged into remote `main` (all Argo Applications track
+`main`; syncing earlier deploys the retired Ceph manifests):
 
 ```bash
+task bootstrap:platform
+task clusters:register-infra # Only with approval for the existing infra Argo RBAC
+task secrets:validate-bootstrap
+# After merging this refactor into remote main:
 task apps:bootstrap
-task sync-argo-bootstrap
 task reconcile
 ```
 
@@ -220,25 +219,14 @@ The root Argo app should be `Synced` and `Healthy`:
 kubectl get application apps -n argo-system
 ```
 
-## ☸️ Stage 5: Infra Cluster
+## ☸️ Stage 5: Verify Existing Infra Cluster
 
-Build or recover the physical infra cluster using
-[docs/INFRA_CLUSTER_BOOTSTRAP.md](docs/INFRA_CLUSTER_BOOTSTRAP.md), then register
-it with the app-cluster Argo CD hub as `infra-cluster`.
-
-Common checks:
+The two physical infra-cluster nodes are unchanged by this migration. Do **not** rerun infra Talos bootstrap, Cilium installation or kubeconfig generation. Verify their existing health read-only and confirm the app-cluster Argo hub still targets the registered `infra-cluster` destination:
 
 ```bash
-task talos:infra:kubeconfig
-task talos:infra:cilium
-task talos:infra:verify
-task clusters:status
-```
-
-Generate a Lens kubeconfig when both clusters are reachable:
-
-```bash
-task clusters:lens-kubeconfig
+kubectl --kubeconfig .private/infra-cluster/kubeconfig get nodes -o wide
+kubectl --kubeconfig .private/infra-cluster/kubeconfig get pods -A
+kubectl get applications.argoproj.io -n argo-system
 ```
 
 ## 💾 Stage 6: Storage, DNS, and Public Access
@@ -248,8 +236,18 @@ Verify storage before restoring stateful workloads:
 ```bash
 kubectl get storageclass
 kubectl get pvc -A
-kubectl get application ceph-csi -n argo-system
+kubectl get pv
+kubectl get application local-path -n argo-system
+kubectl get pv media-library-pv
 ```
+
+The app cluster uses:
+
+-   `local-path` StorageClass for node-local app config/state PVCs (`ReadWriteOnce`, `Retain`).
+-   Static NFS PV/PVC (`media-library-pv` / `media-library-pvc`) at `10.0.40.2:/media` for media/downloads.
+
+Do not restore stateful apps until the bound worker node, volume node affinity,
+and any required backup data have been verified.
 
 Verify public and internal routing:
 

@@ -92,12 +92,6 @@ def cloudflare_tunnel_secret(file_path: str = "cloudflare-tunnel.json") -> str:
         raise RuntimeError(f"Unexpected error while processing {file_path}: {e}")
 
 
-# Return the Ceph keyring from environment variable (e.g., from Doppler)
-def ceph_keyring(env_var: str = "CEPH_KEYRING") -> str:
-    value = os.environ.get(env_var)
-    if not value:
-        raise ValueError(f"Environment variable {env_var} is not set")
-    return value.strip()
 
 
 # Return the GitHub deploy key from github-deploy.key
@@ -152,14 +146,6 @@ class Plugin(makejinja.plugin.Plugin):
         data.setdefault("repository_visibility", "public")
         data.setdefault("cilium_loadbalancer_mode", "dsr")
 
-        # Set default Ceph network configuration (secondary NIC for storage traffic)
-        data.setdefault(
-            "ceph_network",
-            {
-                "vlan_id": 70,
-                "cidr": "10.0.70.0/24",
-            },
-        )
 
         # If all BGP keys are set, enable BGP
         bgp_keys = [
@@ -182,7 +168,6 @@ class Plugin(makejinja.plugin.Plugin):
     def functions(self) -> makejinja.plugin.Functions:
         return [
             age_key,
-            ceph_keyring,
             cloudflare_tunnel_id,
             cloudflare_tunnel_secret,
             github_deploy_key,

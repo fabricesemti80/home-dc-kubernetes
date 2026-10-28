@@ -63,14 +63,6 @@ nodes:
           ip: "#{ cluster_api_addr }#"
         #% endif %#
         #% endif %#
-      #% if ceph_network is defined and ceph_network and item.ceph_mac_addr is defined %#
-      - deviceSelector:
-          hardwareAddr: "#{ item.ceph_mac_addr | lower }#"
-        dhcp: false
-        addresses:
-          - "#{ '10.0.' + (ceph_network.vlan_id | string) + '.' + (item.address.split('.') | last) }#/#{ ceph_network.cidr.split('/') | last }#"
-        mtu: #{ item.mtu | default(1500, true) }#
-      #% endif %#
     #% if talos_patches('%s' % (item.name)) | length == 0 %#
     #% if item.encrypt_disk | default(false, true) or (item.kernel_modules | default([], true) | length > 0) %#
     patches:
@@ -142,6 +134,16 @@ patches:
 #% endif %#
   - "@./patches/global/#{ file | basename }#"
 #% endfor %#
+
+# Dedicated worker data disks, never the Talos system disk.
+worker:
+  userVolumes:
+    - name: local-path-provisioner
+      provisioning:
+        diskSelector:
+          match: "!system_disk"
+        minSize: 80GiB
+        maxSize: 90GiB
 
 #% for file in talos_patches('controller') %#
 #% if loop.index == 1 %#

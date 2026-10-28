@@ -54,5 +54,6 @@ repos:
     rev: v1.35.1
     hooks:
       - id: yamllint
+        language: system
         args: [-c, .yamllint]
         exclude: ^(bootstrap/|kubernetes/|talos/|templates/|\.taskfiles/|Taskfile\.yaml$|cluster\.sample\.yaml$|nodes\.sample\.yaml$|reproduce_crd\.yaml$)

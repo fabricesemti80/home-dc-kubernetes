@@ -1,47 +1,22 @@
-# 🔧 Manual CephFS Setup Instructions
+# 🔧 Manual Storage Setup Instructions
 
-If you need to manually create the CephFS subvolume group or verify the setup, use these commands.
+If you need to manually verify or repair the app-cluster storage layer, use these commands.
 
-## ☸️ Proxmox Side (Ceph Cluster)
+## ☸️ Verify Talos User Volumes
 
-### 🔹 1. SSH to a Proxmox Node
-
-```bash
-ssh root@pve-0
-# or pve-1 or pve-2
-
-```
-
-### 🔹 2. Create CephFS Subvolume Group
-
-**Create the group** (idempotent - safe to run multiple times):
+### 🔹 1. List volumes on a worker
 
 ```bash
-ceph fs subvolumegroup create cephfs-vm csi
+talosctl --talosconfig talos/app/clusterconfig/talosconfig -n <worker-ip> get volumestatus u-local-path-provisioner
+talosctl --talosconfig talos/app/clusterconfig/talosconfig -n <worker-ip> get mountstatus u-local-path-provisioner
 ```
 
-**Verify it was created:**
+Look for the `local-path-provisioner` user volume mounted at `/var/mnt/local-path-provisioner`.
+
+### 🔹 2. Inspect the mount
 
 ```bash
-ceph fs subvolume-group ls cephfs-vm
-```
-
-Expected output:
-
-```
-[
-  {
-    "name": "csi"
-  }
-]
-```
-
-### 🔹 3. Verify Ceph Health
-
-```bash
-ceph status
-ceph health detail
-ceph fs ls
+talosctl --talosconfig talos/app/clusterconfig/talosconfig -n <worker-ip> ls /var/mnt/local-path-provisioner
 ```
 
 ---
@@ -51,114 +26,49 @@ ceph fs ls
 ### 📦 1. Check ArgoCD Applications
 
 ```bash
-# List all storage-related applications
-
-kubectl get applications -n argo-system | grep -E "(ceph|storage)"
-
-# Check sync status
-
-kubectl get applications -n argo-system ceph-csi-secret -o jsonpath='{.status.sync.status}'
-kubectl get applications -n argo-system storage -o jsonpath='{.status.sync.status}'
-kubectl get applications -n argo-system nginx-test-storage -o jsonpath='{.status.sync.status}'
+kubectl get application -n argo-system local-path jellyfin
 ```
 
-### 🔐 2. Verify Secrets
+### 💾 2. Verify StorageClass
 
 ```bash
-# Check if csi-cephfs-secret exists
-
-kubectl get secret csi-cephfs-secret -n kube-system
-kubectl describe secret csi-cephfs-secret -n kube-system
-
-# Verify it has the required keys
-
-kubectl get secret csi-cephfs-secret -n kube-system -o jsonpath='{.data}' | jq 'keys'
+kubectl get storageclass local-path
+kubectl describe storageclass local-path
+kubectl get storageclass local-path -o jsonpath='{.reclaimPolicy}'
+kubectl get storageclass local-path -o jsonpath='{.volumeBindingMode}'
 ```
 
-**Required keys**: `adminID`, `adminKey`, `userID`, `userKey`
+Expected: `reclaimPolicy: Retain`, `volumeBindingMode: WaitForFirstConsumer`.
 
-### 💾 3. Verify StorageClass
+### 💾 3. Verify NFS PV/PVC
 
 ```bash
-# Check StorageClass
-
-kubectl get storageclass cephfs
-kubectl describe storageclass cephfs
-
-# Verify parameters
-
-kubectl get storageclass cephfs -o jsonpath='{.parameters}'
+kubectl get pv media-library-pv
+kubectl describe pv media-library-pv
+kubectl get pvc -n media media-library-pvc
 ```
 
-### 🚀 4. Check Ceph-CSI Deployment
+Expected: `persistentVolumeReclaimPolicy: Retain`, `accessModes: ReadWriteMany`.
+
+### 🚀 4. Check local-path-provisioner Pods
 
 ```bash
-# Check if ceph-csi chart was deployed
-
-kubectl get pods -n storage -l app=ceph-csi-ceph-csi-cephfs-provisioner
-kubectl get pods -n storage -l app=ceph-csi-ceph-csi-cephfs-nodeplugin
-
-# Check provisioner logs for errors
-
-kubectl logs -n storage -l app=ceph-csi-ceph-csi-cephfs-provisioner -c csi-provisioner --tail=50
-
-# Check nodeplugin logs
-
-kubectl logs -n storage -l app=ceph-csi-ceph-csi-cephfs-nodeplugin -c csi-nodeplugin --tail=50
+kubectl get pods -n local-path-storage
+kubectl logs -n local-path-storage deployment/local-path-local-path-provisioner --tail=50
 ```
 
 ### 📊 5. Check PVC Status
 
 ```bash
-# Create namespace if missing
-
-kubectl create namespace storage --dry-run=client -o yaml | kubectl apply -f -
-
-# Check PVC
-
-kubectl get pvc -n storage
-kubectl describe pvc nginx-test-pvc -n storage
-
-# Watch PVC binding
-
-kubectl get pvc -n storage -w
+kubectl get pvc -A
+kubectl describe pvc <name> -n <namespace>
 ```
 
-### 🔹 6. Check nginx-test Pod
+### 🔹 6. Check Pod Mount
 
 ```bash
-# Check pod status
-
-kubectl get pods -n storage -l app=nginx-test
-kubectl describe pod -n storage -l app=nginx-test
-
-# Check pod logs
-
-kubectl logs -n storage -l app=nginx-test
-
-# Watch pod startup
-
-kubectl get pods -n storage -l app=nginx-test -w
-```
-
-### 🔹 7. Test Volume Mount (if pod is running)
-
-```bash
-# Get pod name
-
-POD=$(kubectl get pods -n storage -l app=nginx-test -o jsonpath='{.items[0].metadata.name}')
-
-# Check mount
-
-kubectl exec -it -n storage $POD -- df -h /usr/share/nginx/html
-
-# Check content
-
-kubectl exec -it -n storage $POD -- cat /usr/share/nginx/html/index.html
-
-# Verify it's mounted from CephFS
-
-kubectl exec -it -n storage $POD -- mount | grep nginx
+POD=$(kubectl get pods -n <namespace> -l app=<app> -o jsonpath='{.items[0].metadata.name}')
+kubectl exec -n <namespace> $POD -- df -h <mount-path>
 ```
 
 ---
@@ -170,174 +80,58 @@ kubectl exec -it -n storage $POD -- mount | grep nginx
 **Check provisioner logs:**
 
 ```bash
-kubectl logs -n storage -l app=ceph-csi-ceph-csi-cephfs-provisioner -c csi-provisioner --tail=100 | grep -i error
+kubectl logs -n local-path-storage -l app=local-path-provisioner --tail=100
 ```
 
-**Common error messages and solutions:**
+**Common errors:**
 
-| Error                                  | Solution                                                      |
-| -------------------------------------- | ------------------------------------------------------------- |
-| `subvolume group 'csi' does not exist` | Run: `ceph fs subvolumegroup create cephfs-vm csi` on Proxmox |
-| `permission denied`                    | Check Doppler secret and CEPH_KEYRING value                   |
-| `pool does not exist`                  | Verify `cephfs-vm_data` pool on Ceph: `ceph osd pool ls`      |
-| `connection refused`                   | Verify Ceph cluster IP connectivity and firewall              |
+| Error                               | Solution                                                                    |
+| ----------------------------------- | --------------------------------------------------------------------------- |
+| `no available nodes`                | Confirm the target worker has the user volume mounted and is Ready.         |
+| `volume node affinity conflict`     | The pod is scheduled on a different worker than the bound PV; restore data. |
+| `multiple PVCs requested same path` | Do not hard-code host paths; let the provisioner assign sub-paths.          |
 
-### 🔐 Issue: Secret Not Deployed
+### 🔹 Issue: NFS PV Not Bound
 
-**Verify secret was generated from Doppler:**
+**Verify the NFS export from a worker:**
 
 ```bash
-# In the kubernetes repository:
-
-task configure
-
-# This should generate kubernetes/apps/app-cluster/kube-system/ceph-csi/secret.sops.yaml
-
-ls -la kubernetes/apps/app-cluster/kube-system/ceph-csi/secret.sops.yaml
+kubectl exec -it -n <namespace> <pod> -- showmount -e 10.0.40.2
 ```
 
-**Manually decrypt and check:**
+**Check NFS PV events:**
 
 ```bash
-sops -d kubernetes/apps/app-cluster/kube-system/ceph-csi/secret.sops.yaml
+kubectl describe pv media-library-pv
 ```
 
-### 🔹 Issue: CSI Provisioner Not Running
+### 🔹 Issue: local-path-provisioner Not Running
 
 ```bash
-# Check if storage namespace exists
-
-kubectl get namespace storage
-
-# Check ceph-csi deployment in storage namespace
-
-kubectl get deployments -n storage
-kubectl describe deployment ceph-csi-ceph-csi-cephfs-provisioner -n storage
-
-# Check pod events
-
-kubectl describe pod -n storage -l app=ceph-csi-ceph-csi-cephfs-provisioner
+kubectl get namespace local-path-storage
+kubectl get deployments -n local-path-storage
+kubectl describe pod -n local-path-storage -l app=local-path-provisioner
 ```
-
----
-
-## 🔧 Manual Testing Workflow
-
-If automated sync isn't working, deploy components manually:
-
-### 🔹 1. Create Namespace
-
-```bash
-kubectl create namespace storage
-```
-
-### 🔐 2. Create Secret
-
-```bash
-# First, ensure Doppler secret exists locally
-
-task configure
-
-# Then deploy the secret
-
-sops -d kubernetes/apps/app-cluster/kube-system/ceph-csi/secret.sops.yaml | kubectl apply -f -
-
-# Verify
-
-kubectl get secret csi-cephfs-secret -n kube-system
-```
-
-### 💾 3. Create StorageClass
-
-```bash
-kubectl apply -f kubernetes/apps/app-cluster/storage/cephfs-sc.yaml
-
-# Verify
-
-kubectl get storageclass cephfs
-```
-
-### 🔹 4. Deploy Ceph-CSI (if not using ArgoCD)
-
-```bash
-# First check values
-
-cat kubernetes/apps/app-cluster/storage/ceph-csi/values.yaml
-
-# Add the helm repo
-
-helm repo add ceph-csi https://ceph.github.io/csi-charts
-helm repo update
-
-# Install (adjust values as needed)
-
-helm install ceph-csi ceph-csi/ceph-csi-cephfs \
-  -n storage \
-  --create-namespace \
-  -f kubernetes/apps/app-cluster/storage/ceph-csi/values.yaml
-```
-
-### 📦 5. Deploy Test Application
-
-```bash
-kubectl apply -k kubernetes/apps/app-cluster/storage/nginx-test/
-
-# Watch it come up
-
-kubectl get pvc,pods -n storage -w
-```
-
----
-
-## ✅ Verification Checklist
-
--   [ ] Ceph subvolume group `csi` exists on Proxmox
--   [ ] Secret `csi-cephfs-secret` exists in `kube-system` namespace
--   [ ] StorageClass `cephfs` exists
--   [ ] Ceph-CSI provisioner pods are running
--   [ ] PVC `nginx-test-pvc` status is `Bound`
--   [ ] Pod `nginx-test-*` status is `Running`
--   [ ] Mount shows CephFS filesystem inside pod
--   [ ] Can read/write files to mounted volume
 
 ---
 
 ## 🔄 Recovery Steps
 
-### 🔄 Reset Everything and Start Over
+### 🔄 Restore a local-path Volume After Worker Failure
 
-```bash
-# Delete test application
+1.  Identify the application backup to restore.
+2.  Ensure the replacement worker has a user volume at `/var/mnt/local-path-provisioner`.
+3.  Create the new PVC and let it bind on the replacement worker.
+4.  Restore the backup into the app container/database.
+5.  Verify ownership, permissions, and application consistency.
 
-kubectl delete -k kubernetes/apps/app-cluster/storage/nginx-test/ 2>/dev/null || true
-
-# Delete StorageClass (will orphan PVs)
-
-kubectl delete storageclass cephfs 2>/dev/null || true
-
-# Delete secret
-
-kubectl delete secret csi-cephfs-secret -n kube-system 2>/dev/null || true
-
-# Delete namespace (will delete all pods/services/pvcs)
-
-kubectl delete namespace storage 2>/dev/null || true
-
-# On Proxmox, delete subvolume group (WARNING: deletes data)
-
-# SSH to pve-0
-
-ssh root@pve-0 "ceph fs subvolume-group rm cephfs-vm csi" 2>/dev/null || true
-
-# Then re-run the setup from this document
-
-```
-
-⚠️ **WARNING**: Deleting the subvolume group will delete all data stored in that group.
+⚠️ **WARNING**: A `local-path` PV cannot be moved to another worker. Restore is the only recovery path.
 
 ---
 
 ## 📌 See Also
 
--   [Storage Setup Guide](./overview.md) - Complete architecture and setup guide
--   [Storage Verification](./verification.md) - Verification checklist
+-   [Storage Overview](./overview.md)
+-   [Media NFS Storage](./media-nfs.md)
+-   [Storage Verification](./verification.md)
+-   [Database Backups](../cluster/database-backups.md)

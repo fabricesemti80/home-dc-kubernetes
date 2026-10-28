@@ -3,7 +3,7 @@ set -euo pipefail
 
 required=(
   "docs/architecture/ARCHITECTURE_PLAN.md"
-  "docs/architecture/PHASE_0_1_BLUEPRINT.md"
+  "docs/plan/app-cluster-standalone-refactor.md"
   "flake.nix"
   "scripts/generate-autokuma-monitors.py"
   ".github/workflows/generate-autokuma-monitors.yaml"
@@ -16,14 +16,44 @@ for f in "${required[@]}"; do
   }
 done
 
-yq eval '.' "kubernetes/apps/app-cluster/web/homepage/config/settings.yaml" >/dev/null
+# The dev shell uses Python yq; CI installs mikefarah/yq. Normalize to JSON
+# once so the safety checks use the same jq expressions in both environments.
+yaml_json() {
+  if [[ $(yq --version) == *mikefarah* ]]; then
+    yq -o=json '.' "$1"
+  else
+    yq '.' "$1"
+  fi
+}
 
-# Existing PVs require a separate Retain rebind; this gate protects new volumes.
-yq eval-all -e 'select(.kind == "StorageClass" and .metadata.name == "cephfs") | (.parameters.mounter == "fuse" and .reclaimPolicy == "Retain")' \
-  kubernetes/apps/app-cluster/storage/cephfs-sc.yaml >/dev/null
+yaml_json kubernetes/apps/app-cluster/web/homepage/config/settings.yaml | jq -e '. != null' >/dev/null
 
-# csiConfig is published in a ConfigMap; credentials belong in the CSI Secret.
-yq eval -e '[.csiConfig[] | (has("adminKey") or has("userKey"))] | any == false' \
-  kubernetes/apps/app-cluster/storage/ceph-csi/values.yaml >/dev/null
+# Fresh workers have dedicated local volumes; never schedule on the controller.
+yaml_json kubernetes/apps/app-cluster/storage/local-path/values.yaml | jq -e '
+  .nodePathMap[0].node == "DEFAULT_PATH_FOR_NON_LISTED_NODES"
+  and .nodePathMap[0].paths == []
+  and ([.nodePathMap[1:][] | select(.paths == ["/var/mnt/local-path-provisioner"]) | .node] | sort)
+    == ["k8s-wrkr-01-gpu", "k8s-wrkr-02", "k8s-wrkr-03"]
+  and .storageClass.reclaimPolicy == "Retain"
+  and .storageClass.volumeBindingMode == "WaitForFirstConsumer"
+' >/dev/null
 
-echo "Validation passed: required files and CephFS safeguards present."
+yaml_json kubernetes/apps/app-cluster/media/jellyfin/config/media-library-pv.yaml |
+  jq -e '.kind == "PersistentVolume" and .metadata.name == "media-library-pv" and .spec.persistentVolumeReclaimPolicy == "Retain" and .spec.nfs.server == "10.0.40.2" and .spec.nfs.path == "/media" and .spec.claimRef.name == "media-library-pvc"' >/dev/null
+yaml_json kubernetes/apps/app-cluster/media/jellyfin/config/media-library-pvc.yaml |
+  jq -e '.kind == "PersistentVolumeClaim" and .metadata.name == "media-library-pvc" and .spec.volumeName == "media-library-pv"' >/dev/null
+
+# Existing public DNS can already point at the tunnel: only the webhook may pass.
+yaml_json kubernetes/apps/app-cluster/network/cloudflare-tunnel/config/config.yaml |
+  jq -r '.data["config.yaml"]' | yaml_json - | jq -e '
+    .ingress as $rules
+    | ($rules | length) == 2
+      and $rules[0].hostname == "argo.krapulax.dev"
+      and $rules[0].path == "^/api/webhook$"
+      and $rules[0].service == "http://argocd-server.argo-system.svc.cluster.local:80"
+      and $rules[1].service == "http_status:404"
+  ' >/dev/null
+yaml_json kubernetes/argo/apps/app-cluster/network/cloudflare-dns.yaml |
+  jq -e '.kind == "Application" and (.spec.syncPolicy | has("automated") | not)' >/dev/null
+
+echo "Validation passed: required files, private cutover, local-path and NFS safeguards present."

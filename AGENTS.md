@@ -39,24 +39,26 @@ This repository is the main deployment home for the Talos clusters, Kubernetes r
 
 #### Configuration Storage
 
--   **Default**: Use `storageClass: cephfs` for all config/configMaps PVCs
--   This applies to all namespaces unless explicitly justified otherwise
+-   **Default**: Use `storageClass: local-path` for all config/configMaps PVCs on the app-cluster.
+-   Volumes are node-local worker user volumes provisioned by the `local-path-provisioner`; they are bound to the worker that first consumes them.
+-   Use `ReadWriteOnce` access mode and a `Retain` reclaim policy so PVC deletion preserves the underlying PV data for restore.
+-   Keep workloads that share a volume co-located on the same worker; do not move a pod to another worker without restoring its data.
+-   This applies to all namespaces unless explicitly justified otherwise.
 -   Example pattern:
     ```yaml
     persistence:
         config:
             type: persistentVolumeClaim
-            accessMode: ReadWriteMany
-            storageClass: cephfs
+            accessMode: ReadWriteOnce
+            storageClass: local-path
             size: 2Gi
     ```
 
-#### Permanent Storage (Media/Data)
+#### Shared Media and Downloads
 
--   **Default**: Use the established `media-library-pvc` (NFS share) for all permanent data
--   The NFS share is at `10.0.40.2:/media` (managed in jellyfin app)
--   **Never** create new PVs with `Delete` reclaim policy - use `Retain` only
--   Use `existingClaim: media-library-pvc` for any app requiring media storage, regardless of namespace
+-   **Media/downloads only**: Use the established `media-library-pvc` NFS share at `10.0.40.2:/media` for large shared files. Database and app configuration state stay on backed-up local worker volumes.
+-   **Never** create new PVs with `Delete` reclaim policy; use `Retain`.
+-   A PVC is namespace-scoped: provision a corresponding retained NFS claim in each namespace that needs media access.
 -   Example pattern:
     ```yaml
     persistence:
@@ -73,17 +75,7 @@ This repository is the main deployment home for the Talos clusters, Kubernetes r
                   subPath: downloads/complete
     ```
 
-**CONFIRMATION**: Currently, all media apps (jellyfin, radarr, sonarr, qbittorrent, sabnzbd, immich, prowlarr, jellyseerr) use:
-
--   `storageClass: cephfs` for config
--   `existingClaim: media-library-pvc` (NFS) for media/downloads
-
-**TEMPORARY RECOVERY (2026-10-15)**: The original `media-library-pv` and
-`media-library-pvc` objects are terminating. The media applications temporarily
-use `media-library-pvc-recovery`, a second `Retain` PV/PVC identity for the same
-NFS export, until the old objects finish deletion. Keep this exception in Git;
-do not remove finalizers or delete the export. Return to the canonical claim only
-in a reviewed cleanup after the original objects are gone.
+**TARGET STATE**: App-cluster media app config/state PVCs use `local-path` (`ReadWriteOnce`, `Retain`). Apps that consume shared media or downloads also mount `media-library-pvc` (NFS). The separate physical infra-cluster's storage is unchanged.
 
 ## Definition of done (for infra tasks)
 

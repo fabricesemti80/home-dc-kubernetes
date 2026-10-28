@@ -6,7 +6,7 @@ This section covers the Talos, Argo CD, and Kubernetes-side configuration that n
 
 -   [Installation & Deployment Guide](installation.md)
 -   [Architecture Plan](../architecture/ARCHITECTURE_PLAN.md)
--   [Phase 0/1 Blueprint](../architecture/PHASE_0_1_BLUEPRINT.md)
+-   [App-cluster standalone migration](../plan/app-cluster-standalone-refactor.md)
 -   [Implementation Decisions](../architecture/IMPLEMENTATION_DECISIONS.md)
 
 ## 📌 Day-to-Day Guides
@@ -28,5 +28,6 @@ This section covers the Talos, Argo CD, and Kubernetes-side configuration that n
 -   `talos/infra/`: infra-cluster Talos source patches
 -   `.private/infra-cluster/`: local-only infra-cluster generated Talos config and kubeconfig
 -   `clusters/`: lightweight cluster ownership notes
--   `infra/terraform_proxmox/`: imported cluster OpenTofu stack
+-   `infra/terraform_cloudflare/`: Cloudflare tunnel, DNS, and Access OpenTofu stack
+-   `infra/terraform_localdns/`: local DNS OpenTofu stack
 -   `cluster.yaml` and `nodes.yaml`: local template inputs still used by the current config-generation workflow

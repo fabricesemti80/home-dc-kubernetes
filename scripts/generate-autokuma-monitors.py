@@ -21,18 +21,10 @@ PUBLIC_HOST_RE = re.compile(r"^[a-z0-9][a-z0-9.-]*\.krapulax\.dev$")
 
 DISPLAY_NAME_OVERRIDES = {
     "argo.krapulax.dev": "Argo CD",
-    "alertmanager.krapulax.dev": "Alertmanager",
-    "code.krapulax.dev": "Code Server",
     "echo.krapulax.dev": "Echo",
-    "glance.krapulax.dev": "Glance",
-    "grafana.krapulax.dev": "Grafana",
     "homepage.krapulax.dev": "Homepage",
     "jelly.krapulax.dev": "Jellyfin",
-    "linkwarden.krapulax.dev": "Linkwarden",
-    "nginx-test.krapulax.dev": "NGINX Test",
-    "pdf.krapulax.dev": "Stirling PDF",
     "photos.krapulax.dev": "Immich",
-    "prometheus.krapulax.dev": "Prometheus",
     "prowlarr.krapulax.dev": "Prowlarr",
     "pulse.krapulax.dev": "Pulse",
     "qbittorrent.krapulax.dev": "qBittorrent",
@@ -40,7 +32,6 @@ DISPLAY_NAME_OVERRIDES = {
     "requests.krapulax.dev": "Jellyseerr",
     "sabnzbd.krapulax.dev": "SABnzbd",
     "sonarr.krapulax.dev": "Sonarr",
-    "tdarr.krapulax.dev": "Tdarr",
     "uptime.krapulax.dev": "Uptime Kuma",
 }
 

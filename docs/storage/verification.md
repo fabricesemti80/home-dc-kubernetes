@@ -1,191 +1,125 @@
-# 💾 CephFS Storage Setup Verification
+# 💾 Storage Verification
 
-**Status**: Historical setup checklist; verify live readiness before use.
-**Last Updated**: 2026-10-14
-
-For current FUSE mount requirements, credential ownership and rollback, see [CephFS on Talos](../architecture/cephfs-talos-recovery.md) and the [maintenance incident report](../operations/2026-10-14-cephfs-mount-outage.md).
+This checklist verifies the app-cluster storage layer after bootstrap or recovery.
 
 ## 📌 Setup Checklist
 
-### ☸️ Prerequisites on Ceph Cluster (Proxmox)
+### ☸️ Prerequisites on Proxmox / Terraform
 
--   [ ] **CephFS Subvolume Group Created**: `ceph fs subvolumegroup create cephfs-vm csi`
-    -   **Command**: SSH to any Proxmox node (pve-0, pve-1, or pve-2) and run the above
-    -   **Verify**: `ceph fs subvolume-group ls cephfs-vm` should show `csi`
-    -   **Status**: Required for PVC provisioning
+-   [ ] App-cluster worker VMs have dedicated data disks provisioned.
+-   [ ] Talos user volume `local-path-provisioner` is mounted at `/var/mnt/local-path-provisioner` on each worker.
+-   [ ] NAS export `10.0.40.2:/media` is reachable from every worker.
 
 ### 🚀 Kubernetes Deployment
 
-The following has been automatically configured:
+#### 1. **ArgoCD Applications**
 
-#### 1. **ArgoCD Applications** ✅
-
--   `ceph-csi-secret` (kube-system) - Deploys Ceph credentials from Doppler
--   `storage` (storage namespace) - Deploys Ceph-CSI Helm chart and StorageClass
--   `nginx-test-storage` (storage namespace) - Test deployment for verification
-
-**Verification**:
+-   `local-path` — deploys the local-path provisioner.
+-   `jellyfin` — deploys the static NFS PV/PVC in its `config/` directory.
 
 ```bash
-kubectl get applications -n argo-system | grep ceph
-kubectl get applications -n argo-system | grep storage
+kubectl get application -n argo-system local-path jellyfin
 ```
 
-#### 2. **Ceph-CSI Secret** ✅
-
--   **Source**: `kubernetes/apps/app-cluster/kube-system/ceph-csi/`
--   **Template**: `templates/config/kubernetes/apps/app-cluster/kube-system/ceph-csi/secret.sops.yaml.j2`
--   **Integration**: Pulls `CEPH_KEYRING` from Doppler during `task configure`
--   **Deployment**: ArgoCD syncs encrypted secret to `kube-system` namespace
-
-**Verification**:
+#### 2. **StorageClass `local-path`**
 
 ```bash
-kubectl get secret csi-cephfs-secret -n kube-system
-kubectl describe secret csi-cephfs-secret -n kube-system
+kubectl get storageclass local-path
+kubectl describe storageclass local-path
 ```
 
-#### 3. **StorageClass** ✅
+Confirm:
 
--   **File**: `kubernetes/apps/app-cluster/storage/cephfs-sc.yaml`
--   **Configuration**:
-    ```yaml
-    provisioner: cephfs.csi.ceph.com
-    clusterID: a74bdf84-c6e5-4a3c-acf2-6c307f5c15a4
-    fsName: cephfs-vm
-    mounter: fuse
-    reclaimPolicy: Retain
-    allowVolumeExpansion: true
-    ```
+-   `provisioner: rancher.io/local-path`
+-   `reclaimPolicy: Retain`
+-   `volumeBindingMode: WaitForFirstConsumer`
 
-**Verification**:
+#### 3. **NFS PV/PVC**
 
 ```bash
-kubectl get storageclass cephfs
-kubectl describe storageclass cephfs
+kubectl get pv media-library-pv
+kubectl get pvc -n media media-library-pvc
 ```
 
-#### 4. **Test Deployment (nginx-test)** ✅
+Confirm:
 
--   **Location**: `kubernetes/apps/app-cluster/storage/nginx-test/`
--   **Components**:
-    -   **PVC**: `nginx-test-pvc` (1Gi, ReadWriteMany)
-    -   **Deployment**: Single nginx pod using the PVC
-    -   **Service**: ClusterIP for accessing nginx
-    -   **HTTPRoute**: Gateway route via `envoy-internal` gateway
+-   `persistentVolumeReclaimPolicy: Retain`
+-   `accessModes: ReadWriteMany`
+-   NFS server `10.0.40.2`, path `/media`
 
-**Verification**:
+#### 4. **local-path-provisioner Pods**
 
 ```bash
-# Check if namespace was created
-
-kubectl get namespace storage
-
-# Check PVC status (should be Bound after subvolume group is created)
-
-kubectl get pvc -n storage
-kubectl describe pvc nginx-test-pvc -n storage
-
-# Check pod status
-
-kubectl get pods -n storage -l app=nginx-test
-kubectl describe pod -n storage -l app=nginx-test
-
-# Test mount (if pod is running)
-
-kubectl exec -it -n storage <pod-name> -- df -h /usr/share/nginx/html
-kubectl exec -it -n storage <pod-name> -- cat /usr/share/nginx/html/index.html
+kubectl get pods -n local-path-storage
+kubectl logs -n local-path-storage deployment/local-path-local-path-provisioner --tail=50
 ```
 
 ---
 
 ## 📋 Prerequisites Status
 
-### ✅ Kubernetes Side (Complete)
+### ✅ Kubernetes Side
 
--   [x] ArgoCD Applications configured and synced
--   [x] Ceph-CSI Helm chart deployed via ArgoCD
--   [x] csi-cephfs-secret created with Doppler integration
--   [x] StorageClass `cephfs` created
--   [x] Test deployment manifests ready
+-   [ ] ArgoCD Applications configured and synced
+-   [ ] `local-path-provisioner` deployed
+-   [ ] StorageClass `local-path` created with `Retain` and `WaitForFirstConsumer`
+-   [ ] Static NFS PV/PVC created
 
-### ✅ Proxmox Side (Complete)
+### ✅ Worker Side
 
--   [x] CephFS subvolume group `csi` created
-    -   **Command**: `ceph fs subvolumegroup create cephfs-vm csi`
-    -   **Status**: Verified with `ceph fs subvolumegroup ls cephfs-vm`
-    -   **Result**: Subvolume group exists and ready for CSI provisioning
+-   [ ] Talos user volumes mounted on each worker
+-   [ ] NAS reachable from each worker
 
 ---
 
 ## 📌 End-to-End Testing
 
-Once Ceph subvolume group is created, the flow is:
+### Local-path write/restart/read
 
-1. **PVC Creation** (ArgoCD syncs)
+Jellyfin's `/config` PVC is worker-local and uses a `Recreate` Deployment. After the GPU operator has advertised `nvidia.com/gpu` and Jellyfin is healthy, test persistence across a controlled restart:
 
-    - PVC `nginx-test-pvc` is created in `storage` namespace
-    - Status: `Pending` → Waiting for provisioner
+```bash
+kubectl -n media rollout status deployment/jellyfin
+kubectl -n media exec deployment/jellyfin -c app -- sh -c 'printf local-path-ok > /config/.storage-check'
+kubectl -n media rollout restart deployment/jellyfin
+kubectl -n media rollout status deployment/jellyfin
+kubectl -n media exec deployment/jellyfin -c app -- cat /config/.storage-check
+kubectl -n media exec deployment/jellyfin -c app -- rm /config/.storage-check
+kubectl -n media get pvc -o wide
+```
 
-2. **Volume Provisioning** (CSI Provisioner)
+The `cat` must return `local-path-ok`; inspect the bound config PV's node affinity and the replacement pod's node. **Do not delete the PVC or retained PV as a smoke test**. `Retain` intentionally leaves orphaned storage requiring deliberate recovery/cleanup.
 
-    - Ceph-CSI provisioner detects PVC
-    - Creates CephFS subvolume in `cephfs-vm/csi` group
-    - Binds PVC to PersistentVolume
-    - Status: `Pending` → `Bound`
+### NFS media smoke test
 
-3. **Pod Scheduling** (Kubernetes)
-
-    - nginx pod is scheduled to a node
-    - CephFS volume is mounted to pod
-    - Pod starts successfully
-
-4. **Verification**
-    - Pod writes test content to `/usr/share/nginx/html`
-    - Content is persisted on CephFS
-    - Pod is accessible via HTTPRoute
+```bash
+kubectl exec -n media deploy/jellyfin -- df -h /data
+kubectl exec -n media deploy/jellyfin -- ls /data
+```
 
 ---
 
 ## 🚑 Troubleshooting
 
-### 🔹 PVC Stuck in Pending
-
-**Check CSI provisioner logs:**
+### 🔹 local-path PVC Stuck in Pending
 
 ```bash
-kubectl logs -n storage -l app=ceph-csi-ceph-csi-cephfs-provisioner -c csi-provisioner --tail=50
-```
-
-**Common errors:**
-
--   `subvolume group 'csi' does not exist` → Run: `ceph fs subvolumegroup create cephfs-vm csi` on Proxmox
--   `permission denied` → Verify Doppler secret and CEPH_KEYRING
--   `pool does not exist` → Verify `cephfs-vm_data` pool exists on Ceph
-
-### ☸️ Check Ceph Cluster Health
-
-From Proxmox:
-
-```bash
-ceph status
-ceph health detail
-ceph fs ls
-ceph fs subvolume-group ls cephfs-vm
-```
-
-### 🔹 Pod Not Starting After PVC Binds
-
-```bash
-kubectl describe pod -n storage <pod-name>
-kubectl logs -n storage <pod-name>
+kubectl logs -n local-path-storage deployment/local-path-local-path-provisioner --tail=50
+kubectl describe pvc <name> -n <namespace>
 ```
 
 Common causes:
 
--   Mount permission issues
--   Resource constraints
--   Node selector mismatches
+-   No Ready worker with the user volume mounted
+-   Pod scheduled on a different worker than the bound PV
+
+### 🔹 NFS Mount Fails
+
+```bash
+kubectl describe pv media-library-pv
+kubectl describe pvc media-library-pvc -n media
+kubectl describe pod -n media -l app.kubernetes.io/instance=jellyfin
+```
 
 ---
 
@@ -193,56 +127,18 @@ Common causes:
 
 ### 🔹 Kubernetes Files
 
-| File                                                                 | Purpose                      |
-| -------------------------------------------------------------------- | ---------------------------- |
-| `kubernetes/apps/app-cluster/storage/cephfs-sc.yaml`                 | StorageClass definition      |
-| `kubernetes/apps/app-cluster/storage/nginx-test/`                    | Test deployment manifests    |
-| `kubernetes/apps/app-cluster/kube-system/ceph-csi/`                  | Secret kustomization         |
-| `kubernetes/argo/apps/app-cluster/storage/`                          | ArgoCD Applications          |
-| `templates/config/kubernetes/apps/app-cluster/kube-system/ceph-csi/` | Secret template with Doppler |
-
-### 🔹 Ansible Automation
-
-| File                                       | Purpose                                               |
-| ------------------------------------------ | ----------------------------------------------------- |
-| `infra-ansible-home-proxmoxhosts/site.yml` | Proxmox deployment including subvolume group creation |
+| File                                                 | Purpose                          |
+| ---------------------------------------------------- | -------------------------------- |
+| `kubernetes/apps/app-cluster/storage/local-path/`    | local-path-provisioner manifests |
+| `kubernetes/apps/app-cluster/media/jellyfin/config/` | NFS PV/PVC and media app config  |
+| `talos/app/talconfig.yaml`                           | Worker user volume configuration |
 
 ### 📚 Documentation
 
-| File                           | Purpose                            |
-| ------------------------------ | ---------------------------------- |
-| `docs/storage/overview.md`     | Complete CephFS setup guide        |
-| `docs/storage/verification.md` | This file - verification checklist |
-
----
-
-## 📌 Next Steps
-
-1. **Create Ceph Subvolume Group** (if not already done)
-
-    ```bash
-    # SSH to Proxmox node
-    ssh root@pve-0
-    ceph fs subvolumegroup create cephfs-vm csi
-    ceph fs subvolume-group ls cephfs-vm  # Verify
-    ```
-
-2. **Trigger ArgoCD Sync**
-
-    - Applications will automatically sync
-    - Or trigger manually: `argocd app sync storage`
-
-3. **Monitor Pod Startup**
-
-    ```bash
-    kubectl get pvc -n storage -w
-    kubectl get pods -n storage -l app=nginx-test -w
-    ```
-
-4. **Verify Mount**
-    ```bash
-    kubectl exec -it -n storage <pod-name> -- df -h /usr/share/nginx/html
-    ```
+-   [Storage Overview](./overview.md)
+-   [Media NFS Storage](./media-nfs.md)
+-   [Storage Manual Setup](./manual-setup.md)
+-   [Database Backups](../cluster/database-backups.md)
 
 ---
 
@@ -250,77 +146,7 @@ Common causes:
 
 ✅ **All steps complete when:**
 
-1. ✅ Ceph subvolume group `csi` exists
-2. ✅ PVC `nginx-test-pvc` status is `Bound`
-3. ✅ Pod `nginx-test-xxxxx` status is `Running`
-4. ✅ Mount shows CephFS filesystem in pod
-5. ✅ Test content accessible in pod
-
----
-
-## ✅ Verification Results (2026-03-14)
-
-### ✅ All Prerequisites Met
-
-**Ceph Cluster (Proxmox)**:
-
-```bash
-$ ceph fs subvolumegroup ls cephfs-vm
-[
-    {
-        "name": "csi"
-    }
-]
-```
-
-**Kubernetes - PVC Status**:
-
-```bash
-$ kubectl get pvc -n storage
-NAME             STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS
-nginx-test-pvc   Bound    pvc-424871c0-4629-4413-b665-ee86c8f5d279   1Gi        RWX            cephfs
-```
-
-**Kubernetes - Pod Status**:
-
-```bash
-$ kubectl get pods -n storage -l app=nginx-test
-NAME                          READY   STATUS    RESTARTS   AGE
-nginx-test-7547d46bfd-lg9kb   1/1     Running   0          23m
-```
-
-**Mount Verification**:
-
-```bash
-$ kubectl exec -n storage nginx-test-7547d46bfd-lg9kb -- df -h /usr/share/nginx/html
-Filesystem                                                                                    Size  Used Avail Use% Mounted on
-10.0.70.10:6789,10.0.70.11:6789,10.0.70.12:6789:/volumes/csi/...                          1.0G     0  1.0G   0% /usr/share/nginx/html
-```
-
-**Content Verification**:
-
-```bash
-$ kubectl exec -n storage nginx-test-7547d46bfd-lg9kb -- cat /usr/share/nginx/html/index.html
-<h1>Hello from Nginx on CephFS!</h1>
-Storage Class: cephfs
-PVC Name: nginx-test-pvc
-```
-
-### 🏁 Conclusion
-
-✅ **CephFS storage provisioning is fully operational**
-
--   Ceph cluster properly configured with CSI subvolume group
--   Kubernetes secret credentials deployed
--   StorageClass provisioning working
--   PVC successfully bound to CephFS volume
--   Pod mounted and serving content from CephFS
--   End-to-end integration verified
-
----
-
-## 📚 References
-
--   [Storage Setup Guide](./overview.md)
--   [Ceph-CSI Documentation](https://github.com/ceph/ceph-csi)
--   [Ceph Documentation](https://docs.ceph.com/en/latest/cephfs/)
+1.  `local-path` StorageClass exists with `Retain` and `WaitForFirstConsumer`.
+2.  local-path-provisioner pods are `Running`.
+3.  A test local-path PVC binds, writes data, and retains its PV after PVC deletion.
+4.  `media-library-pvc` is `Bound` and mountable from media pods.

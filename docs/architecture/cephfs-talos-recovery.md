@@ -1,5 +1,7 @@
 # CephFS on Talos after maintenance
 
+> Historical incident decision for the retired three-controller app cluster. The replacement standalone-PVE app cluster has no Ceph or Ceph CSI; follow [the migration plan](../plan/app-cluster-standalone-refactor.md) for current storage and recovery.
+
 ## Decision (2026-10-14)
 
 Use FUSE for CephFS mounts on the app cluster. Talos currently lacks the `ceph` kernel module. New PVs receive `mounter: fuse` through the StorageClass; existing PVs require a separate Retain rebind with the same Ceph volume handle. StorageClass parameters and PV CSI source fields cannot be patched in place.

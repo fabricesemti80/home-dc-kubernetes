@@ -88,13 +88,6 @@ locals {
       session_hours = 720
       auto_redirect = false
     }
-    "linkwarden" = {
-      name          = "Linkwarden"
-      subdomain     = "linkwarden"
-      policy_type   = "bypass"
-      session_hours = 720
-      auto_redirect = false
-    }
     "immich" = {
       name          = "Immich"
       subdomain     = "photos"

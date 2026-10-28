@@ -17,4 +17,4 @@ Recommended first settings:
 
 The pod mounts:
 
--   `/app/config` on CephFS
+-   `/app/config` on a local-path ReadWriteOnce PVC

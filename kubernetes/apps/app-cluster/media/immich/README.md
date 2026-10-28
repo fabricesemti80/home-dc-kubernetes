@@ -13,14 +13,14 @@ Current intent:
 Storage layout:
 
 -   `/data`
-    -   NFS `media-library-pvc-recovery`
+    -   NFS `media-library-pvc`
     -   `subPath: immich`
 -   `/external-library`
-    -   NFS `media-library-pvc-recovery`
+    -   NFS `media-library-pvc`
     -   `subPath: immich/library`
     -   mounted read-only
 -   PostgreSQL, Redis, and ML cache
-    -   CephFS PVCs
+    -   local-path ReadWriteOnce PVCs
 
 Controller note:
 
