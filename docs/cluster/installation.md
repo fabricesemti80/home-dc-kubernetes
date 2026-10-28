@@ -156,6 +156,8 @@ The independent two-node physical cluster is **unchanged**. Do not run `talos:in
 
     Both `task bootstrap:platform` and `task apps:bootstrap` require **all** app-cluster nodes to become `Ready` within five minutes. A halted installer-mode VM or missing kubelet must stop bootstrap rather than wait for every node to become `NotReady` indefinitely. Inspect that VM's Proxmox console and disk-first boot order; do not sync Applications while a worker is down.
 
+    Argo's child Applications are ordered by dependencies: the app-cluster Doppler operator installs its CRD first (wave `-2`), the worker-local storage provisioner follows (wave `-1`), ordinary apps follow (wave `0`), the NVIDIA GPU operator runs at wave `1`, and Jellyfin waits until wave `2`. Never make a consumer's wave earlier than its CRD, storage or device-plugin provider: the root waits for child health and can otherwise deadlock before it reaches the provider.
+
 2. **Verify the local GitOps destination**: Fresh Argo CD knows its own cluster as `in-cluster`, but these Applications use the stable destination name `app-cluster`. `task bootstrap:platform` creates that alias declaratively through the Argo CD Helm values; verify `app-cluster` appears in `argocd --core cluster list`. No second app-cluster registration task or token Secret is needed.
 
 3. **Reconnect the existing `infra-cluster` destination**: The new Argo hub has no reusable remote-cluster credential. With explicit operator approval for the limited `argocd-manager` ServiceAccount/RBAC registration (not a Talos or workload change), run the reproducible task:
