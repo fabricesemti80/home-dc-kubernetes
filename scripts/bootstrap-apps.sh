@@ -6,21 +6,15 @@ source "$(dirname "${0}")/lib/common.sh"
 export LOG_LEVEL="debug"
 export ROOT_DIR="$(git rev-parse --show-toplevel)"
 
-# Talos requires the nodes to be 'Ready=False' before applying resources
+# Do not sync platform charts or Applications while any app-cluster node is down.
 function wait_for_nodes() {
-  log debug "Waiting for nodes to be available"
+  log debug "Waiting for all nodes to be Ready"
 
-  # Skip waiting if all nodes are 'Ready=True'
-  if kubectl wait nodes --for=condition=Ready=True --all --timeout=10s &>/dev/null; then
-    log info "Nodes are available and ready, skipping wait for nodes"
-    return
+  if ! kubectl wait nodes --for=condition=Ready=True --all --timeout=5m; then
+    log fatal "Talos nodes did not become Ready; app bootstrap stopped"
   fi
 
-  # Wait for all nodes to be 'Ready=False'
-  until kubectl wait nodes --for=condition=Ready=False --all --timeout=10s &>/dev/null; do
-    log info "Nodes are not available, waiting for nodes to be available. Retrying in 10 seconds..."
-    sleep 10
-  done
+  log info "All nodes are Ready"
 }
 
 # Namespaces to be applied before the SOPS secrets are installed
