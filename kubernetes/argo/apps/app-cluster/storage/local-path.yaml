@@ -15,7 +15,7 @@ spec:
       ref: repo
     - repoURL: https://github.com/rancher/local-path-provisioner.git
       path: deploy/chart/local-path-provisioner
-      targetRevision: v0.0.31
+      targetRevision: v0.0.37
       helm:
         releaseName: local-path
         valueFiles:
