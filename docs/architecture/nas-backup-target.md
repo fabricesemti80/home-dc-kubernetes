@@ -4,6 +4,11 @@
 
 Use `10.0.40.2:/k8s-backup` directly over NFS for encrypted Restic repositories. Do not deploy an S3 gateway or REST server: a filesystem backend meets the current requirement without another service, TLS/auth bootstrap, metadata database or cluster dependency. This delivers a backup **target**, not scheduled or application-consistent backups. Offsite copies, database dumps, retention, monitoring and per-app restore exercises remain on the roadmap.
 
+The [application backup inventory and recovery plan](../cluster/database-backups.md)
+records the verified PVC/hostPath sources, actual database engines, consistency
+methods, proposed retention and per-app restore acceptance. It is a design, not
+an enabled application-backup schedule.
+
 Each cluster receives a `backups` namespace and an explicitly bound `k8s-backup` claim backed by a static `ReadWriteMany`, `Retain` PV. PV names include the cluster even though Kubernetes clusters have independent PV namespaces. Both point at the same dedicated NAS export; future jobs must use separate `app-cluster/<app>` and `infra-cluster/<app>` repository paths. No media or live application state moves to NFS.
 
 Assumptions: NAS is `10.0.40.2`, export `/k8s-backup`, accessible from both clusters; size `1Ti` is a Kubernetes binding declaration, **not** a NAS quota or reserved capacity. Confirm NAS capacity/quota separately. The initial test from app worker 03 succeeded as UID/GID 0. Test both actual clusters with the committed smoke task before relying on this target. Root is used for the disposable probe only; choose and test the actual writer UID/GID when implementing backup jobs. Do not change physical infra Talos configuration.
