@@ -16,49 +16,71 @@ controllers:
         args:
           - |
             config_file="/config/sabnzbd.ini"
-            whitelist="sabnzbd,sabnzbd.krapulax.dev"
+            whitelist="sabnzbd,sabnzbd.krapulax.dev,sabnzbd.krapulax.home,sabnzbd.media.svc.cluster.local"
+            exposure=0
 
             mkdir -p /config
 
-            if [ ! -f "${config_file}" ]; then
-              cat > "${config_file}" <<EOF
-            [misc]
-            host_whitelist = ${whitelist}
-            EOF
+            if [ -f "${config_file}" ]; then
+              username_set=false
+              password_set=false
+              while IFS= read -r line; do
+                case "${line}" in
+                  username\ =*)
+                    value="${line#*=}"
+                    case "${value}" in *[![:space:]]*) username_set=true ;; esac
+                    ;;
+                  password\ =*)
+                    value="${line#*=}"
+                    case "${value}" in *[![:space:]]*) password_set=true ;; esac
+                    ;;
+                esac
+              done < "${config_file}"
+              if [ "${username_set}" = true ] && [ "${password_set}" = true ]; then
+                exposure=5
+              fi
+            else
+              printf '[misc]\nhost_whitelist = %s\ninet_exposure = %s\n' \
+                "${whitelist}" "${exposure}" > "${config_file}"
               exit 0
             fi
 
-            if grep -q '^host_whitelist *=.*' "${config_file}"; then
-              sed -i "s/^host_whitelist *=.*/host_whitelist = ${whitelist}/" "${config_file}"
-              exit 0
-            fi
-
-            if grep -q '^\[misc\]' "${config_file}"; then
-              awk -v whitelist="${whitelist}" '
-                BEGIN { inserted = 0 }
-                {
-                  print
-                  if (!inserted && $0 == "[misc]") {
-                    print "host_whitelist = " whitelist
-                    inserted = 1
-                  }
+            awk -v whitelist="${whitelist}" -v exposure="${exposure}" '
+              function missing_settings() {
+                if (!found_whitelist) print "host_whitelist = " whitelist
+                if (!found_exposure) print "inet_exposure = " exposure
+              }
+              /^\[misc\]$/ {
+                in_misc = 1
+                found_misc = 1
+                print
+                next
+              }
+              /^\[/ {
+                if (in_misc) missing_settings()
+                in_misc = 0
+              }
+              in_misc && /^host_whitelist *=/ {
+                print "host_whitelist = " whitelist
+                found_whitelist = 1
+                next
+              }
+              in_misc && /^inet_exposure *=/ {
+                print "inet_exposure = " exposure
+                found_exposure = 1
+                next
+              }
+              { print }
+              END {
+                if (in_misc) missing_settings()
+                if (!found_misc) {
+                  print ""
+                  print "[misc]"
+                  missing_settings()
                 }
-                END {
-                  if (!inserted) {
-                    print "[misc]"
-                    print "host_whitelist = " whitelist
-                  }
-                }
-              ' "${config_file}" > "${config_file}.tmp"
-              mv "${config_file}.tmp" "${config_file}"
-              exit 0
-            fi
-
-            cat >> "${config_file}" <<EOF
-
-            [misc]
-            host_whitelist = ${whitelist}
-            EOF
+              }
+            ' "${config_file}" > "${config_file}.tmp"
+            mv "${config_file}.tmp" "${config_file}"
     containers:
       app:
         image:
