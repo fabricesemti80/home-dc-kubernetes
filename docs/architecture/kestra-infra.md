@@ -1,5 +1,10 @@
 # ⚙️ Kestra Infra Deployment
 
+**Historical deployment; retirement approved.** This document preserves the former
+design for rollback, not an instruction to deploy Kestra. Active manifests and
+routes are removed; follow [NAS target and infra retirement](nas-backup-target.md#kestra--kubevirt-retirement)
+for the ordered live cleanup that retains its data.
+
 Deploy Kestra on the infra cluster as the homelab automation service. It should stay available when the Proxmox-hosted app cluster is offline for maintenance.
 
 ## 🏛️ Architecture

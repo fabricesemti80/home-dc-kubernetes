@@ -22,7 +22,6 @@ flowchart LR
 | `internal.krapulax.dev`       | -                         | Internal routing                                     |
 | `krapulax.home`               | `10.0.40.53`              | Internal zone served by Technitium                   |
 | `kubernetes.krapulax.home`    | `10.0.40.102`             | Internal gateway target                              |
-| `kestra.krapulax.home`        | `10.0.40.106`             | Infra-cluster internal Kestra                        |
 
 ## 🚚 External endpoint migration
 
@@ -66,11 +65,12 @@ The migration from `external.krapulax.dev` is complete:
 | Technitium  | `dns.krapulax.dev`    | infra   | `kubernetes/apps/infra-cluster/network/technitium-infra/config/http-route.yaml`, `kubernetes/apps/app-cluster/network/cloudflare-tunnel/config/dnsendpoint.yaml`, `kubernetes/apps/infra-cluster/network/cloudflare-tunnel-infra/config/config.yaml` |
 | Uptime Kuma | `uptime.krapulax.dev` | infra   | `kubernetes/apps/infra-cluster/monitoring/uptime-kuma-infra/config/http-route.yaml`                                                                                                                                                                  |
 
-### 🔹 Automation
+### Retired automation
 
-| App    | Hostname                                      | Cluster | Config                                                                                                                                                                                                                                                     |
-| ------ | --------------------------------------------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Kestra | `kestra.krapulax.dev`, `kestra.krapulax.home` | infra   | `kubernetes/apps/app-cluster/network/cloudflare-tunnel/config/kestra-dnsendpoint.yaml`, `kubernetes/apps/infra-cluster/automation/kestra-infra/config/http-route.yaml`, `kubernetes/apps/infra-cluster/network/cloudflare-tunnel-infra/config/config.yaml` |
+Kestra's public DNS declaration, tunnel origin and internal route have been
+removed from desired configuration. Existing public DNS may remain while
+`cloudflare-dns` is manually gated; do not force-sync it to clean up this record.
+There is no public route for the NAS backup target.
 
 ### 🔹 Web
 

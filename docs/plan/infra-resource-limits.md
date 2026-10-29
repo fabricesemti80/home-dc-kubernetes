@@ -1,3 +1,8 @@
+> Historical sizing plan: Kestra/Postgres/VersityGW are now approved for retirement,
+> so their rows and flow checks below are historical rather than deployment targets.
+> Reassess remaining workload headroom after the
+> [ordered retirement](../architecture/nas-backup-target.md#kestra--kubevirt-retirement).
+
 # ⚖️ Infra-Cluster Resource Limits
 
 ## Motivation

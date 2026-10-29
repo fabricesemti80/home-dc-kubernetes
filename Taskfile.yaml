@@ -18,6 +18,7 @@ env:
   TALOSCONFIG: '{{.TALOSCONFIG}}'
 
 includes:
+  backups: .taskfiles/backup
   bootstrap: .taskfiles/bootstrap
   clusters: .taskfiles/clusters
   infrastructure: .taskfiles/infrastructure

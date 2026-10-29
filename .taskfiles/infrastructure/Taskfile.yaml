@@ -2,6 +2,14 @@
 version: '3'
 
 tasks:
+  prepare-infra-retirement:
+    desc: Save a private Kestra/KubeVirt inventory before merging their removal PR (read-only)
+    cmd: python3 '{{.ROOT_DIR}}/scripts/retire-infra-apps.py' prepare
+
+  retire-infra:
+    desc: Remove inventoried orphaned Kestra/KubeVirt resources after merge, preserving namespaces and PVCs
+    cmd: python3 '{{.ROOT_DIR}}/scripts/retire-infra-apps.py' remove
+
 
   argo-sync-bootstrap:
     desc: Apply the Argo CD app-of-apps bootstrap resources

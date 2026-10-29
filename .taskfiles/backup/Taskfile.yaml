@@ -1,0 +1,23 @@
+---
+version: '3'
+
+tasks:
+  status:
+    desc: Show the NAS target and probe jobs in one explicitly selected cluster
+    requires:
+      vars:
+        - name: CLUSTER
+          enum: [app-cluster, infra-cluster]
+    vars:
+      TARGET_KUBECONFIG: '{{if eq .CLUSTER "app-cluster"}}{{.ROOT_DIR}}/kubeconfig{{else}}{{.ROOT_DIR}}/.private/infra-cluster/kubeconfig{{end}}'
+    cmds:
+      - kubectl --kubeconfig '{{.TARGET_KUBECONFIG}}' -n backups get pvc k8s-backup
+      - kubectl --kubeconfig '{{.TARGET_KUBECONFIG}}' -n backups get jobs -l app.kubernetes.io/name=backup-target-probe
+
+  smoke:
+    desc: Verify an encrypted Restic backup and byte-identical restore on the NAS target
+    requires:
+      vars:
+        - name: CLUSTER
+          enum: [app-cluster, infra-cluster]
+    cmd: python3 '{{.ROOT_DIR}}/scripts/check-backup-target.py' '{{.CLUSTER}}'
