@@ -5,10 +5,13 @@ metadata:
 data:
   config.yaml: |
     ingress:
-      # Keep the first GitOps sync private: only the path-scoped Argo webhook
-      # may traverse the retained public tunnel. Promote apex/wildcard ingress
-      # in a reviewed Git revision after backup and restore verification.
+      # Keep stateful app hosts closed until off-host restore is verified.
+      # Argo's webhook bypass must precede its Access-protected UI rule.
       - hostname: argo.krapulax.dev
         path: ^/api/webhook$
         service: http://argocd-server.argo-system.svc.cluster.local:80
+      - hostname: argo.krapulax.dev
+        service: http://argocd-server.argo-system.svc.cluster.local:80
+      - hostname: homepage.krapulax.dev
+        service: http://homepage.web.svc.cluster.local:80
       - service: http_status:404
