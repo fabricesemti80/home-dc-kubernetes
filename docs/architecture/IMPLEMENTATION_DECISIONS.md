@@ -14,6 +14,14 @@
 -   Ownership: `home-dc-terraform` provisions the standalone VMs; this repository owns Talos, Argo and Kubernetes, plus Cloudflare/local-DNS Terraform. The separate two-node physical infra cluster is unchanged.
 -   App cluster: one unschedulable controller and three workers, including the NVIDIA GPU worker.
 
+### Cloudflare connector security refresh (both clusters)
+
+Decision: pin both GitOps-managed `cloudflared` deployments to the latest verified stable upstream release, `2026.10.5` (published 2026-10-27), using the same Docker Hub multi-architecture digest. Keep app-cluster's webhook-only ingress and manual `cloudflare-dns` gate; do not change the physical infra cluster's topology, tunnel credentials, ingress rules, or external DNS.
+
+Assumptions: the reported Cloudflare CVE identifier and affected component were not supplied; this image update is precautionary, not a verified claim that a specific CVE is fixed. The official `2026.10.5` release and Docker Hub manifest list both exist for amd64 and arm64. Two replicas per tunnel and rolling updates should preserve an active connector during replacement.
+
+Validation: render both chart values, merge to `main`, confirm each Argo Application syncs, and check both deployments reach two ready pods running the new digest. Test the app tunnel's Argo webhook origin and blocked public media route, and an existing infra tunnel route; leave `cloudflare-dns` manual. Rollback: revert only the two image pins to the last running `2026.10.3` Git revision and let Argo roll the connectors back if the new image cannot connect; keep the webhook-only restriction throughout.
+
 ## Historical decisions (superseded by the standalone migration)
 
 ### Multi-replica control-plane and edge services
