@@ -38,18 +38,18 @@ yaml_json kubernetes/apps/app-cluster/media/jellyfin/config/media-library-pv.yam
 yaml_json kubernetes/apps/app-cluster/media/jellyfin/config/media-library-pvc.yaml |
   jq -e '.kind == "PersistentVolumeClaim" and .metadata.name == "media-library-pvc" and .spec.volumeName == "media-library-pv"' >/dev/null
 
-# Public DNS already targets the tunnel. Keep the webhook bypass first, block
-# unclaimed setup pages, and route other hosts through TLS-verified Envoy.
+# Public DNS already targets the tunnel. Keep the webhook bypass first,
+# Jellyseerr's unclaimed setup private, Immich behind its own login, and
+# other hosts through TLS-verified Envoy.
 yaml_json kubernetes/apps/app-cluster/network/cloudflare-tunnel/config/config.yaml |
   jq -r '.data["config.yaml"]' | yaml_json - | jq -e '
     .ingress as $rules
-    | ($rules | length) == 6
+    | ($rules | length) == 5
       and $rules[0] == {"hostname": "argo.krapulax.dev", "path": "^/api/webhook$", "service": "http://argocd-server.argo-system.svc.cluster.local:80"}
       and $rules[1] == {"hostname": "krapulax.dev", "service": "https://envoy-external.network.svc.cluster.local", "originRequest": {"originServerName": "external.krapulax.dev"}}
-      and $rules[2] == {"hostname": "photos.krapulax.dev", "service": "http_status:404"}
-      and $rules[3] == {"hostname": "requests.krapulax.dev", "service": "http_status:404"}
-      and $rules[4] == {"hostname": "*.krapulax.dev", "service": "https://envoy-external.network.svc.cluster.local", "originRequest": {"originServerName": "external.krapulax.dev"}}
-      and $rules[5] == {"service": "http_status:404"}
+      and $rules[2] == {"hostname": "requests.krapulax.dev", "service": "http_status:404"}
+      and $rules[3] == {"hostname": "*.krapulax.dev", "service": "https://envoy-external.network.svc.cluster.local", "originRequest": {"originServerName": "external.krapulax.dev"}}
+      and $rules[4] == {"service": "http_status:404"}
   ' >/dev/null
 yaml_json kubernetes/argo/apps/app-cluster/network/cloudflare-dns.yaml |
   jq -e '.kind == "Application" and (.spec.syncPolicy | has("automated") | not)' >/dev/null
