@@ -79,7 +79,36 @@ def prepare():
         handle.write("\n")
     print(f"Saved private inventory: {INVENTORY}")
     print(f"No guests/imports; preserving {len(claims)} PVCs and all involved namespaces. No live resources changed.")
-    print("Merge the removal PR, wait for the four child Applications to disappear, then run the retire-infra task.")
+    print("Merge the removal PR, run unregister-infra-retirement, then run the retire-infra task.")
+
+
+def unregister():
+    inventory = json.loads(INVENTORY.read_text())
+    if inventory["infra_cluster_uid"] != cluster_uid():
+        raise RuntimeError("Infra cluster identity differs from the prepared inventory")
+    if set(inventory["applications"]) != set(ORDER):
+        raise RuntimeError("Incomplete or unexpected prepared Application inventory")
+    parent = get(APP, "application.argoproj.io", "apps", "-n", "argo-system")
+    prunable = {
+        item["name"]
+        for item in parent.get("status", {}).get("resources", [])
+        if item.get("kind") == "Application" and item.get("requiresPruning") is True
+    }
+    pending = []
+    for name in ORDER:
+        app = get(APP, "application.argoproj.io", name, "-n", "argo-system", "--ignore-not-found")
+        if app is None:
+            continue
+        if name not in prunable:
+            raise RuntimeError(f"{name} is still desired or not yet marked for pruning by Argo")
+        if app["metadata"].get("finalizers") or app["spec"]["destination"].get("name") != "infra-cluster":
+            raise RuntimeError(f"Unsafe finalizers or destination on {name}")
+        pending.append(name)
+    no_guests()
+    retained_claims()
+    if pending:
+        subprocess.run(APP + ["-n", "argo-system", "delete", "applications.argoproj.io", *pending, "--cascade=orphan", "--wait=true"], check=True)
+    print("Retired Application registrations are absent; workloads and data are not cascaded.")
 
 
 def remove():
@@ -113,6 +142,16 @@ def remove():
             if resource["namespace"]:
                 command += ["-n", resource["namespace"]]
             subprocess.run(command, check=True)
+    for namespace in NAMESPACES:
+        pods = get(INFRA, "pods", "-n", namespace)["items"]
+        if pods:
+            timeout = max(300, max(item["spec"].get("terminationGracePeriodSeconds", 30) for item in pods) + 60)
+            subprocess.run(
+                INFRA + ["-n", namespace, "wait", "--for=delete"]
+                + [f"pod/{item['metadata']['name']}" for item in pods]
+                + [f"--timeout={timeout}s"],
+                check=True,
+            )
     for claim in inventory["retained_claims"]:
         current = get(INFRA, "pvc", claim["name"], "-n", claim["namespace"])
         if current["spec"]["volumeName"] != claim["volume"]:
@@ -137,10 +176,10 @@ def remove():
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("action", choices=["prepare", "remove"])
+    parser.add_argument("action", choices=["prepare", "unregister", "remove"])
     args = parser.parse_args()
     try:
-        prepare() if args.action == "prepare" else remove()
+        {"prepare": prepare, "unregister": unregister, "remove": remove}[args.action]()
     except (OSError, RuntimeError, subprocess.CalledProcessError) as error:
         print(f"ERROR: {error}", file=sys.stderr)
         if isinstance(error, subprocess.CalledProcessError) and error.stderr:

@@ -6,6 +6,10 @@ tasks:
     desc: Save a private Kestra/KubeVirt inventory before merging their removal PR (read-only)
     cmd: python3 '{{.ROOT_DIR}}/scripts/retire-infra-apps.py' prepare
 
+  unregister-infra-retirement:
+    desc: Orphan only retired Argo registrations after Git removal (requires saved inventory)
+    cmd: python3 '{{.ROOT_DIR}}/scripts/retire-infra-apps.py' unregister
+
   retire-infra:
     desc: Remove inventoried orphaned Kestra/KubeVirt resources after merge, preserving namespaces and PVCs
     cmd: python3 '{{.ROOT_DIR}}/scripts/retire-infra-apps.py' remove
