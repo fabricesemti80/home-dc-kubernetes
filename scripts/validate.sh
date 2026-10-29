@@ -38,17 +38,18 @@ yaml_json kubernetes/apps/app-cluster/media/jellyfin/config/media-library-pv.yam
 yaml_json kubernetes/apps/app-cluster/media/jellyfin/config/media-library-pvc.yaml |
   jq -e '.kind == "PersistentVolumeClaim" and .metadata.name == "media-library-pvc" and .spec.volumeName == "media-library-pv"' >/dev/null
 
-# Existing public DNS can already point at the tunnel: only the webhook may pass.
+# Public DNS already targets the tunnel. Keep the webhook bypass first, route
+# other hosts through the TLS-verified Envoy, and reject unmatched requests.
 yaml_json kubernetes/apps/app-cluster/network/cloudflare-tunnel/config/config.yaml |
   jq -r '.data["config.yaml"]' | yaml_json - | jq -e '
     .ingress as $rules
-    | ($rules | length) == 2
-      and $rules[0].hostname == "argo.krapulax.dev"
-      and $rules[0].path == "^/api/webhook$"
-      and $rules[0].service == "http://argocd-server.argo-system.svc.cluster.local:80"
-      and $rules[1].service == "http_status:404"
+    | ($rules | length) == 4
+      and $rules[0] == {"hostname": "argo.krapulax.dev", "path": "^/api/webhook$", "service": "http://argocd-server.argo-system.svc.cluster.local:80"}
+      and $rules[1] == {"hostname": "krapulax.dev", "service": "https://envoy-external.network.svc.cluster.local", "originRequest": {"originServerName": "external.krapulax.dev"}}
+      and $rules[2] == {"hostname": "*.krapulax.dev", "service": "https://envoy-external.network.svc.cluster.local", "originRequest": {"originServerName": "external.krapulax.dev"}}
+      and $rules[3] == {"service": "http_status:404"}
   ' >/dev/null
 yaml_json kubernetes/argo/apps/app-cluster/network/cloudflare-dns.yaml |
   jq -e '.kind == "Application" and (.spec.syncPolicy | has("automated") | not)' >/dev/null
 
-echo "Validation passed: required files, private cutover, local-path and NFS safeguards present."
+echo "Validation passed: required files, tunnel ingress, manual DNS, local-path and NFS safeguards present."
