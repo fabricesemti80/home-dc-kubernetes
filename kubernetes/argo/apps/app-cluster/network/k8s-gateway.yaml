@@ -13,13 +13,13 @@ spec:
       path: kubernetes/apps/app-cluster/network/k8s-gateway
       targetRevision: main
       ref: repo
-    - repoURL: https://ori-edge.github.io/k8s_gateway
+    - repoURL: codeberg.org/k8s-gateway/charts
       chart: k8s-gateway
-      targetRevision: 2.4.0
+      targetRevision: 4.0.1
       helm:
         releaseName: k8s-gateway
         valueFiles:
-          - $repo/kubernetes/apps/app-cluster/network/k8s-gateway/values.sops.yaml
+          - $repo/kubernetes/apps/app-cluster/network/k8s-gateway/values.yaml
   destination:
     name: app-cluster
     namespace: network

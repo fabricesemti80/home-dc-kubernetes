@@ -6,6 +6,3 @@ toolkit:
   enabled: false
 hostPaths:
   driverInstallDir: /usr/local
-operator:
-  # The operator itself runs on general-purpose nodes, not only the GPU guest.
-  runtimeClass: ""
