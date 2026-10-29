@@ -15,41 +15,38 @@ This cluster consumes the existing media library over NFS for workloads such as 
 
 ## 📌 Current Consumers
 
-Media apps in the `media` namespace (Jellyfin, Sonarr, Radarr, Prowlarr, qBittorrent, SABnzbd, Immich, Recyclarr, Jellyseerr) mount `media-library-pvc` for library and download paths while using `local-path` PVCs for their config/state.
+Jellyfin, Sonarr, Radarr, qBittorrent, SABnzbd and Immich mount `media-library-pvc` in namespace `media`. Prowlarr, Recyclarr and Jellyseerr use app-local configuration and access the others over Services; they do not mount the NFS claim. See [the media app setup runbook](../plan/media-app-setup.md) for observed directories, container paths and UI configuration.
 
 ## 🤔 Assumptions
 
 -   The NFS server `10.0.40.2` is reachable from all app-cluster worker nodes.
 -   The export path `/media` already exists and contains the current shared library.
 -   Permissions on the export allow the apps to read/write media files as configured.
--   During the first GitOps sync, the app tunnel only serves the Argo webhook and `cloudflare-dns` is manually synced; no app route is public until backup and restore checks pass.
+-   The public app tunnel now routes through TLS-verified Envoy, except `photos.krapulax.dev` and `requests.krapulax.dev`: both still have unauthenticated initial admin setup and return 404 until secured. `cloudflare-dns` remains manually synced. Off-host backups and restores of fresh local-path state remain unverified.
 
 ## ✅ Validation
 
-After Argo syncs:
+After Argo syncs, use the **app-cluster** kubeconfig (there is no ambient kubectl context):
 
 ```bash
-kubectl get pv media-library-pv
-kubectl get pvc -n media media-library-pvc
-kubectl get pods -n media
-kubectl describe pod -n media -l app.kubernetes.io/name=jellyfin
-kubectl get httproute -n media jellyfin -o yaml
+kubectl --kubeconfig kubeconfig get pv media-library-pv
+kubectl --kubeconfig kubeconfig get pvc -n media media-library-pvc
+kubectl --kubeconfig kubeconfig get pods -n media
+kubectl --kubeconfig kubeconfig describe pod -n media -l app.kubernetes.io/name=jellyfin
+kubectl --kubeconfig kubeconfig get httproute -n media jellyfin -o yaml
 ```
 
-Only after the reviewed public cutover, verify routing:
+Verify current public routing only after application authentication is configured; first-run Immich and Jellyseerr remain private:
 
 ```bash
-kubectl get httproute -n media jellyfin -o jsonpath='{.metadata.annotations}'
+kubectl --kubeconfig kubeconfig get httproute -n media jellyfin -o jsonpath='{.metadata.annotations}'
 dig +short jelly.krapulax.dev
 curl -I https://jelly.krapulax.dev/
 ```
 
-If the pod starts but libraries are empty, verify NFS connectivity and path contents from the storage server side.
-
-Before public cutover, a 404 for the hostname is expected. After cutover, if it still returns 404, confirm the DNS record resolves to `external-apps.krapulax.dev` rather than a stale direct tunnel target.
+Cloudflare Access may return a login redirect rather than origin content. If an allowed host returns the tunnel's 404, inspect the live tunnel ConfigMap and the app's HTTPRoute; avoid automatically syncing `cloudflare-dns` because of the previous private-IP publication regression.
 
 ## ↩️ Rollback
 
--   Remove the external-dns annotations from the app's `HTTPRoute` to withdraw the public hostname.
--   Re-sync the Argo CD application so external-dns can withdraw the record.
--   Remove or tighten the `cloudflare_zero_trust_access_application` rule in `infra/terraform_cloudflare/main.tf` when Cloudflare Access enforcement is desired.
+-   Revert the relevant GitOps tunnel/route changes in a reviewed commit or disable the app's public route while retaining the NFS PV and data. First-run Immich/Jellyseerr public denies should remain until setup and authentication are verified.
+-   Coordinate any DNS change explicitly: `cloudflare-dns` is manually gated because an automatic sync can publish private gateway IPs. Do not delete the retained NFS PV or NAS content during an application rollback.

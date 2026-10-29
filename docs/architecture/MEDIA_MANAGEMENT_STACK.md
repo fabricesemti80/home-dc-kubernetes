@@ -2,6 +2,8 @@
 
 ## 🎯 Objective
 
+For the observed NAS paths and step-by-step app UI settings, use [the media app setup runbook](../plan/media-app-setup.md).
+
 ```mermaid
 flowchart LR
     Prowlarr[Indexers] --> Sonarr[TV]
@@ -130,7 +132,7 @@ This avoids coupling runtime app internals to guessed static secrets in Doppler.
 already exist or can be created on the NFS server before workloads start.
 
 -   The local-path provisioner is installed and restricted to workers with dedicated data disks.
--   Jellyfin remains `Pending` until the NVIDIA device plugin advertises GPUs; CPU transcoding is retained as a documented fallback.
+-   Jellyfin now schedules on the GPU worker; its `/health` response is `Healthy`, but actual hardware playback/transcoding still needs an end-to-end check.
 
 ## ✅ Validation
 
