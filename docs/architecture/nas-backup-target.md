@@ -9,7 +9,11 @@ records the verified PVC/hostPath sources, actual database engines, consistency
 methods, proposed retention and per-app restore acceptance. It is a design, not
 an enabled application-backup schedule.
 
-Each cluster receives a `backups` namespace and an explicitly bound `k8s-backup` claim backed by a static `ReadWriteMany`, `Retain` PV. PV names include the cluster even though Kubernetes clusters have independent PV namespaces. Both point at the same dedicated NAS export; future jobs must use separate `app-cluster/<app>` and `infra-cluster/<app>` repository paths. No media or live application state moves to NFS.
+The [K8up automation design](k8up-backup-automation.md) adds proposed opt-in
+discovery, namespace/profile policies and guarded restores without replacing this
+target. It selects a backup operator, not an S3/storage server.
+
+Each cluster receives a `backups` namespace and an explicitly bound `k8s-backup` claim backed by a static `ReadWriteMany`, `Retain` PV. PV names include the cluster even though Kubernetes clusters have independent PV namespaces. Both point at the same dedicated NAS export. The proposed operator uses separate `<cluster>/<namespace>/<profile>` repository paths and namespace-local target claims for capture Jobs; the original per-app path convention is superseded by that policy design. No media or live application state moves to NFS.
 
 Assumptions: NAS is `10.0.40.2`, export `/k8s-backup`, accessible from both clusters; size `1Ti` is a Kubernetes binding declaration, **not** a NAS quota or reserved capacity. Confirm NAS capacity/quota separately. The initial test from app worker 03 succeeded as UID/GID 0. Test both actual clusters with the committed smoke task before relying on this target. Root is used for the disposable probe only; choose and test the actual writer UID/GID when implementing backup jobs. Do not change physical infra Talos configuration.
 
