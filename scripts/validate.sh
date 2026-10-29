@@ -38,15 +38,18 @@ yaml_json kubernetes/apps/app-cluster/media/jellyfin/config/media-library-pv.yam
 yaml_json kubernetes/apps/app-cluster/media/jellyfin/config/media-library-pvc.yaml |
   jq -e '.kind == "PersistentVolumeClaim" and .metadata.name == "media-library-pvc" and .spec.volumeName == "media-library-pv"' >/dev/null
 
-# Existing public DNS can already point at the tunnel: only the webhook may pass.
+# Existing public DNS can already point at the tunnel: only the webhook and
+# Access-protected Argo/Homepage hosts may pass; stateful apps stay closed.
 yaml_json kubernetes/apps/app-cluster/network/cloudflare-tunnel/config/config.yaml |
   jq -r '.data["config.yaml"]' | yaml_json - | jq -e '
     .ingress as $rules
-    | ($rules | length) == 2
+    | ($rules | length) == 4
       and $rules[0].hostname == "argo.krapulax.dev"
       and $rules[0].path == "^/api/webhook$"
       and $rules[0].service == "http://argocd-server.argo-system.svc.cluster.local:80"
-      and $rules[1].service == "http_status:404"
+      and $rules[1] == {"hostname": "argo.krapulax.dev", "service": "http://argocd-server.argo-system.svc.cluster.local:80"}
+      and $rules[2] == {"hostname": "homepage.krapulax.dev", "service": "http://homepage.web.svc.cluster.local:80"}
+      and $rules[3] == {"service": "http_status:404"}
   ' >/dev/null
 yaml_json kubernetes/argo/apps/app-cluster/network/cloudflare-dns.yaml |
   jq -e '.kind == "Application" and (.spec.syncPolicy | has("automated") | not)' >/dev/null
