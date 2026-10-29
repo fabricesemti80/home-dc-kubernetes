@@ -27,7 +27,7 @@ controllerServiceAccount:
 containerMode:
   type: "dind"
 
-# Listener template — no restrictive node selector (only 3 control-plane nodes exist atm)
+# Listener template — no node selector; the controller stays tainted.
 listenerTemplate:
   spec:
     tolerations:
