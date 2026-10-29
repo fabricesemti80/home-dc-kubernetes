@@ -37,6 +37,12 @@ tasks:
       - bash {{.ROOT_DIR}}/scripts/validate.sh
       - python3 {{.ROOT_DIR}}/scripts/generate-autokuma-monitors.py --check
 
+  arc:repair-stale-listener:
+    desc: Re-register an ARC scale set after GitHub returns RunnerScaleSetNotFoundException
+    requires:
+      vars: [STALE_ID]
+    cmd: bash {{.ROOT_DIR}}/scripts/repair-arc-stale-listener.sh "{{.STALE_ID}}"
+
   monitoring:generate-autokuma:
     desc: Manually regenerate AutoKuma monitors (normally handled by GitHub Actions)
     cmd: python3 {{.ROOT_DIR}}/scripts/generate-autokuma-monitors.py

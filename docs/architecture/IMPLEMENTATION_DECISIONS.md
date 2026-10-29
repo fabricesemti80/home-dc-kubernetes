@@ -16,11 +16,19 @@
 
 ### Cloudflare connector security refresh (both clusters)
 
-Decision: pin both GitOps-managed `cloudflared` deployments to the latest verified stable upstream release, `2026.10.5` (published 2026-10-27), using the same Docker Hub multi-architecture digest. Keep app-cluster's webhook-only ingress and manual `cloudflare-dns` gate; do not change the physical infra cluster's topology, tunnel credentials, ingress rules, or external DNS.
+Decision: pin both GitOps-managed `cloudflared` deployments to the latest verified stable upstream release, `2026.10.5` (published 2026-10-27), using the same Docker Hub multi-architecture digest. Preserve each cluster's independently managed ingress rules and credentials; do not change the physical infra cluster's topology or external DNS. The app-cluster tunnel initially served only the webhook; subsequent operator-approved public cutover is tracked in [the migration plan](../plan/app-cluster-standalone-refactor.md).
 
 Assumptions: the reported Cloudflare CVE identifier and affected component were not supplied; this image update is precautionary, not a verified claim that a specific CVE is fixed. The official `2026.10.5` release and Docker Hub manifest list both exist for amd64 and arm64. Two replicas per tunnel and rolling updates should preserve an active connector during replacement.
 
-Validation: render both chart values, merge to `main`, confirm each Argo Application syncs, and check both deployments reach two ready pods running the new digest. Test the app tunnel's Argo webhook origin and blocked public media route, and an existing infra tunnel route; leave `cloudflare-dns` manual. Rollback: revert only the two image pins to the last running `2026.10.3` Git revision and let Argo roll the connectors back if the new image cannot connect; keep the webhook-only restriction throughout.
+Validation: render both chart values, merge to `main`, confirm each Argo Application syncs, and check both deployments reach two ready pods running the new digest. Test app and infra tunnel routes under the current ingress policy. Rollback: revert only the two image pins to the last running `2026.10.3` Git revision and let Argo roll the connectors back if the new image cannot connect; preserve the current ingress rules.
+
+### Recover a missing GitHub Actions runner scale set
+
+Decision: upgrade both app-cluster ARC charts together from `0.14.2` to upstream stable `0.15.1`. The listener repeatedly exited because GitHub returned `RunnerScaleSetNotFoundException` for cached scale-set ID `3`, not because it was unschedulable. Upstream [#4571](https://github.com/actions/actions-runner-controller/pull/4571) adds server-side ID validation and re-registration when a listener is created; it does **not** repair a pre-existing listener on its own. After GitOps upgrades the controller and runner set, run the guarded `task arc:repair-stale-listener STALE_ID=3` to remove only the stale controller-generated listener. The controller must regenerate it with the new registered ID. Do not delete the AutoscalingRunnerSet or its finalizer, change the runner label used by workflows, or print GitHub App credentials.
+
+Assumptions: the GitHub App credentials in Doppler still work (the listener obtained a registration token before its broker 404); no ephemeral runner jobs are active during listener replacement. Validation: render both official charts, verify ordered Argo sync, confirm a fresh non-`3` annotation and listener ID, a listener pod Ready without restart churn, and a queued workflow reaching a runner when one is available. Rollback: revert both chart versions to `0.14.2` **only if the new controller fails**; avoid recreating the stale listener under the old version. If GitHub service remains unavailable, leave the scale set intact, collect sanitized controller errors, and do not strip finalizers.
+
+Ordering invariant: the `0.15.1` runner set renders `spec.listenerConfig`, which the installed `0.14.2` CRD rejects. The controller Application at sync wave 0 must upgrade its CRDs and become Healthy before the runner-set Application at wave 1 syncs; do not force-sync the latter first. A server dry-run of the runner set against the old CRD fails by design, while the new chart's CRD declares this field.
 
 ## Historical decisions (superseded by the standalone migration)
 
