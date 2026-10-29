@@ -22,23 +22,25 @@ controllers:
             mkdir -p /config
 
             if [ -f "${config_file}" ]; then
-              username_set=false
-              password_set=false
-              while IFS= read -r line; do
-                case "${line}" in
-                  username\ =*)
-                    value="${line#*=}"
-                    case "${value}" in *[![:space:]]*) username_set=true ;; esac
-                    ;;
-                  password\ =*)
-                    value="${line#*=}"
-                    case "${value}" in *[![:space:]]*) password_set=true ;; esac
-                    ;;
-                esac
-              done < "${config_file}"
-              if [ "${username_set}" = true ] && [ "${password_set}" = true ]; then
-                exposure=5
-              fi
+              exposure="$(awk '
+                /^\[misc\][[:space:]]*$/ { in_misc = 1; next }
+                /^\[/ { in_misc = 0 }
+                in_misc && /^[[:space:]]*(username|password)[[:space:]]*=/ {
+                  key = $0
+                  sub(/[[:space:]]*=.*/, "", key)
+                  gsub(/^[[:space:]]+|[[:space:]]+$/, "", key)
+                  value = $0
+                  sub(/^[^=]*=/, "", value)
+                  gsub(/^[[:space:]]+|[[:space:]]+$/, "", value)
+                  if (value ~ /^"[^"]*"$/ || value ~ /^\047[^\047]*\047$/) {
+                    value = substr(value, 2, length(value) - 2)
+                    gsub(/^[[:space:]]+|[[:space:]]+$/, "", value)
+                  }
+                  if (key == "username" && value != "") username_set = 1
+                  if (key == "password" && value != "") password_set = 1
+                }
+                END { print username_set && password_set ? 5 : 0 }
+              ' "${config_file}")"
             else
               printf '[misc]\nhost_whitelist = %s\ninet_exposure = %s\n' \
                 "${whitelist}" "${exposure}" > "${config_file}"
