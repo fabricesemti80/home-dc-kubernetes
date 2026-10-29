@@ -39,18 +39,19 @@ yaml_json kubernetes/apps/app-cluster/media/jellyfin/config/media-library-pvc.ya
   jq -e '.kind == "PersistentVolumeClaim" and .metadata.name == "media-library-pvc" and .spec.volumeName == "media-library-pv"' >/dev/null
 
 # Public DNS already targets the tunnel. Keep the webhook bypass first,
-# Jellyseerr's unclaimed setup private, Immich behind its own login, and
-# other hosts through TLS-verified Envoy.
+# route authenticated apps through TLS-verified Envoy, and deny unmatched hosts.
 yaml_json kubernetes/apps/app-cluster/network/cloudflare-tunnel/config/config.yaml |
   jq -r '.data["config.yaml"]' | yaml_json - | jq -e '
     .ingress as $rules
-    | ($rules | length) == 5
+    | ($rules | length) == 4
       and $rules[0] == {"hostname": "argo.krapulax.dev", "path": "^/api/webhook$", "service": "http://argocd-server.argo-system.svc.cluster.local:80"}
       and $rules[1] == {"hostname": "krapulax.dev", "service": "https://envoy-external.network.svc.cluster.local", "originRequest": {"originServerName": "external.krapulax.dev"}}
-      and $rules[2] == {"hostname": "requests.krapulax.dev", "service": "http_status:404"}
-      and $rules[3] == {"hostname": "*.krapulax.dev", "service": "https://envoy-external.network.svc.cluster.local", "originRequest": {"originServerName": "external.krapulax.dev"}}
-      and $rules[4] == {"service": "http_status:404"}
-  ' >/dev/null
+      and $rules[2] == {"hostname": "*.krapulax.dev", "service": "https://envoy-external.network.svc.cluster.local", "originRequest": {"originServerName": "external.krapulax.dev"}}
+      and $rules[3] == {"service": "http_status:404"}
+  ' >/dev/null || {
+  echo "Public tunnel ingress must preserve the webhook bypass, TLS Envoy routes, and fallback 404." >&2
+  exit 1
+}
 yaml_json kubernetes/argo/apps/app-cluster/network/cloudflare-dns.yaml |
   jq -e '.kind == "Application" and (.spec.syncPolicy | has("automated") | not)' >/dev/null
 
