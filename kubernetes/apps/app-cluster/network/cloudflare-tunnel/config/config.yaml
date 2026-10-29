@@ -13,6 +13,11 @@ data:
         service: https://envoy-external.network.svc.cluster.local
         originRequest:
           originServerName: external.krapulax.dev
+      # Fresh admin setup is private until authentication is configured.
+      - hostname: photos.krapulax.dev
+        service: http_status:404
+      - hostname: requests.krapulax.dev
+        service: http_status:404
       - hostname: "*.krapulax.dev"
         service: https://envoy-external.network.svc.cluster.local
         originRequest:
