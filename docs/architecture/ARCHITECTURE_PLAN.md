@@ -12,9 +12,12 @@ This codebase was originally bootstrapped from [ajaykumar4/cluster-template](htt
 
 ```mermaid
 flowchart TD
-    subgraph Git["Git Repository"]
+    subgraph K8sRepo["home-dc-kubernetes"]
         Manifests[Kubernetes Manifests]
-        TF[OpenTofu Stacks]
+    end
+    subgraph InfraRepos["Infrastructure Repositories"]
+        HostConfig[home-dc-proxmox]
+        OpenTofu[home-dc-terraform]
     end
     subgraph App["app-cluster Proxmox VMs"]
         ArgoCD[Argo CD Hub]
@@ -32,13 +35,13 @@ flowchart TD
     end
     Manifests -->|GitOps| ArgoCD
     ArgoCD -->|Manages| Core
-    TF -->|Cloudflare/DNS only| App
+    HostConfig -->|Configures host| App
+    OpenTofu -->|Provisions VMs and Cloudflare tunnel/access| App
 ```
 
 -   `app-cluster`: Primary application cluster running on Talos VMs: one controller (`k8s-ctrl-01`) and three workers (`k8s-wrkr-01-gpu`, `k8s-wrkr-02`, `k8s-wrkr-03`). The controller hosts control-plane components only; user workloads run on workers.
 -   `infra-cluster`: Independent two-node physical Talos cluster (one control-plane mini PC, one worker mini PC) running core baseline services. It is unchanged by app-cluster work and remains managed by the app-cluster Argo CD hub.
--   `infra/terraform_cloudflare/`: Cloudflare tunnel, DNS, Access resources, and tunnel credentials.
--   `infra/terraform_localdns/`: Kubernetes local DNS OpenTofu stack.
+-   Infrastructure configuration lives outside this repository: `home-dc-proxmox` manages the PVE host, `home-dc-terraform` manages Proxmox guests and Cloudflare tunnel/access, and Technitium serves local DNS.
 -   `talos/`, `kubernetes/`, `bootstrap/`, and `.taskfiles/`: Talos, Argo CD, and Kubernetes workspace.
 -   `kubernetes/apps/app-cluster/` & `kubernetes/apps/infra-cluster/`: Workload manifests separated by destination cluster.
 -   `kubernetes/argo/apps/app-cluster/` & `kubernetes/argo/apps/infra-cluster/`: Argo CD Applications separated by destination cluster.
@@ -64,14 +67,12 @@ flowchart TD
 -   Doppler project names and existing external integrations can stay unchanged.
 -   App-cluster storage uses node-local `local-path` volumes (`ReadWriteOnce`, `Retain`) for config/state and NAS NFS (`media-library-pvc`) for media/downloads; no Ceph cluster is available.
 -   Stateful app data on local-path volumes requires tested off-node backups **before cutover**; restore is required after worker disk/host failure.
--   Splitting OpenTofu directories must preserve Kubernetes resource addresses so existing tunnels, DNS records, and Access apps are not recreated.
+-   Local DNS is served by Technitium; Kubernetes `ExternalDNS` publishes application records declared through GitOps.
 
 ## ✅ Validation Checks
 
--   `task tf:init`
--   `task tf:plan`
--   `task tf:cloudflare:plan`
--   `task tf:localdns:plan`
+-   `task validate`
+-   `task verify:cluster`
 -   `kubectl get nodes -o wide` shows one controller and three workers Ready
 -   `talosctl --talosconfig talos/app/clusterconfig/talosconfig config info`
 -   `task sync-argo-bootstrap`

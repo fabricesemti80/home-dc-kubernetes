@@ -35,7 +35,7 @@ All media config/state PVCs use `storageClass: local-path` and `accessMode: Read
 -   `kubernetes/apps/app-cluster/media/tdarr/` deleted
 -   `kubernetes/argo/apps/app-cluster/media/tdarr.yaml` deleted
 -   Tdarr references removed from homepage annotations and AutoKuma generation; Glance was retired separately.
--   `infra/terraform_localdns` no longer declares the Tdarr CNAME, but its UniFi credentials are absent from scoped Doppler; do not apply until the stack's ownership and a scoped plan are confirmed. Active internal DNS remains on Technitium.
+-   Local DNS is served by Technitium; the retired UniFi DNS OpenTofu root is no longer part of this repository.
 -   The `tdarr-cache` NFS subpath is left in place and can be cleaned up manually after confirming no active transcode state
 -   The existing infra-cluster AutoKuma monitor for Tdarr is intentionally untouched because this migration must not alter the physical cluster; it may report Tdarr unavailable until a separately authorized infra-cluster monitoring change.
 

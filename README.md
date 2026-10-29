@@ -13,7 +13,8 @@ flowchart LR
 
 This repository is the rebuild source of truth for the Kubernetes homelab. It
 manages the Talos app cluster, the physical infra cluster, Argo CD GitOps, and
-Kubernetes-specific OpenTofu stacks.
+Kubernetes manifests. OpenTofu infrastructure is managed in `../home-dc-terraform`;
+host configuration is managed in `../home-dc-proxmox`.
 
 The rebuild flow is staged in the same spirit as the upstream
 [`ajaykumar4/cluster-template`](https://github.com/ajaykumar4/cluster-template):
@@ -49,8 +50,6 @@ age.key
 kubeconfig
 .private/infra-cluster/kubeconfig
 .private/infra-cluster/generated/
-infra/terraform_*/*.auto.tfvars
-infra/terraform_*/terraform.tfstate
 ```
 
 Recovery sources for each input:
@@ -68,11 +67,6 @@ Recovery sources for each input:
     regenerate machine configs and secrets from `talos/infra/` with
     `task talos:infra:bootstrap`; this creates a new cluster identity and the
     old one is unrecoverable.
--   `infra/terraform_*/*.auto.tfvars`: restore from backup or reconstruct from
-    the live infrastructure and your notes.
--   `infra/terraform_*/terraform.tfstate`: restore from backup. If it is lost,
-    treat the rebuild as new infrastructure and use planned imports
-    (`terraform import`) to adopt existing resources.
 
 For infra-cluster recovery, `.private/infra-cluster/generated/` is the physical
 cluster identity bundle. Keep the whole directory, not only `talosconfig`, when
@@ -87,11 +81,11 @@ Also confirm access to:
 -   NAS NFS export at `10.0.40.2:/media` for media workloads
 
 App-cluster VM disks and Proxmox host configuration are owned by the standalone
-Terraform repositories (`home-dc-proxmox` and `home-dc-terraform`). This
+infrastructure repositories (`home-dc-proxmox` and `home-dc-terraform`). This
 repository owns Talos, Kubernetes, and GitOps manifests.
 
-If these inputs are unavailable, treat the rebuild as new infrastructure and plan
-OpenTofu imports before applying.
+If local inputs are unavailable, follow the documented Talos and cluster
+recovery procedures; this repository does not provision infrastructure.
 
 ## 🛤️ Stage 1: Workstation
 
@@ -133,20 +127,20 @@ Useful docs:
 
 ## 🏗️ Stage 2: Infrastructure
 
-The standalone guest VMs are provisioned by `../home-dc-terraform`, not the OpenTofu tasks in this repository. Review its `task nodes-plan` and apply only an explicitly reviewed plan; verify the three dedicated worker data disks and primary NICs before configuring Talos. `../home-dc-proxmox` manages the physical host.
+The standalone guest VMs are provisioned from `../home-dc-terraform`. Review its
+`task nodes-plan` and apply only an explicitly reviewed plan; verify the three
+dedicated worker data disks and primary NICs before configuring Talos.
+`../home-dc-proxmox` manages the physical host.
 
-This repository still owns Cloudflare and local-DNS OpenTofu roots. Their plans can be reviewed independently, but defer their applies until app-cluster ingress and application routes have passed the cutover checks:
-
-```bash
-CLOUDFLARE_DOPPLER_CONFIG=dev task tf:cloudflare:plan
-task tf:localdns:plan
-```
+Cloudflare tunnel and Access infrastructure is managed from
+`../home-dc-terraform`. Local DNS is served by Technitium; Kubernetes
+`ExternalDNS` handles application records declared through GitOps. This
+repository contains no OpenTofu roots or infrastructure plan/apply tasks.
 
 Do not bootstrap or reprovision the unchanged physical infra-cluster.
 
 Useful docs:
 
--   [docs/infrastructure/terraform.md](docs/infrastructure/terraform.md)
 -   [talos/README.md](talos/README.md)
 -   [talos/infra/README.md](talos/infra/README.md)
 
@@ -309,11 +303,8 @@ This task is cluster-wide. For a single-node repair, use an explicit
 node-scoped `talosctl` command or the manual infra-cluster wipe/apply flow in
 [docs/INFRA_CLUSTER_BOOTSTRAP.md](docs/INFRA_CLUSTER_BOOTSTRAP.md).
 
-Use destructive OpenTofu actions only after reviewing the reverse dependency
-order:
-
-```bash
-task tf:destroy
-```
+Infrastructure changes are managed in the standalone repositories. Review their
+plans and rollback procedures there; do not run infrastructure destroy operations
+from this Kubernetes repository.
 
 Troubleshooting entry point: [docs/operations/troubleshooting.md](docs/operations/troubleshooting.md).

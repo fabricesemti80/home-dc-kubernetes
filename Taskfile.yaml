@@ -11,8 +11,6 @@ vars:
   TALOS_DIR: '{{.ROOT_DIR}}/talos/app'
   PRIVATE_DIR: '{{.ROOT_DIR}}/.private'
   TALOSCONFIG: '{{.ROOT_DIR}}/talos/app/clusterconfig/talosconfig'
-  TF_CLOUDFLARE_DIR: '{{.ROOT_DIR}}/infra/terraform_cloudflare'
-  TF_LOCALDNS_DIR: '{{.ROOT_DIR}}/infra/terraform_localdns'
 
 env:
   KUBECONFIG: '{{.ROOT_DIR}}/kubeconfig'
@@ -62,12 +60,11 @@ tasks:
   lint:
     desc: Run linters manually with auto-fixing where possible
     cmds:
-      - task: tf:fmt
       - shfmt -w -i 2 -s {{.ROOT_DIR}}/scripts/*.sh {{.ROOT_DIR}}/scripts/lib/*.sh
       - yamllint {{.ROOT_DIR}}
       - shellcheck {{.ROOT_DIR}}/scripts/*.sh {{.ROOT_DIR}}/scripts/lib/*.sh
     preconditions:
-      - which tofu shfmt yamllint shellcheck
+      - which shfmt yamllint shellcheck
 
   pre-commit:install:
     desc: Install pre-commit git hooks
@@ -80,23 +77,6 @@ tasks:
     cmd: pre-commit run --all-files
     preconditions:
       - which pre-commit
-
-  tf:fmt:
-    desc: Format all OpenTofu stacks
-    cmds:
-      - tofu -chdir={{.TF_CLOUDFLARE_DIR}} fmt -recursive
-      - |
-        if find {{.TF_LOCALDNS_DIR}} -maxdepth 1 -name '*.tf' | grep -q .; then
-          tofu -chdir={{.TF_LOCALDNS_DIR}} fmt -recursive
-        else
-          echo "No localdns OpenTofu files yet; skipping fmt."
-        fi
-    preconditions:
-      - which tofu
-
-  infra:provision:
-    desc: Apply OpenTofu stacks in execution order
-    cmd: task infrastructure:tf-apply
 
   talos:genconfig:
     desc: Generate Talos machine configuration
@@ -147,57 +127,6 @@ tasks:
     desc: Run post-bootstrap verification checks
     cmd: task infrastructure:verify
 
-  tf:init:
-    desc: Initialize all OpenTofu stacks in execution order
-    cmd: task infrastructure:tf-init
-
-  tf:plan:
-    desc: Plan all OpenTofu stacks in execution order
-    cmd: task infrastructure:tf-plan
-
-  tf:apply:
-    desc: Apply all OpenTofu stacks in execution order
-    cmd: task infrastructure:tf-apply
-
-  tf:destroy:
-    desc: Destroy all OpenTofu stacks in reverse dependency order
-    cmd: task infrastructure:tf-destroy
-
-  tf:cloudflare:init:
-    desc: Initialize the Cloudflare OpenTofu stack
-    cmd: task infrastructure:tf-cloudflare-init
-
-  tf:cloudflare:plan:
-    desc: Plan the Cloudflare OpenTofu stack
-    cmd: task infrastructure:tf-cloudflare-plan
-
-  tf:cloudflare:migrate-doppler-state:
-    desc: Rebind legacy Doppler tunnel-secret state to home-dc-kubernetes
-    cmd: task infrastructure:tf-cloudflare-migrate-doppler-state
-
-  tf:cloudflare:apply:
-    desc: Apply the Cloudflare OpenTofu stack
-    cmd: task infrastructure:tf-cloudflare-apply
-
-  tf:cloudflare:destroy:
-    desc: Destroy the Cloudflare OpenTofu stack
-    cmd: task infrastructure:tf-cloudflare-destroy
-
-  tf:localdns:init:
-    desc: Initialize the local DNS OpenTofu stack when populated
-    cmd: task infrastructure:tf-localdns-init
-
-  tf:localdns:plan:
-    desc: Plan the local DNS OpenTofu stack when populated
-    cmd: task infrastructure:tf-localdns-plan
-
-  tf:localdns:apply:
-    desc: Apply the local DNS OpenTofu stack when populated
-    cmd: task infrastructure:tf-localdns-apply
-
-  tf:localdns:destroy:
-    desc: Destroy the local DNS OpenTofu stack when populated
-    cmd: task infrastructure:tf-localdns-destroy
 
   cluster:sync-argo:
     desc: Apply the Argo bootstrap resources from this repo
@@ -206,15 +135,3 @@ tasks:
   cluster:reconcile:
     desc: Request an immediate Argo CD refresh of all applications
     cmd: task infrastructure:argo-reconcile
-
-  mgmt:init:
-    desc: Bootstrap the management host from inside this repo
-    cmd: bash {{.ROOT_DIR}}/scripts/management-init.sh
-    preconditions:
-      - test -f {{.ROOT_DIR}}/scripts/management-init.sh
-
-  mgmt:bootstrap:
-    desc: Bootstrap the management VM over SSH from this workstation
-    cmd: bash {{.ROOT_DIR}}/scripts/bootstrap-management-vm.sh
-    preconditions:
-      - test -f {{.ROOT_DIR}}/scripts/bootstrap-management-vm.sh

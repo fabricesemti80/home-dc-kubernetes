@@ -1,6 +1,6 @@
 # ⚖️ Implementation Decisions
 
-> **Historical note:** Decisions and commands below record earlier cluster states; do not execute retired Proxmox/Ceph workflows. The `infra/terraform_proxmox/` root was removed from version control, while its ignored local state was preserved for ownership recovery. Current topology and validation are in [the standalone app-cluster plan](../plan/app-cluster-standalone-refactor.md).
+> **Historical note:** Decisions and commands below record earlier cluster states; OpenTofu paths and task examples are historical and are not runnable from this repository. Current Proxmox and Cloudflare OpenTofu ownership is `home-dc-terraform`; local DNS is served by Technitium. Current topology and validation are in [the standalone app-cluster plan](../plan/app-cluster-standalone-refactor.md).
 
 ## 📌 Confirmed
 
@@ -11,7 +11,7 @@
 -   Storage: app-cluster config/database PVCs use node-local `local-path` on dedicated worker disks; the NAS NFS claim hosts media and downloads. No Ceph cluster remains.
 -   GitOps: Argo CD.
 -   Media services: run on app-cluster workers; Jellyfin uses the GPU worker once NVIDIA support is verified.
--   Ownership: `home-dc-terraform` provisions the standalone VMs; this repository owns Talos, Argo and Kubernetes, plus Cloudflare/local-DNS Terraform. The separate two-node physical infra cluster is unchanged.
+-   Ownership: `home-dc-terraform` provisions standalone VMs and manages Cloudflare tunnel/Access configuration; this repository owns Talos, Argo and Kubernetes. Technitium serves local DNS; the separate two-node physical infra cluster is unchanged.
 -   App cluster: one unschedulable controller and three workers, including the NVIDIA GPU worker.
 
 ### Cloudflare connector security refresh (both clusters)
@@ -470,7 +470,7 @@ Optional host recommendation:
 
 -   If Talos-only mitigation is insufficient, evaluate lower-latency storage for control-plane VM disks or dedicated workers to reduce I/O contention. This is outside the scope of this decision and must not be applied through this change.
 
-### 🔹 Kubernetes local DNS in UniFi
+### 🔹 Historical: Kubernetes local DNS in UniFi
 
 Decision:
 

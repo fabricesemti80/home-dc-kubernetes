@@ -35,7 +35,6 @@
           kubernetes-helm
           kustomize
           makejinja
-          opentofu
           pre-commit
           prettier
           python3
@@ -44,7 +43,6 @@
           sops
           talhelper
           talosctl
-          tflint
           uv
           yamllint
           yq-go

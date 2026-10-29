@@ -21,7 +21,7 @@ This repository is the main deployment home for the Talos clusters, Kubernetes r
 -   Implementation task breakdowns live under `docs/plan/`.
 -   Scripts should be idempotent where practical.
 -   Prefer Markdown checklists for progress tracking.
--   Kubernetes resources must remain under `kubernetes/`, `bootstrap/`, `talos/`, and Kubernetes-specific Terraform stacks in this repo.
+-   Kubernetes resources and configuration belong under `kubernetes/`, `bootstrap/`, and `talos/`; host and guest infrastructure are managed in the standalone infrastructure repositories.
 -   Originally bootstrapped from [ajaykumar4/cluster-template](https://github.com/ajaykumar4/cluster-template) and evolved into a dual-cluster architecture.
 
 ## Kubernetes App Conventions

@@ -26,14 +26,14 @@ flowchart TD
         EnvoyInfra["Envoy Gateway\n(external-infra.krapulax.dev)"]
     end
 
-    subgraph IaC["OpenTofu / IaC Stacks"]
-        TF_CF["infra/terraform_cloudflare"]
-        TF_DNS["infra/terraform_localdns"]
+    subgraph InfraRepos["Infrastructure Repositories"]
+        PVE[home-dc-proxmox]
+        OpenTofu[home-dc-terraform]
     end
 
     ArgoCD -->|Manages Remote Cluster| InfraWorkloads
-    IaC -->|Configures DNS/Tunnels| App
-    IaC -->|Configures DNS/Tunnels| Infra
+    PVE -->|Configures host| App
+    OpenTofu -->|Provisions VMs and Cloudflare tunnel/access| App
 ```
 
 | Cluster             | Platform                          | Role                                                                                            | Kubeconfig Path                       |
@@ -41,13 +41,13 @@ flowchart TD
 | **`app-cluster`**   | Proxmox VMs (Talos Linux)         | 1 controller + 3 workers; general workloads & Argo CD GitOps Hub                                | `./kubeconfig`                        |
 | **`infra-cluster`** | Bare-metal Mini PCs (Talos Linux) | Independent 1 control-plane + 1 worker baseline infrastructure, monitoring, & fallback services | `./.private/infra-cluster/kubeconfig` |
 
-The `infra-cluster` is a separate physical two-node cluster and is not changed by app-cluster rebuilds. Proxmox VM and host provisioning for the app cluster are owned by the standalone Terraform repositories (`home-dc-proxmox` and `home-dc-terraform`); this repository owns Talos configuration, Kubernetes manifests, and GitOps.
+The `infra-cluster` is a separate physical two-node cluster and is not changed by app-cluster rebuilds. Proxmox host and guest provisioning are owned by the standalone repositories (`home-dc-proxmox` and `home-dc-terraform`); this repository owns Talos configuration, Kubernetes manifests, and GitOps.
 
 ---
 
 ## 💻 Phase 1: Workstation Setup & Dependencies
 
-Enter the Nix development environment to ensure all required CLI tools (`tofu`, `talosctl`, `kubectl`, `helm`, `sops`, `age`, `doppler`, `task`) are at exact, reproducible versions:
+Enter the Nix development environment to ensure all required CLI tools (`talosctl`, `kubectl`, `helm`, `sops`, `age`, `doppler`, `task`) are available:
 
 ```bash
 # Enter Nix dev shell
@@ -109,16 +109,9 @@ doppler setup --project home-dc-kubernetes --config apps
 
 ## 🏗️ Phase 3: Infrastructure Provisioning
 
-Provision the app-cluster guests from `../home-dc-terraform` using a reviewed Proxmox plan. That repository owns the standalone VM state; **do not** use this repository's `tf:apply` to create VMs.
+Provision app-cluster guests from `../home-dc-terraform` using its reviewed Proxmox plan: run `task nodes-plan`, inspect the generated plan, and apply that exact plan with `task nodes-apply` only after review. These tasks are defined in the sibling repository's root Taskfile. That repository owns the standalone VM state and the Cloudflare tunnel/Access configuration; this repository contains no OpenTofu state or infrastructure tasks.
 
-Cloudflare and local DNS remain independent OpenTofu stacks under `infra/`. Review their scoped plans now, but **defer apply until the replacement cluster, ingress and application routes are healthy** so DNS does not cut over prematurely:
-
-```bash
-CLOUDFLARE_DOPPLER_CONFIG=dev task tf:cloudflare:plan
-task tf:localdns:plan
-```
-
-The Cloudflare plan currently removes only the retired Linkwarden Access application; defer that apply until the route cutover. The local-DNS plan is **blocked** because the scoped Doppler `infra` config lacks `UNIFI_USERNAME`, `UNIFI_PASSWORD` and `UNIFI_API_URL`. Do not invent credentials or apply an unreviewed UniFi stack: Technitium, not UniFi, is authoritative for the active `krapulax.home` zone. The Tdarr UniFi record removal can be reviewed separately if that stack is still owned here.
+Local DNS is served by Technitium. Kubernetes `ExternalDNS` publishes application records declared through GitOps. Do not bootstrap or reprovision the unchanged physical infra-cluster.
 
 ---
 
@@ -228,16 +221,9 @@ task verify:cluster
 
 If an installation step fails or requires reversal, follow the corresponding phase rollback procedure:
 
-### 🏗️ Rollback Phase 3: Infrastructure Provisioning (OpenTofu)
+### 🏗️ Rollback Phase 3: Infrastructure
 
--   **Cloudflare Tunnels & DNS**: To revert DNS or tunnel changes:
-    ```bash
-    task tf:cloudflare:destroy
-    ```
--   **Full Infrastructure Teardown**: Destroy all OpenTofu stacks in reverse dependency order:
-    ```bash
-    task tf:destroy
-    ```
+Infrastructure resources are owned by separate repositories. Do not run infrastructure destroy operations from this cluster repository. Review VM or Cloudflare changes and their rollback procedures in the owning repository (`home-dc-proxmox` or `home-dc-terraform`). Local DNS changes go through Technitium.
 
 ### ☸️ Rollback Phase 4: Talos Cluster & Node Reset
 

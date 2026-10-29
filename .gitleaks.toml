@@ -10,8 +10,3 @@ regexes = ['''githubSecret:\s+[0-9a-f]{32}''']
 description = "SOPS-managed Grafana placeholder admin password"
 paths = ['''kubernetes/apps/monitoring/kube-prometheus-stack/values\.sops\.yaml''']
 regexes = ['''adminPassword:\s+my-grafana-pa55w0rd''']
-
-[[allowlists]]
-description = "Talos cloud-init user disable placeholder"
-paths = ['''terraform/modules/talos/main\.tf''']
-regexes = ['''password\s*=\s*"disabled"''']

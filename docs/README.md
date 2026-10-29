@@ -8,10 +8,6 @@ This is the main documentation hub for `home-dc-kubernetes`.
 -   [Architecture Plan](architecture/ARCHITECTURE_PLAN.md)
 -   [Implementation Decisions](architecture/IMPLEMENTATION_DECISIONS.md)
 
-## 🏗️ Infrastructure
-
--   [OpenTofu Setup](infrastructure/terraform.md)
-
 ## ☸️ Cluster
 
 -   [Cluster Docs Overview](cluster/README.md)

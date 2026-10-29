@@ -36,26 +36,6 @@ secrets/
 sops.*
 *.enc
 
-# ---- Terraform ----
-.terraform/
-**/.terraform/
-.terraform.lock.hcl
-**/.terraform.lock.hcl
-*.tfstate
-*.tfstate.*
-*.tfvars
-*.auto.tfvars
-crash.log
-crash.*.log
-override.tf
-override.tf.json
-*_override.tf
-*_override.tf.json
-tfplan
-tfplan.*
-**/tfplan
-**/tfplan.*
-
 # ---- Ansible ----
 *.retry
 ansible.cfg.local
@@ -79,13 +59,9 @@ build/
 data/
 .tmp/
 
-# ---- Local Docker homelab deployment ----
+# ---- Local runtime and template inputs ----
 .envrc
 .envrc.*
-infra/docker/.env
-infra/docker/runtime/
-infra/docker/secrets/
-infra/docker/data/
 scratch/
 cluster.yaml
 nodes.yaml

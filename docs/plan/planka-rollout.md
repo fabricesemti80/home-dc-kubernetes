@@ -4,8 +4,8 @@
 
 -   [x] Remove Planka from Argo CD desired state.
 -   [x] Remove Planka Kubernetes manifests from the repository.
--   [x] Remove `planka.krapulax.home` from local DNS Terraform.
--   [x] Remove `planka.krapulax.dev` from Cloudflare Access Terraform.
+-   [x] Remove `planka.krapulax.home` from Technitium local DNS.
+-   [x] Remove `planka.krapulax.dev` from Cloudflare Access through `home-dc-terraform`.
 -   [x] Remove Planka from dashboard navigation.
 -   [x] Preserve live PVCs and Doppler secrets until data deletion is explicitly confirmed.
 -   [x] Add validation and rollback steps.
@@ -20,7 +20,7 @@
 
 -   Argo CD app: `kubernetes/argo/apps/app-cluster/productivity/planka.yaml`
 -   App config: `kubernetes/apps/app-cluster/productivity/planka/`
--   Local DNS resource: `unifi_dns_record.planka_internal`
+-   Local DNS record: Technitium `planka.krapulax.home`
 -   Cloudflare Access app key: `planka`
 -   Dashboard link: `Planka`
 
@@ -42,22 +42,21 @@
 -   Planka is no longer needed as an active service.
 -   Argo CD will prune resources for removed applications during sync.
 -   PVCs may remain in the cluster even after workload resources are removed.
--   Cloudflare and local DNS Terraform state currently own the records being removed.
+-   Cloudflare Access is managed by `home-dc-terraform`; LAN DNS is managed by Technitium.
 
 ## ✅ Validation
 
 -   [ ] `kubectl get application -n argo-system planka`
 -   [ ] `kubectl get deploy,statefulset,httproute -n productivity | rg planka`
 -   [ ] `kubectl get pvc -n productivity | rg planka`
--   [ ] `task tf:localdns:plan`
--   [ ] `task tf:cloudflare:plan`
--   [ ] `dig +short planka.krapulax.home`
+-   [ ] Review the Cloudflare Access plan in `home-dc-terraform`.
+-   [ ] Verify the LAN record with `dig +short planka.krapulax.home`.
 
 ## ↩️ Rollback
 
 -   [ ] Restore `kubernetes/argo/apps/app-cluster/productivity/planka.yaml` from Git history.
 -   [ ] Restore `kubernetes/apps/app-cluster/productivity/planka/` from Git history.
--   [ ] Restore the `planka` Cloudflare Access app entry and `planka.krapulax.home` local DNS resource from Git history.
+-   [ ] Restore the Cloudflare Access application in `home-dc-terraform` and the local DNS record in Technitium.
 -   [ ] Re-sync the restored Argo CD application.
--   [ ] Re-apply local DNS and Cloudflare Terraform plans.
+-   [ ] Restore the Cloudflare change through a reviewed plan in `home-dc-terraform` and restore the local DNS record in Technitium.
 -   [ ] Reuse retained PVCs and Doppler secrets if they were not deleted.

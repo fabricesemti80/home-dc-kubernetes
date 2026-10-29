@@ -1,3 +1,2 @@
 kubernetes/apps/argo-system/argo-cd/values.sops.yaml:generic-api-key:6
 kubernetes/apps/monitoring/kube-prometheus-stack/values.sops.yaml:generic-api-key:3
-terraform/modules/talos/main.tf:hashicorp-tf-password:119
