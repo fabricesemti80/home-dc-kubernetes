@@ -1,15 +1,10 @@
 # 🏠 home-dc-kubernetes
 
-```mermaid
-flowchart LR
-    A[Recovery Inputs] --> B[Workstation Setup]
-    B --> C[Infrastructure]
-    C --> D[App Cluster Talos]
-    D --> E[App Cluster GitOps]
-    E --> F[Infra Cluster]
-    F --> G[Storage DNS Public Access]
-    G --> H[Final Validation]
-```
+## Logical overview
+
+![Logical overview of the Kubernetes repository, app-cluster Argo CD hub, physical infra cluster, and shared services](docs/architecture.svg)
+
+The numbered stages below retain the recovery and rebuild workflow; this overview shows current ownership and runtime topology.
 
 This repository is the rebuild source of truth for the Kubernetes homelab. It
 manages the Talos app cluster, the physical infra cluster, Argo CD GitOps, and
