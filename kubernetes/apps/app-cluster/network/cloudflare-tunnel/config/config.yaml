@@ -13,9 +13,6 @@ data:
         service: https://envoy-external.network.svc.cluster.local
         originRequest:
           originServerName: external.krapulax.dev
-      # Jellyseerr's initial administrator setup remains private.
-      - hostname: requests.krapulax.dev
-        service: http_status:404
       - hostname: "*.krapulax.dev"
         service: https://envoy-external.network.svc.cluster.local
         originRequest:
