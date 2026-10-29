@@ -1,6 +1,11 @@
 # KubeVirt GUI spike
 
-Date: 2026-10-15. Environment: lab. Status: proposed, not deployed.
+Date: 2026-10-15. Environment: lab. Status: historical trial; removal approved.
+
+Active manifests/examples are removed. Follow the
+[ordered retirement procedure](nas-backup-target.md#kestra--kubevirt-retirement),
+not the former application README referenced below. No guests or DataVolumes were
+found during removal preflight; retained namespaces and storage are not deleted.
 
 ## Context and decision
 

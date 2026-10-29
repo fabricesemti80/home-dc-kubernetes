@@ -32,7 +32,7 @@ Use Technitium as the LAN resolver and authoritative `krapulax.home` server at `
 Two RFC2136 ExternalDNS deployments publish internal Kubernetes routes into Technitium:
 
 -   `technitium-dns` in app-cluster watches app-cluster internal HTTPRoutes.
--   `technitium-dns-infra` in infra-cluster watches infra-cluster internal HTTPRoutes, including `dns.krapulax.home`, `pulse.krapulax.home`, and `kestra.krapulax.home`.
+-   `technitium-dns-infra` in infra-cluster watches infra-cluster internal HTTPRoutes, including `dns.krapulax.home` and `pulse.krapulax.home`. Kestra's route is retired.
 -   A static app-cluster `DNSEndpoint` publishes `kubernetes.krapulax.home -> 10.0.40.102` because existing app-cluster internal HTTPRoutes target that gateway name.
 
 Both writers are filtered to `krapulax.home`. They do not manage `krapulax.dev`.

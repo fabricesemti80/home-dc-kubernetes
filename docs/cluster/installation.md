@@ -22,7 +22,7 @@ flowchart TD
     end
 
     subgraph Infra["infra-cluster (Bare-metal Mini PCs)"]
-        InfraWorkloads["Infra Services\n(Pulse, Kestra, Reloader, Uptime Kuma)"]
+        InfraWorkloads["Infra Services\n(Pulse, Reloader, Uptime Kuma)"]
         EnvoyInfra["Envoy Gateway\n(external-infra.krapulax.dev)"]
     end
 

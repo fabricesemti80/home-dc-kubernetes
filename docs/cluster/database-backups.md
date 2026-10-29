@@ -2,6 +2,20 @@
 
 This document tracks the backup strategy for databases and stateful app data in the app cluster.
 
+## NAS target
+
+The dedicated `10.0.40.2:/k8s-backup` export is the on-site target. Each cluster's
+GitOps `nas-backup` Application provisions `backups/k8s-backup`, backed by a
+static retained NFS PV. No S3 server is needed. Run `task backups:smoke
+CLUSTER=app-cluster` or `task backups:smoke CLUSTER=infra-cluster` after Argo sync;
+the probe verifies an encrypted backup, full data check and byte-identical restore.
+See [design, permissions and rollout](../architecture/nas-backup-target.md).
+
+**This is not a scheduled application backup or an offsite copy.** The inventory
+and risks below remain until application-specific backup/restore jobs are deployed.
+Use `app-cluster/<app>` and `infra-cluster/<app>` repository paths, with durable
+repository passwords stored outside the clusters as well as in the secret manager.
+
 ## 📌 Current State
 
 ```mermaid

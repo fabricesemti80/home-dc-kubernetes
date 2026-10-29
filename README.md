@@ -186,7 +186,9 @@ task reconcile
 ```
 
 `task reconcile` requests a hard refresh through the cluster kubeconfig. Argo
-auto-syncs applications from Git, including the KubeVirt test stack.
+auto-syncs applications from Git. The NAS backup target and the data-preserving
+Kestra/KubeVirt retirement procedure are documented in
+[NAS backup target](docs/architecture/nas-backup-target.md).
 
 Before syncing, confirm both scoped Doppler operator token Secrets are present
 in Git and decryptable:

@@ -84,7 +84,6 @@ Argo CD on `app-cluster` also deploys these `infra-cluster` workloads:
 
 | App                          | Type       | Image                                       | Notes                         |
 | ---------------------------- | ---------- | ------------------------------------------- | ----------------------------- |
-| kestra-infra                 | Automation | kestra/kestra                               | Workflow orchestration        |
 | doppler-operator-infra       | Secrets    | mirror.gcr.io/dopplerhq/kubernetes-operator | Doppler operator              |
 | reloader-infra               | Reloader   | stakater/reloader                           | Config reload watcher         |
 | pulse-agent-infra            | Monitoring | ghcr.io/rcourtman/pulse-agent               | Pulse cluster agent           |
@@ -96,6 +95,12 @@ Argo CD on `app-cluster` also deploys these `infra-cluster` workloads:
 | technitium-dns-infra         | DNS Sync   | external-dns                                | Internal DNS records          |
 | technitium-infra             | DNS        | technitium/dns-server                       | DNS admin/server              |
 | local-path-provisioner-infra | Storage    | rancher/local-path-provisioner              | Local PV provisioner          |
+
+Both clusters also have a `nas-backup` GitOps Application provisioning the retained
+`backups/k8s-backup` NFS claim; no storage-server image runs for this target.
+Kestra and the KubeVirt/CDI/Manager trial are removed from desired configuration.
+Their existing resources require the [ordered retirement procedure](../architecture/nas-backup-target.md#kestra--kubevirt-retirement);
+retained Kestra PVCs are intentional.
 
 ---
 
