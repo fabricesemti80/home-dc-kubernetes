@@ -262,6 +262,97 @@ Argo coordination must be scoped to the exact child Application/controller; do n
 
 Immich's `photos-daily` adapter follows the inventory plan: DB plus original files with a shared set identifier, coordinated server/external-writer activity or a validated source-snapshot procedure. A DB-only six-hour dump is not a complete photo recovery point. The whole `/media` share must not be labeled for backup to capture only its Immich subtree.
 
+### Local application recovery implementation contract
+
+The operator selected **local coverage first** and deferred both an offsite
+destination and external dead-man monitoring. These remain explicit gaps, not
+features to simulate or enable with missing credentials. Existing database
+repositories, schedules and recovery keys must remain intact throughout.
+
+Read-only inventory on 2026-10-30 found 15,897 files / 34,778,694,995 bytes under
+`10.0.40.2:/media/immich`; UID `1004` traversed the scoped subtree and read samples.
+All 3,518 database asset originals use `/external-library/`, which maps to its
+`library/` subdirectory; all recorded original checksums are 20-byte SHA-1.
+Do not include the same backing files twice through their two container aliases.
+
+The photo adapter uses a separate retained, read-only NFS source claim scoped
+to `/media/immich`, not the whole media/download share. A bootstrap Task creates
+one empty, hidden metadata mountpoint in that subtree. The backup Pod overlays
+that mountpoint with a private memory volume: database exports, recovery Secrets
+and file-reference metadata never persist in the original NAS tree. An init
+container prepares those files before the native K8up filesystem runner starts.
+This produces one stable filesystem snapshot containing originals and recovery
+metadata without a multi-gigabyte tar staging file.
+
+The database dump and original-reference manifest must share one PostgreSQL
+repeatable-read exported snapshot. A completed native Job alone does not mark a
+photo set recoverable: verify every referenced original exists in the encrypted
+snapshot and matches its recorded checksum, and prove a fresh compatible
+database plus original-file restore. An online seed is explicitly seed-only.
+The first accepted paused recovery set still requires the approved 03:00 UTC
+window and validated external-writer handling; missing/changed references fail
+the set rather than being silently excluded. Restore targets are fresh private
+directories/claims, never the live photo tree. Verify ownership separately from
+content before any production promotion.
+
+Cold-state coordination uses an exact-app Argo deny window, not global
+self-heal changes. A namespace-scoped maintenance Lease records the original
+controller UID, replica count, holder Job and deadline before shutdown. A
+separate watchdog restores that recorded desired state after Job cancellation,
+timeout or node loss; an unavailable source node is reported, not concealed.
+Never replace an original zero replica count with one or overwrite a changed
+controller. Prove normal, failed, cancelled and competing-holder behavior using
+disposable workloads before stopping a production service. Stop AutoKuma before
+Kuma and restart it last. No real cold policy is enabled before its window,
+capture/restore and restart proof.
+
+DNS exports address each exact pod and retain its own auth/config identity.
+Preserve existing permission tables and refuse unmarked account changes.
+Before any schedule is enabled, import each native archive into a fresh,
+same-image, default-deny instance and verify login plus authoritative records;
+never connect restored DNS cluster peers to production or change the ownerless
+secondary's ownership as part of backup work.
+
+Rollback removes only new enrollment/schedules, restores recorded maintenance
+state, and preserves source volumes, repositories, original snapshots and keys.
+Retired archives remain one-off read-only captures; platform snapshots use
+external Tasks and never put Talos administrative credentials in normal Pods.
+
+### Post-database protection sequence
+
+Follow-up PRs start from independently verified, disposable recovery paths and
+must remain separate from the already merged database policy:
+
+1. Export/restore each exact Technitium pod through its private in-cluster
+   endpoint; never alter `technitium-1` ownership or assume it matches primary.
+2. Seed Immich's original `upload`, `library` and `profile` paths without
+   stopping production; measure the complete original tree, initial seed time,
+   daily change rate, backup repository growth and restore throughput. The
+   external library is the same `library` backing tree, not another source.
+   Enable a matched DB/photo set only after the final paused capture and fresh
+   compatible DB/file restore both pass in the approved `03:00 UTC` window.
+3. Prefer verified online native exports for Jellyfin/Servarr. For mutable
+   SQLite, queue/history and monitoring state, implement the per-app Argo
+   coordination lease plus an independent, restart-before-success watchdog
+   before any unattended shutdown. Cold captures stay disabled until one real
+   worker-pinned stop/copy/restore/restart drill proves failure recovery and
+   bounded downtime. Kuma/AutoKuma remain one ordered MariaDB recovery set.
+4. Capture the released LiteLLM PV and each retired Kestra claim once, read-only
+   to the retained sources, with recorded source image/config and a separately
+   exercised read on disposable storage. No source/PV deletion, rebind, or
+   routine schedule follows archival capture.
+5. Build Talos/etcd and secret/bootstrap recovery out of cluster with its own
+   restricted credentials and clean-room restore drills. Do not add privileged
+   Talos secrets to K8up namespaces or assume Git/etcd contains app files.
+
+Each source joins a schedule only after its own exact-source freshness/coverage
+audit, failure notification and isolated restore pass. Existing encrypted
+repositories remain unchanged; new recovery classes do not inherit DB keys by
+accident. User-managed NAS snapshot ACLs, workstation-loss escrow, independent
+offsite destination and an external dead-man receiver are distinct assurance
+gates and must be completed by an authorized provider/account owner, not
+simulated with a Kubernetes object.
+
 ## Low-maintenance operations and alerts
 
 K8up Schedules, not per-app CronJobs, own routine capture/check/prune. A small shared restore/maintenance adapter is acceptable where K8up does not implement DB import, cold-copy coordination or application validation; do not build a second scheduling operator. Initial scheduling is opt-in, with no production policy enabled until its pilot/restore acceptance passes.

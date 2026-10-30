@@ -14,7 +14,11 @@ fail() {
   exit 1
 }
 
-pg_dump --format=custom --file="$stage/database.dump" 2>"$stage/error.log" || fail dump
+set -- --format=custom --file="$stage/database.dump"
+if [ -n "${K8UP_PG_SNAPSHOT:-}" ]; then
+  set -- "$@" --snapshot="$K8UP_PG_SNAPSHOT"
+fi
+pg_dump "$@" 2>"$stage/error.log" || fail dump
 pg_restore --exit-on-error --file=/dev/null "$stage/database.dump" 2>"$stage/error.log" || fail archive-validation
 pg_dumpall --roles-only --no-role-passwords --quote-all-identifiers >"$stage/roles.sql" 2>"$stage/error.log" || fail role-metadata
 psql -X -v ON_ERROR_STOP=1 -At >"$stage/database.json" 2>"$stage/error.log" <<'SQL' || fail database-metadata

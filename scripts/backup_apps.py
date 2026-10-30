@@ -100,13 +100,13 @@ class Resources:
         self.own_namespace = own_namespace
         self.namespace_created = False
 
-    def call(self, *args, value=None, binary=False, check=True):
+    def call(self, *args, value=None, binary=False, check=True, timeout=1000):
         result = subprocess.run(
             self.kubectl + ["-n", self.namespace, *args],
             input=value,
             text=not binary,
             capture_output=True,
-            timeout=1000,
+            timeout=timeout,
         )
         if check and result.returncode:
             if args[0] == "exec":
@@ -627,7 +627,8 @@ def unpack(archive, app, source):
     return files, metadata
 
 
-def recovery_reader(resources, source, password):
+def recovery_reader(resources, source, password, inspect_restored_files=False):
+    deadline = 10800 if inspect_restored_files else 1800
     resources.create(
         {
             "apiVersion": "v1",
@@ -644,6 +645,7 @@ def recovery_reader(resources, source, password):
             "metadata": {"name": "repository"},
             "spec": {
                 "restartPolicy": "Never",
+                "activeDeadlineSeconds": deadline,
                 "automountServiceAccountToken": False,
                 "securityContext": SECURITY,
                 "nodeSelector": {"kubernetes.io/hostname": node},
@@ -651,7 +653,7 @@ def recovery_reader(resources, source, password):
                     {
                         "name": "restic",
                         "image": RESTIC_IMAGE,
-                        "command": ["sh", "-ec", "exec sleep 1800"],
+                        "command": ["sh", "-ec", f"exec sleep {deadline}"],
                         "securityContext": CONTAINER_SECURITY,
                         "resources": {
                             "requests": {"cpu": "50m", "memory": "64Mi"},
@@ -711,7 +713,12 @@ def recovery_reader(resources, source, password):
                         },
                         "volumeMounts": [
                             {"name": "work", "mountPath": "/work", "readOnly": True}
-                        ],
+                        ]
+                        + (
+                            [{"name": "repository", "mountPath": "/repository", "readOnly": True}]
+                            if inspect_restored_files
+                            else []
+                        ),
                     },
                 ],
                 "volumes": [

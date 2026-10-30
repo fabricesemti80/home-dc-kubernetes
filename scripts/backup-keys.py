@@ -11,8 +11,13 @@ import subprocess
 
 ROOT = Path(__file__).resolve().parents[1]
 POLICIES = {
-    "app-cluster": {"media": {"critical-6h"}},
-    "infra-cluster": {"ai": {"critical-6h"}},
+    "app-cluster": {"media": {"critical-6h", "photos-daily", "daily-export", "daily-cold"}},
+    "infra-cluster": {
+        "ai": {"critical-6h"},
+        "network": {"critical-6h"},
+        "monitoring": {"daily-cold"},
+        "backups": {"platform-daily", "retired-archive"},
+    },
 }
 
 

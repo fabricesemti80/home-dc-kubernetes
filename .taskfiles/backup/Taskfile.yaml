@@ -2,6 +2,28 @@
 version: '3'
 
 tasks:
+  photos-prepare:
+    desc: Create only the empty private-metadata mountpoint in the existing Immich subtree
+    cmd: python3 '{{.ROOT_DIR}}/scripts/backup_photos.py' prepare
+
+  photos-seed:
+    desc: Seed scoped originals with transaction-matched DB metadata; not a paused recovery-set acceptance
+    cmd: python3 '{{.ROOT_DIR}}/scripts/backup_photos.py' seed
+
+  photos-verify:
+    desc: Restore one immutable photo seed in isolation and verify every DB-referenced original
+    requires:
+      vars: [SNAPSHOT]
+    cmd: python3 '{{.ROOT_DIR}}/scripts/backup_photos.py' verify --snapshot '{{.SNAPSHOT}}'
+
+  pilot-photo-set:
+    desc: Prove one native snapshot contains originals and private init metadata without source writes
+    requires:
+      vars:
+        - name: CLUSTER
+          enum: [app-cluster, infra-cluster]
+    cmd: python3 '{{.ROOT_DIR}}/scripts/pilot-k8up-photo-set.py' '{{.CLUSTER}}'
+
   alerts-bootstrap:
     desc: Reuse the existing monitoring Slack route for both database policies
     cmd: python3 '{{.ROOT_DIR}}/scripts/backup-policy.py' alerts-bootstrap
