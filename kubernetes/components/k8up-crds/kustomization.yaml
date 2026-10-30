@@ -1,0 +1,17 @@
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+# Upstream chart 4.10.1 / operator v2.16.1, immutable source.
+resources:
+  - https://raw.githubusercontent.com/k8up-io/k8up/ff230b43ab8d73f3666219d748dea55bee036fdf/config/crd/apiextensions.k8s.io/v1/k8up.io_archives.yaml
+  - https://raw.githubusercontent.com/k8up-io/k8up/ff230b43ab8d73f3666219d748dea55bee036fdf/config/crd/apiextensions.k8s.io/v1/k8up.io_backups.yaml
+  - https://raw.githubusercontent.com/k8up-io/k8up/ff230b43ab8d73f3666219d748dea55bee036fdf/config/crd/apiextensions.k8s.io/v1/k8up.io_checks.yaml
+  - https://raw.githubusercontent.com/k8up-io/k8up/ff230b43ab8d73f3666219d748dea55bee036fdf/config/crd/apiextensions.k8s.io/v1/k8up.io_podconfigs.yaml
+  - https://raw.githubusercontent.com/k8up-io/k8up/ff230b43ab8d73f3666219d748dea55bee036fdf/config/crd/apiextensions.k8s.io/v1/k8up.io_prebackuppods.yaml
+  - https://raw.githubusercontent.com/k8up-io/k8up/ff230b43ab8d73f3666219d748dea55bee036fdf/config/crd/apiextensions.k8s.io/v1/k8up.io_prunes.yaml
+  - https://raw.githubusercontent.com/k8up-io/k8up/ff230b43ab8d73f3666219d748dea55bee036fdf/config/crd/apiextensions.k8s.io/v1/k8up.io_restores.yaml
+  - https://raw.githubusercontent.com/k8up-io/k8up/ff230b43ab8d73f3666219d748dea55bee036fdf/config/crd/apiextensions.k8s.io/v1/k8up.io_schedules.yaml
+  - https://raw.githubusercontent.com/k8up-io/k8up/ff230b43ab8d73f3666219d748dea55bee036fdf/config/crd/apiextensions.k8s.io/v1/k8up.io_snapshots.yaml
+commonAnnotations:
+  argocd.argoproj.io/sync-wave: '-1'
+  argocd.argoproj.io/sync-options: Prune=false,Delete=false

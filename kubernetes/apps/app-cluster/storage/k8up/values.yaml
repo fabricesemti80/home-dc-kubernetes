@@ -1,0 +1,60 @@
+---
+fullnameOverride: k8up
+namespaceOverride: backups
+replicaCount: 1
+image:
+  registry: ghcr.io
+  repository: k8up-io/k8up
+  tag: 'v2.16.1@sha256:f59bfa37c51511d5ad67e53816fb55c62d0e6411890e59bb6b965923129f30b5'
+k8up:
+  skipWithoutAnnotation: true
+  skipSnapshotSync: false
+  timezone: UTC
+  enableLeaderElection: true
+  globalResources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 1Gi
+  envVars:
+    - name: CLUSTER_NAME
+      value: app-cluster
+nodeSelector:
+  kubernetes.io/hostname: k8s-wrkr-03
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+  seccompProfile:
+    type: RuntimeDefault
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop: [ALL]
+resources:
+  requests:
+    cpu: 50m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 256Mi
+metrics:
+  service:
+    type: ClusterIP
+  serviceMonitor:
+    enabled: false
+  prometheusRule:
+    enabled: false
+cleanup:
+  nodeSelector:
+    kubernetes.io/hostname: k8s-wrkr-03
+  resources:
+    requests:
+      cpu: 10m
+      memory: 64Mi
+    limits:
+      cpu: 250m
+      memory: 128Mi

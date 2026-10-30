@@ -2,6 +2,34 @@
 version: '3'
 
 tasks:
+  operator-bootstrap:
+    desc: Register a K8up Application with Argo and verify its destination operator
+    requires:
+      vars:
+        - name: CLUSTER
+          enum: [app-cluster, infra-cluster]
+    vars:
+      REVISION: '{{.REVISION | default "main"}}'
+    cmd: python3 '{{.ROOT_DIR}}/scripts/k8up-operator.py' bootstrap '{{.CLUSTER}}' --revision '{{.REVISION}}'
+
+  operator-status:
+    desc: Show Argo and runtime status for one cluster's K8up operator
+    requires:
+      vars:
+        - name: CLUSTER
+          enum: [app-cluster, infra-cluster]
+    cmd: python3 '{{.ROOT_DIR}}/scripts/k8up-operator.py' status '{{.CLUSTER}}'
+
+  operator-verify:
+    desc: Verify protected CRDs, operator configuration and live metrics
+    requires:
+      vars:
+        - name: CLUSTER
+          enum: [app-cluster, infra-cluster]
+    vars:
+      EXPECT_IDLE: '{{.EXPECT_IDLE | default "false"}}'
+    cmd: python3 '{{.ROOT_DIR}}/scripts/k8up-operator.py' verify '{{.CLUSTER}}' {{if eq .EXPECT_IDLE "true"}}--expect-idle{{end}}
+
   status:
     desc: Show the NAS target and probe jobs in one explicitly selected cluster
     requires:
