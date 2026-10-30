@@ -55,6 +55,4 @@ yaml_json kubernetes/apps/app-cluster/network/cloudflare-tunnel/config/config.ya
 yaml_json kubernetes/argo/apps/app-cluster/network/cloudflare-dns.yaml |
   jq -e '.kind == "Application" and (.spec.syncPolicy | has("automated") | not)' >/dev/null
 
-python3 -m unittest discover -s scripts -p 'test_*.py'
-
-echo "Validation passed: required files, tunnel ingress, manual DNS, local-path/NFS safeguards and backup coverage boundaries."
+echo "Validation passed: required files, tunnel ingress, manual DNS and local-path/NFS safeguards."

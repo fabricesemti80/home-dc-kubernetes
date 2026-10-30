@@ -2,19 +2,21 @@
 apiVersion: secrets.doppler.com/v1alpha1
 kind: DopplerSecret
 metadata:
-  name: k8up-ai-critical
+  name: backrest-app
   namespace: doppler-operator-system
 spec:
   tokenSecret:
-    name: doppler-token-secret-infra
+    name: doppler-token-secret-apps
     namespace: doppler-operator-system
   project: home-dc-kubernetes
-  config: infra
+  config: apps
   managedSecret:
-    name: k8up-source-credentials
-    namespace: ai
+    name: backrest-secrets
+    namespace: backups
     type: Opaque
   secrets:
-  - K8UP_AI_CRITICAL_6H_PASSWORD
-  - LITELLM_BACKUP_PASSWORD
+  - BACKREST_REPOSITORY_PASSWORD
+  - BACKREST_ADMIN_PASSWORD_BCRYPT
   - SLACK_WEBHOOK_MONITORING
+  - IMMICH_BACKUP_PASSWORD
+  - IMMICH_DB_PASSWORD

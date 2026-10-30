@@ -9,13 +9,16 @@ records the verified PVC/hostPath sources, actual database engines, consistency
 methods, proposed retention and per-app restore acceptance. It is a design, not
 an enabled application-backup schedule.
 
-The [K8up automation design](k8up-backup-automation.md) adds proposed opt-in
-discovery, namespace/profile policies and guarded restores without replacing this
-target. It selects a backup operator, not an S3/storage server.
+The [Backrest design](backrest.md) replaces the superseded K8up framework while
+retaining this target, NAS account and access controls.
 
-Each cluster receives a `backups` namespace and an explicitly bound `k8s-backup` claim backed by a static `ReadWriteMany`, `Retain` PV. PV names include the cluster even though Kubernetes clusters have independent PV namespaces. Both point at the same dedicated NAS export. The proposed operator uses separate `<cluster>/<namespace>/<profile>` repository paths and namespace-local target claims for capture Jobs; the original per-app path convention is superseded by that policy design. No media or live application state moves to NFS.
+Each cluster has a retained `backups/k8s-backup` RWX claim. Backrest uses separate
+`<cluster>/backrest/repository` paths. Existing app configuration remains on its
+original worker; no source application state is migrated to NFS.
 
-Assumptions: NAS is `10.0.40.2`, export `/k8s-backup`, accessible from both clusters; size `1Ti` is a Kubernetes binding declaration, **not** a NAS quota or reserved capacity. Confirm NAS capacity/quota separately. Initial disposable probes used root; the current smoke Task runs as tested UID `1004`, GID `65534`, with no supplemental groups. Encrypted backup/check/restore and unrelated-UID write denial now pass on both clusters after the owner correction: see the [NAS identity/access gate](../operations/k8up.md#nas-identity-and-access-gate). Do not change physical infra Talos configuration.
+The `1Ti` claim is not a NAS quota. UID `1004` / GID `65534` writer backup/restore
+and unrelated-UID denial were verified on both clusters. Physical infra Talos
+configuration is unchanged.
 
 ## Security and recovery boundaries
 
@@ -27,7 +30,7 @@ If Kubernetes is unavailable, mount the export on a trusted recovery host and us
 
 ## GitOps rollout and validation
 
-Argo Applications `nas-backup-app` and `nas-backup-infra` render the retained claims. Merge the reviewed PR and let Argo reconcile. Run `task backups:smoke CLUSTER=app-cluster` and `task backups:smoke CLUSTER=infra-cluster`. Each mounts the claim, creates a uniquely named disposable repository, initializes it, backs up known content, runs a full read-data check, restores it and byte-compares the result. Success removes only that test repository. Failures retain it for diagnosis; inspect the job before cleanup and never prune unknown directories. `task backups:status CLUSTER=...` reports the target and smoke jobs. Smoke tests are operator-triggered, not schedules.
+Argo Applications `nas-backup-app` and `nas-backup-infra` own the retained claims. `task backups:target-smoke CLUSTER=app-cluster` (or `infra-cluster`) checks disposable encrypted backup/restore. Backrest deployment, restore and legacy retirement commands are in the [runbook](../operations/backrest.md).
 
 Pre-merge smoke evidence (2026-10-29): both clusters mounted temporary claims rendered from these manifests using NFS 4.1. Restic 0.19.1 initialized an encrypted repository, backed up known content, read/verified every pack, rejected an incorrect password, restored and byte-compared the file successfully. Temporary repositories, Jobs, claims, PVs and namespaces were removed. Permanent target resources remain GitOps-only and deploy after merge. These checks prove target access/restore, not application backup consistency.
 
@@ -51,6 +54,6 @@ Post-merge evidence (2026-10-29): both permanent Argo Applications are Synced/He
 
 -   [x] Install retained NAS claims and verify encrypted target backup/restore on both clusters; move disposable smoke to non-root UID `1004`.
 -   [x] Retire the approved Kestra/KubeVirt/CDI/Manager workloads while preserving the two Kestra claims.
--   [x] Correct NAS identity/write isolation and pass both `backups:access-check` gates with root-only squash and UID `1004` ownership.
--   [ ] Continue the [K8up rollout acceptance](k8up-backup-automation.md#next-actions), including the infra helper repair, real application restores, independently escrowed keys and alerts before schedules.
+-   [x] Verify root-only squash, UID `1004` encrypted target backup/restore and unrelated UID `65534` write denial on both clusters.
+-   [ ] Deploy and verify the [Backrest replacement](backrest.md), then run restore-gated legacy backup retirement.
 -   [ ] Add and restore-test an independent offsite copy; the NAS target is not offsite protection.

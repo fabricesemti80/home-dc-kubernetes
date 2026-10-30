@@ -1,0 +1,95 @@
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: backrest-export-immich-db
+  namespace: backups
+spec:
+  schedule: 20 0,6,12,18 * * *
+  timeZone: UTC
+  concurrencyPolicy: Forbid
+  startingDeadlineSeconds: 1800
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 0
+      activeDeadlineSeconds: 900
+      template:
+        spec:
+          restartPolicy: Never
+          automountServiceAccountToken: false
+          nodeSelector:
+            kubernetes.io/hostname: k8s-wrkr-03
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1004
+            runAsGroup: 65534
+            fsGroup: 1004
+            supplementalGroups: []
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+          - name: export
+            image: ghcr.io/immich-app/postgres@sha256:bcf63357191b76a916ae5eb93464d65c07511da41e3bf7a8416db519b40b1c23
+            command:
+            - sh
+            - /runtime/export-postgres.sh
+            env:
+            - name: BACKUP_APP
+              value: immich-db
+            - name: PGHOST
+              value: immich-database.media.svc.cluster.local
+            - name: PGUSER
+              value: backrest_backup
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: backrest-secrets
+                  key: IMMICH_BACKUP_PASSWORD
+            - name: PGOPTIONS
+              value: -c default_transaction_read_only=on
+            - name: PGDATABASE
+              value: immich
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities:
+                drop:
+                - ALL
+            resources:
+              requests:
+                cpu: 100m
+                memory: 128Mi
+              limits:
+                cpu: '1'
+                memory: 768Mi
+            volumeMounts:
+            - name: state
+              mountPath: /state
+            - name: runtime
+              mountPath: /runtime
+              readOnly: true
+            - name: recovery
+              mountPath: /recovery
+              readOnly: true
+            - name: tmp
+              mountPath: /tmp
+          volumes:
+          - name: state
+            persistentVolumeClaim:
+              claimName: backrest
+          - name: runtime
+            configMap:
+              name: backrest-runtime
+          - name: recovery
+            secret:
+              secretName: backrest-secrets
+              defaultMode: 288
+              items:
+              - key: IMMICH_DB_PASSWORD
+                path: IMMICH_DB_PASSWORD
+          - name: tmp
+            emptyDir:
+              medium: Memory
+              sizeLimit: 512Mi

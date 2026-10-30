@@ -107,24 +107,24 @@ def bootstrap(cluster):
     verifier = scram(password)
     sql = rf"""DO $bootstrap$
 BEGIN
- IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname='k8up_backup') THEN
-  IF (SELECT shobj_description(oid,'pg_authid') FROM pg_roles WHERE rolname='k8up_backup') IS DISTINCT FROM '{marker}' THEN
+ IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname='backrest_backup') THEN
+  IF (SELECT shobj_description(oid,'pg_authid') FROM pg_roles WHERE rolname='backrest_backup') IS DISTINCT FROM '{marker}' THEN
    RAISE EXCEPTION 'Refusing to modify a backup role not owned by this bootstrap';
   END IF;
  ELSE
-  CREATE ROLE k8up_backup LOGIN;
+  CREATE ROLE backrest_backup LOGIN;
  END IF;
 END $bootstrap$;
-COMMENT ON ROLE k8up_backup IS '{marker}';
-ALTER ROLE k8up_backup LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS PASSWORD '{verifier}';
-GRANT pg_read_all_data, pg_read_all_settings TO k8up_backup;
-SELECT format('GRANT CONNECT ON DATABASE %I TO k8up_backup',current_database()) \gexec
+COMMENT ON ROLE backrest_backup IS '{marker}';
+ALTER ROLE backrest_backup LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS PASSWORD '{verifier}';
+GRANT pg_read_all_data, pg_read_all_settings TO backrest_backup;
+SELECT format('GRANT CONNECT ON DATABASE %I TO backrest_backup',current_database()) \gexec
 """
     shell = 'PGPASSWORD="$POSTGRES_PASSWORD" psql -X -h 127.0.0.1 -U "$POSTGRES_USER" -d "$POSTGRES_DB" -v ON_ERROR_STOP=1'
     captured(kubectl + ["exec", "-i", pod, "--", "sh", "-ec", shell], sql)
     verify = """IFS= read -r PGPASSWORD
 export PGPASSWORD
-psql -X -h 127.0.0.1 -U k8up_backup -d "$POSTGRES_DB" -v ON_ERROR_STOP=1 -Atc "SELECT NOT rolsuper AND NOT rolcreatedb AND NOT rolcreaterole AND NOT rolreplication AND NOT rolbypassrls AND rolcanlogin AND pg_has_role(current_user,'pg_read_all_data','MEMBER') AND pg_has_role(current_user,'pg_read_all_settings','MEMBER') FROM pg_roles WHERE rolname=current_user"
+psql -X -h 127.0.0.1 -U backrest_backup -d "$POSTGRES_DB" -v ON_ERROR_STOP=1 -Atc "SELECT NOT rolsuper AND NOT rolcreatedb AND NOT rolcreaterole AND NOT rolreplication AND NOT rolbypassrls AND rolcanlogin AND pg_has_role(current_user,'pg_read_all_data','MEMBER') AND pg_has_role(current_user,'pg_read_all_settings','MEMBER') FROM pg_roles WHERE rolname=current_user"
 """
     if (
         captured(
@@ -134,7 +134,7 @@ psql -X -h 127.0.0.1 -U k8up_backup -d "$POSTGRES_DB" -v ON_ERROR_STOP=1 -Atc "S
     ):
         raise RuntimeError("Backup login authentication/least-privilege check failed")
     print(
-        f"PASS {cluster}: dedicated k8up_backup login authenticated with read-all-data/CONNECT and no superuser/create/replication/RLS-bypass privileges; application credentials unchanged"
+        f"PASS {cluster}: dedicated backrest_backup login authenticated with read-all-data/CONNECT and no superuser/create/replication/RLS-bypass privileges; application credentials unchanged"
     )
 
 
