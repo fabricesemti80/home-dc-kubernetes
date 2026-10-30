@@ -1,0 +1,112 @@
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: backrest-export-litellm-db
+  namespace: backups
+spec:
+  schedule: 35 0,6,12,18 * * *
+  timeZone: UTC
+  concurrencyPolicy: Forbid
+  startingDeadlineSeconds: 1800
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 0
+      activeDeadlineSeconds: 900
+      template:
+        spec:
+          restartPolicy: Never
+          automountServiceAccountToken: false
+          nodeSelector:
+            kubernetes.io/hostname: infra-wk-01
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1004
+            runAsGroup: 65534
+            fsGroup: 1004
+            supplementalGroups: []
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+          - name: export
+            image: docker.io/library/postgres@sha256:aadf2c0696f5ef357aa7a68da995137f0cf17bad0bf6e1f17de06ae5c769b302
+            command:
+            - sh
+            - /runtime/export-postgres.sh
+            env:
+            - name: BACKUP_APP
+              value: litellm-db
+            - name: PGHOST
+              value: litellm-postgres.ai.svc.cluster.local
+            - name: PGUSER
+              value: backrest_backup
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: backrest-secrets
+                  key: LITELLM_BACKUP_PASSWORD
+            - name: PGOPTIONS
+              value: -c default_transaction_read_only=on
+            - name: PGDATABASE
+              valueFrom:
+                secretKeyRef:
+                  name: backrest-secrets
+                  key: LITELLM_POSTGRES_DB
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities:
+                drop:
+                - ALL
+            resources:
+              requests:
+                cpu: 100m
+                memory: 128Mi
+              limits:
+                cpu: '1'
+                memory: 768Mi
+            volumeMounts:
+            - name: state
+              mountPath: /state
+            - name: runtime
+              mountPath: /runtime
+              readOnly: true
+            - name: recovery
+              mountPath: /recovery
+              readOnly: true
+            - name: tmp
+              mountPath: /tmp
+          volumes:
+          - name: state
+            persistentVolumeClaim:
+              claimName: backrest
+          - name: runtime
+            configMap:
+              name: backrest-runtime
+          - name: recovery
+            secret:
+              secretName: backrest-secrets
+              defaultMode: 288
+              items:
+              - key: LITELLM_POSTGRES_DB
+                path: LITELLM_POSTGRES_DB
+              - key: LITELLM_POSTGRES_USER
+                path: LITELLM_POSTGRES_USER
+              - key: LITELLM_POSTGRES_PASSWORD
+                path: LITELLM_POSTGRES_PASSWORD
+              - key: LITELLM_USERDB_PASSWORD
+                path: LITELLM_USERDB_PASSWORD
+              - key: LITELLM_MASTER_KEY
+                path: LITELLM_MASTER_KEY
+              - key: LITELLM_SALT_KEY
+                path: LITELLM_SALT_KEY
+              - key: AI_OPENAI_API_KEY
+                path: AI_OPENAI_API_KEY
+              - key: AI_OPENROUTER_API_KEY
+                path: AI_OPENROUTER_API_KEY
+          - name: tmp
+            emptyDir:
+              medium: Memory
+              sizeLimit: 512Mi

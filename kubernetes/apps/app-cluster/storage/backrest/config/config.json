@@ -1,0 +1,89 @@
+{
+  "version": 5,
+  "instance": "app-cluster",
+  "repos": [
+    {
+      "id": "nas",
+      "uri": "/backups/app-cluster/backrest/repository",
+      "autoInitialize": true,
+      "autoUnlock": false,
+      "checkPolicy": {
+        "schedule": {
+          "cron": "0 4 * * 0",
+          "clock": "CLOCK_UTC"
+        },
+        "readDataSubsetPercent": 100
+      },
+      "prunePolicy": {
+        "schedule": {
+          "cron": "30 4 * * 0",
+          "clock": "CLOCK_UTC"
+        },
+        "maxUnusedPercent": 10
+      }
+    }
+  ],
+  "plans": [
+    {
+      "id": "immich-db",
+      "repo": "nas",
+      "paths": ["/state/exports/immich-db.tar"],
+      "schedule": {
+        "cron": "40 0,6,12,18 * * *",
+        "clock": "CLOCK_UTC"
+      },
+      "retention": {
+        "policyTimeBucketed": {
+          "hourly": 24,
+          "daily": 14,
+          "weekly": 8,
+          "monthly": 12
+        }
+      },
+      "hooks": [
+        {
+          "conditions": ["CONDITION_SNAPSHOT_START"],
+          "onError": "ON_ERROR_FATAL",
+          "actionCommand": {
+            "command": "test -f /state/exports/immich-db.tar && test -n \"$(find /state/exports/immich-db.tar -mmin -480 -print)\""
+          }
+        }
+      ]
+    },
+    {
+      "id": "backrest-config",
+      "repo": "nas",
+      "paths": ["/state/config.json"],
+      "schedule": {
+        "cron": "10 1 * * *",
+        "clock": "CLOCK_UTC"
+      },
+      "retention": {
+        "policyTimeBucketed": {
+          "hourly": 24,
+          "daily": 14,
+          "weekly": 8,
+          "monthly": 12
+        }
+      }
+    },
+    {
+      "id": "immich-originals",
+      "repo": "nas",
+      "paths": ["/photos"],
+      "excludes": ["/photos/.backup-metadata"],
+      "schedule": {
+        "cron": "0 2 * * *",
+        "clock": "CLOCK_UTC"
+      },
+      "retention": {
+        "policyTimeBucketed": {
+          "hourly": 24,
+          "daily": 14,
+          "weekly": 8,
+          "monthly": 12
+        }
+      }
+    }
+  ]
+}

@@ -2,11 +2,10 @@
 apiVersion: kustomize.config.k8s.io/v1alpha1
 kind: Component
 configMapGenerator:
-  - name: backup-runtime
-    files:
-      - source_inspector.py
-      - postgres_export.sh
-      - audit.py
-      - sources.json
+- name: backrest-runtime
+  namespace: backups
+  files:
+  - init.py
+  - export-postgres.sh
 generatorOptions:
   disableNameSuffixHash: true

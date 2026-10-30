@@ -1,165 +1,98 @@
 ---
 version: '3'
 
+vars:
+  TARGET_KUBECONFIG: '{{if eq .CLUSTER "infra-cluster"}}{{.ROOT_DIR}}/.private/infra-cluster/kubeconfig{{else}}{{.ROOT_DIR}}/kubeconfig{{end}}'
+
 tasks:
-  alerts-bootstrap:
-    desc: Reuse the existing monitoring Slack route for both database policies
-    cmd: python3 '{{.ROOT_DIR}}/scripts/backup-policy.py' alerts-bootstrap
-
-  policy-verify:
-    desc: Validate the actual rendered GitOps protection resources against the destination API
+  credentials:
+    desc: Verify Backrest credentials and independent key escrow, then provision the read-only DB login
     requires:
       vars:
         - name: CLUSTER
           enum: [app-cluster, infra-cluster]
-    cmd: python3 '{{.ROOT_DIR}}/scripts/backup-policy.py' verify '{{.CLUSTER}}'
+    cmds:
+      - uv run '{{.ROOT_DIR}}/scripts/backrest-secrets.py' '{{.CLUSTER}}'
+      - python3 '{{.ROOT_DIR}}/scripts/bootstrap-postgres-backup.py' '{{.CLUSTER}}'
 
-  policy-smoke:
-    desc: Deliver a real missing-source alert followed by recovery using the GitOps auditor template
-    requires:
-      vars:
-        - name: CLUSTER
-          enum: [app-cluster, infra-cluster]
-    cmd: python3 '{{.ROOT_DIR}}/scripts/backup-policy.py' smoke '{{.CLUSTER}}'
-
-  audit:
-    desc: Audit actual database recovery coverage and deliver the current status to Slack
-    requires:
-      vars:
-        - name: CLUSTER
-          enum: [app-cluster, infra-cluster]
-    cmd: python3 '{{.ROOT_DIR}}/scripts/backup-policy.py' audit '{{.CLUSTER}}'
-
-  check-data:
-    desc: Run the GitOps full repository data-check template once without breaking locks
-    requires:
-      vars:
-        - name: CLUSTER
-          enum: [app-cluster, infra-cluster]
-    cmd: python3 '{{.ROOT_DIR}}/scripts/backup-policy.py' check-data '{{.CLUSTER}}'
-
-  recover:
-    desc: Recover an exact database snapshot and KEEP its verified isolated database for reviewed promotion
-    requires:
-      vars: [CLUSTER, APP, SNAPSHOT]
-    vars:
-      TARGET_CLUSTER: '{{.TARGET_CLUSTER | default .CLUSTER}}'
-    cmd: python3 '{{.ROOT_DIR}}/scripts/backup_apps.py' restore '{{.APP}}' --cluster '{{.CLUSTER}}' --snapshot '{{.SNAPSHOT}}' --target-cluster '{{.TARGET_CLUSTER}}' --keep-target
-
-  prove:
-    desc: Capture one real app and verify independent recovery onto fresh isolated storage
-    requires:
-      vars: [CLUSTER, APP]
-    cmd: python3 '{{.ROOT_DIR}}/scripts/backup_apps.py' prove '{{.APP}}' --cluster '{{.CLUSTER}}'
-
-  run:
-    desc: Capture one real app into its durable encrypted repository
-    requires:
-      vars: [CLUSTER, APP]
-    cmd: python3 '{{.ROOT_DIR}}/scripts/backup_apps.py' capture '{{.APP}}' --cluster '{{.CLUSTER}}'
-
-  restore:
-    desc: Drill an exact recovery point and erase only the newly created disposable target
-    requires:
-      vars: [CLUSTER, APP, SNAPSHOT]
-    vars:
-      TARGET_CLUSTER: '{{.TARGET_CLUSTER | default .CLUSTER}}'
-    cmd: python3 '{{.ROOT_DIR}}/scripts/backup_apps.py' restore '{{.APP}}' --cluster '{{.CLUSTER}}' --snapshot '{{.SNAPSHOT}}' --target-cluster '{{.TARGET_CLUSTER}}'
-
-  postgres-credentials-bootstrap:
-    desc: Provision and authenticate the marked read-only PostgreSQL backup login
-    requires:
-      vars:
-        - name: CLUSTER
-          enum: [app-cluster, infra-cluster]
-    cmd: python3 '{{.ROOT_DIR}}/scripts/bootstrap-postgres-backup.py' '{{.CLUSTER}}'
-
-  keys-bootstrap:
-    desc: Establish repository key in Doppler and independent macOS Keychain without rotation
-    requires:
-      vars: [CLUSTER, NAMESPACE, PROFILE]
-    cmd: python3 '{{.ROOT_DIR}}/scripts/backup-keys.py' bootstrap '{{.CLUSTER}}' '{{.NAMESPACE}}' '{{.PROFILE}}'
-
-  keys-verify:
-    desc: Compare repository key copies without printing credentials
-    requires:
-      vars: [CLUSTER, NAMESPACE, PROFILE]
-    cmd: python3 '{{.ROOT_DIR}}/scripts/backup-keys.py' verify '{{.CLUSTER}}' '{{.NAMESPACE}}' '{{.PROFILE}}'
-
-  pilot-postgres:
-    desc: Prove synthetic PostgreSQL K8up capture, independent import and failure rejection
-    requires:
-      vars:
-        - name: CLUSTER
-          enum: [app-cluster, infra-cluster]
-        - name: MAJOR
-          enum: ["14", "17"]
-    cmd: python3 '{{.ROOT_DIR}}/scripts/pilot-k8up-postgres.py' '{{.CLUSTER}}' --major '{{.MAJOR}}'
-
-  pilot-files:
-    desc: Test synthetic K8up file backup and cross-node restore without enrolling apps
-    requires:
-      vars:
-        - name: CLUSTER
-          enum: [app-cluster, infra-cluster]
-    cmd: python3 '{{.ROOT_DIR}}/scripts/pilot-k8up-files.py' '{{.CLUSTER}}'
-
-  operator-bootstrap:
-    desc: Register a K8up Application with Argo and verify its destination operator
+  bootstrap:
+    desc: Register the GitOps Backrest Application (main by default)
     requires:
       vars:
         - name: CLUSTER
           enum: [app-cluster, infra-cluster]
     vars:
       REVISION: '{{.REVISION | default "main"}}'
-    cmd: python3 '{{.ROOT_DIR}}/scripts/k8up-operator.py' bootstrap '{{.CLUSTER}}' --revision '{{.REVISION}}'
-
-  operator-status:
-    desc: Show Argo and runtime status for one cluster's K8up operator
-    requires:
-      vars:
-        - name: CLUSTER
-          enum: [app-cluster, infra-cluster]
-    cmd: python3 '{{.ROOT_DIR}}/scripts/k8up-operator.py' status '{{.CLUSTER}}'
-
-  operator-verify:
-    desc: Verify protected CRDs, operator configuration and live metrics
-    requires:
-      vars:
-        - name: CLUSTER
-          enum: [app-cluster, infra-cluster]
-    vars:
-      EXPECT_IDLE: '{{.EXPECT_IDLE | default "false"}}'
-    cmd: python3 '{{.ROOT_DIR}}/scripts/k8up-operator.py' verify '{{.CLUSTER}}' {{if eq .EXPECT_IDLE "true"}}--expect-idle{{end}}
+    env:
+      REVISION: '{{.REVISION}}'
+    cmds:
+      - task: credentials
+      - yq '.spec.sources[0].targetRevision = strenv(REVISION)' '{{.ROOT_DIR}}/kubernetes/argo/apps/{{.CLUSTER}}/storage/backrest.yaml' | kubectl --kubeconfig '{{.ROOT_DIR}}/kubeconfig' apply -f -
 
   status:
-    desc: Show the NAS target and probe jobs in one explicitly selected cluster
+    desc: Show actual Backrest operations; queued is not completed
+    requires:
+      vars: [CLUSTER]
+    cmds:
+      - kubectl --kubeconfig '{{.TARGET_KUBECONFIG}}' -n backups get deployment/backrest,pvc/backrest,pvc/k8s-backup
+      - python3 '{{.ROOT_DIR}}/scripts/backrest.py' status '{{.CLUSTER}}'
+
+  export:
+    desc: Publish one validated native DB archive from the deployed CronJob template
     requires:
       vars:
         - name: CLUSTER
           enum: [app-cluster, infra-cluster]
+        - name: APP
+          enum: [immich-db, litellm-db]
     vars:
-      TARGET_KUBECONFIG: '{{if eq .CLUSTER "app-cluster"}}{{.ROOT_DIR}}/kubeconfig{{else}}{{.ROOT_DIR}}/.private/infra-cluster/kubeconfig{{end}}'
+      JOB: 'backrest-export-manual-{{now | date "20060102150405"}}'
     cmds:
-      - kubectl --kubeconfig '{{.TARGET_KUBECONFIG}}' -n backups get pvc k8s-backup
-      - kubectl --kubeconfig '{{.TARGET_KUBECONFIG}}' -n backups get jobs -l app.kubernetes.io/name=backup-target-probe
+      - kubectl --kubeconfig '{{.TARGET_KUBECONFIG}}' -n backups create job '{{.JOB}}' --from=cronjob/backrest-export-{{.APP}}
+      - kubectl --kubeconfig '{{.TARGET_KUBECONFIG}}' -n backups wait --for=condition=Complete job/{{.JOB}} --timeout=1000s
 
-  access-check:
-    desc: Require UID 1004 backup/restore success and unrelated UID write denial
+  run:
+    desc: Queue a native Backrest plan; inspect completion in status or the UI
+    requires:
+      vars: [CLUSTER, PLAN]
+    cmd: python3 '{{.ROOT_DIR}}/scripts/backrest.py' run '{{.CLUSTER}}' --plan '{{.PLAN}}'
+
+  snapshots:
+    desc: List immutable recovery points for a plan
+    requires:
+      vars: [CLUSTER, PLAN]
+    cmd: python3 '{{.ROOT_DIR}}/scripts/backrest.py' snapshots '{{.CLUSTER}}' --plan '{{.PLAN}}'
+
+  restore:
+    desc: Queue an exact snapshot restore into a fresh NAS directory, never production
+    requires:
+      vars: [CLUSTER, PLAN, SNAPSHOT]
+    cmd: python3 '{{.ROOT_DIR}}/scripts/backrest.py' restore '{{.CLUSTER}}' --plan '{{.PLAN}}' --snapshot '{{.SNAPSHOT}}'
+
+  check:
+    desc: Queue the native repository data integrity check
+    requires:
+      vars: [CLUSTER]
+    cmd: python3 '{{.ROOT_DIR}}/scripts/backrest.py' check '{{.CLUSTER}}'
+
+  ui:
+    desc: Open a private loopback tunnel to the authenticated Backrest UI
+    requires:
+      vars: [CLUSTER]
+    cmd: kubectl --kubeconfig '{{.TARGET_KUBECONFIG}}' -n backups port-forward deployment/backrest 9898:9898 --address=127.0.0.1
+
+  retire-k8up:
+    desc: After real Backrest restores and DB imports, remove legacy K8up and its enumerated NAS repositories
     requires:
       vars:
         - name: CLUSTER
           enum: [app-cluster, infra-cluster]
-    cmds:
-      - task: smoke
-        vars:
-          CLUSTER: '{{.CLUSTER}}'
-      - python3 '{{.ROOT_DIR}}/scripts/check-backup-target.py' '{{.CLUSTER}}' --uid 65534 --gid 65534 --expect-denied
+        - name: DATABASE_IMPORTS_VERIFIED
+          enum: ['yes']
+    cmd: python3 '{{.ROOT_DIR}}/scripts/retire-k8up.py' '{{.CLUSTER}}' --database-imports-verified
 
-  smoke:
-    desc: Verify an encrypted Restic backup and byte-identical restore on the NAS target
+  target-smoke:
+    desc: Verify an encrypted disposable backup and byte-identical restore on the NAS
     requires:
-      vars:
-        - name: CLUSTER
-          enum: [app-cluster, infra-cluster]
+      vars: [CLUSTER]
     cmd: python3 '{{.ROOT_DIR}}/scripts/check-backup-target.py' '{{.CLUSTER}}'

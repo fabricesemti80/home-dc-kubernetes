@@ -1,0 +1,16 @@
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+components:
+- ../../../../../components/backrest
+resources:
+- doppler.yaml
+- http-route.yaml
+- export.yaml
+configMapGenerator:
+- name: backrest-settings
+  namespace: backups
+  files:
+  - config.json
+generatorOptions:
+  disableNameSuffixHash: true

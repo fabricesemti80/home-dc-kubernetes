@@ -1,0 +1,123 @@
+---
+global:
+  createDefaultServiceAccount: false
+defaultPodOptions:
+  automountServiceAccountToken: false
+  nodeSelector:
+    kubernetes.io/hostname: infra-wk-01
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 1004
+    runAsGroup: 65534
+    fsGroup: 1004
+    supplementalGroups: []
+    seccompProfile:
+      type: RuntimeDefault
+controllers:
+  backrest:
+    strategy: Recreate
+    annotations:
+      reloader.stakater.com/auto: 'true'
+    initContainers:
+      configure:
+        image:
+          repository: python
+          tag: 3.14.3-slim@sha256:5e59aae31ff0e87511226be8e2b94d78c58f05216efda3b07dbbed938ec8583b
+        command:
+        - python3
+        - /runtime/init.py
+        env:
+          CLUSTER_NAME: infra-cluster
+        envFrom:
+        - secretRef:
+            name: backrest-secrets
+        securityContext: &id001
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+    containers:
+      app:
+        image:
+          repository: ghcr.io/garethgeorge/backrest
+          tag: v1.14.1@sha256:b852979754281026230cc69fb11428e6d57c9a97784ab4a444ffc7934c53a215
+        command:
+        - /backrest
+        env:
+          BACKREST_PORT: 0.0.0.0:9898
+          BACKREST_CONFIG: /state/config.json
+          BACKREST_DATA: /state/data
+          BACKREST_RESTIC_COMMAND: /bin/restic
+          HOME: /state
+          XDG_CACHE_HOME: /cache
+          TMPDIR: /tmp
+          TZ: UTC
+        securityContext: *id001
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            cpu: '2'
+            memory: 2Gi
+        probes:
+          liveness:
+            enabled: true
+            type: TCP
+          readiness:
+            enabled: true
+            type: TCP
+          startup:
+            enabled: true
+            type: TCP
+service:
+  app:
+    controller: backrest
+    ports:
+      http:
+        port: 9898
+persistence:
+  state:
+    type: persistentVolumeClaim
+    accessMode: ReadWriteOnce
+    storageClass: local-path
+    size: 4Gi
+    annotations:
+      argocd.argoproj.io/sync-options: Prune=false,Delete=false
+    globalMounts:
+    - path: /state
+  target:
+    existingClaim: k8s-backup
+    advancedMounts:
+      backrest:
+        configure:
+        - path: /nas
+        app:
+        - path: /backups
+  runtime:
+    type: configMap
+    name: backrest-runtime
+    advancedMounts:
+      backrest:
+        configure:
+        - path: /runtime
+          readOnly: true
+  settings:
+    type: configMap
+    name: backrest-settings
+    advancedMounts:
+      backrest:
+        configure:
+        - path: /settings
+          readOnly: true
+  cache:
+    type: emptyDir
+    sizeLimit: 2Gi
+    globalMounts:
+    - path: /cache
+  tmp:
+    type: emptyDir
+    sizeLimit: 512Mi
+    globalMounts:
+    - path: /tmp

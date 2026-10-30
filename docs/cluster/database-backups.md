@@ -1,22 +1,15 @@
-# Application backup and recovery plan
+# Application backup inventory and recovery requirements
 
-Status: initial inventory observed **2026-10-29**, with **real PostgreSQL backup/recovery verified on 2026-10-30**. The approved first application-protection PR covers Immich/LiteLLM databases, automatic six-hour GitOps policies, repository checks and delivered Slack coverage alerts. Its schedules await merge/Argo sync and first scheduled-run verification. DNS, full app state, Immich original-photo sets, platform recovery and offsite protection remain separate unfinished work; no production app was stopped.
+The active replacement design is [Backrest](../architecture/backrest.md), with
+[operating and restore instructions](../operations/backrest.md). The superseded
+K8up implementation and its evidence are preserved in branch
+`backup/k8up-before-backrest-20261030`, commit `94abc54`.
 
-Target: `10.0.40.2:/k8s-backup`, with retained `backups/k8s-backup` claims on both clusters. See [target design and verification](../architecture/nas-backup-target.md). Use encrypted Restic filesystem repositories. The [K8up automation design](../architecture/k8up-backup-automation.md) now selects operator-managed, opt-in policies rather than separate per-app CronJobs; no S3 service or storage-system replacement is required. This document remains the source inventory and application-consistency/restore specification.
-
-Independent opt-in-only K8up controllers run in both clusters. Both multi-worker
-file pilots and synthetic PG14/PG17 failure/recovery pilots passed. Real Immich
-and LiteLLM bundles restored on fresh other-worker volumes with matching
-extensions and authenticated app database roles; see the [operational evidence
-and exact recovery commands](../operations/k8up.md#database-policy-operations).
-
-## What is actually protected today
-
--   Both targets passed encrypted backup, full verification, wrong-password rejection and byte-identical restore with disposable data. Real database recovery is now additional evidence: Immich returned 1 user / 3,518 assets; LiteLLM returned 83 tables / 1 user / 11 virtual keys / 1 config entry, matching read-only source counts. No full restored application/photo frontend is claimed.
--   Immich has 14 `.sql.gz` database dumps in `/data/backups`, backed by NAS `/media/immich/backups`. Observed filenames cover October 3–15 and October 29, not an uninterrupted recent daily sequence. The latest is October 29 at 02:00, about 18.7 MB. File presence/size was inspected, not archive integrity or restorability. These dumps do not contain photos/videos and remain on the same NAS as the originals.
--   Production K8up Schedules were not yet deployed at verification. The database-first PR adds two six-hour policies, weekly metadata/monthly full-data checks and 15-minute coverage audits. Both rendered policies passed live server dry-run and their actual full-data/audit templates passed, including missing-source and recovery Slack delivery.
--   No Sonarr/Radarr/Prowlarr ZIP archives were found under the inspected `/config` depth of three. Their native backup schedules and API behavior still need verification; do not infer they are disabled.
--   No VolumeSnapshot, VolSync or Velero CRDs were observed. Local storage uses `local-path` or Technitium's static local PVs, with Retain. Retain preserves backing data after claim release; it is not replication, a backup or protection from disk loss.
+Backrest plans cover native Immich/LiteLLM database exports, the read-only Immich
+original tree, and Backrest configuration. Deployment definitions are not proof
+of a successful scheduled backup or application restore. Other inventory rows
+below remain outstanding until their consistency method and recovery are tested.
+No physical infra node settings or original application storage are changed.
 
 ## Verified app-cluster inventory
 
@@ -71,106 +64,40 @@ These are proposed operating targets, **not present guarantees**. Start the reco
 | Retired archives            | Kestra claims and released LiteLLM data                                                   | One reviewed archival capture                                                         | Keep until operator explicitly approves deletion after recovery validation | No running service restored automatically                                                     |
 | Platform recovery           | Talos/etcd, bootstrap secrets, Git/Argo recovery bundle                                   | Daily proposed; always before destructive maintenance or schema/cluster upgrades      | 7 daily, 4 weekly, 6 monthly, plus upgrade checkpoints                     | Separate cluster rebuild drill; not part of app-only RTO                                      |
 
-The [operator design](../architecture/k8up-backup-automation.md#profiles-repositories-and-automatic-policy) supersedes the initial per-app repository proposal: routine policy members use `<cluster>/<namespace>/<profile>` repositories, such as `app-cluster/media/critical-6h`, with durable per-repository recovery passwords. This gives new members an existing schedule, maintenance policy and key reference. App identity, source paths and exact snapshot IDs distinguish recovery points within a shared repository. Separate app repositories remain an explicitly provisioned option for distinct trust/retention needs. Paths are relative to the NFS export; never reuse a smoke-test password.
+## Enrollment and recovery boundaries
 
-Use stable K8up/Restic host identity and stable source paths; verify the selected release does not introduce ephemeral Job pod names into retention groups. Retention must use deliberate grouping, such as `host,paths`, **not** unique run-ID tags. Keep six-hour snapshots within each retained day's history if required by choosing an additional hourly policy; `keep-daily` alone selects daily representatives, not every six-hour snapshot. Proposed DB policy: also keep 24 hourly representatives (about six days of six-hour runs), then the daily/weekly/monthly tiers. Do not automatically expire explicitly tagged pre-upgrade checkpoints with the routine policy.
+Backrest uses explicit Git-owned plans, not Kubernetes label discovery. Native
+database exporters publish validated, atomic archives into private local staging;
+Backrest refuses missing or older-than-eight-hour exports. Never back up live
+PGDATA, SQLite/WAL or embedded MariaDB directories as ordinary files.
 
-Repository-level concurrency must protect backup/check/prune/restore operations, including K8up's multiple worker-group Jobs and independently triggered Tasks. Restic supports concurrent backups, but maintenance must honor its lock model; K8up's separate per-kind concurrency limits are not a cross-operation lock. Do not break locks automatically. Do not run destructive `forget --prune` until multiple backups and an independent restore have succeeded. Thereafter run retention weekly in a separate maintenance window with a dry-run reviewed first; fail closed on locks or errors. Start with weekly metadata checks and monthly full read-data checks, then adjust full-check frequency from measured NAS load.
+Prefer native Servarr/Jellyfin/Technitium backup APIs after validating their
+contents and an actual restore. DNS exports must address each exact instance,
+not the load-balanced Service. Do not reconcile the ownerless secondary as a
+backup workaround.
 
-## Application-consistent capture methods
+Cold-copy apps require graceful shutdown, complete directory capture and safe
+restart. Argo self-heal makes unattended scale-to-zero unsafe without separate
+coordination. Production shutdowns remain limited to the approved 03:00 UTC
+maintenance window; this replacement introduces no automatic app shutdown.
 
-### 1. Online exports first
+Immich uploads and external originals must be compatible with the recovered DB.
+Restore the DB before app migrations; restore original path mappings and verify
+referenced file contents. Online daily originals and six-hour DB exports are not
+a paused matched recovery set. Coordinate external NAS writers before claiming
+that stronger guarantee.
 
--   **PostgreSQL:** use a matching major-version `pg_dump` client (14 for Immich, 17 for LiteLLM); `pg_dump` was verified available in the running DB containers. Stream a logical archive into encrypted storage or a private staging volume. Preserve required roles/ownership without exposing role passwords in logs. Record the exact source image, schema/app version and export checksum. A successful export is not proof until restored to a fresh database. Never archive a live PGDATA directory as the primary backup method.
--   **Technitium:** use `/api/settings/backup` for each exact instance. Include zones, settings, authentication config, installed apps, scopes, allowed/blocked zones and relevant web/cluster settings supported by that instance; omit log/stat/cache payloads unless needed. The upstream API requires **Settings: Delete**, even for export, so the credential is not read-only: issue a dedicated account/token and scope network access carefully. Use bearer authentication, not tokens in URLs/logs. Verify supported flags against both deployed versions and inspect archive entries without printing secret contents. Validate ZIP completion, not just HTTP 200. No DNS outage is needed for native export.
--   **Sonarr/Radarr/Prowlarr:** prefer each app's native backup command/archive mechanism. Verify the deployed API version, command completion, timestamp and archive contents before collecting it; never copy a ZIP that is still being written or accept an old archive as a new successful backup. If native exports omit required settings or are unavailable, use the cold-copy method below. The three observed SQLite filenames alone are not the whole configuration.
--   **Jellyfin:** 10.11 has native online backups, but confirm what settings they include and available space before automating. Upstream requires at least 5 GB free in its backup folder. The local PVC request is 5 GiB and `/config` already uses about 1.7 GiB; local-path requests do not enforce a filesystem quota, so verify actual `df` free space rather than declaring it sufficient or insufficient from the request. Until native restore coverage is proven, a stopped full `/config` copy is the complete baseline.
+All drills use fresh directories/claims and isolated workloads. Do not let a
+restored scheduler send downloads, notifications or DNS updates to production.
+Preserve exact database majors/extensions, roles and application credentials.
+Restic integrity checks and successful file restores do not replace SQL imports
+and authenticated application checks.
 
-Use namespace-scoped database/API credentials for online exports, preferably in K8up PreBackupPod helpers rather than altering every app image. The operator design explicitly accounts for K8up's namespace-bound pod-exec runner role and trusted manager permissions; do not grant cluster-admin or a separate cluster-wide dump executor. Limit who can define capture Pods/commands and keep credentials out of command literals/logs. Export artifacts must be encrypted and restricted: these archives contain user data and credentials even if Git inputs are public.
+The NAS remains a local target: AUTH_SYS trusts numeric identities from allowed
+clients, writable clients can delete data, and NAS loss can lose both originals
+and backups. Offsite copies, external dead-man alerts, NAS snapshot assurance,
+workstation-loss key escrow and platform/etcd rebuild drills remain outstanding.
 
-### 2. Cold-copy services with mutable directory state
-
-Use graceful application shutdown, then copy the complete state directory into a uniquely identified encrypted backup; never `cp` a live SQLite file and ignore WAL/SHM, and never copy a running MariaDB datadir. Preserve permissions, symlinks and required identity/key files. Do not exclude a file merely because it resembles a cache without a restore test.
-
--   Jellyseerr: stopped `/app/config`, including SQLite DB and settings.
--   SABnzbd/qBittorrent: stop gracefully so queue, history and fast-resume files are flushed. Payloads remain in their existing NAS paths; do not delete or redownload them during restore tests.
--   Pulse: stop the service before copying all `/data` databases and identity material together.
--   Kuma/AutoKuma: stop AutoKuma first, then Kuma gracefully; cold-copy both host directories under one recovery-set ID, then start Kuma before AutoKuma. Embedded MariaDB must be fully stopped before its directory is read. A tested logical `mariadb-dump` workflow could replace cold DB copies later, but the existence of the binary is not proof of a working export or a complete config/asset backup. Record the exact Kuma image/DB engine; do not replace it with an SQLite restore or start a newer image first.
--   Recyclarr: wait for its active sync to finish, stop/suspend its own scheduling during capture, copy state plus Git revision and secret references. Re-enable only after the workflow finishes.
-
-**No unattended scale-down yet.** These Applications self-heal through Argo, so blindly scaling a Deployment to zero can race GitOps. Cold-copy automation must first define scoped Argo coordination, original replica capture, a per-app maintenance lock, and a restart watchdog independent of the backup Job. A Job failure/timeout/node loss must not leave an app down indefinitely. Do not change global Argo self-heal/prune settings. Until that mechanism is proven, cold copies are explicit, operator-triggered maintenance tasks; the daily frequency above is a target, not an enabled schedule. Restarts and upload/playback/monitoring interruptions require an agreed window.
-
-### 3. Immich photos need a matched recovery set
-
-`/data` is NAS `/media/immich`; `/external-library` is a read-only alias of its `library` subdirectory, not an independent copy. Back up that backing directory once. At minimum protect `upload`, `library`, `profile`, external original files and the DB; preferably preserve the full upload tree, with regenerable thumbnails/encoded videos separable if capacity requires it. Do not relabel the phone-photo directory as disposable because it is exposed as an external library.
-
-Preferred complete-set method: seed the encrypted file backup while the app is online, then use an approved maintenance window to stop Immich server writes, coordinate any external NAS photo writers, create the final DB dump and capture the stable asset tree under the same set ID. Resume service promptly and verify upload/readiness. A seed copy alone is not a completed recovery point. If the NAS supports an appropriately coordinated source snapshot, use it to shorten the paused interval, then copy from that immutable snapshot; do not assume NAS snapshot/API support without verifying it.
-
-If a fully paused capture is not practical, upstream recommends **database first, filesystem second**, accepting that some extra files may lack DB entries. This is a weaker recovery set, especially if external tools delete/move originals during capture; document that limitation and require a file-reference validation before accepting it. A six-hour DB-only export must not be advertised as a six-hour full-photo recovery point. Files and backups on the same NAS still need an independent offsite copy for NAS loss.
-
-## Kubernetes implementation contract
-
--   GitOps owns operators/CRDs, namespace policies/PodConfigs, enrollment metadata, capture adapters, Secret references, storage and RBAC. K8up owns routine logical capture and metadata-check Jobs; one namespace-level full-data/audit CronJob pair supplies behavior absent from native Check. On-demand `backups:run`, `prove`, disposable `restore` and retained `recover` are implemented for the two databases; production promotion still needs an explicitly reviewed cutover. Pruning remains disabled.
--   **PVCs are namespace-scoped.** A Job in `backups` cannot mount `media/sonarr` or `ai/litellm-postgres`. Local-directory backup Jobs should run in the source namespace with the source claim read-only and a namespace-specific retained NFS target claim/PV. Do not move the source claim or make a generic all-worker filesystem scraper. Existing `backups/k8s-backup` claims are target verification resources, not cross-namespace source access.
--   Mount RWO source claims on their actual bound worker; for hostPath jobs explicitly select `infra-wk-01` and only `/var/pulse/data`, `/var/uptime-kuma/data` or `/var/autokuma/data` as appropriate. No blanket `/var` or `/` mount. Native network exports need not mount database data volumes.
--   Use namespace-specific repository credentials and scoped source mounts. UID `1004` / GID `65534` target access and unrelated-UID denial passed on both clusters, as did actual logical captures/restores. Source inspection/read-only exports and audit accounts have namespace-scoped permissions; no backup Pod receives cluster-admin.
--   Bounded deadlines, safe repository concurrency, private temporary files, cleanup on success, observable failed Jobs and stale-backup alerts are required. Do not assume the Kubernetes CronJob `concurrencyPolicy` field exists on a K8up Schedule. A source capture failure must fail the operation and must not publish a success timestamp merely because Restic archived an error message or an old ZIP. Use pipefail or explicit producer exit checks when streaming DB exports. Verify expected per-app coverage, because a zero-source operator success is not a backup.
--   Alert when a critical six-hour export is older than 8h or a daily backup is older than 30h; also alert on failed/missed Jobs, check/restore failure and target capacity below 20%. Measure from **source capture time**, not a copied archive's upload time. Use current monitoring initially; do not wait for the VictoriaMetrics migration. Final notification route/receiver must be tested, including when the affected cluster is down.
-
-## NAS and bootstrap prerequisites
-
-Read-only capacity probe: the export reported 10,651,705,344 KiB total, 6,003,771,392 KiB available (44% used). This is the filesystem's report, **not proof of a dedicated dataset quota or reserved capacity**. Photo tree size/change rate and backup throughput were not recursively measured, so there is no validated full-photo duration/retention capacity estimate yet.
-
-NAS access has since been corrected and verified: `10.0.40.0/24`, root-only squash, UID `1004`, root mode `0755`, cluster prefixes `0700`. UID `1004` passed encrypted backup/restore; UID `65534` was denied writes on both clusters. Numeric NFS identities still trust allowed clients; paths/namespaces are not strong deletion boundaries. NAS-managed snapshot/immutability protection and reserved quota remain unverified. Separate exports/datasets are stronger boundaries if required.
-
-Durable per-repository passwords now live in Doppler with verified independent macOS Keychain copies; real restore uses Keychain without the source Secret operator or Snapshot CR. Missing/mismatched copies never silently rotate an existing key, and first initialization rejects a nonempty target. Workstation-loss/offsite escrow still needs completion. Logical bundles record exact image/schema/extension/bootstrap-role metadata, checksums and explicit recovery Secret contents under Restic encryption; no plaintext credentials enter Git/logs.
-
-Platform recovery is separate from app data: preserve Talos machine secrets/configs and age keys outside Kubernetes, Argo repository/cluster credentials and non-reconstructible Secret dependencies in an encrypted recovery bundle, plus verified Talos etcd snapshots for each cluster. Git restores desired state but not runtime secrets/data; etcd restores cluster objects but not local PVC/hostPath/NAS files. Both clusters currently have one control-plane node, so existing workers are not etcd replicas. Do not place a broadly privileged Talos recovery credential in a normal application backup Job. Initial snapshots belong in explicit external maintenance tasks; automatic external scheduling and its bootstrap credentials require a separate reviewed design.
-
-## Restore procedures and acceptance
-
-All drills use **new** PVCs/directories and isolated workloads with outbound integrations disabled. Never restore over production, run restore through a public first-run/setup route, or let a restored scheduler send downloads, emails, webhook notifications or destructive AutoKuma actions. Keep original state and an operator-visible rollback path until acceptance.
-
-1. Retrieve the snapshot and independently escrowed password without relying on the affected cluster's secret operator. Run repository checks; choose a complete recovery-set ID and matching image versions, not just the newest unrelated artifacts.
-2. Create fresh storage on the intended replacement worker, restore ownership/permissions and preserve container path mappings. Do not edit PV node affinity to pretend a worker-local directory moved. Keep Argo/normal application pods from initializing the target before database import.
-3. Restore according to the class below, prove behavior, then plan a separately approved production cutover. Destroy only the disposable test target afterward, never the retained production PV. A failed drill blocks pruning and any claim that the app is protected.
-
-| Class                   | Restore sequence                                                                                                                                                                                   | Required behavioral proof                                                                                                                                                                                     |
-| ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Immich                  | Fresh compatible PG14/vector image; import DB before app migrations; restore the matching asset set and identical `/data` + external-library paths; start compatible app, rebuild Valkey/ML caches | Existing user login, album/person metadata and representative original-photo/video retrieval; check DB file references against the restored tree, then test a new upload on isolated scratch originals        |
-| LiteLLM                 | Fresh PG17 database; create required roles/extensions and import logical dump; restore referenced secret identities before starting the matching proxy                                             | Existing configuration/key identities work in isolated read-only checks; no chargeable upstream call or billing side effect without explicit approval                                                         |
-| Technitium              | Restore each node's native export into an isolated same-version DNS instance; review auth/TLS/cluster identity before enabling listeners                                                           | `dig @<test-IP>` resolves representative internal authoritative and forwarded names; authentication works; no takeover of production DNS/DHCP/IPs or dynamic updates                                          |
-| Servarr                 | Matching image; native restore into new app config, or stopped full-directory restore if that was the captured method                                                                              | Login, root paths, tags, quality profiles, indexers and client definitions present; queues/search/download actions disabled until cutover                                                                     |
-| Jellyfin / Jellyseerr   | Restore stopped config or proven native archive using the recorded image; keep original mount paths; read-only media for the drill                                                                 | Existing user login, watched state/library settings and request records preserved; Jellyfin playback of a sample; request approvals/download automation disabled                                              |
-| SABnzbd / qBittorrent   | Restore stopped config/admin or torrent/fast-resume state; mount payload paths read-only for inspection                                                                                            | Settings and queued/resume metadata present; no new downloads, deletes or duplicate rechecks/seeding until approved cutover                                                                                   |
-| Kuma / AutoKuma / Pulse | Restore each stopped directory to a new host-bound location with the original UID/GID and exact image; restore Kuma before its matching AutoKuma state                                             | Login, historical monitors/data and notification definitions survive; MariaDB starts cleanly; AutoKuma mapping does not duplicate/delete monitors; notifications/agents disabled or isolated during the drill |
-| Retired archives        | Mount/copy to a disposable directory; run integrity checks; if needed launch matching DB/object-store images offline without registering an Argo app                                               | Required archived data can be read; no reintroduction of retired workloads or deletion of their retained original storage                                                                                     |
-
-For the first implementation, perform one real restore before enabling each job's schedule. Repeat a representative database/config restore monthly, rotate across remaining classes quarterly, and repeat before major schema/image changes. Repository `check` alone is not application recovery evidence. RPO/RTO claims become measured service guarantees only after successful scheduled runs, failure alerts and restore timings are recorded.
-
-## Ordered implementation and outstanding decisions
-
--   [x] Inspect live PVCs/PVs, mounts, engines, existing dump artifacts and backup/snapshot controllers on both clusters; test read-only target capacity/ownership.
--   [x] Define per-app methods, source exclusions, retention, storage/RBAC boundaries and restore acceptance in this plan.
--   [x] Verify hardened NAS UID/export gates and independent initial repository keys; pass both file pilots, synthetic PG14/PG17 negative cases and real database imports on fresh worker storage.
--   [x] Implement online PostgreSQL capture/recovery, shared namespace GitOps policies, integrity maintenance and delivered coverage alerts; validate actual source credentials and preserved PostgreSQL 17 bootstrap-role semantics.
--   [ ] Merge/sync the database-first PR and observe first scheduled runs. Add external dead-man notification, workstation-loss escrow and verified NAS snapshots; do not label the remaining sources protected.
--   [ ] Implement/export/restore each exact DNS instance independently; the ownerless secondary remains unchanged. Native app exports and cold/photo recovery sets follow as separate deliverables.
--   [ ] Verify native Servarr/Jellyfin backup APIs, completion, coverage and restore; prefer these over avoidable downtime. Preserve correct settings if native archives are incomplete.
--   [ ] Implement and prove GitOps-safe quiesce/restart/watchdog behavior in the approved **03:00 UTC** maintenance window, then enroll cold-copy media/monitoring recovery sets. No production scale-down has been performed.
--   [ ] Produce the first coordinated Immich DB/originals recovery set; measure full restore and document any external-writer limitation.
--   [ ] Archive retired storage, inventory platform bootstrap recovery dependencies and design external etcd snapshot tasks. Do not delete retired data.
--   [ ] Enable schedules only after class-specific restores and failure notifications pass; add reviewed retention maintenance, capacity/staleness monitoring and quarterly coverage checks.
--   [ ] Add offsite replication and restore verification from the independent destination. NAS snapshots and this NFS target do not complete that requirement.
-
-Rollback: remove the new K8up Schedules and suspend maintenance/audit CronJobs through Git, allow active work to finish or review it before termination, and preserve source claims, NAS repositories, keys and any retained recovery target. K8up Schedule has no suspend field. Never run destroy, delete source claims or expire archives as a rollback mechanism.
-
-## Sources and evidence boundary
-
-The original inventory used Kubernetes storage/workload metadata, mount/engine/file inspection, SQL version/extension/size queries and read-only NAS probes. Subsequent implementation ran real logical captures, full encrypted repository checks, fresh isolated imports and actual Slack failure/recovery delivery; current evidence is in the [runbook](../operations/k8up.md). Remaining native DNS, full-app cold-copy and photo-set procedures above are designs, not validated protection.
-
--   [Immich backup, restore and DB-first ordering](https://docs.immich.app/administration/backup-and-restore/)
--   [Jellyfin native 10.11 backup, 5 GB free-space gate and stopped manual backups](https://jellyfin.org/docs/general/administration/backup-and-restore/)
--   [Technitium API: authentication, backup and restore settings](https://github.com/TechnitiumSoftware/DnsServer/blob/master/APIDOCS.md)
--   [Servarr Sonarr backup/restore FAQ](https://wiki.servarr.com/sonarr/faq#how-do-i-backuprestore-my-sonarr)
--   [Restic repository backends](https://restic.readthedocs.io/en/stable/030_preparing_a_new_repo.html)
+See the [Backrest runbook](../operations/backrest.md) for merge, restore and
+restore-gated legacy repository removal. Never delete retained retired source
+volumes as part of removing old backup repositories.
