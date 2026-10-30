@@ -18,7 +18,7 @@ Each cluster's `storage/k8up` Application renders the pinned upstream chart plus
 
 The chart's trusted manager can create workloads and namespace runner bindings. Its executor role permits pod exec within namespaces where it is bound; it is not an unprivileged file copier. Keep these roles under GitOps review, use separate installations/credentials per cluster, and do not add cluster-admin. No public ingress, ServiceMonitor, PrometheusRule or new secret-manager integration is enabled by the operator-only installation.
 
-The operator's image and backup-runner image must be digest-pinned. Opt-in is enforced globally, timezone is UTC, resource requests/limits are explicit, and the operator is placed on a worker. No global source-runner nodeSelector is set: future RWO backup Jobs must follow source volume placement. Production enrollment remains blocked on the storage/selection/restore/failure pilot, NAS permissions, repository-key escrow and alert delivery described in the design.
+The operator's image and backup-runner image must be digest-pinned. Opt-in is enforced globally, timezone is UTC, resource requests/limits are explicit, and the operator is placed on a worker. No global source-runner nodeSelector is set: future RWO backup Jobs must follow source volume placement. NAS write-access verification now passes; production enrollment remains blocked on the remaining storage/selection/restore/failure pilot, repository-key escrow and alert delivery described in the design.
 
 Rollback: stop any future schedules and finish/abort restores safely before removing the operator. Preserve CRDs, NAS repositories, Snapshot metadata and keys; never uninstall CRDs to undo this rollout. There are no production K8up policies to suspend in this operator-only phase. Do not remove namespace or source data. Revert the Application/values commit and reconcile the reviewed prior configuration if the operator image/config must be rolled back.
 
@@ -55,11 +55,29 @@ with no supplemental groups: no assumption about the numeric ID of
 `k8s-backup-operators` was needed. This is a tested process identity, not a change
 to the controller's own UID or to production capture policies.
 
-**NAS hardening remains blocked:** UID `65534`, GID `65534` also wrote at both the
-export root and the existing `app-cluster` / `infra-cluster` prefixes. All test
-directories/files were disposable and removed. Export-root mode was still `0777`.
-QNAP guest-login settings alone have not enforced the required NFS restriction.
-These observations do not identify the server's exact squash/ACL configuration.
+**NAS access gate now passes on both clusters.** With root-only squash enabled,
+the NAS administrator corrected ownership non-recursively on the share root and
+the two existing cluster prefixes. Actual QNAP path:
+`/share/CACHEDEV1_DATA/k8s-backup`.
+
+| Directory       | Owner UID | Mode |
+| --------------- | --------: | ---: |
+| Export root     |      1004 | 0755 |
+| `app-cluster`   |      1004 | 0700 |
+| `infra-cluster` |      1004 | 0700 |
+
+Both `backups:access-check` runs passed after repair: UID `1004` completed
+encrypted backup, full data check, wrong-password rejection and byte-identical
+restore; UID `65534` was denied writes at both export root and cluster prefix.
+All disposable probe Jobs/repositories were removed. No media share or existing
+application data was changed.
+
+Earlier probes allowed anonymous writes with export-root mode `0777`; switching
+to root-only squash then exposed anonymous-owned `0700` prefixes and blocked the
+real writer. The owner repair resolved that mismatch without loosening squash.
+NAS-managed snapshots, independent repository-key recovery and application
+capture/restore acceptance remain separate prerequisites; no production schedule
+was enabled by this permission correction.
 
 `task backups:smoke CLUSTER=...` now runs its disposable encrypted backup/check/
 restore as UID `1004`, GID `65534`, rather than root. For the full access gate,
@@ -84,6 +102,28 @@ NAS operator actions:
    Do not recursively change `/media` or other unrelated NAS shares.
 3. Keep the `/24` host restriction and rerun both cluster access gates. NAS
    snapshots and independent repository-key recovery remain separate prerequisites.
+
+To repeat the scoped ownership repair, use an authorized NAS administrator shell
+with root privileges, confirm the resolved directory is the dedicated backup
+share, and run the following non-recursive commands. The numeric writer identity
+is part of the NFS contract; do not silently substitute another user's UID.
+
+```sh
+set -eu
+[ "$(id -u k8s-backup-operator)" = 1004 ]
+p=$(readlink -f /share/k8s-backup)
+[ -n "$p" ] && [ -d "$p" ] && [ "$(basename "$p")" = k8s-backup ]
+[ -d "$p/app-cluster" ] && [ ! -L "$p/app-cluster" ]
+[ -d "$p/infra-cluster" ] && [ ! -L "$p/infra-cluster" ]
+ls -ldn "$p" "$p/app-cluster" "$p/infra-cluster"
+chown 1004 "$p" "$p/app-cluster" "$p/infra-cluster"
+chmod 0755 "$p"
+chmod 0700 "$p/app-cluster" "$p/infra-cluster"
+```
+
+Do not reset these directories to `0777` to solve a future failure. Inspect the
+actual owner/squash/ACL result and rerun both access gates. Administrative SSH
+credentials remain local/outside Git and are not consumed by backup workloads.
 
 QNAP reference: [configuring NFS host access](https://docs.qnap.com/operating-system/qts/4.5.x/en-us/GUID-4A850D3A-5293-4B13-ABEF-8B66D1384BFC.html).
 
@@ -128,7 +168,8 @@ app namespaces or production repositories.
 Passing this pilot proves only synthetic worker-local file backup/restore and
 selection behavior. It does not prove database/native-import recovery, cold-copy
 coordination, alert delivery or protection from NAS loss. Production policies
-remain disabled while the NAS write-denial gate is failing.
+remain disabled pending the remaining application/key/alert acceptance gates,
+even though NAS write isolation now passes.
 
 ### Observed pilot results
 

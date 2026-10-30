@@ -241,7 +241,7 @@ Restoring the old selector also restores the worker-provisioning limitation.
 
 ## Evidence and references
 
-Verified design sources: official K8up 2.16 documentation and source at operator tag **v2.16.1** / chart **4.10.1**. Argo has installed the digest-pinned controllers on both clusters. Worker grouping, explicit opt-in/exclusion and cross-node file restore have now been exercised with disposable data; the runbook records per-cluster evidence and the failing NAS isolation gate. No production K8up backup/restore policy is enabled. Database/native-export recovery, failure boundaries, independent-key recovery and delivered alerts remain separate acceptance requirements.
+Verified design sources: official K8up 2.16 documentation and source at operator tag **v2.16.1** / chart **4.10.1**. Argo has installed the digest-pinned controllers on both clusters. Worker grouping, explicit opt-in/exclusion and cross-node file restore have now been exercised with disposable data; the runbook records per-cluster evidence. Both NAS access gates now pass after root-only squash and UID `1004` ownership correction. No production K8up backup/restore policy is enabled. Database/native-export recovery, failure boundaries, independent-key recovery and delivered alerts remain separate acceptance requirements.
 
 Local draft checks: Helm rendered chart 4.10.1 to operator image v2.16.1 with
 opt-in enabled and timezone UTC; that operator-only render contained no Backup,
@@ -271,6 +271,7 @@ the remaining gates, not operator health alone.
 -   [x] Install independent, digest-pinned operators and protected CRDs through Argo on both clusters.
 -   [x] Verify worker placement, opt-in discovery, UTC, live metrics and reproducible operator Tasks; confirm no production K8up schedules or operations were created.
 -   [ ] Harden NAS writer/export permissions and snapshot protection; establish repository keys, independent escrow and namespace-local target claims.
+    -   [x] Verify `/24`, root-only squash, UID `1004` ownership and encrypted writer/denied-anonymous access gates on both clusters; NAS snapshot protection and key escrow remain open.
 -   [ ] Pass the multi-worker storage/selection pilot, including missing sources, exclusions, zero matches and cross-policy isolation.
     -   [x] Provide `backups:pilot-files` for two-node synthetic file capture, excluded-PVC verification and exact-snapshot cross-node restore with SHA-256 comparison and disposable-resource cleanup.
 -   [ ] Pass file, streamed-database and native-export restores to fresh isolated targets, including failed/partial captures, wrong snapshot/path rejection and independent-key recovery.
