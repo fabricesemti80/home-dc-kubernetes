@@ -2,6 +2,14 @@
 version: '3'
 
 tasks:
+  pilot-files:
+    desc: Test synthetic K8up file backup and cross-node restore without enrolling apps
+    requires:
+      vars:
+        - name: CLUSTER
+          enum: [app-cluster, infra-cluster]
+    cmd: python3 '{{.ROOT_DIR}}/scripts/pilot-k8up-files.py' '{{.CLUSTER}}'
+
   operator-bootstrap:
     desc: Register a K8up Application with Argo and verify its destination operator
     requires:
@@ -41,6 +49,18 @@ tasks:
     cmds:
       - kubectl --kubeconfig '{{.TARGET_KUBECONFIG}}' -n backups get pvc k8s-backup
       - kubectl --kubeconfig '{{.TARGET_KUBECONFIG}}' -n backups get jobs -l app.kubernetes.io/name=backup-target-probe
+
+  access-check:
+    desc: Require UID 1004 backup/restore success and unrelated UID write denial
+    requires:
+      vars:
+        - name: CLUSTER
+          enum: [app-cluster, infra-cluster]
+    cmds:
+      - task: smoke
+        vars:
+          CLUSTER: '{{.CLUSTER}}'
+      - python3 '{{.ROOT_DIR}}/scripts/check-backup-target.py' '{{.CLUSTER}}' --uid 65534 --gid 65534 --expect-denied
 
   smoke:
     desc: Verify an encrypted Restic backup and byte-identical restore on the NAS target

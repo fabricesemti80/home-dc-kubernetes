@@ -171,8 +171,6 @@ data:
     metadata:
       name: helper-pod
     spec:
-      nodeSelector:
-        kubernetes.io/hostname: infra-cp-01
       tolerations:
         - key: node-role.kubernetes.io/control-plane
           operator: Exists

@@ -181,7 +181,7 @@ K8up Schedules, not per-app CronJobs, own routine capture/check/prune. A small s
 
 ## Restore interface: one workflow, explicit recovery point
 
-Proposed Taskfile commands below are a **future interface**, not commands available in this documentation PR. Existing `backups:status` and `backups:smoke` remain unchanged.
+Production capture/restore commands below remain a **future interface**. Available operator, NAS access-gate and disposable file-pilot Tasks are documented in the [operations runbook](../operations/k8up.md); a synthetic pilot is not production enrollment.
 
 | Task                                                  | Behavior                                                                                                                                                                                |
 | ----------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -216,9 +216,32 @@ The pilot is a go/no-go decision for K8up, not permission to leave some existing
 
 Rollback: stop the new scheduling through Git and allow active work to finish/terminate under the tested watchdog; restore any scoped app reconciliation/replica state; preserve source storage, target repositories, passwords and recovery catalogs. Keep CRDs/operator until pending restores and cleanup are understood. Removing enrollment must not delete old snapshots immediately. Never delete source PVCs, erase the NAS dataset or uninstall CRDs as a rollback shortcut.
 
+### Infra local-path helper scheduling repair
+
+The synthetic infra pilot exposed an existing storage prerequisite: a claim on
+`infra-wk-01` never provisions because `helperPod.yaml` also requires hostname
+`infra-cp-01`. The provisioner assigns its helper to the selected storage node;
+the contradictory selector produces kubelet `NodeAffinity` rejection and a
+120-second provisioning timeout. This blocks a fresh worker-local restore target
+before any K8up capture begins.
+
+Remove only the helper template's hard-coded hostname selector through GitOps.
+Keep the provisioner Deployment's existing placement, paths, scripts, RBAC,
+tolerations and Retain policy unchanged; existing PV affinities/data and physical
+Talos configuration are not migrated. Assumption: the installed provisioner
+continues assigning each helper's `nodeName` from the selected claim node.
+
+Validation: inspect the rejected-helper events, render the changed ConfigMap,
+and run a disposable helper on `infra-wk-01` without the contradictory selector.
+After merge/Argo sync, rerun `backups:pilot-files CLUSTER=infra-cluster` to prove
+actual provisioning and K8up restore; a scheduling-only smoke is not that proof.
+Rollback: restore the helper selector through Git if necessary; it affects new
+helper placement only and must not delete existing claims, PVs or backing data.
+Restoring the old selector also restores the worker-provisioning limitation.
+
 ## Evidence and references
 
-Verified design sources: official K8up 2.16 documentation and source at operator tag **v2.16.1** / chart **4.10.1**. Worker grouping and backup selection remain inspected implementation behavior, not live data-path validation. Argo has installed the digest-pinned controllers on both clusters; the runbook records runtime verification. No production K8up backup/restore policy is enabled, and the remaining pilot must provide actual file/DB recovery and failure evidence.
+Verified design sources: official K8up 2.16 documentation and source at operator tag **v2.16.1** / chart **4.10.1**. Argo has installed the digest-pinned controllers on both clusters. Worker grouping, explicit opt-in/exclusion and cross-node file restore have now been exercised with disposable data; the runbook records per-cluster evidence. Both NAS access gates now pass after root-only squash and UID `1004` ownership correction. No production K8up backup/restore policy is enabled. Database/native-export recovery, failure boundaries, independent-key recovery and delivered alerts remain separate acceptance requirements.
 
 Local draft checks: Helm rendered chart 4.10.1 to operator image v2.16.1 with
 opt-in enabled and timezone UTC; that operator-only render contained no Backup,
@@ -248,7 +271,9 @@ the remaining gates, not operator health alone.
 -   [x] Install independent, digest-pinned operators and protected CRDs through Argo on both clusters.
 -   [x] Verify worker placement, opt-in discovery, UTC, live metrics and reproducible operator Tasks; confirm no production K8up schedules or operations were created.
 -   [ ] Harden NAS writer/export permissions and snapshot protection; establish repository keys, independent escrow and namespace-local target claims.
+    -   [x] Verify `/24`, root-only squash, UID `1004` ownership and encrypted writer/denied-anonymous access gates on both clusters; NAS snapshot protection and key escrow remain open.
 -   [ ] Pass the multi-worker storage/selection pilot, including missing sources, exclusions, zero matches and cross-policy isolation.
+    -   [x] Provide `backups:pilot-files` for two-node synthetic file capture, excluded-PVC verification and exact-snapshot cross-node restore with SHA-256 comparison and disposable-resource cleanup.
 -   [ ] Pass file, streamed-database and native-export restores to fresh isolated targets, including failed/partial captures, wrong snapshot/path rejection and independent-key recovery.
 -   [ ] Deliver failure, stale-source and external dead-man alerts before relying on unattended protection.
 -   [ ] Enroll critical DB/DNS sources only after their real capture/restore checks pass; then enable their six-hour policies.
