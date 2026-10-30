@@ -1,6 +1,6 @@
 # Operator-driven application backups
 
-Status: **proposed design, not deployed**. Drafted 2026-10-29 after the NAS target and [application inventory](../cluster/database-backups.md) were verified. This PR changes documentation only: no operator, CRD, annotation, schedule, Secret or restore Job is applied. Existing backup-target smoke tests are not application backups.
+Status: **operator installed; application backup policies not enabled**. The [operator runbook](../operations/k8up.md) covers the GitOps Applications and reproducible bootstrap/status/verification Tasks. The NAS target and opt-in-only K8up controllers are running on both clusters. Source capture, restore adapters, policy schedules and the data-path acceptance pilot below remain implementation gates; existing target smoke tests are not application backups.
 
 ## Decision
 
@@ -8,7 +8,7 @@ Adopt **K8up + Restic**, subject to the acceptance pilot below. Install one oper
 
 The user-facing contract is: **enroll a supported app once in Git, then receive alerts only when protection needs attention**. Ordinary enrollment should require metadata and a known capture profile, not another handwritten CronJob. A genuinely new database/app format still needs a tested capture/restore adapter once; a label cannot infer how to make an arbitrary running database consistent.
 
-Candidate baseline: upstream Helm chart **4.10.1**, operator/runner **v2.16.1**, API `k8up.io/v1`. Chart and image versions are different numbers. These are the versions inspected, not a claim of tested compatibility with Talos/Kubernetes here. Pin release artifacts and image digests in the implementation PR; repeat the pilot on upgrades affecting selection, streaming or restore behavior. Use the upstream operator chart rather than wrapping it in app-template: it owns controllers, RBAC and CRD integration, not just a container.
+Installed baseline: upstream Helm chart **4.10.1** at commit `ff230b43ab8d73f3666219d748dea55bee036fdf`, operator/runner **v2.16.1** pinned to image index digest `sha256:f59bfa37c51511d5ad67e53816fb55c62d0e6411890e59bb6b965923129f30b5`, API `k8up.io/v1`. Chart and image versions are different numbers. Controller rollout/metrics and protected CRD lifecycle were verified on both clusters; backup/restore compatibility is still subject to the data-path pilot. Repeat that pilot on upgrades affecting selection, streaming or restore behavior. The upstream operator chart owns controllers/RBAC; an earlier-wave Kustomize source owns the nine protected CRDs.
 
 No S3 gateway is required: K8up's `backend.local.mountPath` can reference an NFS-mounted directory. This retains recovery access with ordinary Restic from a trusted host if Kubernetes/K8up is unavailable. Do not replace the existing target or migrate its retained volumes. Velero is not selected: its filesystem backup requires object storage and excludes hostPath volumes; its cluster-object recovery is less central when Argo already owns desired state.
 
@@ -218,14 +218,15 @@ Rollback: stop the new scheduling through Git and allow active work to finish/te
 
 ## Evidence and references
 
-Verified for this draft: official K8up 2.16 documentation and source at operator tag **v2.16.1** / chart **4.10.1**. Worker grouping and selection are inspected implementation behavior, not live validation. The existing NAS target works, but K8up has not run here. The implementation PR must provide real backup/restore/failure evidence for the pilot gates above.
+Verified design sources: official K8up 2.16 documentation and source at operator tag **v2.16.1** / chart **4.10.1**. Worker grouping and backup selection remain inspected implementation behavior, not live data-path validation. Argo has installed the digest-pinned controllers on both clusters; the runbook records runtime verification. No production K8up backup/restore policy is enabled, and the remaining pilot must provide actual file/DB recovery and failure evidence.
 
 Local draft checks: Helm rendered chart 4.10.1 to operator image v2.16.1 with
 opt-in enabled and timezone UTC; that operator-only render contained no Backup,
 Schedule or Restore CR. Both reference objects (PodConfig and Schedule) validated
 against the published v2.16.1 CRD schemas using kubeconform. YAML examples parsed
-and relative document links resolved. Temporary schemas were removed; no chart
-or example resource was installed. These checks do not replace the runtime pilot.
+and relative document links resolved. Temporary schemas were removed. That
+design-only check installed no resources; the subsequent operator-only rollout
+is recorded in the runbook. Neither check replaces the application data-path pilot.
 
 -   [Annotations and opt-in](https://docs.k8up.io/k8up/2.16/references/annotations.html)
 -   [Backend, Schedule, PodConfig, retention and Restore API](https://docs.k8up.io/k8up/2.16/references/api-reference.html)

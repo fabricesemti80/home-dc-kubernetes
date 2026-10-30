@@ -4,6 +4,11 @@ Status: **inventory and design only**, observed 2026-10-29. The NAS target is de
 
 Target: `10.0.40.2:/k8s-backup`, with retained `backups/k8s-backup` claims on both clusters. See [target design and verification](../architecture/nas-backup-target.md). Use encrypted Restic filesystem repositories. The [K8up automation design](../architecture/k8up-backup-automation.md) now selects operator-managed, opt-in policies rather than separate per-app CronJobs; no S3 service or storage-system replacement is required. This document remains the source inventory and application-consistency/restore specification.
 
+Operator rollout update: independent opt-in-only K8up controllers now run in both
+clusters, with protected CRDs and verified metrics endpoints. See the
+[operator runbook](../operations/k8up.md). This installation has not enrolled any
+production source, enabled schedules, or completed the application data-path pilot.
+
 ## What is actually protected today
 
 -   Both permanent target claims passed encrypted Restic backup, full data verification, wrong-password rejection and byte-identical restore using disposable test data. Those tests do **not** back up applications.
@@ -104,7 +109,7 @@ If a fully paused capture is not practical, upstream recommends **database first
 
 ## Kubernetes implementation contract
 
--   GitOps owns the pinned K8up operator/CRDs, namespace Schedules/PodConfigs, enrollment metadata, capture adapters, Secret references, storage bindings, scoped RBAC and alert rules. K8up owns routine capture/check/prune Jobs; do not create a bespoke CronJob for every app. Taskfiles provide explicit-cluster inventory, on-demand backup, status, restore-to-disposable-target and maintenance entry points. Proposed new command names are specified in the operator design; currently only `backups:status` and `backups:smoke` exist.
+-   GitOps owns the pinned K8up operator/CRDs, namespace Schedules/PodConfigs, enrollment metadata, capture adapters, Secret references, storage bindings, scoped RBAC and alert rules. K8up owns routine capture/check/prune Jobs; do not create a bespoke CronJob for every app. Current Tasks are `backups:status`, `backups:smoke`, `backups:operator-bootstrap`, `backups:operator-status` and `backups:operator-verify`. App-level one-off backup and guarded restore/promote commands remain proposed in the operator design, not implemented by operator installation.
 -   **PVCs are namespace-scoped.** A Job in `backups` cannot mount `media/sonarr` or `ai/litellm-postgres`. Local-directory backup Jobs should run in the source namespace with the source claim read-only and a namespace-specific retained NFS target claim/PV. Do not move the source claim or make a generic all-worker filesystem scraper. Existing `backups/k8s-backup` claims are target verification resources, not cross-namespace source access.
 -   Mount RWO source claims on their actual bound worker; for hostPath jobs explicitly select `infra-wk-01` and only `/var/pulse/data`, `/var/uptime-kuma/data` or `/var/autokuma/data` as appropriate. No blanket `/var` or `/` mount. Native network exports need not mount database data volumes.
 -   Prefer namespace-specific repository credentials and read-only source mounts. Test the actual writer UID/GID and source permissions before scheduling; root was used for the target probes, not validated as the long-term identity for every job. Never grant a job cluster-admin or access to all application secrets.

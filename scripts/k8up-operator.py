@@ -86,6 +86,7 @@ def bootstrap(cluster, revision):
     name = app["metadata"]["name"]
     run(HUB + ["-n", "argo-system", "annotate", "application", name, "argocd.argoproj.io/refresh=hard", "--overwrite"])
     run(HUB + ["-n", "argo-system", "wait", "--for=jsonpath={.status.sync.status}=Synced", f"application/{name}", "--timeout=300s"])
+    run(HUB + ["-n", "argo-system", "wait", "--for=jsonpath={.status.operationState.phase}=Succeeded", f"application/{name}", "--timeout=300s"])
     verify(cluster, False)
 
 

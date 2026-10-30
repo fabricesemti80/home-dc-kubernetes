@@ -29,3 +29,19 @@ The hook is part of the upstream chart, not a backup/prune of application data;
 its temporary account/RBAC/Job have explicit worker placement and resources.
 Review this hook and any same-named RBAC before future upgrades, rather than
 assuming every upstream hook is harmless.
+
+## Verified rollout
+
+Argo bootstrapped `k8up-app` and `k8up-infra` from `refactor` for pre-merge
+verification. Both target clusters established the nine protected K8up CRDs,
+rolled out the digest-pinned operator on its intended worker, and served live
+Go process metrics through the internal service/API proxy. Operator and runner
+image configuration, opt-in selection and UTC were verified. Counts of K8up
+Schedules, Backups, Restores and Prunes were all zero. No repository password or
+production backup enrollment was created. After merge, allow the parent to adopt
+the checked-in `main` revisions; do not remove and recreate the running operators.
+
+Both Applications reached `Synced/Healthy` with successful lifecycle operations.
+Bootstrap was repeated to exercise idempotent registration and hook-completion
+waiting. `operator-verify EXPECT_IDLE=true` passed on both targets, and startup
+log inspection found no error-level, panic or fatal entries.

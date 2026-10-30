@@ -98,6 +98,10 @@ Argo CD on `app-cluster` also deploys these `infra-cluster` workloads:
 
 Both clusters also have a `nas-backup` GitOps Application provisioning the retained
 `backups/k8s-backup` NFS claim; no storage-server image runs for this target.
+Both also run independent `k8up-app` / `k8up-infra` operators in `backups`
+(`ghcr.io/k8up-io/k8up:v2.16.1`, digest-pinned). They are opt-in only, with no
+production backup policy enabled yet. K8up has no bundled web UI; see the
+[operator runbook](../operations/k8up.md) for Argo inspection and Task commands.
 Kestra and the KubeVirt/CDI/Manager trial are removed from desired configuration.
 Their existing resources require the [ordered retirement procedure](../architecture/nas-backup-target.md#kestra--kubevirt-retirement);
 retained Kestra PVCs are intentional.
