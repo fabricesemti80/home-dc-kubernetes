@@ -52,8 +52,13 @@ task backups:run CLUSTER=infra-cluster PLAN=litellm-db
 task backups:run CLUSTER=infra-cluster PLAN=backrest-config
 ```
 
-`run`, `check` and `restore` **queue** native Backrest operations; their return is
-not completion. Inspect operation status in the UI or `backups:status`. Missing
+`run` waits for native backup execution; large photo backups can take hours.
+`check` and `restore` queue operations: inspect their completion in the UI or
+`backups:status`. The CLI allows up to four hours for mutating native calls.
+Task cluster-dependent kubeconfig variables are scoped to each task so the
+infra commands cannot inherit the app-cluster kubeconfig during include loading.
+Restore creates only the target's parent: Backrest requires the final directory
+to be absent and refuses an existing destination. Missing
 or older-than-eight-hour DB archives fail the start hook, rather than refreshing
 an old artifact and claiming a new database capture. Native exporter failures
 leave the previous archive unchanged. Staging is private local storage, not
@@ -84,8 +89,11 @@ not sufficient. LiteLLM needs compatible PG17. Initialize with the recorded
 `bootstrap_role` (currently `postgres`); preserve it for PG17 `GRANTED BY` semantics.
 Create other roles from `roles.sql`, omitting only the exact `CREATE ROLE` line
 for that already-initialized bootstrap role. Apply `ALTER ROLE` and grants; do not
-ignore arbitrary SQL errors. Import `database.dump` with `pg_restore --exit-on-error`
-into the recorded database and restore the recorded preload/extension versions.
+ignore arbitrary SQL errors. The custom dump retains database creation/ownership
+metadata: use `pg_restore --exit-on-error --create --dbname=postgres database.dump`
+against the fresh instance, with the recorded preload/extension versions. If
+creating the database separately, inspect `pg_restore --schema-only --create`
+output for the original owner; do not assume the bootstrap role owns the app DB.
 
 Role password hashes are deliberately absent from `roles.sql`. Restore app
 credentials from the archive's `secrets/` files through private input, not shell
