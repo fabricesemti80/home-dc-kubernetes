@@ -51,6 +51,15 @@ jobs:
       - name: Install Kustomize
         uses: imranismail/setup-kustomize@53f941b41dca13ed61874bbc6b4b6e1562877530 # v3
 
+      - name: Install Go yq
+        env:
+          YQ_VERSION: v4.45.4
+        run: |
+          sudo wget --quiet \
+            "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_amd64" \
+            -O /usr/local/bin/yq
+          sudo chmod +x /usr/local/bin/yq
+
       - name: Install talhelper
         env:
           TALHELPER_VERSION: v3.1.15

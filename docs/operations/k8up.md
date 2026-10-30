@@ -357,3 +357,13 @@ Slack audits need their cluster, DNS/egress and NAS mount to function. An
 external dead-man receiver must independently detect loss of those components.
 Workstation-loss key escrow and NAS snapshot/immutability protection still need
 verification; neither same-NAS storage nor a local Keychain is an offsite copy.
+
+### CI schema validation
+
+The manifest validator derives K8up JSON schemas from the same immutable
+`components/k8up-crds` source used by Argo, before consulting moving catalogs for
+other APIs. It requires Go `yq` and `jq`; CI installs the same pinned Go `yq` as
+repository validation. Strict structured-field validation is preserved:
+the full repository render passed, while a temporary K8up Schedule with an
+unknown backup field was rejected. Do not remove policy selectors or skip
+K8up validation to work around an outdated external catalog.
