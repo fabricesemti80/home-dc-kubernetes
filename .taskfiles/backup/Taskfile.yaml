@@ -2,6 +2,100 @@
 version: '3'
 
 tasks:
+  alerts-bootstrap:
+    desc: Reuse the existing monitoring Slack route for both database policies
+    cmd: python3 '{{.ROOT_DIR}}/scripts/backup-policy.py' alerts-bootstrap
+
+  policy-verify:
+    desc: Validate the actual rendered GitOps protection resources against the destination API
+    requires:
+      vars:
+        - name: CLUSTER
+          enum: [app-cluster, infra-cluster]
+    cmd: python3 '{{.ROOT_DIR}}/scripts/backup-policy.py' verify '{{.CLUSTER}}'
+
+  policy-smoke:
+    desc: Deliver a real missing-source alert followed by recovery using the GitOps auditor template
+    requires:
+      vars:
+        - name: CLUSTER
+          enum: [app-cluster, infra-cluster]
+    cmd: python3 '{{.ROOT_DIR}}/scripts/backup-policy.py' smoke '{{.CLUSTER}}'
+
+  audit:
+    desc: Audit actual database recovery coverage and deliver the current status to Slack
+    requires:
+      vars:
+        - name: CLUSTER
+          enum: [app-cluster, infra-cluster]
+    cmd: python3 '{{.ROOT_DIR}}/scripts/backup-policy.py' audit '{{.CLUSTER}}'
+
+  check-data:
+    desc: Run the GitOps full repository data-check template once without breaking locks
+    requires:
+      vars:
+        - name: CLUSTER
+          enum: [app-cluster, infra-cluster]
+    cmd: python3 '{{.ROOT_DIR}}/scripts/backup-policy.py' check-data '{{.CLUSTER}}'
+
+  recover:
+    desc: Recover an exact database snapshot and KEEP its verified isolated database for reviewed promotion
+    requires:
+      vars: [CLUSTER, APP, SNAPSHOT]
+    vars:
+      TARGET_CLUSTER: '{{.TARGET_CLUSTER | default .CLUSTER}}'
+    cmd: python3 '{{.ROOT_DIR}}/scripts/backup_apps.py' restore '{{.APP}}' --cluster '{{.CLUSTER}}' --snapshot '{{.SNAPSHOT}}' --target-cluster '{{.TARGET_CLUSTER}}' --keep-target
+
+  prove:
+    desc: Capture one real app and verify independent recovery onto fresh isolated storage
+    requires:
+      vars: [CLUSTER, APP]
+    cmd: python3 '{{.ROOT_DIR}}/scripts/backup_apps.py' prove '{{.APP}}' --cluster '{{.CLUSTER}}'
+
+  run:
+    desc: Capture one real app into its durable encrypted repository
+    requires:
+      vars: [CLUSTER, APP]
+    cmd: python3 '{{.ROOT_DIR}}/scripts/backup_apps.py' capture '{{.APP}}' --cluster '{{.CLUSTER}}'
+
+  restore:
+    desc: Drill an exact recovery point and erase only the newly created disposable target
+    requires:
+      vars: [CLUSTER, APP, SNAPSHOT]
+    vars:
+      TARGET_CLUSTER: '{{.TARGET_CLUSTER | default .CLUSTER}}'
+    cmd: python3 '{{.ROOT_DIR}}/scripts/backup_apps.py' restore '{{.APP}}' --cluster '{{.CLUSTER}}' --snapshot '{{.SNAPSHOT}}' --target-cluster '{{.TARGET_CLUSTER}}'
+
+  postgres-credentials-bootstrap:
+    desc: Provision and authenticate the marked read-only PostgreSQL backup login
+    requires:
+      vars:
+        - name: CLUSTER
+          enum: [app-cluster, infra-cluster]
+    cmd: python3 '{{.ROOT_DIR}}/scripts/bootstrap-postgres-backup.py' '{{.CLUSTER}}'
+
+  keys-bootstrap:
+    desc: Establish repository key in Doppler and independent macOS Keychain without rotation
+    requires:
+      vars: [CLUSTER, NAMESPACE, PROFILE]
+    cmd: python3 '{{.ROOT_DIR}}/scripts/backup-keys.py' bootstrap '{{.CLUSTER}}' '{{.NAMESPACE}}' '{{.PROFILE}}'
+
+  keys-verify:
+    desc: Compare repository key copies without printing credentials
+    requires:
+      vars: [CLUSTER, NAMESPACE, PROFILE]
+    cmd: python3 '{{.ROOT_DIR}}/scripts/backup-keys.py' verify '{{.CLUSTER}}' '{{.NAMESPACE}}' '{{.PROFILE}}'
+
+  pilot-postgres:
+    desc: Prove synthetic PostgreSQL K8up capture, independent import and failure rejection
+    requires:
+      vars:
+        - name: CLUSTER
+          enum: [app-cluster, infra-cluster]
+        - name: MAJOR
+          enum: ["14", "17"]
+    cmd: python3 '{{.ROOT_DIR}}/scripts/pilot-k8up-postgres.py' '{{.CLUSTER}}' --major '{{.MAJOR}}'
+
   pilot-files:
     desc: Test synthetic K8up file backup and cross-node restore without enrolling apps
     requires:

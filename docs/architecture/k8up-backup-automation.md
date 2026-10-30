@@ -1,16 +1,49 @@
 # Operator-driven application backups
 
-Status: **operator installed; application backup policies not enabled**. The [operator runbook](../operations/k8up.md) covers the GitOps Applications and reproducible bootstrap/status/verification Tasks. The NAS target and opt-in-only K8up controllers are running on both clusters. Source capture, restore adapters, policy schedules and the data-path acceptance pilot below remain implementation gates; existing target smoke tests are not application backups.
+Status: **real PostgreSQL recovery verified; database policy rollout awaits merge/Argo sync**. Both opt-in-only operators and the NAS target run on both clusters. Real Immich/LiteLLM captures restored onto fresh worker storage with matching extensions and authenticated application database roles. Synthetic file/PG14/PG17 failure boundaries, full repository checks and delivered missing-source/recovery alerts passed. The [runbook](../operations/k8up.md) records exact evidence and Tasks. DNS, cold-state, photos, platform recovery, offsite/immutable storage and an external dead-man receiver remain uncovered gates.
 
 ## Decision
 
-Adopt **K8up + Restic**, subject to the acceptance pilot below. Install one operator independently in each cluster through Argo, using the existing NAS NFS export as a filesystem repository backend. K8up owns discovery, backup scheduling, capture Jobs, repository checks, pruning and Snapshot/Restore resources. Git/Argo owns deployment definitions; secret-manager bootstrap and Talos/etcd recovery remain separate.
+Adopt **K8up + Restic**. One operator runs independently in each cluster through Argo, using the existing NAS NFS export as a filesystem repository backend. K8up owns discovery, backup scheduling, capture Jobs, metadata checks and Snapshot/Restore resources. Git/Argo owns deployment definitions; Tasks own guarded on-demand capture/recovery. Scheduled pruning is deliberately disabled until its separate retention/lock gate passes; secret-manager bootstrap and Talos/etcd recovery remain separate.
 
 The user-facing contract is: **enroll a supported app once in Git, then receive alerts only when protection needs attention**. Ordinary enrollment should require metadata and a known capture profile, not another handwritten CronJob. A genuinely new database/app format still needs a tested capture/restore adapter once; a label cannot infer how to make an arbitrary running database consistent.
 
-Installed baseline: upstream Helm chart **4.10.1** at commit `ff230b43ab8d73f3666219d748dea55bee036fdf`, operator/runner **v2.16.1** pinned to image index digest `sha256:f59bfa37c51511d5ad67e53816fb55c62d0e6411890e59bb6b965923129f30b5`, API `k8up.io/v1`. Chart and image versions are different numbers. Controller rollout/metrics and protected CRD lifecycle were verified on both clusters; backup/restore compatibility is still subject to the data-path pilot. Repeat that pilot on upgrades affecting selection, streaming or restore behavior. The upstream operator chart owns controllers/RBAC; an earlier-wave Kustomize source owns the nine protected CRDs.
+Installed baseline: upstream Helm chart **4.10.1** at commit `ff230b43ab8d73f3666219d748dea55bee036fdf`, operator/runner **v2.16.1** pinned to image index digest `sha256:f59bfa37c51511d5ad67e53816fb55c62d0e6411890e59bb6b965923129f30b5`, API `k8up.io/v1`. Chart and image versions differ. Controller/metrics/CRD lifecycle, multi-worker file capture and streamed PostgreSQL recovery were exercised on both clusters. Repeat the data-path pilots on upgrades affecting selection, streaming or restore. The upstream chart owns controllers/RBAC; an earlier-wave Kustomize source owns the nine protected CRDs.
 
 No S3 gateway is required: K8up's `backend.local.mountPath` can reference an NFS-mounted directory. This retains recovery access with ordinary Restic from a trusted host if Kubernetes/K8up is unavailable. Do not replace the existing target or migrate its retained volumes. Velero is not selected: its filesystem backup requires object storage and excludes hostPath volumes; its cluster-object recovery is less central when Argo already owns desired state.
+
+### Database-first delivery scope
+
+The approved first application-protection PR covers **Immich PostgreSQL and
+LiteLLM PostgreSQL only**. Native K8up Schedules capture validated logical bundles
+every six hours; namespace-scoped helpers inspect the exact ready source and use
+read-only PostgreSQL logins (`pg_read_all_data` and `pg_read_all_settings`).
+Bundles include source/image metadata, roles without password hashes, extensions,
+checksums and explicitly selected recovery Secrets inside Restic encryption.
+PostgreSQL recovery preserves the source bootstrap role: PostgreSQL 17's
+`GRANTED BY` membership semantics depend on its implicit ADMIN rights.
+
+Each repository receives weekly native metadata checks and a separate monthly
+full-data check because native K8up `Check` does not request `--read-data`.
+A namespace policy auditor compares every declared source with a fresh snapshot
+and a successful native Backup/Job window, reports missing/stale sources, failed
+operations and low NAS capacity, and delivers problems/recovery to the tested
+Slack route. A successful zero-source Job is not accepted as coverage.
+Checks and readers fail closed on repository locks; no automated force-unlock or
+destructive pruning is introduced. Repositories initially retain every snapshot.
+
+Assumptions: NAS `/24` access, UID `1004`, durable Doppler keys and independent
+macOS Keychain copies remain available. A workstation-loss recovery copy and an
+external dead-man receiver are still required: an in-cluster notifier cannot
+report its own complete cluster outage. No claim of offsite or immutable storage
+is made. Public restore access and production promotion remain disabled.
+
+DNS, stopped media/monitoring state, Immich originals/matched photo sets and
+platform recovery are explicitly **not covered by this first PR**. They follow
+separately after this database milestone. The agreed cold-state window starts
+03:00 UTC, but no stop/start automation is enabled before its watchdog proof.
+Rollback suspends the new schedules and auditors through Git, without deleting
+repositories, source claims or recovery keys.
 
 ## Responsibility boundaries
 
@@ -157,6 +190,68 @@ The pinned executor role includes `pods/exec` in namespaces where it is bound. T
 
 Native exports must fail if the producer fails or produces an invalid/incomplete archive. A negative test must demonstrate that a partially produced stream does not count as a valid recovery point. Any partial snapshot left in Restic after a producer failure stays unaccepted and excluded from the recovery catalog until separately verified. Prefer artifact validation before streaming where format validation requires reading the whole file, with private bounded staging and cleanup.
 
+### PostgreSQL implementation acceptance
+
+The next implementation uses `backups:pilot-postgres CLUSTER=... MAJOR=14|17`
+before enrolling either live database. It creates synthetic PostgreSQL sources
+and fresh cross-node recovery storage, never mounts production PGDATA, and uses
+the installed K8up operator with a unique disposable encrypted repository.
+PostgreSQL major versions match Immich (14) and LiteLLM (17). Required extension
+compatibility and real application/schema validation are additional enrollment
+checks, not something a plain synthetic PostgreSQL fixture can prove.
+
+The capture helper writes a custom-format archive to private temporary storage,
+validates the complete archive with `pg_restore` before emitting bytes, and fails
+on producer/validation errors. The pilot must also exercise a producer that exits
+nonzero after partial stdout: neither a successful Restic process nor a partial
+snapshot makes that capture accepted. Check exact app/policy selector isolation,
+stable source/host identities across runs and exclusion of raw database claims.
+
+The restore adapter accepts a full immutable snapshot ID and exact source path,
+uses Restic independently of the original Snapshot CRs, validates the retrieved
+archive, recreates required roles without copying password hashes into Git,
+imports into a new database with `ON_ERROR_STOP`/exit checks, and verifies rows,
+constraints, ownership, sequence continuation, non-ASCII values and binary data.
+Wrong paths/IDs/passwords and truncated archives must fail closed; no restore
+targets production or enables an app's outbound integrations.
+
+Routine repository keys are generated once per namespace/profile, never reused
+from probes or the NAS login. Bootstrap stores them in the existing Doppler
+config and an independently readable workstation password store before any
+production archive is written. macOS Keychain is the initial local escrow
+because it is already working while the 1Password CLI currently waits for local
+authentication. Record service/account identifiers, not secret values. Test
+retrieval and an independent restore; Keychain is not an offsite backup of the
+NAS or a substitute for documenting recovery from loss of the workstation.
+
+The existing `SLACK_WEBHOOK_MONITORING` secret is a candidate notification route;
+validate an actual test/failure delivery before enabling schedules. Pair in-cluster
+per-source age/coverage reporting with an independently running dead-man check,
+so cluster failure cannot produce silence. Do not claim a Slack secret exists
+in every namespace/config or that a successful Job is adequate source coverage.
+
+Rollback: delete only synthetic pilot resources/repositories, retain real
+repositories and their escrowed keys, and disable new enrollment/schedules in
+Git without changing existing databases, DNS ownership, physical Talos settings
+or global Argo reconciliation. NAS snapshot scheduling and the offsite copy remain
+separate unverified requirements until their own checks pass.
+
+Production PostgreSQL exports use a dedicated `k8up_backup` login with
+`pg_read_all_data` and database CONNECT, without superuser, role/database creation,
+replication or RLS-bypass privileges. A repeatable administrator bootstrap Task
+creates only its own marked role and a distinct Doppler password; existing
+application credentials are not rotated. Dumps fail rather than bypassing RLS
+or silently omitting protected data. Preserve role/extension metadata separately
+from the custom archive, and do not include password hashes in Git or logs.
+
+Pinned K8up names stdin files from namespace and **container name**, not helper
+Pod name. Each exporter therefore needs a unique, stable app/container identity,
+especially the two DNS exports sharing a policy. Successful PG14/PG17 pilots
+proved selector isolation, repeated stable source identity and independent
+import, including failed partial producers and invalid archives. Native failed
+Jobs retry until their bounded deadline; failure checks must allow controller
+startup/cleanup time as well as that deadline.
+
 ### HostPath and cold-copy state
 
 K8up does not discover arbitrary host directories from a PVC annotation. Keep Pulse `/var/pulse/data`, Kuma `/var/uptime-kuma/data` and AutoKuma `/var/autokuma/data` in coverage through explicit per-app adapters pinned to `infra-wk-01`, mounting only those paths. Do not introduce a privileged all-host filesystem scraper. Conversion to static retained local PV/PVC bindings at the same paths is a separate reviewed option, not an incidental storage migration or authorization to move data.
@@ -198,7 +293,7 @@ Two restore paths sit behind the same interface:
 1. **Filesystem snapshots:** a K8up Restore to a fresh retained claim, with explicit snapshot ID and source-path filters, repository mount/credentials and correct node/UID/GID; validate application state with matching images.
 2. **Streamed exports (`backupcommand`/`PreBackupPod`):** upstream's ordinary PVC Restore does **not** restore stdin snapshots. The restore adapter uses `restic dump` for the exact snapshot/file, validates the artifact, then invokes the matching PG/native import into a fresh isolated target. File-based successful extraction alone is not DB restore success. Handle required roles/extensions and prevent Argo/application initialization before import.
 
-A complete cluster loss uses the same repository with an independently escrowed key from a trusted recovery host: bootstrap storage/secrets/Argo/K8up from Git, or use Restic directly and import data without K8up. Persist an encrypted recovery catalog with repository paths, snapshots/set membership, image/schema/extension versions and source mappings outside the cluster. Do not rely solely on Snapshot CRs in the etcd being recovered. K8up's installed Restic version/repository format must also be pinned and recorded; compatibility with the earlier standalone Restic 0.19.1 target probes is not yet proven. Use new pilot repositories, not an unreviewed shared repository upgrade.
+A complete cluster loss uses the same repository with an independently escrowed key from a trusted recovery host: bootstrap prepared Kubernetes/storage from Git, then use the direct Restic import Task without the original K8up controller or Snapshot CRs. Source metadata and recovery Secrets are inside encrypted bundles; local metadata records and Git map repositories to apps. Direct Restic 0.19.1 full checks and imports of native K8up-created repositories passed on both clusters. Pin versions and repeat compatibility checks before upgrades; never silently upgrade shared repository format. Workstation-loss/offsite key and catalog escrow remains open.
 
 ## GitOps rollout and acceptance
 
@@ -241,7 +336,7 @@ Restoring the old selector also restores the worker-provisioning limitation.
 
 ## Evidence and references
 
-Verified design sources: official K8up 2.16 documentation and source at operator tag **v2.16.1** / chart **4.10.1**. Argo has installed the digest-pinned controllers on both clusters. Worker grouping, explicit opt-in/exclusion and cross-node file restore have now been exercised with disposable data; the runbook records per-cluster evidence. Both NAS access gates now pass after root-only squash and UID `1004` ownership correction. No production K8up backup/restore policy is enabled. Database/native-export recovery, failure boundaries, independent-key recovery and delivered alerts remain separate acceptance requirements.
+Verified sources: official K8up 2.16 documentation/source at operator **v2.16.1** and chart **4.10.1**. Both NAS access gates, multi-worker file pilots and synthetic PG14/PG17 pilots passed. Real Immich/LiteLLM encrypted bundles restored on fresh other-worker storage using independent Keychain keys; exact versions, app-role authentication and read-only state queries passed. Both actual policy renders passed server dry-run. Their real full-data Jobs and delivered missing-source/recovery Slack notifications passed. Production schedules still require merge/Argo sync and first scheduled-run verification; no DNS, cold-state or full-photo protection is implied.
 
 Local draft checks: Helm rendered chart 4.10.1 to operator image v2.16.1 with
 opt-in enabled and timezone UTC; that operator-only render contained no Backup,
@@ -264,19 +359,24 @@ is recorded in the runbook. Neither check replaces the application data-path pil
 
 ## Next actions
 
-Operator installation is complete; **application backup protection is not**.
-Use the [rollout acceptance criteria](#gitops-rollout-and-acceptance) to close
-the remaining gates, not operator health alone.
+Database capture/recovery and the first GitOps policies are verified, but the
+first scheduled runs require post-merge observation. The approved first PR
+excludes the remaining source classes below; do not mark whole-app protection
+complete from database or operator health.
 
 -   [x] Install independent, digest-pinned operators and protected CRDs through Argo on both clusters.
--   [x] Verify worker placement, opt-in discovery, UTC, live metrics and reproducible operator Tasks; confirm no production K8up schedules or operations were created.
+-   [x] Verify worker placement, opt-in discovery, UTC, metrics and operator Tasks; confirm no production enrollment during the initial operator-only rollout.
 -   [ ] Harden NAS writer/export permissions and snapshot protection; establish repository keys, independent escrow and namespace-local target claims.
-    -   [x] Verify `/24`, root-only squash, UID `1004` ownership and encrypted writer/denied-anonymous access gates on both clusters; NAS snapshot protection and key escrow remain open.
--   [ ] Pass the multi-worker storage/selection pilot, including missing sources, exclusions, zero matches and cross-policy isolation.
+    -   [x] Verify `/24`, root-only squash, UID `1004` ownership and encrypted writer/denied-anonymous gates on both clusters; establish/verify independent Keychain/Doppler copies for both database repositories. NAS snapshots/workstation-loss escrow remain open.
+-   [x] Pass both multi-worker storage/selection pilots, including exclusions, zero matches and cross-policy isolation.
     -   [x] Provide `backups:pilot-files` for two-node synthetic file capture, excluded-PVC verification and exact-snapshot cross-node restore with SHA-256 comparison and disposable-resource cleanup.
 -   [ ] Pass file, streamed-database and native-export restores to fresh isolated targets, including failed/partial captures, wrong snapshot/path rejection and independent-key recovery.
+    -   [x] Prove synthetic PG14/PG17 failed/partial producers, corrupt archives, exact snapshot/path/key rejection and independent recovery; restore both real databases onto fresh worker storage.
 -   [ ] Deliver failure, stale-source and external dead-man alerts before relying on unattended protection.
+    -   [x] Deliver real missing-source and healthy recovery messages for both namespaces; implement capture/check failure, age and capacity checks. External dead-man delivery remains open.
 -   [ ] Enroll critical DB/DNS sources only after their real capture/restore checks pass; then enable their six-hour policies.
+    -   [x] Implement database-only capture/recovery Tasks and GitOps six-hour/check/audit policies after real restores.
+    -   [ ] Merge/sync and observe the first scheduled database runs; implement per-instance DNS protection separately.
 -   [ ] Prove scoped GitOps quiesce/restart and independent watchdog recovery before enabling cold-copy policies for remaining app/hostPath state.
 -   [ ] Validate matched Immich database/original-photo recovery sets and measure capacity and recovery time before enabling the photo policy.
 -   [ ] Pass retention dry-runs and repository-lock safety checks before scheduled pruning; enable recurring integrity checks and isolated restore drills.

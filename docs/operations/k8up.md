@@ -1,26 +1,26 @@
-# K8up operator operations
+# K8up backup and recovery operations
 
 ## Scope
 
-Install independent K8up operators in `backups` on both clusters through Argo. This is the operator-only rollout from the [automation design](../architecture/k8up-backup-automation.md), not production backup enrollment. The NAS target is already deployed; no existing PVC, hostPath state, app credentials or physical Talos configuration is moved or changed. No Backup, Schedule, Restore or prune policy is created by this installation. Existing native Immich database dumps are unchanged.
+Independent K8up operators run in `backups` on both clusters through Argo. The database-first policy adds six-hour logical backups for **Immich PostgreSQL and LiteLLM PostgreSQL**, weekly metadata checks, monthly full-data checks and 15-minute coverage/Slack audits. The policies require PR merge/Argo sync and first scheduled-run verification; real on-demand captures and isolated database restores already passed. No existing source claim, hostPath, app credential or physical Talos configuration is moved or stopped. Native Immich dumps remain unchanged.
 
-K8up has no bundled backup web UI. Do not create a misleading `backup.krapulax.home` HTTPRoute to its metrics endpoint. Use the existing Argo UI to inspect its Applications/resources, and the Task entry points below for operator verification. App-aware snapshot browsing/import/restore Tasks remain a separate implementation gate; installing the operator does not supply a restore portal or make applications protected.
+K8up has no bundled backup web UI. Use Argo to inspect Applications/resources and the Tasks below for capture, audit and isolated recovery. There is no public restore endpoint. Database recovery does not include Immich photos, DNS, media/monitoring configs, platform state or an offsite copy.
 
 ## GitOps and repeatability
 
-Each cluster's `storage/k8up` Application renders the pinned upstream chart plus its own CRD source. CRDs are applied in an earlier sync wave and carry `Prune=false,Delete=false`; Helm CRD rendering is disabled to avoid duplicate ownership. The existing NAS Application owns the `backups` Namespace. `CreateNamespace=true` supports bootstrap before that Application reconciles, without adding a second Namespace manifest.
+Each cluster's `storage/k8up` Application renders the pinned upstream chart, protected CRDs and its namespace policy resources (`config/media` or `config/ai`). CRDs have an earlier sync wave and `Prune=false,Delete=false`; Helm CRD rendering is disabled. The NAS Application owns `backups`; existing app owners retain their namespaces. Namespace-local NFS target claims/PVs use Retain and are protected from Argo prune/delete.
 
 `task backups:operator-bootstrap CLUSTER=app-cluster` and `CLUSTER=infra-cluster` register the Applications with the existing Argo hub. Argo, not this task, installs workload resources into each destination cluster. Default source revision is `main`. For pre-merge verification only, `REVISION=refactor` bootstraps from the reviewed branch; after merge the parent app-of-apps adopts the same Application names and restores the checked-in `main` revision. The branch must be pushed before invoking that override. This override must never silently change the pinned upstream chart version.
 
-`task backups:operator-status CLUSTER=...` reports Argo status, Deployment and pods. `task backups:operator-verify CLUSTER=...` waits for CRDs and rollout, verifies opt-in/UTC/image configuration, exercises the controller metrics endpoint through the Kubernetes API, and checks that no backup Schedule was accidentally created. The current deployment intentionally has zero enrolled applications. Commands always require an explicit cluster; the hub and target kubeconfigs are never interchangeable.
+`task backups:operator-status CLUSTER=...` reports Argo and runtime state. `operator-verify` checks CRDs, rollout, opt-in/UTC/image and metrics; use `EXPECT_IDLE=true` only for an operator-only bootstrap, not after enrolling policies. All commands require an explicit destination cluster; hub and target kubeconfigs are not interchangeable.
 
 ## Security and rollback
 
-The chart's trusted manager can create workloads and namespace runner bindings. Its executor role permits pod exec within namespaces where it is bound; it is not an unprivileged file copier. Keep these roles under GitOps review, use separate installations/credentials per cluster, and do not add cluster-admin. No public ingress, ServiceMonitor, PrometheusRule or new secret-manager integration is enabled by the operator-only installation.
+The trusted K8up manager creates namespace executor bindings and Jobs. Capture inspectors can only get/list Pods in their namespace; audit accounts can only list Backups, Snapshots, Checks and Jobs there. Helpers run as UID `1004` without privileges/capabilities, with scoped projected tokens, private memory staging and explicit Secret mounts. Do not grant cluster-admin to backup Pods. Recovery creates a fresh default-deny namespace and makes no public Service/ingress.
 
-The operator's image and backup-runner image must be digest-pinned. Opt-in is enforced globally, timezone is UTC, resource requests/limits are explicit, and the operator is placed on a worker. No global source-runner nodeSelector is set: future RWO backup Jobs must follow source volume placement. NAS write-access verification now passes; production enrollment remains blocked on the remaining storage/selection/restore/failure pilot, repository-key escrow and alert delivery described in the design.
+Operator/runner and helper images are digest-pinned. Opt-in remains global; raw PGDATA and shared media are not enrolled. DB exporters use read-only marked PostgreSQL logins with `pg_read_all_data` and `pg_read_all_settings`. Actual application database passwords are not rotated. Logical bundles include explicit recovery Secrets inside Restic encryption, not the repository password.
 
-Rollback: stop any future schedules and finish/abort restores safely before removing the operator. Preserve CRDs, NAS repositories, Snapshot metadata and keys; never uninstall CRDs to undo this rollout. There are no production K8up policies to suspend in this operator-only phase. Do not remove namespace or source data. Revert the Application/values commit and reconcile the reviewed prior configuration if the operator image/config must be rolled back.
+Rollback: remove the new K8up Schedule manifests through Git and set the two maintenance/audit CronJobs to `suspend: true`; allow active Jobs to finish or review them before terminating. K8up Schedule has no `spec.suspend` field. Preserve operators/CRDs, target/source claims, NAS repositories and keys. Never uninstall CRDs, expire snapshots or erase data as rollback.
 
 The pinned chart includes a Helm lifecycle cleanup hook for legacy K8up RBAC:
 `pod-executor-namespaced` RoleBindings and `pod-executor` Roles across namespaces.
@@ -30,7 +30,7 @@ its temporary account/RBAC/Job have explicit worker placement and resources.
 Review this hook and any same-named RBAC before future upgrades, rather than
 assuming every upstream hook is harmless.
 
-## Verified rollout
+## Verified operator-only rollout (historical)
 
 Argo bootstrapped `k8up-app` and `k8up-infra` from `refactor` for pre-merge
 verification. Both target clusters established the nine protected K8up CRDs,
@@ -133,16 +133,6 @@ repositories need separate durable keys. Even after this gate passes, numeric
 NFS identities are not strong authentication against a privileged allowed
 client; export/network trust and NAS-managed snapshots remain important.
 
-The updated non-root smoke test passed on both clusters: encrypted Restic backup,
-full data verification, incorrect-password rejection and byte-identical restore
-all succeeded as UID `1004` / GID `65534`. The full access gate then correctly
-failed on both clusters because unrelated UID `65534` could write at both paths.
-Controlled emptyDir checks also proved that genuine permission denial passes the
-guard, while a read-only-filesystem error does not falsely count as access control.
-All disposable repositories, permission probes and diagnostic Jobs from these
-checks were removed after inspection. No production data or repository keys were
-written, and no production K8up source/policy was enabled while this NAS gate remained open.
-
 ## Disposable file data-path pilot
 
 `task backups:pilot-files CLUSTER=...` is a synthetic-only test, not production
@@ -177,14 +167,12 @@ even though NAS write isolation now passes.
     sources backed up as UID `1004`, excluded claim absent from snapshot paths,
     exact source-b snapshot/path restored to a fresh claim on `k8s-wrkr-02`,
     SHA-256 matched. The finalized pinned-image/cleanup path passed too.
--   Infra-cluster failed **before K8up capture**: provisioning source-b on
-    `infra-wk-01` timed out because the local-path helper's explicit hostname
-    selector required `infra-cp-01`. Helper events reported `NodeAffinity`.
-    The PR removes only that helper selector. A disposable helper rendered without
-    the conflicting selector ran successfully on `infra-wk-01`; provisioner
-    Deployment placement remains `infra-cp-01`. The live ConfigMap was not patched.
-    After merge/Argo reconciliation, rerun `task backups:pilot-files CLUSTER=infra-cluster`;
-    the full infra backup/restore pilot is **not yet passed**.
+-   Infra-cluster now passes after merged PR #453 and Argo reconciliation:
+    source claims on `infra-cp-01` / `infra-wk-01` provisioned, both selected
+    sources were captured, the excluded claim was absent, and an exact snapshot
+    restored onto fresh storage on the other worker with matching SHA-256.
+    Only the helper's contradictory hostname selector changed; provisioner
+    Deployment placement and physical node/storage configuration did not.
 -   Both completed and failed pilot namespaces, temporary Secrets, repositories,
     bound-claim files/PV objects and the separate scheduling-smoke pod were removed.
     The Retain caveat above applies to empty backing directories.
@@ -192,3 +180,180 @@ even though NAS write isolation now passes.
 The infra repair is a Kubernetes helper-placement correction, not a physical
 node/storage migration. Its design, validation and rollback are recorded in the
 [architecture plan](../architecture/k8up-backup-automation.md#infra-local-path-helper-scheduling-repair).
+
+## Repository key bootstrap
+
+`task backups:keys-bootstrap CLUSTER=... NAMESPACE=... PROFILE=...` establishes
+one durable random repository password in Doppler and the workstation's default
+macOS Keychain. This does not enroll an app, initialize a repository or enable a
+Schedule. `backups:keys-verify` compares both copies without printing them.
+Run bootstrap from one administrator workstation at a time; a local lock guards
+concurrent invocations here, not changes made by other workstations/admins.
+
+Identifiers are deterministic: Doppler project `home-dc-kubernetes`, config
+`apps` or `infra`, secret `K8UP_<NAMESPACE>_<PROFILE>_PASSWORD` (uppercase,
+hyphens converted to underscores); Keychain service
+`home-dc.backups.<cluster>.<namespace>.<profile>`, account `restic`.
+An existing key is reused, never silently rotated. Conflicting copies abort.
+If only escrow remains, bootstrap restores the same key to Doppler; if only
+Doppler remains, bootstrap escrows that same key before reporting success.
+If both key stores are missing, bootstrap first runs a UID `1004`, read-only
+NAS probe and refuses any nonempty/unreadable repository. Never generate a
+replacement password for existing encrypted archives. Empty-target acceptance
+and rejection of the real populated infra repository were exercised.
+No key is printed, passed as a command argument, or written into a local file.
+
+Recovery can retrieve the Keychain item without either Kubernetes cluster or
+its Doppler operator. Keep the service/account names in the recovery record.
+This local escrow is not proof of recovery after losing the workstation;
+1Password/offsite escrow remains a separate improvement. Do not delete or rotate
+old keys while their repositories or retained snapshots still exist.
+
+## Database policy operations
+
+### Bootstrap and rollout
+
+Prerequisites: working destination kubeconfigs, authenticated Doppler CLI,
+administrator macOS Keychain and the verified UID `1004` NAS target. Commands
+do not print keys. Repeat the NAS access gates before rebuilding protection.
+
+```sh
+task backups:keys-bootstrap CLUSTER=app-cluster NAMESPACE=media PROFILE=critical-6h
+task backups:keys-bootstrap CLUSTER=infra-cluster NAMESPACE=ai PROFILE=critical-6h
+task backups:postgres-credentials-bootstrap CLUSTER=app-cluster
+task backups:postgres-credentials-bootstrap CLUSTER=infra-cluster
+task backups:alerts-bootstrap
+task backups:policy-verify CLUSTER=app-cluster
+task backups:policy-verify CLUSTER=infra-cluster
+```
+
+Bootstrap reuses existing marked accounts/keys, refuses mismatched ownership or
+key copies, and never rotates the real app login. `alerts-bootstrap` copies the
+existing app monitoring Slack webhook to infra only if absent; a different
+existing infra route is not overwritten. Doppler owns `k8up-source-credentials`
+in `media`/`ai`; only its selected repository/source password and Slack keys
+are reconciled.
+
+Merge the reviewed PR and let `k8up-app` / `k8up-infra` sync from `main`.
+No manual `kubectl apply` is needed. Confirm the target claims are Bound, each
+namespace's `critical-6h` Schedule exists, and its first scheduled Backup and
+owned Job succeed with a fresh exact-path Snapshot. Run `backups:audit` on each
+cluster afterward; a schema dry-run alone is not rollout proof.
+
+| Policy                          | app-cluster `media` (UTC)  | infra-cluster `ai` (UTC)   |
+| ------------------------------- | -------------------------- | -------------------------- |
+| Logical database capture        | 00:20, 06:20, 12:20, 18:20 | 00:35, 06:35, 12:35, 18:35 |
+| Metadata check                  | Sunday 02:20               | Sunday 02:35               |
+| Full `check --read-data`        | First of month 05:10       | First of month 05:25       |
+| Coverage/capacity/failure audit | Every 15 minutes           | Every 15 minutes           |
+
+Audits require each declared app's exact artifact path and full snapshot ID
+inside a successful selected Backup/owned-Job window. They use Backup creation
+as a conservative capture-age bound, not upload time; warn beyond eight hours,
+on a newer failed capture/check, overdue checks or NAS filesystem free space
+below 20%. Failed producers may leave a snapshot: that alone is never accepted.
+Matching failures notify once, then daily; changed problems and recovery notify
+immediately. Nonsecret suppression state lives beside, not inside, each Restic
+repository. Native weekly checks do not perform full data reads.
+
+`policy-smoke` injects a temporary expected-but-missing source, requires a real
+failed audit and delivered Slack acknowledgement, then restores the real
+inventory and requires a healthy audit/recovery notification. It installs no
+Schedule. `check-data` runs the actual GitOps full-check template once; its
+completed/failed Job remains for audit evidence with a 36-day TTL. No command
+automatically breaks locks or prunes archives. All snapshots are retained until
+the separately reviewed retention gate passes.
+
+### Capture, drill and recover
+
+```sh
+task backups:run CLUSTER=app-cluster APP=immich-db
+task backups:prove CLUSTER=infra-cluster APP=litellm-db
+task backups:audit CLUSTER=app-cluster
+task backups:check-data CLUSTER=infra-cluster
+task backups:restore CLUSTER=app-cluster APP=immich-db SNAPSHOT=<full-64-character-id>
+task backups:recover CLUSTER=infra-cluster APP=litellm-db SNAPSHOT=<full-64-character-id>
+```
+
+`run` records a capture; `prove` captures and performs a disposable recovery.
+**`restore` is a drill: it verifies then erases only its newly created target.**
+**`recover` keeps the verified database Pod/PVC, its database-password Secret and
+the explicitly archived application Secrets in the printed isolated namespace**
+for an explicitly reviewed cutover, including LiteLLM's original salt/key inputs.
+The temporary repository reader/key are removed before a retained recovery is
+reported. Neither command overwrites production or starts app integrations.
+`TARGET_CLUSTER=...` can use the other prepared cluster; repository identity
+still refers to the original source. Review capacity/image support first.
+
+Recovery uses the independently escrowed Keychain key, immutable snapshot ID and
+source-recorded image digest, not the source Secret operator or Snapshot CR.
+It fully checks repository data, verifies byte count/SHA-256 and every archive
+member checksum, imports globals/data with ownership/extensions, authenticates
+the app's recovered database role, then runs read-only application queries.
+PostgreSQL 17 requires the original bootstrap role for `GRANTED BY`; recovery
+preserves it and removes only its already-created `CREATE ROLE` statement.
+Custom tablespaces are rejected pending an explicit storage mapping.
+
+The decrypted transport is loopback-only via authenticated Kubernetes
+port-forward; staging is memory-backed. Metadata-only local records live in
+ignored `.private/backup-captures` and `.private/backup-restores`. Private failed
+command diagnostics are mode `0600`; do not paste their contents unredacted.
+Capture format 2 records the bootstrap role; earlier experimental format-1
+snapshots require manual role reconciliation rather than a silent fallback.
+
+For a retained recovery, leave the default-deny policy in place. Review exact
+images, source/target volume paths, app Secrets and Argo ownership before
+promotion; no automatic production cutover is authorized. After a drill,
+Retain may leave empty worker directories, not source data deletions.
+Recovery database files run as UID `1004`. Do not simply rebind this cross-namespace
+PVC to a normal app Deployment with a different UID; plan a logical transfer or
+reviewed ownership/path migration with Argo before production promotion.
+
+### Exercised application evidence — 2026-10-30
+
+Real encrypted NAS snapshots:
+
+-   Immich: `0c1d9d533a525491367b8f84fc4500512f8d94841669a0c31088931df4972806`,
+    `/media-immich-db.tar`; recovered 1 user / 3,518 assets, extension versions
+    matched, original database credential authenticated.
+-   LiteLLM: `a596827eb4e22ccf13367bded874483fa263c10980ef1e32768d21e03575b8b3`,
+    `/ai-litellm-db.tar`; recovered 83 application tables, 1 user, 11 virtual keys
+    and 1 config entry, matching read-only source queries. Extensions matched
+    and the actual application database credential authenticated.
+
+Both restored to fresh local storage on the other worker; production apps were
+not stopped. Both actual policy renders passed server-side dry-run; both
+full-data template Jobs reported `no errors were found`. Both missing-source
+and healthy recovery messages were acknowledged by Slack. Synthetic PG14/PG17
+pilots also passed partial/nonzero-producer rejection, invalid archive,
+wrong-key/path/snapshot rejection and independent-key import after deleting
+original Snapshot CRs/Secret.
+The retained-recovery path also passed: the database passed state queries and
+every required application Secret's bytes matched the source; the temporary
+repository reader/key were absent. An outbound API connection timed out under
+the default-deny policy. The test namespace was then explicitly cleaned.
+
+LiteLLM's current `LITELLM_USERDB_USER` does not exist in its live database.
+The app actually connects as `LITELLM_POSTGRES_USER`; that principal is tested.
+The source owner role is preserved, and all selected Secret keys are archived,
+but recovery does not invent a new unused user. Reconcile initialization-only
+credential drift separately; no source account was changed to hide it.
+
+One verified orphan lock from a failed pilot capture was removed manually after
+confirming its exact owner Pod was absent and no repository operation remained
+active. No automation uses force-unlock. Live locks require investigation, not
+blind removal.
+
+### Remaining assurance limits
+
+This is **database protection**, not a completed whole-homelab backup.
+Immich originals/matched recovery sets, DNS, media/monitoring state, Talos/etcd,
+retired archives and offsite replication remain separate work. No restored
+Immich frontend/photo retrieval or LiteLLM upstream request was exercised.
+Repeat database recovery monthly and before major schema/image changes;
+these application drills are explicit Tasks, not a scheduled restore service.
+
+Slack audits need their cluster, DNS/egress and NAS mount to function. An
+external dead-man receiver must independently detect loss of those components.
+Workstation-loss key escrow and NAS snapshot/immutability protection still need
+verification; neither same-NAS storage nor a local Keychain is an offsite copy.
