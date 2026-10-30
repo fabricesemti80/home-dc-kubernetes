@@ -93,7 +93,8 @@ def client(cluster):
                 method="POST",
             )
             try:
-                with opener.open(request, timeout=60) as response:
+                timeout = 14400 if method in {"Backup", "Restore", "DoRepoTask"} else 60
+                with opener.open(request, timeout=timeout) as response:
                     return json.load(response)
             except (urllib.error.URLError, ValueError):
                 raise RuntimeError(
@@ -159,7 +160,7 @@ def main():
     with client(args.cluster) as (call, resources):
         if args.action == "run":
             call("Backup", {"value": args.plan})
-            print(json.dumps({"plan": args.plan, "queued": True, "completed": False}))
+            print(json.dumps({"plan": args.plan, "backup_completed": True}))
         elif args.action == "check":
             print(
                 json.dumps(call("DoRepoTask", {"repoId": "nas", "task": "TASK_CHECK"}))
@@ -196,7 +197,7 @@ def main():
                     "--",
                     "sh",
                     "-ec",
-                    'umask 077; test ! -e "$1"; mkdir -p "$1"',
+                    'umask 077; test ! -e "$1"; mkdir -p "$(dirname "$1")"',
                     "--",
                     target,
                 ],
@@ -215,7 +216,12 @@ def main():
             )
             print(
                 json.dumps(
-                    {"queued": True, "completed": False, "target": target, **result}
+                    {
+                        "queued": True,
+                        "completion_verified": False,
+                        "target": target,
+                        **result,
+                    }
                 )
             )
         elif args.action == "recovery-gate":
@@ -229,7 +235,9 @@ def main():
                 )
             )
         else:
-            operations = call("GetOperations", {"lastN": 20}).get("operations", [])
+            operations = call("GetOperations", {"selector": {}, "lastN": 20}).get(
+                "operations", []
+            )
             print(
                 json.dumps(
                     [

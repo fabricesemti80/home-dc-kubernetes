@@ -1,9 +1,6 @@
 ---
 version: '3'
 
-vars:
-  TARGET_KUBECONFIG: '{{if eq .CLUSTER "infra-cluster"}}{{.ROOT_DIR}}/.private/infra-cluster/kubeconfig{{else}}{{.ROOT_DIR}}/kubeconfig{{end}}'
-
 tasks:
   credentials:
     desc: Verify Backrest credentials and independent key escrow, then provision the read-only DB login
@@ -33,8 +30,10 @@ tasks:
     desc: Show actual Backrest operations; queued is not completed
     requires:
       vars: [CLUSTER]
+    vars:
+      TARGET_KUBECONFIG: '{{if eq .CLUSTER "infra-cluster"}}{{.ROOT_DIR}}/.private/infra-cluster/kubeconfig{{else}}{{.ROOT_DIR}}/kubeconfig{{end}}'
     cmds:
-      - kubectl --kubeconfig '{{.TARGET_KUBECONFIG}}' -n backups get deployment/backrest,pvc/backrest,pvc/k8s-backup
+      - kubectl --kubeconfig '{{.TARGET_KUBECONFIG}}' -n backups get deployment/backrest pvc/backrest pvc/k8s-backup
       - python3 '{{.ROOT_DIR}}/scripts/backrest.py' status '{{.CLUSTER}}'
 
   export:
@@ -47,12 +46,13 @@ tasks:
           enum: [immich-db, litellm-db]
     vars:
       JOB: 'backrest-export-manual-{{now | date "20060102150405"}}'
+      TARGET_KUBECONFIG: '{{if eq .CLUSTER "infra-cluster"}}{{.ROOT_DIR}}/.private/infra-cluster/kubeconfig{{else}}{{.ROOT_DIR}}/kubeconfig{{end}}'
     cmds:
       - kubectl --kubeconfig '{{.TARGET_KUBECONFIG}}' -n backups create job '{{.JOB}}' --from=cronjob/backrest-export-{{.APP}}
       - kubectl --kubeconfig '{{.TARGET_KUBECONFIG}}' -n backups wait --for=condition=Complete job/{{.JOB}} --timeout=1000s
 
   run:
-    desc: Queue a native Backrest plan; inspect completion in status or the UI
+    desc: Run a native Backrest plan and wait for its backup operation
     requires:
       vars: [CLUSTER, PLAN]
     cmd: python3 '{{.ROOT_DIR}}/scripts/backrest.py' run '{{.CLUSTER}}' --plan '{{.PLAN}}'
@@ -79,6 +79,8 @@ tasks:
     desc: Open a private loopback tunnel to the authenticated Backrest UI
     requires:
       vars: [CLUSTER]
+    vars:
+      TARGET_KUBECONFIG: '{{if eq .CLUSTER "infra-cluster"}}{{.ROOT_DIR}}/.private/infra-cluster/kubeconfig{{else}}{{.ROOT_DIR}}/kubeconfig{{end}}'
     cmd: kubectl --kubeconfig '{{.TARGET_KUBECONFIG}}' -n backups port-forward deployment/backrest 9898:9898 --address=127.0.0.1
 
   retire-k8up:

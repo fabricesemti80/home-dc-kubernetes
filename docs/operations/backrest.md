@@ -52,8 +52,13 @@ task backups:run CLUSTER=infra-cluster PLAN=litellm-db
 task backups:run CLUSTER=infra-cluster PLAN=backrest-config
 ```
 
-`run`, `check` and `restore` **queue** native Backrest operations; their return is
-not completion. Inspect operation status in the UI or `backups:status`. Missing
+`run` waits for native backup execution; large photo backups can take hours.
+`check` and `restore` queue operations: inspect their completion in the UI or
+`backups:status`. The CLI allows up to four hours for mutating native calls.
+Task cluster-dependent kubeconfig variables are scoped to each task so the
+infra commands cannot inherit the app-cluster kubeconfig during include loading.
+Restore creates only the target's parent: Backrest requires the final directory
+to be absent and refuses an existing destination. Missing
 or older-than-eight-hour DB archives fail the start hook, rather than refreshing
 an old artifact and claiming a new database capture. Native exporter failures
 leave the previous archive unchanged. Staging is private local storage, not
