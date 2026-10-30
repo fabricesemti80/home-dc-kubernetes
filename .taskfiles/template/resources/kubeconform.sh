@@ -13,11 +13,38 @@ kustomize_args=(
   "--enable-exec"
 )
 kustomize_config="kustomization.yaml"
+# Derive K8up schemas from the exact immutable CRDs deployed by GitOps.
+# The moving public catalog predates fields such as backup.labelSelectors.
+schema_dir=$(mktemp -d)
+trap 'rm -rf "$schema_dir"' EXIT
+kustomize build "${KUBERNETES_DIR}/components/k8up-crds" |
+  yq -o=json -I=0 '.' >"${schema_dir}/crds.jsonl"
+while IFS= read -r crd; do
+  group=$(jq -r '.spec.group' <<<"${crd}")
+  kind=$(jq -r '.spec.names.kind | ascii_downcase' <<<"${crd}")
+  mkdir -p "${schema_dir}/${group}"
+  while IFS= read -r version; do
+    jq --arg version "${version}" '
+      .spec.versions[] | select(.name == $version) | .schema.openAPIV3Schema
+      | walk(
+          if type == "object" and has("properties")
+             and (has("additionalProperties") | not)
+             and .["x-kubernetes-preserve-unknown-fields"] != true
+          then .additionalProperties = false
+          else .
+          end
+        )
+    ' <<<"${crd}" >"${schema_dir}/${group}/${kind}_${version}.json"
+  done < <(jq -r '.spec.versions[] | select(.served) | .name' <<<"${crd}")
+done <"${schema_dir}/crds.jsonl"
+
 kubeconform_args=(
   "-strict"
   "-ignore-missing-schemas"
   "-skip"
   "Gateway,HTTPRoute,Secret"
+  "-schema-location"
+  "${schema_dir}/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json"
   "-schema-location"
   "https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json"
   "-schema-location"
