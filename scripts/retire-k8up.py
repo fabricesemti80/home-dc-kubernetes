@@ -71,6 +71,14 @@ def retire(cluster):
             raise RuntimeError(
                 "Unexpected/cascading Argo finalizers; none were stripped"
             )
+        # The legacy path is gone from main; its native post-delete hooks still
+        # need a resolvable source while retiring the registration.
+        for source in app["spec"]["sources"]:
+            if (
+                source.get("repoURL")
+                == "https://github.com/fabricesemti80/home-dc-kubernetes.git"
+            ):
+                source["targetRevision"] = ARCHIVE
         run(
             hub
             + [
@@ -79,7 +87,14 @@ def retire(cluster):
                 "k8up-" + suffix,
                 "--type=merge",
                 "-p",
-                '{"spec":{"syncPolicy":{"automated":null}}}',
+                json.dumps(
+                    {
+                        "spec": {
+                            "syncPolicy": {"automated": None},
+                            "sources": app["spec"]["sources"],
+                        }
+                    }
+                ),
             ]
         )
     present = (
