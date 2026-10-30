@@ -238,3 +238,21 @@ is recorded in the runbook. Neither check replaces the application data-path pil
 -   [Pinned policy/pod selection and namespace executor binding](https://github.com/k8up-io/k8up/blob/v2.16.1/operator/backupcontroller/backup_utils.go)
 -   [Pinned stream failure and command logging](https://github.com/k8up-io/k8up/blob/v2.16.1/restic/kubernetes/pod_exec.go)
 -   [Velero filesystem backend and hostPath limitations](https://velero.io/docs/v1.18/file-system-backup/)
+
+## Next actions
+
+Operator installation is complete; **application backup protection is not**.
+Use the [rollout acceptance criteria](#gitops-rollout-and-acceptance) to close
+the remaining gates, not operator health alone.
+
+-   [x] Install independent, digest-pinned operators and protected CRDs through Argo on both clusters.
+-   [x] Verify worker placement, opt-in discovery, UTC, live metrics and reproducible operator Tasks; confirm no production K8up schedules or operations were created.
+-   [ ] Harden NAS writer/export permissions and snapshot protection; establish repository keys, independent escrow and namespace-local target claims.
+-   [ ] Pass the multi-worker storage/selection pilot, including missing sources, exclusions, zero matches and cross-policy isolation.
+-   [ ] Pass file, streamed-database and native-export restores to fresh isolated targets, including failed/partial captures, wrong snapshot/path rejection and independent-key recovery.
+-   [ ] Deliver failure, stale-source and external dead-man alerts before relying on unattended protection.
+-   [ ] Enroll critical DB/DNS sources only after their real capture/restore checks pass; then enable their six-hour policies.
+-   [ ] Prove scoped GitOps quiesce/restart and independent watchdog recovery before enabling cold-copy policies for remaining app/hostPath state.
+-   [ ] Validate matched Immich database/original-photo recovery sets and measure capacity and recovery time before enabling the photo policy.
+-   [ ] Pass retention dry-runs and repository-lock safety checks before scheduled pruning; enable recurring integrity checks and isolated restore drills.
+-   [ ] Add and restore-test an independent offsite copy; do not count same-NAS repositories or snapshots as completion of that requirement.
