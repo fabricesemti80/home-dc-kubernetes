@@ -77,6 +77,11 @@ This repository is the main deployment home for the Talos clusters, Kubernetes r
 
 **TARGET STATE**: App-cluster media app config/state PVCs use `local-path` (`ReadWriteOnce`, `Retain`). Apps that consume shared media or downloads also mount `media-library-pvc` (NFS). The separate physical infra-cluster's storage is unchanged.
 
+### Backup Enrollment
+
+-   Apps with config/state on a local volume are **protected by default**: add an entry to `kubernetes/apps/<cluster>/storage/app-protect/values.yaml` plus an `app-<name>` plan in the cluster's `backrest/config/config.json`. See `docs/operations/backrest.md#protecting-and-opting-out-apps`.
+-   Apps that do not need backup (test/throwaway, caches, stateless, Git-reconstructable) are opted out explicitly with `protect: false` on their `app-protect` entry and no Backrest plan. Never leave a stateful app unlisted.
+
 ## Definition of done (for infra tasks)
 
 -   Architecture or design doc updated.

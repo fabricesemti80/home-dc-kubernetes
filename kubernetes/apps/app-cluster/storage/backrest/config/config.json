@@ -84,6 +84,206 @@
           "monthly": 12
         }
       }
+    },
+    {
+      "id": "app-sonarr",
+      "repo": "nas",
+      "paths": ["/backups/app-cluster/exports/sonarr/current"],
+      "schedule": {
+        "cron": "30 2 * * *",
+        "clock": "CLOCK_UTC"
+      },
+      "retention": {
+        "policyTimeBucketed": {
+          "daily": 14,
+          "weekly": 8,
+          "monthly": 6
+        }
+      },
+      "hooks": [
+        {
+          "conditions": ["CONDITION_SNAPSHOT_START"],
+          "onError": "ON_ERROR_FATAL",
+          "actionCommand": {
+            "command": "test -f /backups/app-cluster/exports/sonarr/current/.captured-at && test -n \"$(find /backups/app-cluster/exports/sonarr/current/.captured-at -mmin -1560 -print)\""
+          }
+        }
+      ]
+    },
+    {
+      "id": "app-radarr",
+      "repo": "nas",
+      "paths": ["/backups/app-cluster/exports/radarr/current"],
+      "schedule": {
+        "cron": "35 2 * * *",
+        "clock": "CLOCK_UTC"
+      },
+      "retention": {
+        "policyTimeBucketed": {
+          "daily": 14,
+          "weekly": 8,
+          "monthly": 6
+        }
+      },
+      "hooks": [
+        {
+          "conditions": ["CONDITION_SNAPSHOT_START"],
+          "onError": "ON_ERROR_FATAL",
+          "actionCommand": {
+            "command": "test -f /backups/app-cluster/exports/radarr/current/.captured-at && test -n \"$(find /backups/app-cluster/exports/radarr/current/.captured-at -mmin -1560 -print)\""
+          }
+        }
+      ]
+    },
+    {
+      "id": "app-prowlarr",
+      "repo": "nas",
+      "paths": ["/backups/app-cluster/exports/prowlarr/current"],
+      "schedule": {
+        "cron": "40 2 * * *",
+        "clock": "CLOCK_UTC"
+      },
+      "retention": {
+        "policyTimeBucketed": {
+          "daily": 14,
+          "weekly": 8,
+          "monthly": 6
+        }
+      },
+      "hooks": [
+        {
+          "conditions": ["CONDITION_SNAPSHOT_START"],
+          "onError": "ON_ERROR_FATAL",
+          "actionCommand": {
+            "command": "test -f /backups/app-cluster/exports/prowlarr/current/.captured-at && test -n \"$(find /backups/app-cluster/exports/prowlarr/current/.captured-at -mmin -1560 -print)\""
+          }
+        }
+      ]
+    },
+    {
+      "id": "app-jellyseerr",
+      "repo": "nas",
+      "paths": ["/backups/app-cluster/exports/jellyseerr/current"],
+      "schedule": {
+        "cron": "45 2 * * *",
+        "clock": "CLOCK_UTC"
+      },
+      "retention": {
+        "policyTimeBucketed": {
+          "daily": 14,
+          "weekly": 8,
+          "monthly": 6
+        }
+      },
+      "hooks": [
+        {
+          "conditions": ["CONDITION_SNAPSHOT_START"],
+          "onError": "ON_ERROR_FATAL",
+          "actionCommand": {
+            "command": "test -f /backups/app-cluster/exports/jellyseerr/current/.captured-at && test -n \"$(find /backups/app-cluster/exports/jellyseerr/current/.captured-at -mmin -1560 -print)\""
+          }
+        }
+      ]
+    },
+    {
+      "id": "app-sabnzbd",
+      "repo": "nas",
+      "paths": ["/backups/app-cluster/exports/sabnzbd/current"],
+      "schedule": {
+        "cron": "50 2 * * *",
+        "clock": "CLOCK_UTC"
+      },
+      "retention": {
+        "policyTimeBucketed": {
+          "daily": 14,
+          "weekly": 8,
+          "monthly": 6
+        }
+      },
+      "hooks": [
+        {
+          "conditions": ["CONDITION_SNAPSHOT_START"],
+          "onError": "ON_ERROR_FATAL",
+          "actionCommand": {
+            "command": "test -f /backups/app-cluster/exports/sabnzbd/current/.captured-at && test -n \"$(find /backups/app-cluster/exports/sabnzbd/current/.captured-at -mmin -1560 -print)\""
+          }
+        }
+      ]
+    },
+    {
+      "id": "app-qbittorrent",
+      "repo": "nas",
+      "paths": ["/backups/app-cluster/exports/qbittorrent/current"],
+      "schedule": {
+        "cron": "55 2 * * *",
+        "clock": "CLOCK_UTC"
+      },
+      "retention": {
+        "policyTimeBucketed": {
+          "daily": 14,
+          "weekly": 8,
+          "monthly": 6
+        }
+      },
+      "hooks": [
+        {
+          "conditions": ["CONDITION_SNAPSHOT_START"],
+          "onError": "ON_ERROR_FATAL",
+          "actionCommand": {
+            "command": "test -f /backups/app-cluster/exports/qbittorrent/current/.captured-at && test -n \"$(find /backups/app-cluster/exports/qbittorrent/current/.captured-at -mmin -1560 -print)\""
+          }
+        }
+      ]
+    },
+    {
+      "id": "app-recyclarr",
+      "repo": "nas",
+      "paths": ["/backups/app-cluster/exports/recyclarr/current"],
+      "schedule": {
+        "cron": "0 3 * * *",
+        "clock": "CLOCK_UTC"
+      },
+      "retention": {
+        "policyTimeBucketed": {
+          "daily": 14,
+          "weekly": 8,
+          "monthly": 6
+        }
+      },
+      "hooks": [
+        {
+          "conditions": ["CONDITION_SNAPSHOT_START"],
+          "onError": "ON_ERROR_FATAL",
+          "actionCommand": {
+            "command": "test -f /backups/app-cluster/exports/recyclarr/current/.captured-at && test -n \"$(find /backups/app-cluster/exports/recyclarr/current/.captured-at -mmin -1560 -print)\""
+          }
+        }
+      ]
+    },
+    {
+      "id": "app-jellyfin",
+      "repo": "nas",
+      "paths": ["/backups/app-cluster/exports/jellyfin/current"],
+      "schedule": {
+        "cron": "5 3 * * *",
+        "clock": "CLOCK_UTC"
+      },
+      "retention": {
+        "policyTimeBucketed": {
+          "daily": 14,
+          "weekly": 8,
+          "monthly": 6
+        }
+      },
+      "hooks": [
+        {
+          "conditions": ["CONDITION_SNAPSHOT_START"],
+          "onError": "ON_ERROR_FATAL",
+          "actionCommand": {
+            "command": "test -f /backups/app-cluster/exports/jellyfin/current/.captured-at && test -n \"$(find /backups/app-cluster/exports/jellyfin/current/.captured-at -mmin -1560 -print)\""
+          }
+        }
+      ]
     }
   ]
 }

@@ -1,0 +1,11 @@
+{{- range $ns := include "app-protect.namespaces" . | fromJsonArray }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-protect-runtime
+  namespace: {{ $ns }}
+data:
+  export.py: |
+{{ $.Files.Get "files/export.py" | indent 4 }}
+{{- end }}
