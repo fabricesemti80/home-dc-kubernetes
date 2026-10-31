@@ -7,8 +7,10 @@ K8up implementation and its evidence are preserved in branch
 
 Backrest plans cover native Immich/LiteLLM database exports, the read-only Immich
 original tree, and Backrest configuration. Deployment definitions are not proof
-of a successful scheduled backup or application restore. Other inventory rows
-below remain outstanding until their consistency method and recovery are tested.
+of a successful scheduled backup or application restore. Servarr, Jellyfin, Jellyseerr, SABnzbd, qBittorrent, Recyclarr, Technitium, Pulse and
+AutoKuma configuration is exported daily and snapshotted (see the architecture doc,
+"Application configuration coverage"); restore drills for them are still pending.
+Uptime Kuma (embedded MariaDB) and the retired archives remain outstanding.
 No physical infra node settings or original application storage are changed.
 
 ## Verified app-cluster inventory

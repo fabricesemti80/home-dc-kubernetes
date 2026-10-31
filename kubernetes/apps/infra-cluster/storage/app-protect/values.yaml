@@ -1,0 +1,28 @@
+---
+# protect: false on an app opts it out (default: protected).
+cluster: infra-cluster
+apps:
+- name: technitium-0
+  namespace: network
+  node: infra-cp-01
+  claim: config-technitium-0
+  tolerations:
+  - key: node-role.kubernetes.io/control-plane
+    operator: Exists
+    effect: NoSchedule
+  schedule: 0 1 * * *
+- name: technitium-1
+  namespace: network
+  node: infra-wk-01
+  claim: config-technitium-1
+  schedule: 5 1 * * *
+- name: pulse
+  namespace: monitoring
+  node: infra-wk-01
+  hostPath: /var/pulse/data
+  schedule: 10 1 * * *
+- name: autokuma
+  namespace: monitoring
+  node: infra-wk-01
+  hostPath: /var/autokuma/data
+  schedule: 15 1 * * *

@@ -1,0 +1,110 @@
+{{- range .Values.apps }}
+{{- if include "app-protect.enabled" . }}
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: protect-{{ .name }}
+  namespace: {{ .namespace }}
+  labels:
+    backup.krapulax.home/protect: "true"
+spec:
+  schedule: {{ .schedule | quote }}
+  timeZone: UTC
+  concurrencyPolicy: Forbid
+  startingDeadlineSeconds: 3600
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 0
+      activeDeadlineSeconds: 1800
+      template:
+        metadata:
+          labels:
+            backup.krapulax.home/protect: "true"
+        spec:
+          restartPolicy: Never
+          automountServiceAccountToken: false
+          nodeSelector:
+            kubernetes.io/hostname: {{ .node }}
+          {{- with .tolerations }}
+          tolerations:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          securityContext:
+            seccompProfile:
+              type: RuntimeDefault
+          initContainers:
+          - name: snapshot
+            image: {{ $.Values.image }}
+            command: [python3, /runtime/export.py, snapshot]
+            env:
+            - {name: BACKUP_APP, value: {{ .name | quote }}}
+            - {name: CLUSTER_NAME, value: {{ $.Values.cluster | quote }}}
+            - {name: BACKUP_EXCLUDES, value: {{ (.excludes | default list) | toJson | quote }}}
+            - {name: TMPDIR, value: /scratch}
+            securityContext:
+              runAsUser: 0
+              runAsGroup: 0
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities:
+                drop: [ALL]
+                add: [CHOWN, DAC_OVERRIDE, FOWNER]
+            resources:
+              requests: {cpu: 100m, memory: 128Mi}
+              limits: {cpu: "1", memory: 512Mi}
+            volumeMounts:
+            - {name: source, mountPath: /source, readOnly: true}
+            - {name: stage, mountPath: /stage}
+            - {name: scratch, mountPath: /scratch}
+            - {name: runtime, mountPath: /runtime, readOnly: true}
+          containers:
+          - name: publish
+            image: {{ $.Values.image }}
+            command: [python3, /runtime/export.py, publish]
+            env:
+            - {name: BACKUP_APP, value: {{ .name | quote }}}
+            - {name: CLUSTER_NAME, value: {{ $.Values.cluster | quote }}}
+            securityContext:
+              runAsNonRoot: true
+              runAsUser: 1004
+              runAsGroup: 65534
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities:
+                drop: [ALL]
+            resources:
+              requests: {cpu: 100m, memory: 128Mi}
+              limits: {cpu: "1", memory: 512Mi}
+            volumeMounts:
+            - {name: stage, mountPath: /stage, readOnly: true}
+            - {name: backups, mountPath: /backups}
+            - {name: runtime, mountPath: /runtime, readOnly: true}
+          volumes:
+          - name: source
+            {{- if .hostPath }}
+            hostPath:
+              path: {{ .hostPath }}
+              type: Directory
+            {{- else }}
+            persistentVolumeClaim:
+              claimName: {{ .claim }}
+              readOnly: true
+            {{- end }}
+          - name: stage
+            emptyDir:
+              sizeLimit: {{ .stageSize | default "4Gi" }}
+          - name: scratch
+            emptyDir:
+              sizeLimit: 512Mi
+          - name: runtime
+            configMap:
+              name: app-protect-runtime
+          - name: backups
+            nfs:
+              server: {{ $.Values.nas.server }}
+              path: {{ $.Values.nas.path }}
+{{- end }}
+{{- end }}

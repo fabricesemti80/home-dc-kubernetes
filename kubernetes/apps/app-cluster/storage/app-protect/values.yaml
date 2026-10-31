@@ -1,0 +1,66 @@
+---
+# protect: false on an app opts it out (default: protected).
+cluster: app-cluster
+apps:
+- name: sonarr
+  namespace: media
+  node: k8s-wrkr-03
+  claim: sonarr
+  excludes: &id001
+  - MediaCover
+  - logs
+  - Logs
+  - logs.db*
+  schedule: 0 1 * * *
+- name: radarr
+  namespace: media
+  node: k8s-wrkr-03
+  claim: radarr
+  excludes: *id001
+  schedule: 5 1 * * *
+- name: prowlarr
+  namespace: media
+  node: k8s-wrkr-03
+  claim: prowlarr
+  excludes: *id001
+  schedule: 10 1 * * *
+- name: jellyseerr
+  namespace: media
+  node: k8s-wrkr-03
+  claim: jellyseerr
+  excludes:
+  - logs
+  schedule: 15 1 * * *
+- name: sabnzbd
+  namespace: media
+  node: k8s-wrkr-03
+  claim: sabnzbd
+  excludes:
+  - logs
+  schedule: 20 1 * * *
+- name: qbittorrent
+  namespace: media
+  node: k8s-wrkr-03
+  claim: qbittorrent
+  excludes:
+  - logs
+  schedule: 25 1 * * *
+- name: recyclarr
+  namespace: media
+  node: k8s-wrkr-03
+  claim: recyclarr
+  excludes:
+  - cache
+  - logs
+  - repositories
+  schedule: 30 1 * * *
+- name: jellyfin
+  namespace: media
+  node: k8s-wrkr-01-gpu
+  claim: jellyfin-config
+  excludes:
+  - cache
+  - log
+  - transcodes
+  - metadata
+  schedule: 35 1 * * *

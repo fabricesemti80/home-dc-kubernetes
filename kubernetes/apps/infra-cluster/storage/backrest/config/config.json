@@ -66,6 +66,106 @@
           "monthly": 12
         }
       }
+    },
+    {
+      "id": "app-technitium-0",
+      "repo": "nas",
+      "paths": ["/backups/infra-cluster/exports/technitium-0/current"],
+      "schedule": {
+        "cron": "30 2 * * *",
+        "clock": "CLOCK_UTC"
+      },
+      "retention": {
+        "policyTimeBucketed": {
+          "daily": 14,
+          "weekly": 8,
+          "monthly": 6
+        }
+      },
+      "hooks": [
+        {
+          "conditions": ["CONDITION_SNAPSHOT_START"],
+          "onError": "ON_ERROR_FATAL",
+          "actionCommand": {
+            "command": "test -f /backups/infra-cluster/exports/technitium-0/current/.captured-at && test -n \"$(find /backups/infra-cluster/exports/technitium-0/current/.captured-at -mmin -1560 -print)\""
+          }
+        }
+      ]
+    },
+    {
+      "id": "app-technitium-1",
+      "repo": "nas",
+      "paths": ["/backups/infra-cluster/exports/technitium-1/current"],
+      "schedule": {
+        "cron": "35 2 * * *",
+        "clock": "CLOCK_UTC"
+      },
+      "retention": {
+        "policyTimeBucketed": {
+          "daily": 14,
+          "weekly": 8,
+          "monthly": 6
+        }
+      },
+      "hooks": [
+        {
+          "conditions": ["CONDITION_SNAPSHOT_START"],
+          "onError": "ON_ERROR_FATAL",
+          "actionCommand": {
+            "command": "test -f /backups/infra-cluster/exports/technitium-1/current/.captured-at && test -n \"$(find /backups/infra-cluster/exports/technitium-1/current/.captured-at -mmin -1560 -print)\""
+          }
+        }
+      ]
+    },
+    {
+      "id": "app-pulse",
+      "repo": "nas",
+      "paths": ["/backups/infra-cluster/exports/pulse/current"],
+      "schedule": {
+        "cron": "40 2 * * *",
+        "clock": "CLOCK_UTC"
+      },
+      "retention": {
+        "policyTimeBucketed": {
+          "daily": 14,
+          "weekly": 8,
+          "monthly": 6
+        }
+      },
+      "hooks": [
+        {
+          "conditions": ["CONDITION_SNAPSHOT_START"],
+          "onError": "ON_ERROR_FATAL",
+          "actionCommand": {
+            "command": "test -f /backups/infra-cluster/exports/pulse/current/.captured-at && test -n \"$(find /backups/infra-cluster/exports/pulse/current/.captured-at -mmin -1560 -print)\""
+          }
+        }
+      ]
+    },
+    {
+      "id": "app-autokuma",
+      "repo": "nas",
+      "paths": ["/backups/infra-cluster/exports/autokuma/current"],
+      "schedule": {
+        "cron": "45 2 * * *",
+        "clock": "CLOCK_UTC"
+      },
+      "retention": {
+        "policyTimeBucketed": {
+          "daily": 14,
+          "weekly": 8,
+          "monthly": 6
+        }
+      },
+      "hooks": [
+        {
+          "conditions": ["CONDITION_SNAPSHOT_START"],
+          "onError": "ON_ERROR_FATAL",
+          "actionCommand": {
+            "command": "test -f /backups/infra-cluster/exports/autokuma/current/.captured-at && test -n \"$(find /backups/infra-cluster/exports/autokuma/current/.captured-at -mmin -1560 -print)\""
+          }
+        }
+      ]
     }
   ]
 }

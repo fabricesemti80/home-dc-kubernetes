@@ -1,0 +1,5 @@
+apiVersion: v2
+name: app-protect
+description: Daily consistent config exports of app volumes for Backrest to snapshot
+type: application
+version: 0.1.0

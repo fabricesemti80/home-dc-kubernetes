@@ -1,0 +1,10 @@
+# Defaults only; per-cluster inventories live in kubernetes/apps/<cluster>/storage/app-protect/values.yaml
+cluster: ""
+image: python:3.14.3-slim@sha256:5e59aae31ff0e87511226be8e2b94d78c58f05216efda3b07dbbed938ec8583b
+nas:
+  server: 10.0.40.2
+  path: /k8s-backup
+# Each app: name, namespace, node, schedule (cron, UTC), claim | hostPath,
+# optional: excludes (fnmatch on name or relative path), stageSize, tolerations,
+# protect (default true; false opts out).
+apps: []

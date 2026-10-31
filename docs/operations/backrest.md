@@ -34,7 +34,7 @@ accessible copy for workstation loss; current Keychain escrow alone does not pro
 Git owns plans/auth/credential references. Restart materializes current Git inputs
 while preserving Backrest's generated identity and existing repository GUID.
 Make lasting plan changes in Git, not only the UI. Retention: 24 hourly, 14 daily,
-8 weekly, 12 monthly representatives. Weekly full-data checks and pruning are
+8 weekly, 12 monthly representatives (`app-*` config plans: 14 daily, 8 weekly, 6 monthly). Weekly full-data checks and pruning are
 managed by Backrest; locks are not automatically broken. Slack receives failures
 and snapshot warnings through the existing monitoring webhook.
 
@@ -76,6 +76,47 @@ Repeat for `immich-originals` and infra `litellm-db`. Each Task generates a new
 `/k8s-backup/<cluster>/backrest/restores/<uuid>`. Nothing overwrites production.
 The UI also supports browsing snapshots and restoring selected files. Remove
 only your disposable restore directory after recording successful checks.
+
+## Protecting and opting out apps
+
+Application config is protected by default through Git, not Kubernetes labels.
+Each app has one entry in `kubernetes/apps/<cluster>/storage/app-protect/values.yaml`
+and a matching `app-<name>` plan in that cluster's `backrest/config/config.json`.
+Design and limits: [architecture](../architecture/backrest.md#application-configuration-coverage).
+
+Add a new app (protected):
+
+1. Add an entry: `name`, `namespace`, `node` (where the volume lives), `schedule`
+   (daily UTC cron, staggered, outside 03:00-04:00), and `claim` (PVC name) or
+   `hostPath`. Add `excludes` for caches/logs/regenerable data (fnmatch on a name
+   or relative path). Add `tolerations` for tainted nodes.
+2. Copy an existing `app-<name>` plan in `config.json`: path
+   `/backups/<cluster>/exports/<name>/current`, start hook checking `.captured-at`
+   is newer than 1560 minutes, schedule about 90 minutes after the export.
+3. Check it renders: `helm template x kubernetes/charts/app-protect -f kubernetes/apps/<cluster>/storage/app-protect/values.yaml`.
+4. After merge: `kubectl create job --from=cronjob/protect-<name> <name>-first -n <ns>`,
+   then `task backups:run CLUSTER=<cluster> PLAN=app-<name>`.
+
+Opt out (apps that are only being tested, stateless, or Git-reconstructable):
+
+```yaml
+- name: some-test-app
+  namespace: media
+  node: k8s-wrkr-03
+  claim: some-test-app
+  schedule: 30 1 * * *
+  protect: false # no CronJob is rendered
+```
+
+Also delete its `app-<name>` plan from `config.json`; otherwise the plan's start
+hook fails on the missing export. Keep the entry with `protect: false` instead of
+removing it, so the opt-out is a visible, reviewed decision. Remove an app that
+no longer exists entirely, and leave its old `exports/<name>` directory on the NAS
+until you decide to delete it. Flipping back to `true` resumes exports; the next
+run replaces the stale copy.
+
+Not enrollable this way: databases (use a native exporter as for Immich/LiteLLM)
+and Uptime Kuma (embedded MariaDB).
 
 ## Database import verification
 
