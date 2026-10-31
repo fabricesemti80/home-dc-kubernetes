@@ -14,6 +14,7 @@ import json
 import os
 import shutil
 import sqlite3
+import stat
 import sys
 import time
 from datetime import datetime, timezone
@@ -68,8 +69,9 @@ def copy_file(src, dst):
         src.with_name(src.name.rsplit("-", 1)[0])
     ):
         return  # live companion of a database captured through the backup API
-    else:
+    elif stat.S_ISREG(src.lstat().st_mode):
         shutil.copy2(src, dst, follow_symlinks=False)
+    # sockets, FIFOs and devices (e.g. qBittorrent ipc-socket) are runtime-only: skipped
 
 
 def snapshot():
