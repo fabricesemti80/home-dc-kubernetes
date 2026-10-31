@@ -1,8 +1,11 @@
 """Publish a validated copy of an app's config volume for Backrest.
 
-snapshot (root, source mounted read-only): copy source -> /stage, excluding
-disposable paths; every SQLite database copy must pass integrity_check, else
-retry. Fails closed: the previously published copy is never touched on error.
+snapshot (root): copy source -> /stage, excluding disposable paths. SQLite
+databases are never file-copied: each is read through SQLite's online backup API
+(one read transaction, so a transactionally consistent state even while the app
+writes) and the result must pass integrity_check. The source volume is mounted
+read-write only so SQLite can take WAL read locks; connections are mode=ro.
+Fails closed: the previously published copy is never touched on error.
 publish (NAS writer UID): atomically swap /stage into <exports>/<app>/current.
 """
 
@@ -15,6 +18,7 @@ import sys
 import time
 from datetime import datetime, timezone
 from pathlib import Path
+from urllib.parse import quote
 
 app = os.environ["BACKUP_APP"]
 stage = Path("/stage/data")
@@ -32,35 +36,53 @@ def ignore(directory, names):
     return skipped
 
 
-def sqlite_files(root):
-    for path in root.rglob("*"):
-        if path.is_file() and not path.is_symlink():
-            with path.open("rb") as handle:
-                if handle.read(16) == b"SQLite format 3\x00":
-                    yield path
+def is_sqlite(path):
+    try:
+        if path.is_symlink() or not path.is_file():
+            return False
+        with path.open("rb") as handle:
+            return handle.read(16) == b"SQLite format 3\x00"
+    except OSError:
+        return False
+
+
+databases = []
+
+
+def copy_file(src, dst):
+    src = Path(src)
+    if is_sqlite(src):
+        source = sqlite3.connect(f"file:{quote(str(src))}?mode=ro", uri=True, timeout=30)
+        target = sqlite3.connect(dst)
+        try:
+            source.backup(target)
+            result = target.execute("PRAGMA integrity_check").fetchall()
+            if result != [("ok",)]:
+                raise RuntimeError(f"{src}: integrity_check {result[:3]}")
+            target.execute("PRAGMA journal_mode=DELETE")
+        finally:
+            target.close()
+            source.close()
+        databases.append(src)
+    elif src.name.endswith(("-wal", "-shm", "-journal")) and is_sqlite(
+        src.with_name(src.name.rsplit("-", 1)[0])
+    ):
+        return  # live companion of a database captured through the backup API
+    else:
+        shutil.copy2(src, dst, follow_symlinks=False)
 
 
 def snapshot():
     last = None
     for attempt in range(1, 4):
         shutil.rmtree(stage, ignore_errors=True)
-        shutil.copytree("/source", stage, symlinks=True, ignore=ignore, dirs_exist_ok=False)
+        databases.clear()
         try:
-            databases = list(sqlite_files(stage))
-            for db in databases:
-                # Replays the copied WAL into the copy; result is self-contained.
-                con = sqlite3.connect(db)
-                try:
-                    result = con.execute("PRAGMA integrity_check").fetchall()
-                    if result != [("ok",)]:
-                        raise RuntimeError(f"{db.relative_to(stage)}: {result[:3]}")
-                    con.execute("PRAGMA wal_checkpoint(TRUNCATE)")
-                finally:
-                    con.close()
+            shutil.copytree("/source", stage, symlinks=True, ignore=ignore, copy_function=copy_file)
             break
-        except Exception as exc:  # noqa: BLE001 - retry on any inconsistent copy
+        except Exception as exc:  # noqa: BLE001 - retry, then fail closed
             last = exc
-            print(f"attempt {attempt}: inconsistent copy: {exc}", file=sys.stderr)
+            print(f"attempt {attempt}: {exc}", file=sys.stderr)
             time.sleep(5)
     else:
         raise SystemExit(f"no consistent copy after 3 attempts: {last}")
@@ -68,7 +90,7 @@ def snapshot():
         raise SystemExit("source produced an empty copy")
     for path in [stage, *stage.rglob("*")]:
         os.lchown(path, 1004, 65534)
-    print(f"snapshot ok: {len(databases)} SQLite database(s) verified")
+    print(f"snapshot ok: {len(databases)} SQLite database(s) via backup API")
 
 
 def publish():

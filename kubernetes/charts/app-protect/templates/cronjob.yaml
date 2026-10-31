@@ -56,7 +56,7 @@ spec:
               requests: {cpu: 100m, memory: 128Mi}
               limits: {cpu: "1", memory: 512Mi}
             volumeMounts:
-            - {name: source, mountPath: /source, readOnly: true}
+            - {name: source, mountPath: /source}
             - {name: stage, mountPath: /stage}
             - {name: scratch, mountPath: /scratch}
             - {name: runtime, mountPath: /runtime, readOnly: true}
@@ -91,7 +91,7 @@ spec:
             {{- else }}
             persistentVolumeClaim:
               claimName: {{ .claim }}
-              readOnly: true
+              readOnly: false
             {{- end }}
           - name: stage
             emptyDir:
