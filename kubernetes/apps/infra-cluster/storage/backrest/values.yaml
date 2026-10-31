@@ -22,7 +22,7 @@ controllers:
       configure:
         image:
           repository: python
-          tag: 3.14.3-slim@sha256:5e59aae31ff0e87511226be8e2b94d78c58f05216efda3b07dbbed938ec8583b
+          tag: 3.15.2-slim@sha256:c4158543ecb725b99e57d129dfd43d761d4c43e4577b5e23326aabb223cf7f4e
         command:
         - python3
         - /runtime/init.py
