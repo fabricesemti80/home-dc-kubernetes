@@ -75,6 +75,13 @@ Also confirm access to:
 -   GitHub deploy key or repository credentials for Argo CD
 -   NAS NFS export at `10.0.40.2:/media` for media workloads
 
+Cloudflare tunnel secrets in each Kubernetes Doppler config reference the
+corresponding `TUNNEL_CREDENTIALS_*`, `TUNNEL_ID_*`, and `TUNNEL_TOKEN_*`
+values in `home-dc-terraform/prd`. The Terraform project owns those source
+values; this repository and its operators access only `home-dc-kubernetes`.
+Before recovery or rotation, verify the source values exist and the references
+resolve; Doppler may return an unresolved reference literally.
+
 App-cluster VM disks and Proxmox host configuration are owned by the standalone
 infrastructure repositories (`home-dc-proxmox` and `home-dc-terraform`). This
 repository owns Talos, Kubernetes, and GitOps manifests.
