@@ -55,5 +55,5 @@ Post-merge evidence (2026-10-29): both permanent Argo Applications are Synced/He
 -   [x] Install retained NAS claims and verify encrypted target backup/restore on both clusters; move disposable smoke to non-root UID `1004`.
 -   [x] Retire the approved Kestra/KubeVirt/CDI/Manager workloads while preserving the two Kestra claims.
 -   [x] Verify root-only squash, UID `1004` encrypted target backup/restore and unrelated UID `65534` write denial on both clusters.
--   [ ] Deploy and verify the [Backrest replacement](backrest.md), then run restore-gated legacy backup retirement.
+-   [x] Deploy and verify the [Backrest replacement](backrest.md); complete database/original recovery checks and restore-gated legacy retirement on both clusters (2026-10-30).
 -   [ ] Add and restore-test an independent offsite copy; the NAS target is not offsite protection.

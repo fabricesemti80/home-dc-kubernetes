@@ -102,9 +102,15 @@ access; validate LiteLLM configuration/key identities and its actual app databas
 login without invoking chargeable upstream APIs. Keep outbound app integrations
 blocked throughout the drill. Retain exact snapshot IDs and verification results.
 
-For Immich additionally restore originals, preserve `/data` and `/external-library`
-mappings and verify referenced file checksums. Daily online originals and separate
-DB dumps are **not** advertised as a paused matched set. No app shutdown is added
+For Immich additionally restore originals and preserve `/data` and
+`/external-library` mappings. In deployed Immich v3.0.3, external-library imports
+use SHA-1 of `path:<originalPath>` with algorithm `sha1Path`, not a file-content
+checksum ([upstream ingestion](https://github.com/immich-app/immich/blob/v3.0.3/server/src/services/library.service.ts#L413)).
+Validate those path identities and the existence of every referenced original;
+verify restored file contents independently against the Restic snapshot using
+native `restore --verify`. Do not diagnose corruption by comparing file SHA-1
+with an external path hash. Daily online originals and separate DB dumps are
+**not** advertised as a paused matched set. No app shutdown is added
 by this PR. Remaining unprotected application classes are listed in the
 [inventory](../cluster/database-backups.md).
 
@@ -166,3 +172,33 @@ The cutover gate requires restores of existing snapshots with successful backup
 history within eight hours for DB plans and thirty hours for originals. SQL
 imports/application checks remain an explicit operator attestation. These smoke
 results are not a claim that scheduled production Backrest coverage is already live.
+
+## Post-merge acceptance (2026-10-30)
+
+Both Backrest Applications and the parent `apps` Application are Synced/Healthy.
+Both internal DNS names served authenticated dashboards. Deployed native export
+Jobs and all Backrest plans completed successfully.
+
+| Recovery point       | Immutable snapshot                                                 | Exercised recovery                                                                                                                                             |
+| -------------------- | ------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Immich database      | `a05c8848b82a4229d53238f3e7cbf14408cd47369ae5716dbafedef1a88592c1` | Fresh PG14/vector import on W3 from source W2; matching extensions, app database authentication, 1 user and 3,518 assets                                       |
+| LiteLLM database     | `ba9f3dd439a41259a777f3375c253c435603475c4a30b7a35aad209f047949f0` | Fresh PG17 import on infra-wk-01 from source infra-cp-01; matching extensions/ownership/login, 83 tables, 1 user, 11 virtual keys and 1 config entry           |
+| Immich original tree | `00e24288a26cfa106de7132eee0e19f2166e680828760e660e32655f9c91b77a` | Full native restore: 15,897 regular files / 34,778,694,995 bytes; every recovered DB original path present and all 3,518 external path-identity hashes matched |
+
+Native `restic restore --overwrite=always --verify` then completed successfully
+against the complete restored photo tree using the independently escrowed
+Keychain key. `--overwrite=never` is not used as content-readback evidence because
+it can skip existing files. Disposable SQL namespaces/PVC contents and successful
+restore scratch copies were removed after verification.
+
+Restore-gated retirement completed separately on both clusters: legacy operators,
+K8up CRDs/policies and enumerated old repository paths are gone. New repositories
+remain populated; cluster-prefix ownership is still UID 1004 / mode 0700. Original
+Immich/LiteLLM claims remain Bound to their original production volumes. No
+original media, physical infra node configuration or NAS share ACLs were changed.
+
+The follow-up Task/API corrections are in PR #456. The cutover exercised explicit
+runs of deployed schedules; the next natural timer executions still need their
+normal operational observation. This protects the listed database/original/config
+plans, not the remaining application classes in the inventory. Offsite copies,
+external dead-man monitoring and NAS immutability remain outstanding.
