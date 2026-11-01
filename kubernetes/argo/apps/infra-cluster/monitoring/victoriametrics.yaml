@@ -1,0 +1,42 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: victoriametrics-infra
+  namespace: argo-system
+  annotations:
+    argocd.argoproj.io/sync-wave: '1'
+spec:
+  project: kubernetes
+  sources:
+    - repoURL: https://github.com/fabricesemti80/home-dc-kubernetes.git
+      path: kubernetes/apps/infra-cluster/monitoring/victoriametrics
+      targetRevision: main
+      ref: repo
+    - repoURL: https://victoriametrics.github.io/helm-charts/
+      chart: victoria-metrics-k8s-stack
+      targetRevision: 0.97.0
+      helm:
+        releaseName: victoriametrics
+        valueFiles:
+          - $repo/kubernetes/apps/infra-cluster/monitoring/victoriametrics/values.yaml
+  destination:
+    name: infra-cluster
+    namespace: monitoring
+  syncPolicy:
+    automated:
+      allowEmpty: true
+      prune: true
+      selfHeal: true
+    retry:
+      limit: 1
+      backoff:
+        duration: 10s
+        factor: 2
+        maxDuration: 3m
+    syncOptions:
+      - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true
+      - ServerSideApply=true
+      - PruneLast=true
+      - RespectIgnoreDifferences=true

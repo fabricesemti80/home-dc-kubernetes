@@ -1,0 +1,13 @@
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ./config/resources.yaml
+  - ./config/rules.yaml
+  - ./config/dashboard.yaml
+configMapGenerator:
+  - name: pve-exporter-ca
+    files:
+      - ca.pem=./config/ca.pem
+generatorOptions:
+  disableNameSuffixHash: true

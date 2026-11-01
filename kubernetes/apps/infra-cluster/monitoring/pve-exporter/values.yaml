@@ -1,0 +1,71 @@
+---
+global:
+  createDefaultServiceAccount: false
+controllers:
+  pve-exporter:
+    containers:
+      app:
+        image:
+          repository: docker.io/prompve/prometheus-pve-exporter
+          tag: 3.11.0
+        env:
+          PVE_USER: prometheus@pve
+          PVE_TOKEN_NAME: victoriametrics
+          PVE_TOKEN_VALUE_FILE: /etc/pve-credentials/PVE_MONITORING_TOKEN_SECRET
+          PVE_VERIFY_SSL: 'true'
+          REQUESTS_CA_BUNDLE: /etc/pve-ca/ca.pem
+        probes:
+          liveness: &probe
+            enabled: true
+            custom: true
+            spec:
+              httpGet:
+                path: /metrics
+                port: 9221
+              periodSeconds: 30
+              timeoutSeconds: 5
+          readiness: *probe
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop: [ALL]
+        resources:
+          requests:
+            cpu: 25m
+            memory: 96Mi
+          limits:
+            memory: 256Mi
+defaultPodOptions:
+  automountServiceAccountToken: false
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 101
+    runAsGroup: 101
+    seccompProfile:
+      type: RuntimeDefault
+service:
+  app:
+    controller: pve-exporter
+    labels:
+      monitoring.krapulax.home/target: pve-exporter
+    ports:
+      http:
+        port: 9221
+persistence:
+  ca:
+    type: configMap
+    name: pve-exporter-ca
+    globalMounts:
+      - path: /etc/pve-ca
+        readOnly: true
+  credentials:
+    type: secret
+    name: pve-exporter-credentials
+    globalMounts:
+      - path: /etc/pve-credentials
+        readOnly: true
+  tmp:
+    type: emptyDir
+    globalMounts:
+      - path: /tmp

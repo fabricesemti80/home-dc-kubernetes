@@ -1,0 +1,26 @@
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMRule
+metadata:
+  name: pve-health
+  namespace: monitoring
+spec:
+  groups:
+    - name: pve-health
+      rules:
+        - alert: ProxmoxHostUnavailable
+          expr: (pve_up{id="node/pve-00"} == 0) or absent(pve_up{id="node/pve-00"})
+          for: 10m
+          labels:
+            severity: critical
+          annotations:
+            summary: Proxmox host pve-00 is unavailable or its metrics are missing
+            description: Check the host, PVE exporter, API credentials and network connectivity.
+        - alert: ProxmoxStorageAlmostFull
+          expr: (pve_disk_usage_bytes{id=~"storage/.*"} / pve_disk_size_bytes{id=~"storage/.*"}) > 0.90
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: Proxmox storage {{ $labels.id }} is over 90 percent full
+            description: Storage usage has remained above 90 percent for 15 minutes.

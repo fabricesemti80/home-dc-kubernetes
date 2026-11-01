@@ -1,0 +1,53 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-pve-overview
+  namespace: monitoring
+  labels:
+    grafana_dashboard: '1'
+data:
+  pve-overview.json: |
+    {
+      "uid": "pve-overview",
+      "title": "Proxmox host and guests",
+      "schemaVersion": 39,
+      "version": 1,
+      "refresh": "30s",
+      "time": {"from": "now-6h", "to": "now"},
+      "panels": [
+        {
+          "id": 1, "type": "stat", "title": "PVE host online",
+          "gridPos": {"h": 5, "w": 6, "x": 0, "y": 0},
+          "datasource": {"type": "prometheus", "uid": "VictoriaMetrics"},
+          "targets": [{"expr": "pve_up{id=\"node/pve-00\"}", "refId": "A"}]
+        },
+        {
+          "id": 2, "type": "stat", "title": "Running VMs",
+          "gridPos": {"h": 5, "w": 6, "x": 6, "y": 0},
+          "datasource": {"type": "prometheus", "uid": "VictoriaMetrics"},
+          "targets": [{"expr": "sum(pve_up{id=~\"qemu/.*\"})", "refId": "A"}]
+        },
+        {
+          "id": 3, "type": "gauge", "title": "Host CPU",
+          "gridPos": {"h": 5, "w": 6, "x": 12, "y": 0},
+          "datasource": {"type": "prometheus", "uid": "VictoriaMetrics"},
+          "fieldConfig": {"defaults": {"unit": "percentunit", "min": 0, "max": 1}},
+          "targets": [{"expr": "pve_cpu_usage_ratio{id=\"node/pve-00\"}", "refId": "A"}]
+        },
+        {
+          "id": 4, "type": "gauge", "title": "Host memory",
+          "gridPos": {"h": 5, "w": 6, "x": 18, "y": 0},
+          "datasource": {"type": "prometheus", "uid": "VictoriaMetrics"},
+          "fieldConfig": {"defaults": {"unit": "percentunit", "min": 0, "max": 1}},
+          "targets": [{"expr": "pve_memory_usage_bytes{id=\"node/pve-00\"} / pve_memory_size_bytes{id=\"node/pve-00\"}", "refId": "A"}]
+        },
+        {
+          "id": 5, "type": "timeseries", "title": "Storage utilization",
+          "gridPos": {"h": 9, "w": 24, "x": 0, "y": 5},
+          "datasource": {"type": "prometheus", "uid": "VictoriaMetrics"},
+          "fieldConfig": {"defaults": {"unit": "percentunit"}},
+          "targets": [{"expr": "pve_disk_usage_bytes{id=~\"storage/.*\"} / pve_disk_size_bytes{id=~\"storage/.*\"}", "legendFormat": "{{id}}", "refId": "A"}]
+        }
+      ]
+    }

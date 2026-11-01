@@ -1,0 +1,34 @@
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMRule
+metadata:
+  name: infrastructure-health
+  namespace: monitoring
+spec:
+  groups:
+    - name: infrastructure-health
+      rules:
+        - alert: KubernetesNodeNotReady
+          expr: kube_node_status_condition{condition="Ready",status="true"} == 0
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: Kubernetes node {{ $labels.node }} is not Ready
+            description: The node has been NotReady for at least five minutes.
+        - alert: PersistentVolumeClaimPending
+          expr: kube_persistentvolumeclaim_status_phase{phase="Pending"} == 1
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: PersistentVolumeClaim {{ $labels.namespace }}/{{ $labels.persistentvolumeclaim }} is pending
+            description: The claim has remained Pending for at least 15 minutes.
+        - alert: NodeFilesystemAlmostFull
+          expr: (node_filesystem_avail_bytes{fstype!~"tmpfs|overlay|squashfs",mountpoint="/"} / node_filesystem_size_bytes{fstype!~"tmpfs|overlay|squashfs",mountpoint="/"}) < 0.1
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: Node filesystem is almost full on {{ $labels.instance }}
+            description: Less than ten percent of root filesystem space has been available for 15 minutes.

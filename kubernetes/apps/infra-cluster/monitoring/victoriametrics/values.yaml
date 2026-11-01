@@ -1,0 +1,107 @@
+---
+victoria-metrics-operator:
+  crds:
+    cleanup:
+      enabled: false
+  operator:
+    disable_prometheus_converter: true
+
+# Talos serves node-specific kubelet certificates that are not trusted by the
+# cluster API CA. Do not bypass certificate verification.
+kubelet:
+  enabled: false
+  vmScrapes:
+    cadvisor:
+      enabled: false
+    probes:
+      enabled: false
+    resources:
+      enabled: false
+  vmScrape:
+    spec:
+      tlsConfig:
+        insecureSkipVerify: false
+
+# Do not fetch mutable dashboards and rules from upstream during reconciliation.
+syncJob:
+  enabled: false
+defaultDashboards:
+  enabled: false
+defaultRules:
+  create: false
+
+vmagent:
+  rbac:
+    namespaced: false
+  spec:
+    scrapeInterval: 30s
+    externalLabels:
+      cluster: infra-cluster
+      environment: lab
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        memory: 768Mi
+
+vmsingle:
+  spec:
+    retentionPeriod: 30d
+    resources:
+      requests:
+        cpu: 100m
+        memory: 512Mi
+      limits:
+        memory: 2Gi
+    storage:
+      storageClassName: local-path
+      accessModes:
+        - ReadWriteOnce
+      resources:
+        requests:
+          storage: 20Gi
+
+alertmanager:
+  spec:
+    secrets:
+      - monitoring-alertmanager
+    resources:
+      requests:
+        cpu: 25m
+        memory: 64Mi
+      limits:
+        memory: 256Mi
+  config:
+    route:
+      receiver: slack-monitoring
+      group_by: [cluster, alertname]
+      group_wait: 30s
+      group_interval: 5m
+      repeat_interval: 12h
+    receivers:
+      - name: slack-monitoring
+        slack_configs:
+          - api_url_file: /etc/vm/secrets/monitoring-alertmanager/SLACK_WEBHOOK_MONITORING
+            send_resolved: true
+
+grafana:
+  admin:
+    existingSecret: monitoring-grafana
+    userKey: GRAFANA_ADMIN_USER
+    passwordKey: GRAFANA_ADMIN_PASSWORD
+  persistence:
+    enabled: false
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      memory: 768Mi
+  grafana.ini:
+    server:
+      root_url: http://grafana.krapulax.home/
+    users:
+      allow_sign_up: false
+    auth.anonymous:
+      enabled: false
