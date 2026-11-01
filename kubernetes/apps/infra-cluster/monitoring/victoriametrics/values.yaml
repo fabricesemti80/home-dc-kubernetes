@@ -99,6 +99,7 @@ vmsingle:
           storage: 20Gi
 
 alertmanager:
+  name: alerts
   spec:
     secrets:
       - monitoring-alertmanager
