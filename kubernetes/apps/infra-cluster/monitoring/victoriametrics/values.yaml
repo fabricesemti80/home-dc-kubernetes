@@ -28,6 +28,10 @@ kubelet:
       tlsConfig:
         insecureSkipVerify: false
 
+# Talos binds this endpoint to loopback; the chart Service cannot reach it.
+kubeControllerManager:
+  enabled: false
+
 # Do not fetch mutable dashboards and rules from upstream during reconciliation.
 syncJob:
   enabled: false
