@@ -1,0 +1,26 @@
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMRule
+metadata:
+  name: pbs-health
+  namespace: monitoring
+spec:
+  groups:
+    - name: pbs-health
+      rules:
+        - alert: ProxmoxBackupServerUnavailable
+          expr: (pbs_up == 0) or absent(pbs_up)
+          for: 10m
+          labels:
+            severity: critical
+          annotations:
+            summary: Proxmox Backup Server or its metrics are unavailable
+            description: Check PBS, the exporter, its audit credential and network connectivity.
+        - alert: ProxmoxBackupDatastoreAlmostFull
+          expr: (pbs_available / pbs_size) < 0.10
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: PBS datastore {{ $labels.datastore }} has less than ten percent free
+            description: Review backup retention and underlying storage capacity.

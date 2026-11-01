@@ -27,3 +27,6 @@ apps:
 - name: pve-exporter
   namespace: monitoring
   protect: false
+- name: pbs-exporter
+  namespace: monitoring
+  protect: false
