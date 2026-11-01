@@ -3,6 +3,8 @@ global:
   createDefaultServiceAccount: false
 controllers:
   pve-exporter:
+    annotations:
+      reloader.stakater.com/auto: 'true'
     containers:
       app:
         image:
@@ -36,6 +38,38 @@ controllers:
             memory: 96Mi
           limits:
             memory: 256Mi
+  pve-hardware:
+    containers:
+      app:
+        image:
+          repository: docker.io/library/python
+          tag: 3.14.3-slim
+        command: [python3, -u, /etc/pve-hardware/hardware_exporter.py]
+        env:
+          PVE_TOKEN_VALUE_FILE: /etc/pve-credentials/PVE_MONITORING_TOKEN_SECRET
+          REQUESTS_CA_BUNDLE: /etc/pve-ca/ca.pem
+        probes:
+          liveness: &hardware-probe
+            enabled: true
+            custom: true
+            spec:
+              httpGet:
+                path: /healthz
+                port: 9232
+              periodSeconds: 30
+              timeoutSeconds: 5
+          readiness: *hardware-probe
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop: [ALL]
+        resources:
+          requests:
+            cpu: 25m
+            memory: 64Mi
+          limits:
+            memory: 256Mi
 defaultPodOptions:
   automountServiceAccountToken: false
   securityContext:
@@ -52,6 +86,13 @@ service:
     ports:
       http:
         port: 9221
+  hardware:
+    controller: pve-hardware
+    labels:
+      monitoring.krapulax.home/target: pve-hardware
+    ports:
+      http:
+        port: 9232
 persistence:
   ca:
     type: configMap
@@ -64,6 +105,12 @@ persistence:
     name: pve-exporter-credentials
     globalMounts:
       - path: /etc/pve-credentials
+        readOnly: true
+  hardware-script:
+    type: configMap
+    name: pve-hardware-script
+    globalMounts:
+      - path: /etc/pve-hardware
         readOnly: true
   tmp:
     type: emptyDir

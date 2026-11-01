@@ -3,6 +3,8 @@ global:
   createDefaultServiceAccount: false
 controllers:
   pbs-exporter:
+    annotations:
+      reloader.stakater.com/auto: 'true'
     containers:
       app:
         image:
@@ -38,6 +40,38 @@ controllers:
             memory: 64Mi
           limits:
             memory: 256Mi
+  pbs-tasks:
+    containers:
+      app:
+        image:
+          repository: docker.io/library/python
+          tag: 3.14.3-slim
+        command: [python3, -u, /etc/pbs-tasks/task_exporter.py]
+        env:
+          PBS_API_TOKEN_FILE: /etc/pbs-credentials/PBS_MONITORING_TOKEN_SECRET
+          SSL_CERT_FILE: /etc/pbs-ca/ca.pem
+        probes:
+          liveness: &task-probe
+            enabled: true
+            custom: true
+            spec:
+              httpGet:
+                path: /healthz
+                port: 10020
+              periodSeconds: 30
+              timeoutSeconds: 5
+          readiness: *task-probe
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop: [ALL]
+        resources:
+          requests:
+            cpu: 25m
+            memory: 64Mi
+          limits:
+            memory: 256Mi
 defaultPodOptions:
   automountServiceAccountToken: false
   hostAliases:
@@ -58,6 +92,13 @@ service:
     ports:
       http:
         port: 10019
+  tasks:
+    controller: pbs-tasks
+    labels:
+      monitoring.krapulax.home/target: pbs-tasks
+    ports:
+      http:
+        port: 10020
 persistence:
   ca:
     type: configMap
@@ -70,4 +111,10 @@ persistence:
     name: pbs-exporter-credentials
     globalMounts:
       - path: /etc/pbs-credentials
+        readOnly: true
+  task-script:
+    type: configMap
+    name: pbs-task-script
+    globalMounts:
+      - path: /etc/pbs-tasks
         readOnly: true

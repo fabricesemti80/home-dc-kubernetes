@@ -41,6 +41,12 @@ data:
           "datasource": {"type": "prometheus", "uid": "VictoriaMetrics"},
           "fieldConfig": {"defaults": {"unit": "s"}},
           "targets": [{"expr": "time() - pbs_snapshot_vm_last_timestamp", "legendFormat": "{{datastore}} / {{vm_id}} {{vm_name}}", "refId": "A"}]
+        },
+        {
+          "id": 5, "type": "stat", "title": "Latest backup and maintenance task outcomes",
+          "gridPos": {"h": 8, "w": 24, "x": 0, "y": 15},
+          "datasource": {"type": "prometheus", "uid": "VictoriaMetrics"},
+          "targets": [{"expr": "pbs_task_latest_outcome", "legendFormat": "{{task_type}} / {{task_id}}: {{outcome}}", "refId": "A"}]
         }
       ]
     }

@@ -6,6 +6,12 @@ victoria-metrics-operator:
   operator:
     disable_prometheus_converter: true
 
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      memory: 384Mi
 # Talos serves node-specific kubelet certificates that are not trusted by the
 # cluster API CA. Do not bypass certificate verification.
 kubelet:
@@ -30,6 +36,29 @@ defaultDashboards:
 defaultRules:
   create: false
 
+prometheus-node-exporter:
+  resources:
+    requests:
+      cpu: 20m
+      memory: 48Mi
+    limits:
+      memory: 128Mi
+kube-state-metrics:
+  resources:
+    requests:
+      cpu: 30m
+      memory: 96Mi
+    limits:
+      memory: 256Mi
+vmalert:
+  spec:
+    resources:
+      requests:
+        cpu: 25m
+        memory: 96Mi
+      limits:
+        memory: 256Mi
+
 vmagent:
   rbac:
     namespaced: false
@@ -38,6 +67,10 @@ vmagent:
     externalLabels:
       cluster: infra-cluster
       environment: lab
+    remoteWriteSettings:
+      label:
+        cluster: infra-cluster
+        environment: lab
     resources:
       requests:
         cpu: 100m
@@ -79,6 +112,15 @@ alertmanager:
       group_wait: 30s
       group_interval: 5m
       repeat_interval: 12h
+    inhibit_rules:
+      - source_matchers:
+          - alertname="ProxmoxHostUnavailable"
+        target_matchers:
+          - alertname=~"Proxmox(HardwareMetricsUnavailable|DiskSmartUnavailable|DiskUnhealthy|ZfsPoolUnhealthy|DiskHot|StorageAlmostFull|HostExporterUnavailable|CpuTemperatureHigh|HostExporterCertificateExpiring)"
+      - source_matchers:
+          - alertname="ProxmoxBackupServerUnavailable"
+        target_matchers:
+          - alertname=~"Proxmox(Backup(TaskFailed|TaskMetricsUnavailable|TaskHistoryTruncated|DatastoreAlmostFull)|WeeklyGuestBackupStale|MonthlyPbsGuestBackupStale|LatestSnapshotsNotVerified)"
     receivers:
       - name: slack-monitoring
         slack_configs:
@@ -98,6 +140,13 @@ grafana:
       memory: 256Mi
     limits:
       memory: 768Mi
+  sidecar:
+    resources:
+      requests:
+        cpu: 10m
+        memory: 48Mi
+      limits:
+        memory: 128Mi
   grafana.ini:
     server:
       root_url: http://grafana.krapulax.home/

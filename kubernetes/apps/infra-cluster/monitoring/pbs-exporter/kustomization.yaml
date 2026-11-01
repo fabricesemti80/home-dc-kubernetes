@@ -9,5 +9,8 @@ configMapGenerator:
   - name: pbs-exporter-ca
     files:
       - ca.pem=./config/ca.crt
+  - name: pbs-task-script
+    files:
+      - task_exporter.py=./config/task_exporter.py
 generatorOptions:
   disableNameSuffixHash: true

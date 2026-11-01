@@ -24,3 +24,58 @@ spec:
           annotations:
             summary: PBS datastore {{ $labels.datastore }} has less than ten percent free
             description: Review backup retention and underlying storage capacity.
+        - alert: ProxmoxBackupTaskFailed
+          expr: pbs_task_latest_outcome{outcome="error"} == 1
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: PBS {{ $labels.task_type }} task {{ $labels.task_id }} failed
+            description: Inspect the PBS task log; this clears after a newer successful run.
+        - alert: ProxmoxBackupTaskMetricsUnavailable
+          expr: (pbs_task_collector_scrape_success == 0) or absent(pbs_task_collector_scrape_success)
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: PBS task outcome metrics are unavailable
+            description: Check the task collector, PBS API credential and TLS trust.
+        - alert: ProxmoxBackupTaskHistoryTruncated
+          expr: pbs_task_history_limit_reached == 1
+          for: 30m
+          labels:
+            severity: warning
+          annotations:
+            summary: PBS task history exceeded the collector limit
+            description: Some task outcomes may not be represented; review collection capacity.
+        - alert: ProxmoxWeeklyGuestBackupStale
+          expr: |
+            (time() - pbs_snapshot_vm_last_timestamp{datastore="home-dc",vm_id=~"4090|4095|4096|4097"} > 9 * 86400)
+            or absent(pbs_snapshot_vm_last_timestamp{datastore="home-dc",vm_id="4090"})
+            or absent(pbs_snapshot_vm_last_timestamp{datastore="home-dc",vm_id="4095"})
+            or absent(pbs_snapshot_vm_last_timestamp{datastore="home-dc",vm_id="4096"})
+            or absent(pbs_snapshot_vm_last_timestamp{datastore="home-dc",vm_id="4097"})
+          for: 1h
+          labels:
+            severity: warning
+          annotations:
+            summary: Weekly PBS backup is missing or stale for guest {{ $labels.vm_id }}
+            description: Check the weekly PVE backup job and PBS datastore; the threshold assumes the current Sunday schedule.
+        - alert: ProxmoxMonthlyPbsGuestBackupStale
+          expr: |
+            (time() - pbs_snapshot_vm_last_timestamp{datastore="home-dc",vm_id="4020"} > 40 * 86400)
+            or absent(pbs_snapshot_vm_last_timestamp{datastore="home-dc",vm_id="4020"})
+          for: 1h
+          labels:
+            severity: warning
+          annotations:
+            summary: Monthly backup for PBS guest 4020 is missing or stale
+            description: Check the monthly PVE backup job and independent restore strategy.
+        - alert: ProxmoxLatestSnapshotsNotVerified
+          expr: sum(pbs_snapshot_vm_last_verify{datastore="home-dc"} == 0) > 0
+          for: 6h
+          labels:
+            severity: warning
+          annotations:
+            summary: Latest PBS snapshots are not verified OK
+            description: PBS exporter reports one or more newest snapshots as unverified or failed verification; inspect PBS before relying on them.

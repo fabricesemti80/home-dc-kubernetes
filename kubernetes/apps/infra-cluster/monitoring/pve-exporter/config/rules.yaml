@@ -24,3 +24,67 @@ spec:
           annotations:
             summary: Proxmox storage {{ $labels.id }} is over 90 percent full
             description: Storage usage has remained above 90 percent for 15 minutes.
+        - alert: ProxmoxHardwareMetricsUnavailable
+          expr: (pve_hardware_scrape_success == 0) or absent(pve_hardware_scrape_success)
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: Proxmox hardware metrics are unavailable
+            description: Check the hardware collector, PVE API token and TLS trust.
+        - alert: ProxmoxDiskSmartUnavailable
+          expr: pve_hardware_smart_scrape_success == 0
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: SMART data for {{ $labels.device }} is unavailable
+            description: Check the disk and its PVE SMART endpoint.
+        - alert: ProxmoxDiskUnhealthy
+          expr: pve_hardware_disk_health_info{health!~"PASSED|OK"} == 1
+          for: 10m
+          labels:
+            severity: critical
+          annotations:
+            summary: Proxmox disk {{ $labels.device }} reports {{ $labels.health }}
+            description: Inspect SMART status and verify backups before touching the disk.
+        - alert: ProxmoxZfsPoolUnhealthy
+          expr: pve_hardware_zpool_health_info{health!="ONLINE"} == 1
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: Proxmox ZFS pool {{ $labels.pool }} reports {{ $labels.health }}
+            description: Inspect pool health and verify backups before making storage changes.
+        - alert: ProxmoxDiskHot
+          expr: pve_hardware_disk_temperature_celsius > 60
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: Proxmox disk {{ $labels.device }} is above 60 degrees Celsius
+            description: Check airflow and SMART temperature history.
+        - alert: ProxmoxHostExporterUnavailable
+          expr: (up{job="pve-host-hardware"} == 0) or absent(up{job="pve-host-hardware"})
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: Authenticated PVE host hardware telemetry is unavailable
+            description: Check the node-exporter service, mTLS credentials and network path.
+        - alert: ProxmoxCpuTemperatureHigh
+          expr: max(node_hwmon_temp_celsius{job="pve-host-hardware",chip=~"platform_coretemp.*"} - node_hwmon_temp_max_celsius{job="pve-host-hardware",chip=~"platform_coretemp.*"}) > 0
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: PVE CPU temperature is above its hardware-reported maximum
+            description: Check CPU cooling and host sensor readings.
+        - alert: ProxmoxHostExporterCertificateExpiring
+          expr: pve_hardware_tls_certificate_not_after_seconds - time() < 30 * 86400
+          for: 1h
+          labels:
+            severity: warning
+          annotations:
+            summary: PVE hardware exporter mTLS certificate expires within 30 days
+            description: Coordinate replacement of the host and collector identities before expiry.

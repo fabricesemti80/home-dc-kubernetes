@@ -5,9 +5,13 @@ resources:
   - ./config/resources.yaml
   - ./config/rules.yaml
   - ./config/dashboard.yaml
+  - ./config/host-scrape.yaml
 configMapGenerator:
   - name: pve-exporter-ca
     files:
       - ca.pem=./config/ca.crt
+  - name: pve-hardware-script
+    files:
+      - hardware_exporter.py=./config/hardware_exporter.py
 generatorOptions:
   disableNameSuffixHash: true

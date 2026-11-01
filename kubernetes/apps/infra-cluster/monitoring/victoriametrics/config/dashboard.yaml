@@ -22,7 +22,7 @@ data:
           "title": "Ready Kubernetes nodes",
           "gridPos": {"h": 5, "w": 8, "x": 0, "y": 0},
           "datasource": {"type": "prometheus", "uid": "VictoriaMetrics"},
-          "targets": [{"expr": "sum(kube_node_status_condition{condition=\"Ready\",status=\"true\"})", "refId": "A"}]
+          "targets": [{"expr": "sum by (cluster) (kube_node_status_condition{condition=\"Ready\",status=\"true\"})", "legendFormat": "{{cluster}}", "refId": "A"}]
         },
         {
           "id": 2,
@@ -30,7 +30,7 @@ data:
           "title": "Pending persistent volume claims",
           "gridPos": {"h": 5, "w": 8, "x": 8, "y": 0},
           "datasource": {"type": "prometheus", "uid": "VictoriaMetrics"},
-          "targets": [{"expr": "sum(kube_persistentvolumeclaim_status_phase{phase=\"Pending\"})", "refId": "A"}]
+          "targets": [{"expr": "sum by (cluster) (kube_persistentvolumeclaim_status_phase{phase=\"Pending\"})", "legendFormat": "{{cluster}}", "refId": "A"}]
         },
         {
           "id": 3,
@@ -38,16 +38,16 @@ data:
           "title": "Unavailable deployments",
           "gridPos": {"h": 5, "w": 8, "x": 16, "y": 0},
           "datasource": {"type": "prometheus", "uid": "VictoriaMetrics"},
-          "targets": [{"expr": "sum(kube_deployment_status_replicas_unavailable)", "refId": "A"}]
+          "targets": [{"expr": "sum by (cluster) (kube_deployment_status_replicas_unavailable)", "legendFormat": "{{cluster}}", "refId": "A"}]
         },
         {
           "id": 4,
           "type": "timeseries",
-          "title": "Node root filesystem free space",
+          "title": "Node and local-path filesystem free space",
           "gridPos": {"h": 9, "w": 24, "x": 0, "y": 5},
           "datasource": {"type": "prometheus", "uid": "VictoriaMetrics"},
           "fieldConfig": {"defaults": {"unit": "percentunit"}},
-          "targets": [{"expr": "node_filesystem_avail_bytes{mountpoint=\"/\",fstype!~\"tmpfs|overlay|squashfs\"} / node_filesystem_size_bytes{mountpoint=\"/\",fstype!~\"tmpfs|overlay|squashfs\"}", "legendFormat": "{{instance}}", "refId": "A"}]
+          "targets": [{"expr": "node_filesystem_avail_bytes{mountpoint=~\"/|/var|/var/mnt/local-path-provisioner\",fstype!~\"tmpfs|overlay|squashfs\"} / node_filesystem_size_bytes{mountpoint=~\"/|/var|/var/mnt/local-path-provisioner\",fstype!~\"tmpfs|overlay|squashfs\"}", "legendFormat": "{{cluster}} / {{instance}} / {{mountpoint}}", "refId": "A"}]
         }
       ]
     }

@@ -25,10 +25,42 @@ spec:
             summary: PersistentVolumeClaim {{ $labels.namespace }}/{{ $labels.persistentvolumeclaim }} is pending
             description: The claim has remained Pending for at least 15 minutes.
         - alert: NodeFilesystemAlmostFull
-          expr: (node_filesystem_avail_bytes{fstype!~"tmpfs|overlay|squashfs",mountpoint="/"} / node_filesystem_size_bytes{fstype!~"tmpfs|overlay|squashfs",mountpoint="/"}) < 0.1
+          expr: (node_filesystem_avail_bytes{fstype!~"tmpfs|overlay|squashfs",mountpoint=~"/|/var|/var/mnt/local-path-provisioner"} / node_filesystem_size_bytes{fstype!~"tmpfs|overlay|squashfs",mountpoint=~"/|/var|/var/mnt/local-path-provisioner"}) < 0.1
           for: 15m
           labels:
             severity: warning
           annotations:
-            summary: Node filesystem is almost full on {{ $labels.instance }}
-            description: Less than ten percent of root filesystem space has been available for 15 minutes.
+            summary: Node filesystem {{ $labels.mountpoint }} is almost full on {{ $labels.instance }}
+            description: Less than ten percent of filesystem space has been available for 15 minutes.
+        - alert: AppClusterTelemetryMissing
+          expr: absent(kube_node_info{cluster="app-cluster"})
+          for: 10m
+          labels:
+            severity: critical
+          annotations:
+            summary: App-cluster Kubernetes telemetry is missing
+            description: Check the app cluster, its vmagent and the authenticated remote-write path.
+        - alert: KubernetesDeploymentUnavailable
+          expr: kube_deployment_spec_replicas > kube_deployment_status_replicas_available
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: Deployment {{ $labels.namespace }}/{{ $labels.deployment }} has unavailable replicas
+            description: Desired replicas have not been available for 15 minutes.
+        - alert: KubernetesPodCrashLooping
+          expr: kube_pod_container_status_waiting_reason{reason="CrashLoopBackOff"} == 1
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: Container {{ $labels.namespace }}/{{ $labels.pod }} is crash-looping
+            description: The container has remained in CrashLoopBackOff for 15 minutes.
+        - alert: CertificateExpiringSoon
+          expr: (certmanager_certificate_expiration_timestamp_seconds - time()) < 14 * 86400
+          for: 1h
+          labels:
+            severity: warning
+          annotations:
+            summary: Certificate {{ $labels.namespace }}/{{ $labels.name }} expires in less than 14 days
+            description: Check cert-manager renewal and DNS or ACME access.

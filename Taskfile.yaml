@@ -50,6 +50,22 @@ tasks:
     desc: Check generated AutoKuma monitor inventory for drift
     cmd: python3 {{.ROOT_DIR}}/scripts/generate-autokuma-monitors.py --check
 
+  monitoring:remote-pki-check:
+    desc: Check scoped remote-write mTLS credentials without changing them
+    cmd: python3 {{.ROOT_DIR}}/scripts/monitoring-remote-pki.py
+
+  monitoring:remote-pki-create:
+    desc: Create remote-write mTLS credentials in Doppler only if all are absent
+    cmd: python3 {{.ROOT_DIR}}/scripts/monitoring-remote-pki.py --apply
+
+  monitoring:pve-hardware-pki-check:
+    desc: Check scoped PVE hardware exporter mTLS credentials
+    cmd: python3 {{.ROOT_DIR}}/scripts/monitoring-remote-pki.py --profile pve-hardware
+
+  monitoring:pve-hardware-pki-create:
+    desc: Create PVE hardware exporter mTLS credentials only if all are absent
+    cmd: python3 {{.ROOT_DIR}}/scripts/monitoring-remote-pki.py --profile pve-hardware --apply
+
   deps:
     desc: Install Helm dependencies for the cluster workflow
     cmds:

@@ -48,6 +48,39 @@ data:
           "datasource": {"type": "prometheus", "uid": "VictoriaMetrics"},
           "fieldConfig": {"defaults": {"unit": "percentunit"}},
           "targets": [{"expr": "pve_disk_usage_bytes{id=~\"storage/.*\"} / pve_disk_size_bytes{id=~\"storage/.*\"}", "legendFormat": "{{id}}", "refId": "A"}]
+        },
+        {
+          "id": 6, "type": "stat", "title": "ZFS pool health",
+          "gridPos": {"h": 6, "w": 8, "x": 0, "y": 14},
+          "datasource": {"type": "prometheus", "uid": "VictoriaMetrics"},
+          "targets": [{"expr": "pve_hardware_zpool_health_info", "legendFormat": "{{pool}}: {{health}}", "refId": "A"}]
+        },
+        {
+          "id": 7, "type": "stat", "title": "Disk SMART health",
+          "gridPos": {"h": 6, "w": 8, "x": 8, "y": 14},
+          "datasource": {"type": "prometheus", "uid": "VictoriaMetrics"},
+          "targets": [{"expr": "pve_hardware_disk_health_info", "legendFormat": "{{device}}: {{health}}", "refId": "A"}]
+        },
+        {
+          "id": 8, "type": "timeseries", "title": "Disk temperature",
+          "gridPos": {"h": 6, "w": 8, "x": 16, "y": 14},
+          "datasource": {"type": "prometheus", "uid": "VictoriaMetrics"},
+          "fieldConfig": {"defaults": {"unit": "celsius"}},
+          "targets": [{"expr": "pve_hardware_disk_temperature_celsius", "legendFormat": "{{device}}", "refId": "A"}]
+        },
+        {
+          "id": 9, "type": "timeseries", "title": "PVE CPU temperatures",
+          "gridPos": {"h": 8, "w": 12, "x": 0, "y": 20},
+          "datasource": {"type": "prometheus", "uid": "VictoriaMetrics"},
+          "fieldConfig": {"defaults": {"unit": "celsius"}},
+          "targets": [{"expr": "node_hwmon_temp_celsius{job=\"pve-host-hardware\",chip=~\"platform_coretemp.*\"}", "legendFormat": "{{chip}} / {{sensor}}", "refId": "A"}]
+        },
+        {
+          "id": 10, "type": "timeseries", "title": "PVE chassis fan speeds",
+          "gridPos": {"h": 8, "w": 12, "x": 12, "y": 20},
+          "datasource": {"type": "prometheus", "uid": "VictoriaMetrics"},
+          "fieldConfig": {"defaults": {"unit": "rotrpm"}},
+          "targets": [{"expr": "node_hwmon_fan_rpm{job=\"pve-host-hardware\",chip=\"platform_dell_smm_hwmon\"}", "legendFormat": "{{sensor}}", "refId": "A"}]
         }
       ]
     }

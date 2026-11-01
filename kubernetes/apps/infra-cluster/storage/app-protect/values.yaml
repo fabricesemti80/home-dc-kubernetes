@@ -30,3 +30,6 @@ apps:
 - name: pbs-exporter
   namespace: monitoring
   protect: false
+- name: remote-write-proxy
+  namespace: monitoring
+  protect: false
