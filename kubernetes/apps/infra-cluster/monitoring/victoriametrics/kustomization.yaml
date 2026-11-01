@@ -7,3 +7,12 @@ resources:
   - ./config/rules.yaml
   - ./config/dashboard.yaml
   - ./config/nfs-exporter.yaml
+configMapGenerator:
+  - name: grafana-k8s-dashboard-15661
+    namespace: monitoring
+    files:
+      - k8s-dashboard-15661.json=./config/dashboards/k8s-dashboard-15661.json
+    options:
+      disableNameSuffixHash: true
+      labels:
+        grafana_dashboard: '1'
