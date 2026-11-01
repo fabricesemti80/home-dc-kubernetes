@@ -4250,18 +4250,18 @@
                 "CPU%",
                 "WSS%",
                 "RSS%",
-                "CPU Restrictions",
-                "Cores Used",
+                "CPU Limitations",
+                "Using Cores",
                 "Memory Limit",
                 "WSS",
                 "RSS",
                 "Disk Limit",
                 "Disk Usage",
                 "Reboot",
-                "CPUDemand",
+                "CPU Requirements",
                 "Memory Requirements",
                 "Inflow",
-                "Outflow",
+                "Streaming Out",
                 "Survival"
               ]
             }
