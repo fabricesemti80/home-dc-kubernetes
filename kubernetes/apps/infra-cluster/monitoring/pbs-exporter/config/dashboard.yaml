@@ -14,26 +14,26 @@ data:
       "schemaVersion": 39,
       "version": 1,
       "refresh": "60s",
-      "time": {"from": "now-7d", "to": "now"},
+      "time": {"from": "now-6h", "to": "now"},
       "panels": [
         {
           "id": 1, "type": "stat", "title": "PBS API available",
           "gridPos": {"h": 5, "w": 8, "x": 0, "y": 0},
           "datasource": {"type": "prometheus", "uid": "VictoriaMetrics"},
-          "targets": [{"expr": "pbs_up", "refId": "A"}]
+          "targets": [{"expr": "pbs_up", "instant": true, "refId": "A"}]
         },
         {
           "id": 2, "type": "gauge", "title": "Datastore available space",
           "gridPos": {"h": 5, "w": 8, "x": 8, "y": 0},
           "datasource": {"type": "prometheus", "uid": "VictoriaMetrics"},
           "fieldConfig": {"defaults": {"unit": "percentunit", "min": 0, "max": 1}},
-          "targets": [{"expr": "pbs_available / pbs_size", "legendFormat": "{{datastore}}", "refId": "A"}]
+          "targets": [{"expr": "pbs_available / pbs_size", "legendFormat": "{{datastore}}", "instant": true, "refId": "A"}]
         },
         {
           "id": 3, "type": "stat", "title": "Total snapshots",
           "gridPos": {"h": 5, "w": 8, "x": 16, "y": 0},
           "datasource": {"type": "prometheus", "uid": "VictoriaMetrics"},
-          "targets": [{"expr": "sum(pbs_snapshot_count)", "refId": "A"}]
+          "targets": [{"expr": "sum(pbs_snapshot_count)", "instant": true, "refId": "A"}]
         },
         {
           "id": 4, "type": "timeseries", "title": "Age of most recent backup by guest",
@@ -46,7 +46,7 @@ data:
           "id": 5, "type": "stat", "title": "Latest backup and maintenance task outcomes",
           "gridPos": {"h": 8, "w": 24, "x": 0, "y": 15},
           "datasource": {"type": "prometheus", "uid": "VictoriaMetrics"},
-          "targets": [{"expr": "pbs_task_latest_outcome", "legendFormat": "{{task_type}} / {{task_id}}: {{outcome}}", "refId": "A"}]
+          "targets": [{"expr": "pbs_task_latest_outcome", "legendFormat": "{{task_type}} / {{task_id}}: {{outcome}}", "instant": true, "refId": "A"}]
         }
       ]
     }
