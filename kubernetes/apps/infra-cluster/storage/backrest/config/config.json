@@ -118,31 +118,6 @@
       ]
     },
     {
-      "id": "app-pulse",
-      "repo": "nas",
-      "paths": ["/backups/infra-cluster/exports/pulse/current"],
-      "schedule": {
-        "cron": "40 2 * * *",
-        "clock": "CLOCK_UTC"
-      },
-      "retention": {
-        "policyTimeBucketed": {
-          "daily": 14,
-          "weekly": 8,
-          "monthly": 6
-        }
-      },
-      "hooks": [
-        {
-          "conditions": ["CONDITION_SNAPSHOT_START"],
-          "onError": "ON_ERROR_FATAL",
-          "actionCommand": {
-            "command": "test -f /backups/infra-cluster/exports/pulse/current/.captured-at && test -n \"$(find /backups/infra-cluster/exports/pulse/current/.captured-at -mmin -1560 -print)\""
-          }
-        }
-      ]
-    },
-    {
       "id": "app-autokuma",
       "repo": "nas",
       "paths": ["/backups/infra-cluster/exports/autokuma/current"],

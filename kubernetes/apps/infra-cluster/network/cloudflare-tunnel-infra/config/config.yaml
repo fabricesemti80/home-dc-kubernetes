@@ -8,8 +8,6 @@ data:
     ingress:
       - hostname: litellm.krapulax.dev
         service: http://litellm.ai.svc.cluster.local:4000
-      - hostname: pulse.krapulax.dev
-        service: http://pulse.monitoring.svc.cluster.local:7655
       - hostname: dns.krapulax.dev
         service: http://technitium.network.svc.cluster.local:5380
       - hostname: uptime.krapulax.dev

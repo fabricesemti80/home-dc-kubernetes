@@ -1,39 +1,24 @@
-# 💓 Pulse Kubernetes Agents
+# Pulse retirement
 
-Deploy the Pulse agent only into the infra cluster so the infra Pulse server can monitor the independent infra runtime without ingesting app-cluster workload volume.
+**Decision date:** 2026-11-01
 
-## 🏛️ Architecture
+**Supersedes:** The decision in this document to run the Pulse server and infra-cluster agent, introduced in PR #186 and revised in PR #193 to retain only the infra agent.
 
--   `pulse-agent-infra` runs in the infra cluster and connects to `http://pulse.monitoring.svc.cluster.local:7655`.
--   The app-cluster agent is intentionally removed because reporting every app-cluster pod/deployment appears to overload the Pulse browser UI.
--   The infra agent uses the Pulse app-template chart layout and runs as a DaemonSet.
--   The agent enables Kubernetes and host monitoring and runs one replica per infra node.
--   Host networking, host PID visibility, and privileged mode expose node CPU, memory, disk, and network statistics to the host module.
+Pulse and its infra-cluster agent are retired. Uptime Kuma remains; it does not replace Pulse's host, VM, backup or Kubernetes alerts. There is an accepted monitoring gap until the new stack is deployed and verified.
 
-## 📌 Security
+The infra `monitoring` namespace is shared and remains managed by `uptime-kuma-infra`. Pulse's hostPath `/var/pulse/data`, existing Backrest snapshots, Kubernetes credentials and Doppler entries are not deleted by the retirement tasks. The Pulse app-protect entry and its Backrest plan are removed together so an orphaned plan cannot keep failing on stale captures.
 
--   `PULSE_TOKEN` is synced from Doppler (`home-dc-kubernetes/infra`) into the infra cluster with `DopplerSecret`.
--   Service account access is limited to the Pulse RBAC resources in the infra agent app.
--   Privileged mode is limited to the Pulse infra agent DaemonSet because host metrics require access to node namespaces.
+## Cutover
 
-## 🤔 Assumptions
+1. Before merging, run `task infrastructure:prepare-pulse-retirement` to inventory the live Applications and their allowlisted resources. The private inventory is tied to the infra cluster and records UIDs; it contains no secret values.
+2. Merge the removal and wait for the parent Argo Application `apps` to mark both Pulse Applications as requiring pruning. The parent does not prune them automatically.
+3. Run `task infrastructure:unregister-pulse-retirement`. It refuses changed Applications, finalizers or an unexpected cluster, and unregisters without cascading.
+4. Wait for `uptime-kuma-infra` to adopt the shared namespace. Verify its tracking annotation is `uptime-kuma-infra:/Namespace:monitoring/monitoring`; if not, sync that Application and investigate rather than deleting the namespace.
+5. Run `task infrastructure:retire-pulse`. It checks the namespace owner and inventoried resource UIDs and Argo ownership, then deletes only the explicitly allowlisted Pulse workload and routing resources. It never deletes the namespace, secrets, hostPath or backup snapshots.
+6. Confirm Uptime Kuma remains healthy, Pulse workloads and routes are absent, the app-protect Pulse CronJob is gone, and Backrest no longer lists the `app-pulse` plan. Confirm the Cloudflare ingress and generated AutoKuma monitor no longer reference Pulse.
 
--   Infra-cluster monitoring is more important than app-cluster detail while Pulse UI stability is being restored.
--   Removing app-cluster pod/deployment ingestion should reduce Pulse UI load without affecting the infra Pulse server.
--   The live `pulse-agent-app` Argo Application must be deleted once because the app-of-apps uses `Prune=false`.
+## Validation and security
 
-## ✅ Validation
+Before merge: run `bash scripts/validate.sh`, `python3 scripts/generate-autokuma-monitors.py --check`, and render the Uptime Kuma and app-protect manifests. After merge, perform the cutover checks above. Pulse's privileged agent and cluster RBAC are removed; its credential objects are deliberately left untouched. Remove unused credentials separately only after checking their consumers.
 
-1. `kubectl kustomize kubernetes/apps/infra-cluster/monitoring/pulse-agent-infra`
-2. Delete the live app-cluster agent Application:
-   `kubectl --kubeconfig kubeconfig -n argo-system delete application pulse-agent-app`
-3. Confirm app-cluster agent resources are gone:
-   `kubectl --kubeconfig kubeconfig -n monitoring get daemonset,serviceaccount,clusterrole,clusterrolebinding,dopplersecret | rg pulse-agent`
-4. Check Pulse UI remains reachable and no longer receives the `app-cluster` agent.
-5. Check infra agent logs if `infra-cluster` is missing.
-
-## ↩️ Rollback
-
-1. Restore the deleted `pulse-agent-app` Argo Application and app manifests from Git history.
-2. Re-sync the app-of-apps or apply the restored Application.
-3. Confirm the `app-cluster` agent appears in Pulse again.
+To reverse the GitOps removal if needed, revert the retirement change and reconcile the restored Applications; the preserved data and credentials are not modified by the tasks. A restore to a disposable copy started Pulse and returned HTTP 200, but historical records and notifications were not tested.

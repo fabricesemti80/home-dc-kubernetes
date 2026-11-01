@@ -17,10 +17,10 @@ flowchart LR
     P8 --> P9[Phase 9 Maintenance Test]
 ```
 
-| Argo CD name    | Platform              | Role                               |
-| --------------- | --------------------- | ---------------------------------- |
-| `app-cluster`   | Talos VMs on Proxmox  | General workloads                  |
-| `infra-cluster` | Two physical mini PCs | Pulse, Uptime Kuma, Technitium DNS |
+| Argo CD name    | Platform              | Role                        |
+| --------------- | --------------------- | --------------------------- |
+| `app-cluster`   | Talos VMs on Proxmox  | General workloads           |
+| `infra-cluster` | Two physical mini PCs | Uptime Kuma, Technitium DNS |
 
 Initial infra topology:
 
@@ -489,7 +489,7 @@ Do not merge any Application targeting `infra-cluster` until this registration i
 
 The initial infra cluster must not depend on storage hosted inside `app-cluster` or on the Proxmox nodes it is intended to monitor.
 
-Before deploying Pulse, Uptime Kuma, or Technitium, choose one of these storage patterns:
+Before deploying Uptime Kuma or Technitium, choose one of these storage patterns:
 
 1. **Local persistent volumes on the physical nodes** — simplest, but tied to one node.
 2. **External NAS-backed NFS/iSCSI** — preferred when the NAS remains online during Proxmox maintenance.
@@ -519,9 +519,8 @@ Deploy in this order:
 
 1. Doppler secret operator (`doppler-operator-infra`)
 2. storage prerequisites
-3. Pulse (`pulse-infra`) — pinned to `infra-wk-01` with `hostPath` storage for the first pass
-4. Uptime Kuma
-5. Technitium DNS (future deployment)
+3. Uptime Kuma
+4. Technitium DNS
 
 The old `technitium-dns` Application was an ExternalDNS webhook integration, not the DNS server itself, and is intentionally removed for now. Create or migrate the actual DNS-server workload deliberately and keep app-cluster-specific integrations separate where required.
 
@@ -539,10 +538,10 @@ kubectl --context infra-cluster get pods -A
 
 Prove that the design meets its purpose:
 
-1. Confirm Pulse, Uptime Kuma, and any future Technitium deployment are healthy on `infra-cluster`.
+1. Confirm Uptime Kuma and Technitium are healthy on `infra-cluster`.
 2. Shut down or pause the app-cluster VMs during a maintenance window.
-3. Confirm the infra services remain reachable.
-4. Confirm they correctly report the app cluster as unavailable.
+3. Confirm the infra services remain reachable. Uptime Kuma provides website checks, not full replacement monitoring.
+4. Confirm the configured Uptime Kuma checks correctly report unreachable services.
 5. Restore the app cluster and confirm recovery is detected.
 
 ## 🔄 Recovery notes
@@ -552,7 +551,7 @@ Back up these items outside both clusters:
 -   `generated/talosconfig`
 -   Talos machine configuration/secrets
 -   `infra-cluster` kubeconfig
--   application data for Pulse, Uptime Kuma, and Technitium
+-   application data for Uptime Kuma and Technitium, plus retained historical Pulse data if rollback is required
 -   the Argo CD registration and deployment instructions in this repository
 
 Because the initial cluster has one control-plane node, losing `infra-cp-01` makes the Kubernetes API unavailable. Existing workloads on the worker may continue running, but scheduling and reconciliation stop until the control-plane node is restored. This is an accepted initial limitation.

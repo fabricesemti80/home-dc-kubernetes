@@ -5,10 +5,6 @@
         description: Shared LLM gateway
 
 - Infra Cluster - monitoring:
-    - Pulse:
-        icon: https://raw.githubusercontent.com/rcourtman/Pulse/main/docs/images/pulse-logo.png
-        href: https://pulse.krapulax.dev
-        description: Infrastructure monitoring
     - Uptime Kuma:
         icon: uptime-kuma.png
         href: https://uptime.krapulax.dev

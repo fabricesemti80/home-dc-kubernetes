@@ -5,3 +5,4 @@ resources:
   - ./config/http-route.yaml
   - ./config/autokuma-monitors.yaml
   - ./config/doppler-secret.yaml
+  - ./config/namespace.yaml
