@@ -8,6 +8,6 @@ resources:
 configMapGenerator:
   - name: pve-exporter-ca
     files:
-      - ca.pem=./config/ca.pem
+      - ca.pem=./config/ca.crt
 generatorOptions:
   disableNameSuffixHash: true
