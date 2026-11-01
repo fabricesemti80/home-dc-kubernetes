@@ -6,3 +6,4 @@ resources:
   - ./config/http-route.yaml
   - ./config/rules.yaml
   - ./config/dashboard.yaml
+  - ./config/nfs-exporter.yaml

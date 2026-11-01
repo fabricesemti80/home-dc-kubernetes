@@ -16,6 +16,14 @@ spec:
           annotations:
             summary: Kubernetes node {{ $labels.node }} is not Ready
             description: The node has been NotReady for at least five minutes.
+        - alert: KubernetesNodeResourcePressure
+          expr: kube_node_status_condition{condition=~"MemoryPressure|DiskPressure|PIDPressure",status="true"} == 1
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: Kubernetes node {{ $labels.node }} reports {{ $labels.condition }}
+            description: Inspect node capacity and workloads before pods are evicted or fail to start.
         - alert: PersistentVolumeClaimPending
           expr: kube_persistentvolumeclaim_status_phase{phase="Pending"} == 1
           for: 15m
@@ -24,6 +32,17 @@ spec:
           annotations:
             summary: PersistentVolumeClaim {{ $labels.namespace }}/{{ $labels.persistentvolumeclaim }} is pending
             description: The claim has remained Pending for at least 15 minutes.
+        - alert: AppConfigExportStale
+          expr: |
+            (time() - kube_cronjob_status_last_successful_time{cronjob=~"protect-.*"} > 36 * 3600)
+            or ((time() - kube_cronjob_created{cronjob=~"protect-.*"} > 36 * 3600)
+              unless on (cluster, namespace, cronjob) kube_cronjob_status_last_successful_time{cronjob=~"protect-.*"})
+          for: 30m
+          labels:
+            severity: warning
+          annotations:
+            summary: Config export {{ $labels.namespace }}/{{ $labels.cronjob }} is stale
+            description: Check app-protect job logs and the NAS. This export check does not verify the subsequent Backrest snapshot.
         - alert: NodeFilesystemAlmostFull
           expr: (node_filesystem_avail_bytes{fstype!~"tmpfs|overlay|squashfs",mountpoint=~"/|/var|/var/mnt/local-path-provisioner"} / node_filesystem_size_bytes{fstype!~"tmpfs|overlay|squashfs",mountpoint=~"/|/var|/var/mnt/local-path-provisioner"}) < 0.1
           for: 15m
@@ -64,3 +83,27 @@ spec:
           annotations:
             summary: Certificate {{ $labels.namespace }}/{{ $labels.name }} expires in less than 14 days
             description: Check cert-manager renewal and DNS or ACME access.
+        - alert: NasFilesystemTelemetryUnavailable
+          expr: absent(up{job="nas-filesystems"} == 1)
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: NAS filesystem telemetry is unavailable
+            description: Check the collector pod, NFS mounts and network path; this does not alone prove a NAS outage.
+        - alert: NasFilesystemInaccessible
+          expr: max(node_filesystem_device_error{job="nas-filesystems"}) > 0
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: NAS filesystem capacity cannot be read
+            description: Check NFS connectivity and permissions for the monitoring collector.
+        - alert: NasFilesystemAlmostFull
+          expr: min(node_filesystem_avail_bytes{job="nas-filesystems"} / node_filesystem_size_bytes{job="nas-filesystems"}) < 0.1
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: A NAS media or backup filesystem is almost full
+            description: Less than ten percent of available filesystem space remains; inspect the NAS capacity dashboard.

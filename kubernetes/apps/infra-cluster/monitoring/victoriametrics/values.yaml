@@ -37,6 +37,9 @@ defaultRules:
   create: false
 
 prometheus-node-exporter:
+  extraArgs:
+    - '--collector.filesystem.mount-points-include=^(/|/var|/var/mnt/local-path-provisioner)$'
+    - '--collector.filesystem.fs-types-exclude=^(autofs|binfmt_misc|bpf|cgroup2?|configfs|debugfs|devpts|devtmpfs|fusectl|hugetlbfs|iso9660|mqueue|nsfs|overlay|proc|procfs|pstore|rpc_pipefs|securityfs|selinuxfs|squashfs|sysfs|tracefs|erofs)$'
   resources:
     requests:
       cpu: 20m
