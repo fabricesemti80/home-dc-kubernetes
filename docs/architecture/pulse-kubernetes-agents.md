@@ -1,5 +1,9 @@
 # Pulse retirement
 
+**Decision date:** 2026-11-01
+
+**Supersedes:** The decision in this document to run the Pulse server and infra-cluster agent, introduced in PR #186 and revised in PR #193 to retain only the infra agent.
+
 Pulse and its infra-cluster agent are retired. Uptime Kuma remains; it does not replace Pulse's host, VM, backup or Kubernetes alerts. There is an accepted monitoring gap until the new stack is deployed and verified.
 
 The infra `monitoring` namespace is shared and remains managed by `uptime-kuma-infra`. Pulse's hostPath `/var/pulse/data`, existing Backrest snapshots, Kubernetes credentials and Doppler entries are not deleted by the retirement tasks. The Pulse app-protect entry and its Backrest plan are removed together so an orphaned plan cannot keep failing on stale captures.
