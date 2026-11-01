@@ -9,6 +9,14 @@
         icon: uptime-kuma.png
         href: https://uptime.krapulax.dev
         description: External availability monitoring
+    - VictoriaMetrics:
+        icon: https://cdn.jsdelivr.net/gh/selfhst/icons/png/victoriametrics.png
+        href: http://victoriametrics.krapulax.home/vmui/
+        description: Metrics store and query UI (read-only)
+    - Alertmanager:
+        icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/alertmanager.png
+        href: http://alertmanager.krapulax.home
+        description: Alert routing and silences
 
 - Infra Cluster - network:
     - Technitium:
