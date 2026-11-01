@@ -64,3 +64,6 @@ apps:
   - transcodes
   - metadata
   schedule: 35 1 * * *
+- name: vmagent-queue
+  namespace: monitoring
+  protect: false

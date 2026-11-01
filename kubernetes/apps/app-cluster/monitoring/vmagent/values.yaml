@@ -1,0 +1,113 @@
+---
+victoria-metrics-operator:
+  crds:
+    cleanup:
+      enabled: false
+  operator:
+    disable_prometheus_converter: false
+
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      memory: 384Mi
+# The kubelet serving certificates are not trusted by the cluster API CA.
+kubelet:
+  enabled: false
+  vmScrapes:
+    cadvisor:
+      enabled: false
+    probes:
+      enabled: false
+    resources:
+      enabled: false
+  vmScrape:
+    spec:
+      tlsConfig:
+        insecureSkipVerify: false
+syncJob:
+  enabled: false
+defaultDashboards:
+  enabled: false
+defaultRules:
+  create: false
+vmsingle:
+  enabled: false
+vmcluster:
+  enabled: false
+vmalert:
+  enabled: false
+alertmanager:
+  enabled: false
+grafana:
+  enabled: false
+prometheus-node-exporter:
+  extraArgs:
+    - '--collector.filesystem.mount-points-include=^(/|/var|/var/mnt/local-path-provisioner)$'
+    - '--collector.filesystem.fs-types-exclude=^(autofs|binfmt_misc|bpf|cgroup2?|configfs|debugfs|devpts|devtmpfs|fusectl|hugetlbfs|iso9660|mqueue|nsfs|overlay|proc|procfs|pstore|rpc_pipefs|securityfs|selinuxfs|squashfs|sysfs|tracefs|erofs)$'
+  tolerations:
+    - operator: Exists
+  resources:
+    requests:
+      cpu: 20m
+      memory: 48Mi
+    limits:
+      memory: 128Mi
+kube-state-metrics:
+  resources:
+    requests:
+      cpu: 30m
+      memory: 96Mi
+    limits:
+      memory: 256Mi
+vmagent:
+  rbac:
+    namespaced: false
+  spec:
+    scrapeInterval: 30s
+    serviceScrapeNamespaceSelector: {}
+    serviceScrapeSelector:
+      matchExpressions:
+        - key: app.kubernetes.io/name
+          operator: NotIn
+          values: [metrics-server]
+    statefulMode: true
+    statefulStorage:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: local-path
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 5Gi
+    remoteWriteSettings:
+      maxDiskUsagePerURL: 4GiB
+      label:
+        cluster: app-cluster
+        environment: lab
+    remoteWrite:
+      - url: https://10.0.40.107:8443/api/v1/write
+        tlsConfig:
+          ca:
+            secret:
+              name: monitoring-remote-client-tls
+              key: MONITORING_REMOTE_CA_CERT
+          cert:
+            secret:
+              name: monitoring-remote-client-tls
+              key: MONITORING_REMOTE_CLIENT_CERT
+          keySecret:
+            name: monitoring-remote-client-tls
+            key: MONITORING_REMOTE_CLIENT_KEY
+          insecureSkipVerify: false
+    externalLabels:
+      cluster: app-cluster
+      environment: lab
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        memory: 768Mi

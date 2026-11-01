@@ -1,0 +1,69 @@
+---
+global:
+  createDefaultServiceAccount: false
+controllers:
+  remote-write-proxy:
+    annotations:
+      reloader.stakater.com/auto: 'true'
+    containers:
+      app:
+        image:
+          repository: docker.io/nginxinc/nginx-unprivileged
+          tag: 1.29.3-alpine
+        command: [nginx, -g, 'daemon off;']
+        probes:
+          liveness: &probe
+            enabled: true
+            custom: true
+            spec:
+              tcpSocket:
+                port: 8443
+              periodSeconds: 30
+              timeoutSeconds: 5
+          readiness: *probe
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop: [ALL]
+        resources:
+          requests:
+            cpu: 25m
+            memory: 32Mi
+          limits:
+            memory: 128Mi
+defaultPodOptions:
+  automountServiceAccountToken: false
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 101
+    runAsGroup: 101
+    seccompProfile:
+      type: RuntimeDefault
+service:
+  app:
+    controller: remote-write-proxy
+    type: LoadBalancer
+    annotations:
+      lbipam.cilium.io/ips: 10.0.40.107
+    ports:
+      https:
+        port: 8443
+persistence:
+  config:
+    type: configMap
+    name: remote-write-proxy-config
+    globalMounts:
+      - path: /etc/nginx/nginx.conf
+        subPath: nginx.conf
+        readOnly: true
+  tls:
+    type: secret
+    name: remote-write-server-tls
+    globalMounts:
+      - path: /etc/monitoring-tls
+        readOnly: true
+  tmp:
+    type: emptyDir
+    globalMounts:
+      - path: /tmp

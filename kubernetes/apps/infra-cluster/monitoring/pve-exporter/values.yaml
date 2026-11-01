@@ -1,0 +1,118 @@
+---
+global:
+  createDefaultServiceAccount: false
+controllers:
+  pve-exporter:
+    annotations:
+      reloader.stakater.com/auto: 'true'
+    containers:
+      app:
+        image:
+          repository: docker.io/prompve/prometheus-pve-exporter
+          tag: 3.11.0
+        env:
+          PVE_USER: prometheus@pve
+          PVE_TOKEN_NAME: victoriametrics
+          PVE_TOKEN_VALUE_FILE: /etc/pve-credentials/PVE_MONITORING_TOKEN_SECRET
+          PVE_VERIFY_SSL: 'true'
+          REQUESTS_CA_BUNDLE: /etc/pve-ca/ca.pem
+        probes:
+          liveness: &probe
+            enabled: true
+            custom: true
+            spec:
+              httpGet:
+                path: /metrics
+                port: 9221
+              periodSeconds: 30
+              timeoutSeconds: 5
+          readiness: *probe
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop: [ALL]
+        resources:
+          requests:
+            cpu: 25m
+            memory: 96Mi
+          limits:
+            memory: 256Mi
+  pve-hardware:
+    containers:
+      app:
+        image:
+          repository: docker.io/library/python
+          tag: 3.14.3-slim
+        command: [python3, -u, /etc/pve-hardware/hardware_exporter.py]
+        env:
+          PVE_TOKEN_VALUE_FILE: /etc/pve-credentials/PVE_MONITORING_TOKEN_SECRET
+          REQUESTS_CA_BUNDLE: /etc/pve-ca/ca.pem
+        probes:
+          liveness: &hardware-probe
+            enabled: true
+            custom: true
+            spec:
+              httpGet:
+                path: /healthz
+                port: 9232
+              periodSeconds: 30
+              timeoutSeconds: 5
+          readiness: *hardware-probe
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop: [ALL]
+        resources:
+          requests:
+            cpu: 25m
+            memory: 64Mi
+          limits:
+            memory: 256Mi
+defaultPodOptions:
+  automountServiceAccountToken: false
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 101
+    runAsGroup: 101
+    seccompProfile:
+      type: RuntimeDefault
+service:
+  app:
+    controller: pve-exporter
+    labels:
+      monitoring.krapulax.home/target: pve-exporter
+    ports:
+      http:
+        port: 9221
+  hardware:
+    controller: pve-hardware
+    labels:
+      monitoring.krapulax.home/target: pve-hardware
+    ports:
+      http:
+        port: 9232
+persistence:
+  ca:
+    type: configMap
+    name: pve-exporter-ca
+    globalMounts:
+      - path: /etc/pve-ca
+        readOnly: true
+  credentials:
+    type: secret
+    name: pve-exporter-credentials
+    globalMounts:
+      - path: /etc/pve-credentials
+        readOnly: true
+  hardware-script:
+    type: configMap
+    name: pve-hardware-script
+    globalMounts:
+      - path: /etc/pve-hardware
+        readOnly: true
+  tmp:
+    type: emptyDir
+    globalMounts:
+      - path: /tmp

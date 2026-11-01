@@ -1,0 +1,9 @@
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ./config/doppler.yaml
+  - ./config/http-route.yaml
+  - ./config/rules.yaml
+  - ./config/dashboard.yaml
+  - ./config/nfs-exporter.yaml

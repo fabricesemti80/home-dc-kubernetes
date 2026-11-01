@@ -1,0 +1,16 @@
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ./config/resources.yaml
+  - ./config/rules.yaml
+  - ./config/dashboard.yaml
+configMapGenerator:
+  - name: pbs-exporter-ca
+    files:
+      - ca.pem=./config/ca.crt
+  - name: pbs-task-script
+    files:
+      - task_exporter.py=./config/task_exporter.py
+generatorOptions:
+  disableNameSuffixHash: true

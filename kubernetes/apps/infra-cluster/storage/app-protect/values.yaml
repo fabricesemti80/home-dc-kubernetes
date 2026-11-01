@@ -21,3 +21,15 @@ apps:
   node: infra-wk-01
   hostPath: /var/autokuma/data
   schedule: 15 1 * * *
+- name: victoriametrics-metrics
+  namespace: monitoring
+  protect: false
+- name: pve-exporter
+  namespace: monitoring
+  protect: false
+- name: pbs-exporter
+  namespace: monitoring
+  protect: false
+- name: remote-write-proxy
+  namespace: monitoring
+  protect: false

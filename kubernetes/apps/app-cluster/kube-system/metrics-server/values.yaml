@@ -15,4 +15,6 @@ resources:
 metrics:
   enabled: true
 serviceMonitor:
-  enabled: true
+  # Its chart-generated scrape disables TLS verification. Keep it out of the
+  # Prometheus-to-VictoriaMetrics converter until its serving trust is fixed.
+  enabled: false
