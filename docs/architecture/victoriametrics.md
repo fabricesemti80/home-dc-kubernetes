@@ -1,6 +1,6 @@
 # VictoriaMetrics monitoring
 
-**Decision date:** 2026-11-01. **Status:** work in progress; not deployed. This design supersedes Pulse monitoring, retired in PR #460. The planned end-to-end coverage and acceptance criteria are in [the monitoring plan](../plan/victoriametrics-monitoring.md). Do not merge or deploy this partial configuration as a complete replacement.
+**Decision date:** 2026-11-01. **Status:** proposed for GitOps deployment; the Kubernetes stack is not yet deployed or accepted as a complete Pulse replacement. Pulse was retired in PR #460. The planned end-to-end coverage and acceptance criteria are in [the monitoring plan](../plan/victoriametrics-monitoring.md); complete the post-deployment checks and explicitly resolve the gaps below before relying on the stack.
 
 ## Scope and security
 
