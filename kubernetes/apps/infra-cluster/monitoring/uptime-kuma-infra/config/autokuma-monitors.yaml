@@ -72,14 +72,6 @@ data:
       "interval": 60,
       "max_retries": 3
     }
-  pulse.json: |-
-    {
-      "type": "http",
-      "name": "Pulse",
-      "url": "https://pulse.krapulax.dev",
-      "interval": 60,
-      "max_retries": 3
-    }
   qbittorrent.json: |-
     {
       "type": "http",

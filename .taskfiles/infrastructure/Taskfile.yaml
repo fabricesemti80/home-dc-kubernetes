@@ -14,6 +14,18 @@ tasks:
     desc: Remove inventoried orphaned Kestra/KubeVirt resources after merge, preserving namespaces and PVCs
     cmd: python3 '{{.ROOT_DIR}}/scripts/retire-infra-apps.py' remove
 
+  prepare-pulse-retirement:
+    desc: Inventory Pulse resources before merging their removal (read-only)
+    cmd: python3 '{{.ROOT_DIR}}/scripts/retire-pulse.py' prepare
+
+  unregister-pulse-retirement:
+    desc: Orphan Pulse Argo registrations after Git removal without cascading
+    cmd: python3 '{{.ROOT_DIR}}/scripts/retire-pulse.py' unregister
+
+  retire-pulse:
+    desc: Remove inventoried Pulse workloads while preserving data and credentials
+    cmd: python3 '{{.ROOT_DIR}}/scripts/retire-pulse.py' remove
+
 
   argo-sync-bootstrap:
     desc: Apply the Argo CD app-of-apps bootstrap resources
