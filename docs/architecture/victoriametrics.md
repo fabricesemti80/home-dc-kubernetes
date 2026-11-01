@@ -1,6 +1,6 @@
 # VictoriaMetrics monitoring
 
-**Decision date:** 2026-11-01. **Status:** proposed for GitOps deployment; the Kubernetes stack is not yet deployed or accepted as a complete Pulse replacement. Pulse was retired in PR #460. The planned end-to-end coverage and acceptance criteria are in [the monitoring plan](../plan/victoriametrics-monitoring.md); complete the post-deployment checks and explicitly resolve the gaps below before relying on the stack.
+**Decision date:** 2026-11-01. **Status:** partially deployed; not yet accepted as a complete Pulse replacement. Pulse was retired in PR #460. The planned end-to-end coverage and acceptance criteria are in [the monitoring plan](../plan/victoriametrics-monitoring.md); complete the post-deployment checks and explicitly resolve the gaps below before relying on the stack.
 
 ## Scope and security
 
@@ -24,14 +24,15 @@ PVE currently schedules guests 4090 and 4095–4097 weekly on Sunday and PBS gue
 
 ## Coverage and deliberate gaps
 
--   Infra vmagent is configured to discover resources across namespaces, with `cluster=infra-cluster`. Kube-state-metrics and node-exporter provide initial node, workload and filesystem signals. Actual target health and Talos host mounts are not yet verified.
--   Node-exporter collects Talos `/var` and the app worker local-path user volume. A separate unprivileged filesystem-only exporter mounts `/media` and `/k8s-backup` read-only to expose NAS export capacity without granting host filesystem access. Isolated smoke tests scraped both local filesystems on an app worker and both NFS exports on the infra worker; production discovery and alerts must still be verified after deployment. A collector unable to mount or read an export reports telemetry unavailable, not proof of NAS failure.
+-   Live queries show four app-cluster nodes and two infra-cluster nodes, with the expected cluster labels. The app collector's authenticated remote-write path is operating.
+-   Node-exporter collects Talos `/var` and the app worker local-path user volume. A separate unprivileged filesystem-only exporter mounts `/media` and `/k8s-backup` read-only; live queries show both export capacities. An inaccessible export or collector reports telemetry unavailable, not proof of a NAS failure.
 -   App-protect CronJobs are checked for stale or never-successful config exports, using the current daily schedule. This does not prove that Backrest subsequently created, checked or restored a snapshot; Backrest plan freshness and restore verification remain separate monitoring gaps.
 -   Kubelet, cAdvisor and resource scrapes are disabled because the node-serving certificates do not chain to the cluster CA. API-server proxying is not assumed to fix this. The existing app-cluster metrics-server still has its pre-existing `--kubelet-insecure-tls` setting; this deployment does not change that workload. Its insecure ServiceMonitor is disabled and excluded from conversion. Do not add insecure VictoriaMetrics scrapes; restore these metrics only after establishing verified serving identities.
--   PVE host, VM and storage metrics, disk SMART health and temperature, ZFS pool health, PBS availability, datastore capacity, snapshot timestamps and recent completed task outcomes were tested with isolated hardened collectors. The authenticated host exporter returned CPU, chassis fan and ZFS metrics; Kubernetes ingestion and complete scheduled-job coverage remain unverified.
--   The app-cluster collector converts existing Prometheus `ServiceMonitor` and `PodMonitor` resources, excluding the insecure metrics-server monitor. Its encrypted, mutually authenticated remote-write path and queue replay were tested in isolation, but it is not deployed. Real target coverage, converted monitors and cross-cluster routing remain unverified.
+-   Live collectors report PVE host, VM and storage metrics, disk SMART and ZFS pool health, CPU and fan sensors, PBS availability, datastore capacity, snapshot timestamps and completed task outcomes. Complete scheduled-job coverage remains unverified.
+-   The app-cluster collector converts existing Prometheus `ServiceMonitor` and `PodMonitor` resources, excluding the insecure metrics-server monitor. Its encrypted, mutually authenticated remote-write path and queue replay were tested in isolation; cert-manager, Cilium, GPU operator and node exporter targets were observed live.
+-   The app controller-manager and both clusters' scheduler targets were observed down; the infra control-plane components bind to loopback. Do not interpret these missing scrapes as component failure. Establish a secure local collection path before claiming control-plane coverage.
 -   QNAP telemetry is optional and not implemented. Uptime Kuma continues to own external website checks.
--   No in-cluster firing/resolved Slack notification, dashboard, storage capacity, backup restore or end-to-end runtime validation has yet been completed. Pulse's monitoring gap remains open.
+-   The Grafana infrastructure, PVE and PBS dashboards were opened against live metrics. Alertmanager failed to start due to the generated StatefulSet label; its naming fix and in-cluster firing/resolved Slack verification remain deployment gates. Backup restore and full end-to-end monitoring acceptance remain open.
 
 ## Storage and recovery
 
