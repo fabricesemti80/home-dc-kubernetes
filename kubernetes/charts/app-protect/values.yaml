@@ -1,6 +1,6 @@
 # Defaults only; per-cluster inventories live in kubernetes/apps/<cluster>/storage/app-protect/values.yaml
 cluster: ""
-image: python:3.14.3-slim@sha256:5e59aae31ff0e87511226be8e2b94d78c58f05216efda3b07dbbed938ec8583b
+image: python:3.15.1-slim@sha256:533b0b2f9b5d46fd097091cf826f27902f1d6c3bca714b6dc74551356aa97a51
 nas:
   server: 10.0.40.2
   path: /k8s-backup
