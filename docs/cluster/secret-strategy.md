@@ -65,7 +65,7 @@ encrypted bootstrap material in Git cannot be recovered.
 
 ## 📌 SOPS Inventory
 
-The complete file-by-file list is in [../secrets-and-env-vars.md](../secrets-and-env-vars.md#sops-encrypted-files-in-git-age-recipient-in-sopsyaml); the tables below record the *bootstrap vs. movable* decision.
+The complete file-by-file list is in [../secrets-and-env-vars.md](../secrets-and-env-vars.md#sops-encrypted-files-in-git-age-recipient-in-sopsyaml); the tables below record the _bootstrap vs. movable_ decision.
 
 ### 🔹 Must Remain In SOPS
 

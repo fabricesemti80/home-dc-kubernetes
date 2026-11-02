@@ -2,92 +2,92 @@
 
 The inventory of every secret, credential and environment variable this repository uses: Doppler runtime secrets, SOPS-encrypted bootstrap files, local-only identity material and operator environment variables. Values never belong in Git; this file records **names, locations and purpose only**.
 
-The *why* (which layer a secret belongs in) is in [cluster/secret-strategy.md](cluster/secret-strategy.md). This file is the *what*.
+The _why_ (which layer a secret belongs in) is in [cluster/secret-strategy.md](cluster/secret-strategy.md). This file is the _what_.
 
 > **Keep this file current.** Any change that adds, renames, moves or removes a `DopplerSecret`, a key in one, a `*.sops.yaml` file, a template secret input, a local identity file or an environment variable must update this file in the same commit. See [`AGENTS.md`](../AGENTS.md).
 
 ## Doppler projects and configs
 
-| Project / config | Token | Used by |
-| --- | --- | --- |
-| `home-dc-kubernetes` / `apps` | `doppler-token-secret-apps` (SOPS, `doppler-operator-system`) | App-cluster Doppler operator; `task template:render-configs` (`doppler run … -- makejinja`); operator scripts |
-| `home-dc-kubernetes` / `infra` | `doppler-token-secret-infra` (SOPS, `doppler-operator-system`) | Infra-cluster Doppler operator; operator scripts |
-| `home-dc-kubernetes` / `dev`, `dev_personal` | Personal CLI login | Local development only; not used by the clusters |
+| Project / config                             | Token                                                          | Used by                                                                                                       |
+| -------------------------------------------- | -------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `home-dc-kubernetes` / `apps`                | `doppler-token-secret-apps` (SOPS, `doppler-operator-system`)  | App-cluster Doppler operator; `task template:render-configs` (`doppler run … -- makejinja`); operator scripts |
+| `home-dc-kubernetes` / `infra`               | `doppler-token-secret-infra` (SOPS, `doppler-operator-system`) | Infra-cluster Doppler operator; operator scripts                                                              |
+| `home-dc-kubernetes` / `dev`, `dev_personal` | Personal CLI login                                             | Local development only; not used by the clusters                                                              |
 
 Some values below are **Doppler cross-project references**. Their source of truth is in another repository, and Doppler resolves them at read time. An unresolved reference can come back as the literal reference string, so check that it resolves before rotating.
 
 ## Doppler runtime secrets: app-cluster (`home-dc-kubernetes/apps`)
 
-| Doppler key | Source | Kubernetes Secret (namespace/name → key) | Consumer | Function |
-| --- | --- | --- | --- | --- |
-| `GITHUB_APP_ID` | Operator (GitHub App) | `arc-system/arc-github-app-secret` → `github_app_id` | ARC runner scale set `arc-runner-set-homelab` | GitHub App ID for self-hosted runners |
-| `GITHUB_APP_INSTALLATION_ID` | Operator (GitHub App) | `arc-system/arc-github-app-secret` → `github_app_installation_id` | ARC | GitHub App installation ID |
-| `GITHUB_APP_PRIVATE_KEY` | Operator (GitHub App) | `arc-system/arc-github-app-secret` → `github_app_private_key` | ARC | GitHub App private key |
-| `IMMICH_DB_PASSWORD` | Operator | `media/immich-secrets`; `backups/backrest-secrets` | Immich; Backrest DB backup | Immich PostgreSQL password |
-| `IMMICH_BACKUP_PASSWORD` | `scripts/bootstrap-postgres-backup.py` | `backups/backrest-secrets` | Backrest | Password of the Immich DB backup role |
-| `SONARR_API_KEY` | Operator (from Sonarr) | `media/recyclarr-secrets` | Recyclarr | Sonarr API access |
-| `RADARR_API_KEY` | Operator (from Radarr) | `media/recyclarr-secrets` | Recyclarr | Radarr API access |
-| `QBITTORRENT_WEBUI_PASSWORD` | Operator | `media/qbittorrent-secrets` | qBittorrent | Web UI password |
-| `TUNNEL_TOKEN_APPS` | **Reference** → `home-dc-terraform/prd` | `network/cloudflare-tunnel-secret` → `TUNNEL_TOKEN` | `cloudflared` (app cluster) | Connector token for the `kubernetes-apps` tunnel |
-| `TUNNEL_CREDENTIALS_APPS`, `TUNNEL_ID_APPS` | **Reference** → `home-dc-terraform/prd` | — (not synced) | Recovery/reference | Tunnel credentials JSON and ID |
-| `TECHNITIUM_RFC2136_TSIG_KEYNAME` | Operator (Technitium) | `network/technitium-rfc2136-secrets` | ExternalDNS (`technitium-dns`) | TSIG key name for RFC2136 updates to `krapulax.home` |
-| `TECHNITIUM_RFC2136_TSIG_SECRET` | Operator (Technitium) | `network/technitium-rfc2136-secrets` | ExternalDNS | TSIG secret |
-| `MONITORING_REMOTE_CA_CERT` | `scripts/monitoring-remote-pki.py` | `monitoring/monitoring-remote-client-tls` | vmagent | CA for the remote-write mTLS link to infra |
-| `MONITORING_REMOTE_CLIENT_CERT` | `scripts/monitoring-remote-pki.py` | `monitoring/monitoring-remote-client-tls` | vmagent | Client certificate |
-| `MONITORING_REMOTE_CLIENT_KEY` | `scripts/monitoring-remote-pki.py` | `monitoring/monitoring-remote-client-tls` | vmagent | Client private key |
-| `BACKREST_REPOSITORY_PASSWORD` | `scripts/backrest-secrets.py` | `backups/backrest-secrets` | Backrest | Restic repository encryption password; never rotated automatically |
-| `BACKREST_ADMIN_PASSWORD` | `scripts/backrest-secrets.py` | — (not synced) | `scripts/backrest.py` | Plaintext Backrest UI password for operator scripts |
-| `BACKREST_ADMIN_PASSWORD_BCRYPT` | `scripts/backrest-secrets.py` | `backups/backrest-secrets` | Backrest | Bcrypt hash of the UI password |
-| `SLACK_WEBHOOK_MONITORING` | Operator (Slack) | `backups/backrest-secrets` | Backrest | Backup notification webhook |
+| Doppler key                                 | Source                                  | Kubernetes Secret (namespace/name → key)                          | Consumer                                      | Function                                                           |
+| ------------------------------------------- | --------------------------------------- | ----------------------------------------------------------------- | --------------------------------------------- | ------------------------------------------------------------------ |
+| `GITHUB_APP_ID`                             | Operator (GitHub App)                   | `arc-system/arc-github-app-secret` → `github_app_id`              | ARC runner scale set `arc-runner-set-homelab` | GitHub App ID for self-hosted runners                              |
+| `GITHUB_APP_INSTALLATION_ID`                | Operator (GitHub App)                   | `arc-system/arc-github-app-secret` → `github_app_installation_id` | ARC                                           | GitHub App installation ID                                         |
+| `GITHUB_APP_PRIVATE_KEY`                    | Operator (GitHub App)                   | `arc-system/arc-github-app-secret` → `github_app_private_key`     | ARC                                           | GitHub App private key                                             |
+| `IMMICH_DB_PASSWORD`                        | Operator                                | `media/immich-secrets`; `backups/backrest-secrets`                | Immich; Backrest DB backup                    | Immich PostgreSQL password                                         |
+| `IMMICH_BACKUP_PASSWORD`                    | `scripts/bootstrap-postgres-backup.py`  | `backups/backrest-secrets`                                        | Backrest                                      | Password of the Immich DB backup role                              |
+| `SONARR_API_KEY`                            | Operator (from Sonarr)                  | `media/recyclarr-secrets`                                         | Recyclarr                                     | Sonarr API access                                                  |
+| `RADARR_API_KEY`                            | Operator (from Radarr)                  | `media/recyclarr-secrets`                                         | Recyclarr                                     | Radarr API access                                                  |
+| `QBITTORRENT_WEBUI_PASSWORD`                | Operator                                | `media/qbittorrent-secrets`                                       | qBittorrent                                   | Web UI password                                                    |
+| `TUNNEL_TOKEN_APPS`                         | **Reference** → `home-dc-terraform/prd` | `network/cloudflare-tunnel-secret` → `TUNNEL_TOKEN`               | `cloudflared` (app cluster)                   | Connector token for the `kubernetes-apps` tunnel                   |
+| `TUNNEL_CREDENTIALS_APPS`, `TUNNEL_ID_APPS` | **Reference** → `home-dc-terraform/prd` | — (not synced)                                                    | Recovery/reference                            | Tunnel credentials JSON and ID                                     |
+| `TECHNITIUM_RFC2136_TSIG_KEYNAME`           | Operator (Technitium)                   | `network/technitium-rfc2136-secrets`                              | ExternalDNS (`technitium-dns`)                | TSIG key name for RFC2136 updates to `krapulax.home`               |
+| `TECHNITIUM_RFC2136_TSIG_SECRET`            | Operator (Technitium)                   | `network/technitium-rfc2136-secrets`                              | ExternalDNS                                   | TSIG secret                                                        |
+| `MONITORING_REMOTE_CA_CERT`                 | `scripts/monitoring-remote-pki.py`      | `monitoring/monitoring-remote-client-tls`                         | vmagent                                       | CA for the remote-write mTLS link to infra                         |
+| `MONITORING_REMOTE_CLIENT_CERT`             | `scripts/monitoring-remote-pki.py`      | `monitoring/monitoring-remote-client-tls`                         | vmagent                                       | Client certificate                                                 |
+| `MONITORING_REMOTE_CLIENT_KEY`              | `scripts/monitoring-remote-pki.py`      | `monitoring/monitoring-remote-client-tls`                         | vmagent                                       | Client private key                                                 |
+| `BACKREST_REPOSITORY_PASSWORD`              | `scripts/backrest-secrets.py`           | `backups/backrest-secrets`                                        | Backrest                                      | Restic repository encryption password; never rotated automatically |
+| `BACKREST_ADMIN_PASSWORD`                   | `scripts/backrest-secrets.py`           | — (not synced)                                                    | `scripts/backrest.py`                         | Plaintext Backrest UI password for operator scripts                |
+| `BACKREST_ADMIN_PASSWORD_BCRYPT`            | `scripts/backrest-secrets.py`           | `backups/backrest-secrets`                                        | Backrest                                      | Bcrypt hash of the UI password                                     |
+| `SLACK_WEBHOOK_MONITORING`                  | Operator (Slack)                        | `backups/backrest-secrets`                                        | Backrest                                      | Backup notification webhook                                        |
 
 ## Doppler runtime secrets: infra-cluster (`home-dc-kubernetes/infra`)
 
-| Doppler key | Source | Kubernetes Secret (namespace/name → key) | Consumer | Function |
-| --- | --- | --- | --- | --- |
-| `LITELLM_MASTER_KEY` | Operator | `ai/litellm-secrets`; `backups/backrest-secrets` | LiteLLM | Admin/master API key |
-| `LITELLM_SALT_KEY` | Operator | `ai/litellm-secrets`; `backups/backrest-secrets` | LiteLLM | Encryption salt for stored provider keys; must survive restores |
-| `AI_OPENAI_API_KEY` | Operator (OpenAI) | `ai/litellm-secrets`; `backups/backrest-secrets` | LiteLLM | Upstream OpenAI key |
-| `AI_OPENROUTER_API_KEY` | Operator (OpenRouter) | `ai/litellm-secrets`; `backups/backrest-secrets` | LiteLLM | Upstream OpenRouter key |
-| `LITELLM_POSTGRES_USER`, `LITELLM_POSTGRES_PASSWORD`, `LITELLM_POSTGRES_DB` | Operator | `ai/litellm-postgres`; `backups/backrest-secrets` | LiteLLM PostgreSQL | Database superuser credentials and DB name |
-| `LITELLM_USERDB_USER`, `LITELLM_USERDB_PASSWORD` | Operator | `ai/litellm-postgres` (`_PASSWORD` also in `backups/backrest-secrets`) | LiteLLM | Application DB role |
-| `LITELLM_BACKUP_PASSWORD` | `scripts/bootstrap-postgres-backup.py` | `backups/backrest-secrets` | Backrest | Password of the LiteLLM DB backup role |
-| `MONITORING_HW_CA_CERT` | `scripts/monitoring-remote-pki.py` | `monitoring/pve-hardware-client-tls` | pve-exporter host scrape | Client CA for the `pve-00` hardware exporter mTLS link |
-| `MONITORING_HW_CLIENT_CERT` | `scripts/monitoring-remote-pki.py` | `monitoring/pve-hardware-client-tls` | pve-exporter host scrape | Client certificate |
-| `MONITORING_HW_CLIENT_KEY` | `scripts/monitoring-remote-pki.py` | `monitoring/pve-hardware-client-tls` | pve-exporter host scrape | Client private key |
-| `PVE_MONITORING_TOKEN_SECRET` | **Reference** → `home-dc-proxmox/prd` | `monitoring/pve-exporter-credentials` (mounted as file) | pve-exporter | Read-only `prometheus@pve!victoriametrics` token |
-| `PBS_MONITORING_TOKEN_SECRET` | **Reference** → `home-dc-terraform/prd` | `monitoring/pbs-exporter-credentials` (mounted as file) | pbs-exporter | Audit-only `prometheus@pbs!victoriametrics` token |
-| `MONITORING_REMOTE_CA_CERT` | `scripts/monitoring-remote-pki.py` | `monitoring/remote-write-server-tls` | remote-write-proxy | CA that verifies app-cluster vmagent clients |
-| `MONITORING_REMOTE_SERVER_CERT` | `scripts/monitoring-remote-pki.py` | `monitoring/remote-write-server-tls` | remote-write-proxy | Server certificate |
-| `MONITORING_REMOTE_SERVER_KEY` | `scripts/monitoring-remote-pki.py` | `monitoring/remote-write-server-tls` | remote-write-proxy | Server private key |
-| `SLACK_WEBHOOK_MONITORING` | Operator (Slack) | `monitoring/monitoring-alertmanager`; `backups/backrest-secrets` | Alertmanager; Backrest | Alert/backup notification webhook |
-| `GRAFANA_ADMIN_USER`, `GRAFANA_ADMIN_PASSWORD` | Operator | `monitoring/monitoring-grafana` | Grafana | Admin login |
-| `UPTIME_KUMA_USERNAME`, `UPTIME_KUMA_PASSWORD` | Operator | `monitoring/uptime-kuma-credentials` | Uptime Kuma / AutoKuma | Uptime Kuma login |
-| `TAILSCALE_OAUTH_CLIENT_ID` | Operator (Tailscale) | `tailscale/operator-oauth` → `client_id` | Tailscale operator | OAuth client ID |
-| `TAILSCALE_OAUTH_CLIENT_SECRET` | Operator (Tailscale) | `tailscale/operator-oauth` → `client_secret` | Tailscale operator | OAuth client secret |
-| `TECHNITIUM_ADMIN_PASSWORD` | Operator | `network/technitium-secrets` | Technitium DNS | Admin password |
-| `TECHNITIUM_RFC2136_TSIG_KEYNAME`, `TECHNITIUM_RFC2136_TSIG_SECRET` | Operator (Technitium) | `network/technitium-rfc2136-secrets` | ExternalDNS (`technitium-dns-infra`) | TSIG credentials for local DNS updates |
-| `TUNNEL_TOKEN_INFRA` | **Reference** → `home-dc-terraform/prd` | `network/cloudflare-tunnel-infra-secret` → `TUNNEL_TOKEN` | `cloudflared` (infra cluster) | Connector token for the `kubernetes-infra` tunnel |
-| `TUNNEL_CREDENTIALS_INFRA`, `TUNNEL_ID_INFRA` | **Reference** → `home-dc-terraform/prd` | — (not synced) | Recovery/reference | Tunnel credentials JSON and ID |
-| `BACKREST_REPOSITORY_PASSWORD`, `BACKREST_ADMIN_PASSWORD`, `BACKREST_ADMIN_PASSWORD_BCRYPT` | `scripts/backrest-secrets.py` | `backups/backrest-secrets` (hash and repo password only) | Backrest | Same roles as the app-cluster entries |
+| Doppler key                                                                                 | Source                                  | Kubernetes Secret (namespace/name → key)                               | Consumer                             | Function                                                        |
+| ------------------------------------------------------------------------------------------- | --------------------------------------- | ---------------------------------------------------------------------- | ------------------------------------ | --------------------------------------------------------------- |
+| `LITELLM_MASTER_KEY`                                                                        | Operator                                | `ai/litellm-secrets`; `backups/backrest-secrets`                       | LiteLLM                              | Admin/master API key                                            |
+| `LITELLM_SALT_KEY`                                                                          | Operator                                | `ai/litellm-secrets`; `backups/backrest-secrets`                       | LiteLLM                              | Encryption salt for stored provider keys; must survive restores |
+| `AI_OPENAI_API_KEY`                                                                         | Operator (OpenAI)                       | `ai/litellm-secrets`; `backups/backrest-secrets`                       | LiteLLM                              | Upstream OpenAI key                                             |
+| `AI_OPENROUTER_API_KEY`                                                                     | Operator (OpenRouter)                   | `ai/litellm-secrets`; `backups/backrest-secrets`                       | LiteLLM                              | Upstream OpenRouter key                                         |
+| `LITELLM_POSTGRES_USER`, `LITELLM_POSTGRES_PASSWORD`, `LITELLM_POSTGRES_DB`                 | Operator                                | `ai/litellm-postgres`; `backups/backrest-secrets`                      | LiteLLM PostgreSQL                   | Database superuser credentials and DB name                      |
+| `LITELLM_USERDB_USER`, `LITELLM_USERDB_PASSWORD`                                            | Operator                                | `ai/litellm-postgres` (`_PASSWORD` also in `backups/backrest-secrets`) | LiteLLM                              | Application DB role                                             |
+| `LITELLM_BACKUP_PASSWORD`                                                                   | `scripts/bootstrap-postgres-backup.py`  | `backups/backrest-secrets`                                             | Backrest                             | Password of the LiteLLM DB backup role                          |
+| `MONITORING_HW_CA_CERT`                                                                     | `scripts/monitoring-remote-pki.py`      | `monitoring/pve-hardware-client-tls`                                   | pve-exporter host scrape             | Client CA for the `pve-00` hardware exporter mTLS link          |
+| `MONITORING_HW_CLIENT_CERT`                                                                 | `scripts/monitoring-remote-pki.py`      | `monitoring/pve-hardware-client-tls`                                   | pve-exporter host scrape             | Client certificate                                              |
+| `MONITORING_HW_CLIENT_KEY`                                                                  | `scripts/monitoring-remote-pki.py`      | `monitoring/pve-hardware-client-tls`                                   | pve-exporter host scrape             | Client private key                                              |
+| `PVE_MONITORING_TOKEN_SECRET`                                                               | **Reference** → `home-dc-proxmox/prd`   | `monitoring/pve-exporter-credentials` (mounted as file)                | pve-exporter                         | Read-only `prometheus@pve!victoriametrics` token                |
+| `PBS_MONITORING_TOKEN_SECRET`                                                               | **Reference** → `home-dc-terraform/prd` | `monitoring/pbs-exporter-credentials` (mounted as file)                | pbs-exporter                         | Audit-only `prometheus@pbs!victoriametrics` token               |
+| `MONITORING_REMOTE_CA_CERT`                                                                 | `scripts/monitoring-remote-pki.py`      | `monitoring/remote-write-server-tls`                                   | remote-write-proxy                   | CA that verifies app-cluster vmagent clients                    |
+| `MONITORING_REMOTE_SERVER_CERT`                                                             | `scripts/monitoring-remote-pki.py`      | `monitoring/remote-write-server-tls`                                   | remote-write-proxy                   | Server certificate                                              |
+| `MONITORING_REMOTE_SERVER_KEY`                                                              | `scripts/monitoring-remote-pki.py`      | `monitoring/remote-write-server-tls`                                   | remote-write-proxy                   | Server private key                                              |
+| `SLACK_WEBHOOK_MONITORING`                                                                  | Operator (Slack)                        | `monitoring/monitoring-alertmanager`; `backups/backrest-secrets`       | Alertmanager; Backrest               | Alert/backup notification webhook                               |
+| `GRAFANA_ADMIN_USER`, `GRAFANA_ADMIN_PASSWORD`                                              | Operator                                | `monitoring/monitoring-grafana`                                        | Grafana                              | Admin login                                                     |
+| `UPTIME_KUMA_USERNAME`, `UPTIME_KUMA_PASSWORD`                                              | Operator                                | `monitoring/uptime-kuma-credentials`                                   | Uptime Kuma / AutoKuma               | Uptime Kuma login                                               |
+| `TAILSCALE_OAUTH_CLIENT_ID`                                                                 | Operator (Tailscale)                    | `tailscale/operator-oauth` → `client_id`                               | Tailscale operator                   | OAuth client ID                                                 |
+| `TAILSCALE_OAUTH_CLIENT_SECRET`                                                             | Operator (Tailscale)                    | `tailscale/operator-oauth` → `client_secret`                           | Tailscale operator                   | OAuth client secret                                             |
+| `TECHNITIUM_ADMIN_PASSWORD`                                                                 | Operator                                | `network/technitium-secrets`                                           | Technitium DNS                       | Admin password                                                  |
+| `TECHNITIUM_RFC2136_TSIG_KEYNAME`, `TECHNITIUM_RFC2136_TSIG_SECRET`                         | Operator (Technitium)                   | `network/technitium-rfc2136-secrets`                                   | ExternalDNS (`technitium-dns-infra`) | TSIG credentials for local DNS updates                          |
+| `TUNNEL_TOKEN_INFRA`                                                                        | **Reference** → `home-dc-terraform/prd` | `network/cloudflare-tunnel-infra-secret` → `TUNNEL_TOKEN`              | `cloudflared` (infra cluster)        | Connector token for the `kubernetes-infra` tunnel               |
+| `TUNNEL_CREDENTIALS_INFRA`, `TUNNEL_ID_INFRA`                                               | **Reference** → `home-dc-terraform/prd` | — (not synced)                                                         | Recovery/reference                   | Tunnel credentials JSON and ID                                  |
+| `BACKREST_REPOSITORY_PASSWORD`, `BACKREST_ADMIN_PASSWORD`, `BACKREST_ADMIN_PASSWORD_BCRYPT` | `scripts/backrest-secrets.py`           | `backups/backrest-secrets` (hash and repo password only)               | Backrest                             | Same roles as the app-cluster entries                           |
 
 **Retained but unused:** Kestra and Pulse values (`KESTRA_*`, `PULSE_*`, `POSTGRES_*`, `USERDB_*`, `ROOT_ACCESS_KEY`, `ROOT_SECRET_KEY`, `HOMELAB_SSH_*`) and older app-cluster values (`CODE_SERVER_PASSWORD`, `NEXTAUTH_*`, `LINKWARDEN_DB_PASSWORD`, `N8N_ENCRYPTION_KEY`) may still exist in Doppler for rollback. They are listed only in the migration helper `hack/copy-doppler-cluster-secrets.sh`, and no manifest consumes them.
 
 ## SOPS-encrypted files in Git (age recipient in `.sops.yaml`)
 
-| File | Contents (keys) | Source | Function |
-| --- | --- | --- | --- |
-| `talos/app/talsecret.sops.yaml` | `cluster`, `secrets`, `trustdinfo`, `certs` | `talhelper gensecret` (bootstrap task) | App-cluster Talos identity and Kubernetes encryption material |
-| `talos/app/patches/global/machine-registries.sops.yaml` | Docker Hub `auth.username` / `auth.password` | Template input `dockerhub_username` / `dockerhub_token` | Node image-pull auth before Kubernetes exists |
-| `kubernetes/components/common/helm-secrets-private-keys.sops.yaml` | `key.txt` | `age.key` | Lets the Argo repo-server decrypt SOPS values |
-| `kubernetes/argo/repositories/github.sops.yaml` | `type`, `url` | Operator | Argo CD repository definition |
-| `kubernetes/apps/app-cluster/argo-system/argo-cd/values.sops.yaml` | `configs.secret.argocdServerAdminPassword` (bcrypt), `argocdServerAdminPasswordMtime`, `githubSecret` | Template input `argo_password`; operator | Argo admin login and GitHub webhook secret. ⚠️ See the warning below. |
-| `kubernetes/apps/app-cluster/doppler-operator-system/doppler-operator/config/secret-apps.sops.yaml` | `serviceToken` | Doppler `apps` service token | App-cluster operator token (`doppler-token-secret-apps`) |
-| `kubernetes/apps/app-cluster/doppler-operator-system/doppler-operator/config/secret.sops.yaml` | `serviceToken` | Template input `doppler_service_token` | Legacy shared operator token (`doppler-token-secret`); still in the secret generator |
-| `kubernetes/apps/infra-cluster/doppler-operator-system/doppler-operator-infra/config/secret-infra.sops.yaml` | `serviceToken` | Doppler `infra` service token | Infra-cluster operator token (`doppler-token-secret-infra`) |
-| `kubernetes/apps/infra-cluster/doppler-operator-system/doppler-operator-infra/config/secret.sops.yaml` | `serviceToken` | Legacy | Legacy shared operator token; still in the secret generator |
-| `kubernetes/apps/app-cluster/cert-manager/cert-manager/issuers/secret.sops.yaml` | `api-token` | Template input `cloudflare_token` | Cloudflare token for cert-manager DNS-01 |
-| `kubernetes/apps/app-cluster/network/cloudflare-dns/config/secret.sops.yaml` | `api-token` | Template input `cloudflare_token` | Cloudflare token for ExternalDNS (`CF_API_TOKEN` env) |
-| `cloudflare-dns/values.sops.yaml`, `echo/values.sops.yaml`, `envoy-gateway/config/*.sops.yaml`, `clusterissuers.sops.yaml`, HTTPRoute `*.sops.yaml` | Non-secret chart values and hostnames | Templates | Not credentials; SOPS-wrapped only to hide hostnames. See the candidates in [secret-strategy](cluster/secret-strategy.md). |
+| File                                                                                                                                                | Contents (keys)                                                                                       | Source                                                  | Function                                                                                                                   |
+| --------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- | ------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `talos/app/talsecret.sops.yaml`                                                                                                                     | `cluster`, `secrets`, `trustdinfo`, `certs`                                                           | `talhelper gensecret` (bootstrap task)                  | App-cluster Talos identity and Kubernetes encryption material                                                              |
+| `talos/app/patches/global/machine-registries.sops.yaml`                                                                                             | Docker Hub `auth.username` / `auth.password`                                                          | Template input `dockerhub_username` / `dockerhub_token` | Node image-pull auth before Kubernetes exists                                                                              |
+| `kubernetes/components/common/helm-secrets-private-keys.sops.yaml`                                                                                  | `key.txt`                                                                                             | `age.key`                                               | Lets the Argo repo-server decrypt SOPS values                                                                              |
+| `kubernetes/argo/repositories/github.sops.yaml`                                                                                                     | `type`, `url`                                                                                         | Operator                                                | Argo CD repository definition                                                                                              |
+| `kubernetes/apps/app-cluster/argo-system/argo-cd/values.sops.yaml`                                                                                  | `configs.secret.argocdServerAdminPassword` (bcrypt), `argocdServerAdminPasswordMtime`, `githubSecret` | Template input `argo_password`; operator                | Argo admin login and GitHub webhook secret. ⚠️ See the warning below.                                                      |
+| `kubernetes/apps/app-cluster/doppler-operator-system/doppler-operator/config/secret-apps.sops.yaml`                                                 | `serviceToken`                                                                                        | Doppler `apps` service token                            | App-cluster operator token (`doppler-token-secret-apps`)                                                                   |
+| `kubernetes/apps/app-cluster/doppler-operator-system/doppler-operator/config/secret.sops.yaml`                                                      | `serviceToken`                                                                                        | Template input `doppler_service_token`                  | Legacy shared operator token (`doppler-token-secret`); still in the secret generator                                       |
+| `kubernetes/apps/infra-cluster/doppler-operator-system/doppler-operator-infra/config/secret-infra.sops.yaml`                                        | `serviceToken`                                                                                        | Doppler `infra` service token                           | Infra-cluster operator token (`doppler-token-secret-infra`)                                                                |
+| `kubernetes/apps/infra-cluster/doppler-operator-system/doppler-operator-infra/config/secret.sops.yaml`                                              | `serviceToken`                                                                                        | Legacy                                                  | Legacy shared operator token; still in the secret generator                                                                |
+| `kubernetes/apps/app-cluster/cert-manager/cert-manager/issuers/secret.sops.yaml`                                                                    | `api-token`                                                                                           | Template input `cloudflare_token`                       | Cloudflare token for cert-manager DNS-01                                                                                   |
+| `kubernetes/apps/app-cluster/network/cloudflare-dns/config/secret.sops.yaml`                                                                        | `api-token`                                                                                           | Template input `cloudflare_token`                       | Cloudflare token for ExternalDNS (`CF_API_TOKEN` env)                                                                      |
+| `cloudflare-dns/values.sops.yaml`, `echo/values.sops.yaml`, `envoy-gateway/config/*.sops.yaml`, `clusterissuers.sops.yaml`, HTTPRoute `*.sops.yaml` | Non-secret chart values and hostnames                                                                 | Templates                                               | Not credentials; SOPS-wrapped only to hide hostnames. See the candidates in [secret-strategy](cluster/secret-strategy.md). |
 
 > ⚠️ **Not actually encrypted:** the `kubernetes/.*` rule in `.sops.yaml` encrypts only `data`/`stringData`. Helm `values.sops.yaml` files have neither, so `argo-cd/values.sops.yaml` stores the admin password hash and `githubSecret` **in plaintext** in Git. Treat both as exposed: rotate them, then either move them to Doppler or add an `encrypted_regex` that covers `configs`.
 
@@ -95,44 +95,44 @@ Some values below are **Doppler cross-project references**. Their source of trut
 
 `task template:render-configs` renders `templates/` with makejinja under `doppler run --project home-dc-kubernetes --config apps`. It reads these secret inputs from the local `cluster.yaml` (schema: `.taskfiles/template/resources/cluster.schema.cue`):
 
-| Input | Rendered into | Function |
-| --- | --- | --- |
-| `cloudflare_token` | cert-manager and cloudflare-dns `secret.sops.yaml` | Cloudflare API token |
-| `argo_password` | `argo-cd/values.sops.yaml` | Argo admin password (bcrypt) |
-| `doppler_service_token` | `doppler-operator/config/secret.sops.yaml` | Legacy operator token |
-| `grafana_admin_user`, `grafana_admin_password` | Nothing (schema-required only) | Superseded by the Doppler `GRAFANA_ADMIN_*` values |
-| `dockerhub_username`, `dockerhub_token` *(optional)* | `machine-registries.sops.yaml` | Docker Hub pull auth |
+| Input                                                | Rendered into                                      | Function                                           |
+| ---------------------------------------------------- | -------------------------------------------------- | -------------------------------------------------- |
+| `cloudflare_token`                                   | cert-manager and cloudflare-dns `secret.sops.yaml` | Cloudflare API token                               |
+| `argo_password`                                      | `argo-cd/values.sops.yaml`                         | Argo admin password (bcrypt)                       |
+| `doppler_service_token`                              | `doppler-operator/config/secret.sops.yaml`         | Legacy operator token                              |
+| `grafana_admin_user`, `grafana_admin_password`       | Nothing (schema-required only)                     | Superseded by the Doppler `GRAFANA_ADMIN_*` values |
+| `dockerhub_username`, `dockerhub_token` _(optional)_ | `machine-registries.sops.yaml`                     | Docker Hub pull auth                               |
 
 ## Local-only secret material (Git-ignored)
 
-| Item | Function |
-| --- | --- |
-| `age.key` | SOPS/age private key; the trust root for every SOPS file. Back it up in the password manager. |
-| `kubeconfig`, `.private/infra-cluster/kubeconfig` | Cluster admin access |
-| `talos/app/clusterconfig/talosconfig`, `talos/**/clusterconfig/*.yaml` | App-cluster Talos client config and machine configs |
-| `.private/infra-cluster/generated/` | Infra-cluster Talos identity bundle; restore the whole directory |
-| `cloudflare-tunnel.json`, `cloudflare-tunnel-infra.json` | Local tunnel credential copies |
-| `github-deploy.key*`, `github-push-token.txt` | Argo/GitHub access material |
-| `.env*`, `.envrc*`, `secrets/` | Local operator files |
+| Item                                                                   | Function                                                                                      |
+| ---------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| `age.key`                                                              | SOPS/age private key; the trust root for every SOPS file. Back it up in the password manager. |
+| `kubeconfig`, `.private/infra-cluster/kubeconfig`                      | Cluster admin access                                                                          |
+| `talos/app/clusterconfig/talosconfig`, `talos/**/clusterconfig/*.yaml` | App-cluster Talos client config and machine configs                                           |
+| `.private/infra-cluster/generated/`                                    | Infra-cluster Talos identity bundle; restore the whole directory                              |
+| `cloudflare-tunnel.json`, `cloudflare-tunnel-infra.json`               | Local tunnel credential copies                                                                |
+| `github-deploy.key*`, `github-push-token.txt`                          | Argo/GitHub access material                                                                   |
+| `.env*`, `.envrc*`, `secrets/`                                         | Local operator files                                                                          |
 
 ## Environment variables
 
-| Variable | Where it's read | Source | Function |
-| --- | --- | --- | --- |
-| `SOPS_AGE_KEY_FILE` | `Taskfile.yaml` env, `flake.nix` shellHook, `.envrc` | Set to `<repo>/age.key` | SOPS decryption key for every task |
-| `KUBECONFIG` | `Taskfile.yaml` env, scripts | Set to `<repo>/kubeconfig` | App-cluster kubectl/helm access |
-| `TALOSCONFIG` | `Taskfile.yaml` env, talos tasks | `talos/app/clusterconfig/talosconfig` | App-cluster talosctl access |
-| `DOPPLER_TOKEN` (optional) | `doppler` CLI in scripts/tasks | Operator shell; otherwise the personal CLI login | Doppler auth for operator scripts and template render |
-| `SOURCE_PROJECT`, `SOURCE_CONFIG`, `TARGET_PROJECT`, `APPS_CONFIG`, `INFRA_CONFIG` | `hack/copy-doppler-cluster-secrets.sh` | Operator shell | One-off Doppler migration between projects/configs |
-| `KUBECONFIG_PATH`, `TALOSCONFIG_PATH`, `TALOSCONFIG_FALLBACK_PATH`, `NODE_NAMES`, `INTERVAL_SECONDS`, `READY_TIMEOUT_SECONDS`, `ASSUME_YES` | `hack/reboot-talos-nodes-sequentially.sh` | Operator shell | Non-secret script parameters |
-| `BACKUP_CLUSTER` | `scripts/check-backup-target.py` | Operator shell / task | Selects the cluster for the backup-target probe |
-| `PYTHONDONTWRITEBYTECODE` | `template:render-configs` | Task env | Keeps makejinja from writing `.pyc` files |
+| Variable                                                                                                                                    | Where it's read                                      | Source                                           | Function                                              |
+| ------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------- | ------------------------------------------------ | ----------------------------------------------------- |
+| `SOPS_AGE_KEY_FILE`                                                                                                                         | `Taskfile.yaml` env, `flake.nix` shellHook, `.envrc` | Set to `<repo>/age.key`                          | SOPS decryption key for every task                    |
+| `KUBECONFIG`                                                                                                                                | `Taskfile.yaml` env, scripts                         | Set to `<repo>/kubeconfig`                       | App-cluster kubectl/helm access                       |
+| `TALOSCONFIG`                                                                                                                               | `Taskfile.yaml` env, talos tasks                     | `talos/app/clusterconfig/talosconfig`            | App-cluster talosctl access                           |
+| `DOPPLER_TOKEN` (optional)                                                                                                                  | `doppler` CLI in scripts/tasks                       | Operator shell; otherwise the personal CLI login | Doppler auth for operator scripts and template render |
+| `SOURCE_PROJECT`, `SOURCE_CONFIG`, `TARGET_PROJECT`, `APPS_CONFIG`, `INFRA_CONFIG`                                                          | `hack/copy-doppler-cluster-secrets.sh`               | Operator shell                                   | One-off Doppler migration between projects/configs    |
+| `KUBECONFIG_PATH`, `TALOSCONFIG_PATH`, `TALOSCONFIG_FALLBACK_PATH`, `NODE_NAMES`, `INTERVAL_SECONDS`, `READY_TIMEOUT_SECONDS`, `ASSUME_YES` | `hack/reboot-talos-nodes-sequentially.sh`            | Operator shell                                   | Non-secret script parameters                          |
+| `BACKUP_CLUSTER`                                                                                                                            | `scripts/check-backup-target.py`                     | Operator shell / task                            | Selects the cluster for the backup-target probe       |
+| `PYTHONDONTWRITEBYTECODE`                                                                                                                   | `template:render-configs`                            | Task env                                         | Keeps makejinja from writing `.pyc` files             |
 
 GitHub Actions workflows in `.github/workflows/` use no repository secrets.
 
 ## Rotation notes
 
-- Cross-project references (`TUNNEL_*`, `PVE_MONITORING_TOKEN_SECRET`, `PBS_MONITORING_TOKEN_SECRET`) are rotated in their source repository. After rotating, check that the reference resolves here.
-- The `MONITORING_REMOTE_*` and `MONITORING_HW_*` pairs are generated together by `scripts/monitoring-remote-pki.py`. The `MONITORING_HW_*` server half lives in `home-dc-proxmox/prd`.
-- Never rotate `BACKREST_REPOSITORY_PASSWORD` without re-keying the repository; `backrest-secrets.py` refuses to.
-- A new `age.key` means re-encrypting every SOPS file (`task template:encrypt-secrets`) and updating `helm-secrets-private-keys.sops.yaml`.
+-   Cross-project references (`TUNNEL_*`, `PVE_MONITORING_TOKEN_SECRET`, `PBS_MONITORING_TOKEN_SECRET`) are rotated in their source repository. After rotating, check that the reference resolves here.
+-   The `MONITORING_REMOTE_*` and `MONITORING_HW_*` pairs are generated together by `scripts/monitoring-remote-pki.py`. The `MONITORING_HW_*` server half lives in `home-dc-proxmox/prd`.
+-   Never rotate `BACKREST_REPOSITORY_PASSWORD` without re-keying the repository; `backrest-secrets.py` refuses to.
+-   A new `age.key` means re-encrypting every SOPS file (`task template:encrypt-secrets`) and updating `helm-secrets-private-keys.sops.yaml`.
