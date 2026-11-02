@@ -59,6 +59,10 @@ kube-state-metrics:
       memory: 256Mi
 vmalert:
   spec:
+    # Base for the "source" link on alerts; the chart appends an Explore query
+    # (external.alert.source), so this must be Grafana, not vmalert itself.
+    extraArgs:
+      external.url: http://grafana.krapulax.home/
     resources:
       requests:
         cpu: 25m
@@ -105,6 +109,9 @@ vmsingle:
 alertmanager:
   name: alerts
   spec:
+    # Used for links in Slack notifications. Changing it restarts the
+    # Alertmanager StatefulSet (no silence persistence is configured).
+    externalURL: http://alertmanager.krapulax.home
     secrets:
       - monitoring-alertmanager
     resources:
@@ -134,6 +141,19 @@ alertmanager:
         slack_configs:
           - api_url_file: /etc/vm/secrets/monitoring-alertmanager/SLACK_WEBHOOK_MONITORING
             send_resolved: true
+            # Readable notifications: summary and description instead of the default
+            # dump of every common label. Scrape labels such as pod/container/instance
+            # on kube-state-metrics alerts describe the scraper, not the workload.
+            title: '[{{ .Status | toUpper }}{{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }}{{ end }}] {{ .CommonLabels.alertname }} ({{ .CommonLabels.cluster }})'
+            title_link: '{{ .ExternalURL }}/#/alerts?silenced=false&inhibited=false&filter=%7Balertname%3D%22{{ .CommonLabels.alertname }}%22%7D'
+            color: '{{ if eq .Status "resolved" }}good{{ else if eq .CommonLabels.severity "critical" }}danger{{ else }}warning{{ end }}'
+            fallback: '[{{ .Status | toUpper }}] {{ .CommonLabels.alertname }} ({{ .CommonLabels.cluster }})'
+            text: |-
+              {{ range .Alerts -}}
+              {{ if eq .Status "resolved" }}:white_check_mark:{{ else }}:warning:{{ end }} *{{ .Annotations.summary }}*{{ if eq .Status "resolved" }} (resolved){{ end }}
+              {{ .Annotations.description }}
+              {{ end -}}
+              <{{ .ExternalURL }}/#/silences/new?filter=%7Balertname%3D%22{{ .CommonLabels.alertname }}%22%7D|Silence> · <{{ .ExternalURL }}/#/alerts?silenced=false&inhibited=false&filter=%7Balertname%3D%22{{ .CommonLabels.alertname }}%22%7D|Alertmanager>
 
 grafana:
   admin:
