@@ -126,7 +126,7 @@ data:
               "instant": true
             },
             {
-              "expr": "label_replace(sum by (disk) (smartmon_reallocated_sector_ct_raw_value{job=\"pve-host-hardware\"} + smartmon_current_pending_sector_raw_value{job=\"pve-host-hardware\"} + smartmon_offline_uncorrectable_raw_value{job=\"pve-host-hardware\"}),\"node\",\"pve-00\",\"disk\",\".*\")",
+              "expr": "label_replace(sum by (disk) (smartmon_reallocated_sector_ct_raw_value{job=\"pve-host-hardware\"}) + sum by (disk) (smartmon_current_pending_sector_raw_value{job=\"pve-host-hardware\"}) + sum by (disk) (smartmon_offline_uncorrectable_raw_value{job=\"pve-host-hardware\"}),\"node\",\"pve-00\",\"disk\",\".*\")",
               "legendFormat": "{{node}} {{device}}{{disk}}",
               "refId": "D",
               "instant": true
