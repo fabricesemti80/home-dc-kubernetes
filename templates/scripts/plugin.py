@@ -1,6 +1,6 @@
 from pathlib import Path
 from typing import Any
-from datetime import datetime
+from datetime import datetime, timezone
 
 import base64
 import ipaddress
@@ -126,7 +126,8 @@ def talos_patches(value: str) -> list[str]:
 
 # Return current datetime
 def current_datetime() -> str:
-    return datetime.now().strftime("%Y-%m-%dT%H:%M:%S%Z")
+    # RFC3339 in UTC; Argo CD ignores a passwordMtime it cannot parse.
+    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
 class Plugin(makejinja.plugin.Plugin):
