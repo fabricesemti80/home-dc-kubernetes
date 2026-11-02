@@ -131,3 +131,63 @@ spec:
           annotations:
             summary: A NAS media or backup filesystem is almost full
             description: Less than ten percent of available filesystem space remains; inspect the NAS capacity dashboard.
+    - name: disk-health
+      rules:
+        # Infra nodes report through smartctl-exporter; pve-00 reports through the
+        # node-exporter textfile collectors (its overall SMART health is covered by
+        # ProxmoxDiskUnhealthy).
+        - alert: DiskSmartFailed
+          expr: smartctl_device_smart_status == 0
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: Disk {{ $labels.device }} on {{ $labels.node }} failed its SMART health check
+            description: Back up the data on this disk and plan a replacement.
+        - alert: DiskMediaErrors
+          expr: (smartctl_device_media_errors > 0) or (nvme_media_errors_total{job="pve-host-hardware"} > 0)
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: NVMe disk {{ $labels.device }} reports media and data integrity errors
+            description: The controller found unrecoverable data errors; verify backups and replace the disk if the count keeps rising.
+        - alert: DiskBadSectors
+          expr: |
+            (smartctl_device_attribute{attribute_id=~"5|197|198",attribute_value_type="raw"} > 0)
+            or (smartmon_reallocated_sector_ct_raw_value{job="pve-host-hardware"} > 0)
+            or (smartmon_current_pending_sector_raw_value{job="pve-host-hardware"} > 0)
+            or (smartmon_offline_uncorrectable_raw_value{job="pve-host-hardware"} > 0)
+          for: 1h
+          labels:
+            severity: warning
+          annotations:
+            summary: Disk {{ $labels.device }}{{ $labels.disk }} has reallocated, pending or uncorrectable sectors
+            description: Sector counters above zero are an early failure sign; check the SMART dashboard trend and backups.
+        - alert: DiskWearHigh
+          expr: |
+            (smartctl_device_percentage_used > 80)
+            or ((100 - smartctl_device_attribute{attribute_id="177",attribute_value_type="value"}) > 80)
+            or (nvme_percentage_used_ratio{job="pve-host-hardware"} * 100 > 80)
+          for: 1h
+          labels:
+            severity: warning
+          annotations:
+            summary: Disk {{ $labels.device }} has used more than 80 percent of its rated endurance
+            description: Plan a replacement before the drive reaches its endurance limit.
+        - alert: NodeDiskTemperatureHigh
+          expr: node_hwmon_temp_celsius{chip=~"nvme_.*|.*drivetemp.*",sensor="temp1"} > 70
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: Disk {{ $labels.chip }} on {{ $labels.instance }} is above 70 degrees Celsius
+            description: Check airflow and the disk's workload.
+        - alert: SmartCollectorMissing
+          expr: absent(smartctl_devices)
+          for: 30m
+          labels:
+            severity: warning
+          annotations:
+            summary: Infra node SMART metrics are missing
+            description: Check the smartctl-exporter DaemonSet and its scrape target.

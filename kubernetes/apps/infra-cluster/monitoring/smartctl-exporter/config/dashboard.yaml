@@ -1,0 +1,358 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-disk-smart-health
+  namespace: monitoring
+  annotations:
+    grafana_folder: Infrastructure
+  labels:
+    grafana_dashboard: '1'
+data:
+  disk-smart-health.json: |
+    {
+      "uid": "disk-smart-health",
+      "title": "Disk SMART health",
+      "schemaVersion": 39,
+      "version": 1,
+      "refresh": "5m",
+      "time": {
+        "from": "now-24h",
+        "to": "now"
+      },
+      "tags": [
+        "hardware",
+        "smart"
+      ],
+      "panels": [
+        {
+          "id": 1,
+          "type": "stat",
+          "title": "SMART health",
+          "gridPos": {
+            "h": 6,
+            "w": 12,
+            "x": 0,
+            "y": 0
+          },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "VictoriaMetrics"
+          },
+          "targets": [
+            {
+              "expr": "smartctl_device_smart_status",
+              "legendFormat": "{{node}} {{device}}{{disk}}",
+              "refId": "A",
+              "instant": true
+            },
+            {
+              "expr": "label_replace(smartmon_device_smart_healthy{job=\"pve-host-hardware\"},\"node\",\"pve-00\",\"disk\",\".*\")",
+              "legendFormat": "{{node}} {{device}}{{disk}}",
+              "refId": "B",
+              "instant": true
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "mappings": [
+                {
+                  "type": "value",
+                  "options": {
+                    "0": {
+                      "text": "FAILED",
+                      "color": "red"
+                    },
+                    "1": {
+                      "text": "PASSED",
+                      "color": "green"
+                    }
+                  }
+                }
+              ],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "red",
+                    "value": null
+                  },
+                  {
+                    "color": "green",
+                    "value": 1
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "colorMode": "background",
+            "textMode": "value_and_name",
+            "graphMode": "none"
+          }
+        },
+        {
+          "id": 2,
+          "type": "stat",
+          "title": "Error counters (media errors, reallocated, pending, uncorrectable)",
+          "gridPos": {
+            "h": 6,
+            "w": 12,
+            "x": 12,
+            "y": 0
+          },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "VictoriaMetrics"
+          },
+          "targets": [
+            {
+              "expr": "sum by (node,device) (smartctl_device_media_errors)",
+              "legendFormat": "{{node}} {{device}}{{disk}}",
+              "refId": "A",
+              "instant": true
+            },
+            {
+              "expr": "sum by (node,device) (smartctl_device_attribute{attribute_id=~\"5|187|197|198\",attribute_value_type=\"raw\"})",
+              "legendFormat": "{{node}} {{device}}{{disk}}",
+              "refId": "B",
+              "instant": true
+            },
+            {
+              "expr": "label_replace(sum by (device) (nvme_media_errors_total{job=\"pve-host-hardware\"}),\"node\",\"pve-00\",\"device\",\".*\")",
+              "legendFormat": "{{node}} {{device}}{{disk}}",
+              "refId": "C",
+              "instant": true
+            },
+            {
+              "expr": "label_replace(sum by (disk) (smartmon_reallocated_sector_ct_raw_value{job=\"pve-host-hardware\"} + smartmon_current_pending_sector_raw_value{job=\"pve-host-hardware\"} + smartmon_offline_uncorrectable_raw_value{job=\"pve-host-hardware\"}),\"node\",\"pve-00\",\"disk\",\".*\")",
+              "legendFormat": "{{node}} {{device}}{{disk}}",
+              "refId": "D",
+              "instant": true
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "orange",
+                    "value": 1
+                  },
+                  {
+                    "color": "red",
+                    "value": 10
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "colorMode": "background",
+            "textMode": "value_and_name",
+            "graphMode": "none"
+          }
+        },
+        {
+          "id": 3,
+          "type": "timeseries",
+          "title": "Disk temperature",
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 6
+          },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "VictoriaMetrics"
+          },
+          "targets": [
+            {
+              "expr": "node_hwmon_temp_celsius{chip=~\"nvme_.*|.*drivetemp.*\",sensor=\"temp1\"}",
+              "legendFormat": "{{instance}} {{chip}}",
+              "refId": "A"
+            },
+            {
+              "expr": "pve_hardware_disk_temperature_celsius{device=\"/dev/sda\"}",
+              "legendFormat": "pve-00 {{device}} (HDD)",
+              "refId": "B"
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "unit": "celsius"
+            },
+            "overrides": []
+          }
+        },
+        {
+          "id": 4,
+          "type": "bargauge",
+          "title": "Wear used",
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 6
+          },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "VictoriaMetrics"
+          },
+          "targets": [
+            {
+              "expr": "smartctl_device_percentage_used",
+              "legendFormat": "{{node}} {{device}}{{disk}}",
+              "refId": "A",
+              "instant": true
+            },
+            {
+              "expr": "100 - smartctl_device_attribute{attribute_id=\"177\",attribute_value_type=\"value\"}",
+              "legendFormat": "{{node}} {{device}}{{disk}}",
+              "refId": "B",
+              "instant": true
+            },
+            {
+              "expr": "label_replace(nvme_percentage_used_ratio{job=\"pve-host-hardware\"} * 100,\"node\",\"pve-00\",\"device\",\".*\")",
+              "legendFormat": "{{node}} {{device}}{{disk}}",
+              "refId": "C",
+              "instant": true
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "unit": "percent",
+              "min": 0,
+              "max": 100,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "orange",
+                    "value": 70
+                  },
+                  {
+                    "color": "red",
+                    "value": 90
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          }
+        },
+        {
+          "id": 5,
+          "type": "bargauge",
+          "title": "Power-on age (years)",
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 14
+          },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "VictoriaMetrics"
+          },
+          "targets": [
+            {
+              "expr": "smartctl_device_power_on_seconds / 31557600",
+              "legendFormat": "{{node}} {{device}}{{disk}}",
+              "refId": "A",
+              "instant": true
+            },
+            {
+              "expr": "label_replace(nvme_power_on_hours_total{job=\"pve-host-hardware\"} / 8766,\"node\",\"pve-00\",\"device\",\".*\")",
+              "legendFormat": "{{node}} {{device}}{{disk}}",
+              "refId": "B",
+              "instant": true
+            },
+            {
+              "expr": "label_replace(smartmon_power_on_hours_raw_value{job=\"pve-host-hardware\"} / 8766,\"node\",\"pve-00\",\"disk\",\".*\")",
+              "legendFormat": "{{node}} {{device}}{{disk}}",
+              "refId": "C",
+              "instant": true
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "unit": "short",
+              "min": 0,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "orange",
+                    "value": 5
+                  },
+                  {
+                    "color": "red",
+                    "value": 8
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          }
+        },
+        {
+          "id": 6,
+          "type": "bargauge",
+          "title": "Data written (TB)",
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 14
+          },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "VictoriaMetrics"
+          },
+          "targets": [
+            {
+              "expr": "smartctl_device_bytes_written / 1e12",
+              "legendFormat": "{{node}} {{device}}{{disk}}",
+              "refId": "A",
+              "instant": true
+            },
+            {
+              "expr": "smartctl_device_attribute{attribute_id=\"241\",attribute_value_type=\"raw\"} * 512 / 1e12",
+              "legendFormat": "{{node}} {{device}}{{disk}}",
+              "refId": "B",
+              "instant": true
+            },
+            {
+              "expr": "label_replace(nvme_data_units_written_total{job=\"pve-host-hardware\"} * 512000 / 1e12,\"node\",\"pve-00\",\"device\",\".*\")",
+              "legendFormat": "{{node}} {{device}}{{disk}}",
+              "refId": "C",
+              "instant": true
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "unit": "short",
+              "min": 0
+            },
+            "overrides": []
+          }
+        }
+      ]
+    }

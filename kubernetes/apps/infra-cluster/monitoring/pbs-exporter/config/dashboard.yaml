@@ -4,6 +4,8 @@ kind: ConfigMap
 metadata:
   name: grafana-pbs-overview
   namespace: monitoring
+  annotations:
+    grafana_folder: Backup
   labels:
     grafana_dashboard: '1'
 data:
