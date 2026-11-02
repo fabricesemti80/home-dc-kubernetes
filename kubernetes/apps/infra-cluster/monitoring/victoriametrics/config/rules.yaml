@@ -60,21 +60,40 @@ spec:
             summary: App-cluster Kubernetes telemetry is missing
             description: Check the app cluster, its vmagent and the authenticated remote-write path.
         - alert: KubernetesDeploymentUnavailable
-          expr: kube_deployment_spec_replicas > kube_deployment_status_replicas_available
+          expr: |
+            (kube_deployment_spec_replicas - avg_over_time(kube_deployment_status_replicas_available[15m]))
+              / kube_deployment_spec_replicas > 0.5
           for: 15m
           labels:
             severity: warning
           annotations:
             summary: Deployment {{ $labels.namespace }}/{{ $labels.deployment }} has unavailable replicas
-            description: Desired replicas have not been available for 15 minutes.
+            description: Replicas were unavailable for most of the last 15 minutes. Averaged so a pod that is briefly Ready between crashes does not reset the alert.
         - alert: KubernetesPodCrashLooping
-          expr: kube_pod_container_status_waiting_reason{reason="CrashLoopBackOff"} == 1
-          for: 15m
+          # Growth is max - min of the counter inside the window, not increase():
+          # VictoriaMetrics increase() counts a newly appeared series' first value
+          # as growth (observed live: 9 false positives with constant counters),
+          # while an "offset" guard would hide brand-new pods for the first 30
+          # minutes. Restart counters never decrease within one pod, so max - min
+          # is exact and works from the pod's first sample.
+          expr: (max_over_time(kube_pod_container_status_restarts_total[30m]) - min_over_time(kube_pod_container_status_restarts_total[30m])) > 3
+          for: 5m
           labels:
             severity: warning
           annotations:
-            summary: Container {{ $labels.namespace }}/{{ $labels.pod }} is crash-looping
-            description: The container has remained in CrashLoopBackOff for 15 minutes.
+            summary: Container {{ $labels.namespace }}/{{ $labels.pod }} ({{ $labels.container }}) restarted more than 3 times in 30 minutes
+            description: Restart-based rather than state-based, because a crash-looping pod is only in CrashLoopBackOff between runs. Check the last termination reason, for example OOMKilled.
+        - alert: KubernetesContainerOOMKilled
+          expr: |
+            (kube_pod_container_status_last_terminated_reason{reason="OOMKilled"} == 1)
+              and on (cluster, namespace, pod, container)
+              ((max_over_time(kube_pod_container_status_restarts_total[15m]) - min_over_time(kube_pod_container_status_restarts_total[15m])) > 0)
+          for: 1m
+          labels:
+            severity: warning
+          annotations:
+            summary: Container {{ $labels.namespace }}/{{ $labels.pod }} ({{ $labels.container }}) was OOMKilled and restarted
+            description: Its last termination was OOMKilled within the last 15 minutes. Raise the memory limit or reduce memory use (for example application cache size).
         - alert: CertificateExpiringSoon
           expr: min by (cluster, exported_namespace, name) (certmanager_certificate_expiration_timestamp_seconds - time()) < 86400
           for: 30m

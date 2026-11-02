@@ -13,6 +13,13 @@ controllers:
         command:
           - /bin/sh
           - -ec
+        env:
+          # Cap, not a fixed setting: cache_limit is only rewritten when it is
+          # missing or larger than this, so a lower value chosen in the UI is
+          # kept. Keep it at or below about a quarter of the app memory limit
+          # (the article cache is anonymous memory, on top of ~250Mi baseline,
+          # connection buffers and unpacking).
+          CACHE_LIMIT_MAX_MB: "512"
         args:
           - |
             config_file="/config/sabnzbd.ini"
@@ -42,15 +49,40 @@ controllers:
                 END { print username_set && password_set ? 5 : 0 }
               ' "${config_file}")"
             else
-              printf '[misc]\nhost_whitelist = %s\ninet_exposure = %s\n' \
-                "${whitelist}" "${exposure}" > "${config_file}"
+              printf '[misc]\nhost_whitelist = %s\ninet_exposure = %s\ncache_limit = %sM\n' \
+                "${whitelist}" "${exposure}" "${CACHE_LIMIT_MAX_MB}" > "${config_file}"
               exit 0
             fi
 
-            awk -v whitelist="${whitelist}" -v exposure="${exposure}" '
+            # Parse the existing cache_limit (e.g. 1G, 450M, 512 M, bytes) to MiB.
+            # Empty output means "not set". Rewrite only when unset or above the cap.
+            cache_limit="$(awk -v cap="${CACHE_LIMIT_MAX_MB}" '
+              /^\[misc\][[:space:]]*$/ { in_misc = 1; next }
+              /^\[/ { in_misc = 0 }
+              in_misc && /^[[:space:]]*cache_limit[[:space:]]*=/ {
+                value = $0
+                sub(/^[^=]*=/, "", value)
+                gsub(/[[:space:]"\047]/, "", value)
+                found = 1
+                if (value == "") { rewrite = 1; next }
+                if (match(value, /^[0-9]+(\.[0-9]+)?/) == 0) { rewrite = 1; next }
+                number = substr(value, 1, RLENGTH) + 0
+                unit = toupper(substr(value, RLENGTH + 1, 1))
+                if (unit == "G") mb = number * 1024
+                else if (unit == "M") mb = number
+                else if (unit == "K") mb = number / 1024
+                else if (unit == "T") mb = number * 1048576
+                else mb = number / 1048576
+                if (mb > cap) rewrite = 1
+              }
+              END { if (!found || rewrite) print cap "M" }
+            ' "${config_file}")"
+
+            awk -v whitelist="${whitelist}" -v exposure="${exposure}" -v cache_limit="${cache_limit}" '
               function missing_settings() {
                 if (!found_whitelist) print "host_whitelist = " whitelist
                 if (!found_exposure) print "inet_exposure = " exposure
+                if (cache_limit != "" && !found_cache) print "cache_limit = " cache_limit
               }
               /^\[misc\]$/ {
                 in_misc = 1
@@ -71,6 +103,10 @@ controllers:
                 print "inet_exposure = " exposure
                 found_exposure = 1
                 next
+              }
+              in_misc && /^cache_limit *=/ {
+                found_cache = 1
+                if (cache_limit != "") { print "cache_limit = " cache_limit; next }
               }
               { print }
               END {
@@ -108,10 +144,10 @@ controllers:
         resources:
           requests:
             cpu: 100m
-            memory: 256Mi
+            memory: 512Mi
           limits:
             cpu: 1
-            memory: 1Gi
+            memory: 2Gi
 
 defaultPodOptions:
   automountServiceAccountToken: false
