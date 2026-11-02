@@ -57,7 +57,8 @@ def rotate(_args):
     hashed = bcrypt.hashpw(password.encode(), bcrypt.gensalt(rounds=10)).decode()
     hashed = "$2a$" + hashed[4:]
     webhook = secrets.token_hex(32)
-    mtime = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
+    # RFC3339: Argo only honours a parseable mtime, which revokes sessions issued before it.
+    mtime = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
     plaintext = (
         'fullnameOverride: "argocd"\n'

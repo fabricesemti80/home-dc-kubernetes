@@ -7,6 +7,12 @@ creation_rules:
     encrypted_regex: "^(data|stringData)$"
     mac_only_encrypted: true
     age: "#{ age_key('public') }#"
+  # Helm values files have no data/stringData; name their secret keys explicitly.
+  # Must precede the generic kubernetes/ rule (first match wins).
+  - path_regex: kubernetes/apps/app-cluster/argo-system/argo-cd/values\.sops\.ya?ml
+    encrypted_regex: "^(argocdServerAdminPassword|githubSecret)$"
+    mac_only_encrypted: true
+    age: "#{ age_key('public') }#"
   - path_regex: kubernetes/.*\.sops\.ya?ml
     encrypted_regex: "^(data|stringData)$"
     mac_only_encrypted: true
