@@ -14,6 +14,18 @@
   schedule: [
     'every weekend',
   ],
+  // Docker release timestamps exist only on Docker Hub, so images from ghcr.io,
+  // lscr.io and quay.io never satisfy minimumReleaseAge under the default
+  // 'timestamp-required' and would stay pending forever.
+  minimumReleaseAgeBehaviour: 'timestamp-optional',
+  // CI only runs on pull requests, so a bare Renovate branch has no checks and
+  // branch automerge never completes (and pushes untested commits straight to
+  // main). Automerge through PRs so CI gates the merge.
+  automergeType: 'pr',
+  // Never use GitHub's native auto-merge: main has no branch protection with
+  // required checks, so it could merge a PR before CI has finished. Renovate
+  // itself merges only after it sees green checks.
+  platformAutomerge: false,
   ignorePaths: [
     '**/*.sops.*',
   ],
@@ -43,9 +55,11 @@
       description: 'Hold ExternalDNS updates until Cloudflare Tunnel HTTPRoute CNAME reconciliation is validated',
       matchDatasources: [
         'helm',
+        'docker',
       ],
       matchPackageNames: [
         'external-dns',
+        '/(^|/)external-dns$/',
       ],
       enabled: false,
     },
@@ -254,6 +268,34 @@
       ],
       matchPackageNames: [
         '/(^|/)(postgres|postgresql)([-/]|$)/',
+      ],
+    },
+    {
+      description: 'Cluster-critical components: always open a PR for review, never auto-merge (a bad Talos, kubelet, CNI, GitOps, ingress, DNS, certificate, GPU or monitoring upgrade can take the cluster down)',
+      matchDatasources: [
+        'docker',
+        'helm',
+        'github-releases',
+      ],
+      matchPackageNames: [
+        '/(^|/)siderolabs/(installer|kubelet)$/',
+        '/(^|/)immich-app/immich-[a-z-]+$/',
+        '/(^|/)cilium$/',
+        '/(^|/)argo-cd$/',
+        '/(^|/)cert-manager$/',
+        '/(^|/)gpu-operator$/',
+        '/(^|/)gateway-helm$/',
+        '/(^|/)coredns$/',
+        '/(^|/)spegel$/',
+        '/(^|/)victoria-metrics-k8s-stack$/',
+        '/(^|/)kube-prometheus-stack$/',
+        '/(^|/)app-template$/',
+        '/(^|/)gitops-tools$/',
+        '/(^|/)local-path-provisioner(\\.git)?$/',
+      ],
+      automerge: false,
+      addLabels: [
+        'renovate/cluster-critical',
       ],
     },
   ],

@@ -123,6 +123,7 @@ Rollback:
 Decision:
 
 -   Roll the `cloudflare-dns` Argo application back to ExternalDNS chart `1.21.1` and disable Renovate updates for the `external-dns` Helm chart.
+-   The hold matches both the Helm-repo chart and the OCI mirror (`ghcr.io/home-operations/charts-mirror/external-dns`, docker datasource). It used to match only the Helm datasource; the OCI variant was blocked only by accident, because its registry has no release timestamps (see "Renovate release age and automerge policy"), so fixing that without widening the hold would have let it auto-merge.
 
 Context:
 
@@ -150,6 +151,36 @@ Next actions:
 
 -   [ ] Reproduce the chart `1.22.0` reconciliation in non-production and document the corrected configuration.
 -   [ ] Re-enable Renovate after public DNS and HTTPS validation succeeds.
+
+### 🔖 Renovate release age and automerge policy
+
+Decision:
+
+-   `minimumReleaseAgeBehaviour: timestamp-optional`, `automergeType: pr`, `platformAutomerge: false`, and a review-only rule for cluster-critical components (Talos installer and kubelet, Cilium, Argo CD, cert-manager, GPU operator, Envoy Gateway, CoreDNS, Spegel, VictoriaMetrics and kube-prometheus-stack charts, app-template, gitops-tools, local-path-provisioner, Immich).
+
+Context:
+
+-   From 2026-10-29 Renovate merged nothing. The 3-day `minimumReleaseAge` on minor/patch/digest updates uses the default `timestamp-required`, and the Docker datasource has release timestamps only for Docker Hub. Of 85 updates found in a local lookup, 0 of 50 from ghcr.io, 0 of 6 from quay.io and 0 of 3 from lscr.io had one, so 29 of 34 distinct updates were held "pending" forever.
+-   Auto-merge used `automergeType: branch` (from `:automergeBranch`). CI runs only on `pull_request`, so Renovate branches carry no checks and are "pending"; Renovate's 25 hour PR fallback (`prNotPendingHours`) is disabled while `minimumReleaseAge` is set, so eight eligible updates sat as bare branches, never merged and never turned into PRs. Branch mode would also have pushed untested commits straight to `main`.
+
+Assumptions:
+
+-   Updates from registries without timestamps get no age protection; CI on the PR is their only gate, so cluster-critical ones are review-only.
+-   `main` has no required status checks. `platformAutomerge: false` keeps GitHub from merging a PR before CI has finished; Renovate merges only after it sees green checks.
+
+Validation checks:
+
+-   `npx --package renovate -- renovate-config-validator --strict .renovaterc.json5`
+-   `renovate --platform=local --dry-run=lookup` from a clean checkout, before and after: updates flagged `pendingChecks` fell from 29 to 2 (the 2 are genuinely under 3 days old).
+-   After merge, the Renovate Dashboard should list PRs, not "Pending Status Checks" for ghcr.io, lscr.io and quay.io images.
+
+Rollback:
+
+-   Revert the commit; the dashboard returns to the previous (stalled) state without changing any cluster resource.
+
+Next actions:
+
+-   [ ] Consider `prHourlyLimit` / `prConcurrentLimit` (currently unlimited via `:disableRateLimiting`) so the first run after unblocking does not merge many application upgrades at once.
 
 ### 🚀 App rollout fixes for July 2026 image updates
 
