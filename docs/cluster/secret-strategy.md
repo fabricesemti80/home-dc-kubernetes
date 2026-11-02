@@ -65,6 +65,8 @@ encrypted bootstrap material in Git cannot be recovered.
 
 ## 📌 SOPS Inventory
 
+The complete file-by-file list is in [../secrets-and-env-vars.md](../secrets-and-env-vars.md#sops-encrypted-files-in-git-age-recipient-in-sopsyaml); the tables below record the *bootstrap vs. movable* decision.
+
 ### 🔹 Must Remain In SOPS
 
 These are needed before or during cluster bootstrap:
@@ -142,31 +144,10 @@ task secrets:validate-bootstrap
 
 ## 📌 Doppler Inventory
 
-### ☸️ App Cluster
-
-| Managed Secret             | Namespace    | Keys                                                                    |
-| -------------------------- | ------------ | ----------------------------------------------------------------------- |
-| `arc-github-app-secret`    | `arc-system` | `GITHUB_APP_ID`, `GITHUB_APP_INSTALLATION_ID`, `GITHUB_APP_PRIVATE_KEY` |
-| `immich-secrets`           | `media`      | `IMMICH_DB_PASSWORD`                                                    |
-| `recyclarr-secrets`        | `media`      | `SONARR_API_KEY`, `RADARR_API_KEY`                                      |
-| `cloudflare-tunnel-secret` | `network`    | `TUNNEL_TOKEN_APPS` as `TUNNEL_TOKEN`                                   |
-
-### ☸️ Infra Cluster
-
-| Managed Secret                   | Namespace    | Keys                                                                                      |
-| -------------------------------- | ------------ | ----------------------------------------------------------------------------------------- |
-| `pulse-agent-token`              | `monitoring` | `PULSE_INFRA_TOKEN`                                                                       |
-| `pulse-secrets`                  | `monitoring` | `PULSE_AUTH_USER`, `PULSE_AUTH_PASS`                                                      |
-| `uptime-kuma-credentials`        | `monitoring` | `UPTIME_KUMA_USERNAME`, `UPTIME_KUMA_PASSWORD`                                            |
-| `cloudflare-tunnel-infra-secret` | `network`    | `TUNNEL_TOKEN_INFRA` as `TUNNEL_TOKEN`                                                    |
-| `technitium-rfc2136-secrets`     | `network`    | `TECHNITIUM_RFC2136_TSIG_KEYNAME`, `TECHNITIUM_RFC2136_TSIG_SECRET` for local DNS updates |
-| `operator-oauth`                 | `tailscale`  | `TAILSCALE_OAUTH_CLIENT_ID`, `TAILSCALE_OAUTH_CLIENT_SECRET`                              |
-
-Kestra's four DopplerSecret declarations are retired with its workloads. The
-underlying Doppler values are deliberately retained for rollback; no secret-manager
-deletion is part of this change. The NAS backup target needs no service credentials.
-Production Restic repository passwords are required when scheduled backups are added;
-the disposable target probe generates its password in memory.
+The full, current list of Doppler keys, their sources, the Kubernetes Secrets
+they sync into and their consumers is maintained in
+[../secrets-and-env-vars.md](../secrets-and-env-vars.md). Update that file, not
+this one, when a `DopplerSecret` changes.
 
 ## 📊 1Password Operator Assessment
 

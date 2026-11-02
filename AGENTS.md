@@ -15,6 +15,16 @@ This repository is the main deployment home for the Talos clusters, Kubernetes r
 5. **Use explicit environments**: `dev`, `stage`, and `prod` (or `lab`) should be modeled separately.
 6. **Branch policy**: minor fixes may be made directly on `main`; larger or risky changes need a separate branch and PR.
 
+## Secrets and environment variables inventory
+
+[`docs/secrets-and-env-vars.md`](docs/secrets-and-env-vars.md) is the authoritative inventory of every secret and environment variable in this repository.
+
+-   Update it **in the same change** whenever you add, rename, remove or move any of the following: a `DopplerSecret` or one of its keys/`processors`; a `*.sops.yaml` file or its keys; a Doppler project/config or operator token; a template secret input in `cluster.schema.cue`; a local identity file; or an environment variable read by a Taskfile, script, `flake.nix` or workflow.
+-   Retiring an app means moving its keys to the "Retained but unused" note, or deleting them there once they're removed from Doppler.
+-   Mark Doppler cross-project references with their source project/config. When a shared value changes (`TUNNEL_*`, `PVE_MONITORING_TOKEN_SECRET`, `PBS_MONITORING_TOKEN_SECRET`, `MONITORING_HW_*`), update the source repository's `docs/secrets-and-env-vars.md` as well (`home-dc-terraform`, `home-dc-proxmox`).
+-   Record names, locations, writers, readers and purpose only. Never write secret values into the file, a commit, a log or chat.
+-   Before finishing, check for drift: `grep -rl "kind: DopplerSecret" kubernetes`, `find . -name "*.sops.yaml"` and `grep -rnE "os\.environ|getenv|\\$\{?[A-Z_]{4,}" scripts hack .taskfiles`. Every result must be reflected in the inventory.
+
 ## Repository conventions
 
 -   High-level architecture documents live under `docs/architecture/`.
