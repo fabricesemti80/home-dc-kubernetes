@@ -52,6 +52,12 @@
   },
   packageRules: [
     {
+      description: 'Keep Kubernetes on the supported 1.36 minor until Talos 1.13 is upgraded; review this cap with every Talos minor upgrade',
+      matchDatasources: ['docker'],
+      matchPackageNames: ['ghcr.io/siderolabs/kubelet'],
+      allowedVersions: '<1.37.0',
+    },
+    {
       description: 'Hold ExternalDNS updates until Cloudflare Tunnel HTTPRoute CNAME reconciliation is validated',
       matchDatasources: [
         'helm',
