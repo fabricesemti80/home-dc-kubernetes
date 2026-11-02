@@ -74,6 +74,16 @@
       enabled: false,
     },
     {
+      description: 'Hold gitops-tools until the Argo CD repo-server init script is adapted to its renamed helm-secrets plugin layout (2026.11.0 breaks it)',
+      matchDatasources: [
+        'docker',
+      ],
+      matchPackageNames: [
+        '/(^|/)gitops-tools$/',
+      ],
+      enabled: false,
+    },
+    {
       description: 'Override Helmfile Dependency Name',
       matchDatasources: [
         'docker',

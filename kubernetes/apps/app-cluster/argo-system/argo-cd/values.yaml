@@ -203,7 +203,10 @@ repoServer:
       name: helm-secrets-private-keys
   initContainers:
     - name: gitops-tools
-      image: ghcr.io/ajaykumar4/gitops-tools:2026.11.0
+      # Held at 2026.8.0: 2026.11.0 renamed the helm-secrets plugin directories
+      # (helm-secrets/ -> secrets/, secrets-getter/, secrets-post-renderer/), so the
+      # cp below fails and repo-server never starts. See IMPLEMENTATION_DECISIONS.md.
+      image: ghcr.io/ajaykumar4/gitops-tools:2026.8.0
       imagePullPolicy: Always
       resources:
         requests:

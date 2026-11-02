@@ -118,6 +118,35 @@ Rollback:
 
 -   Remove the Linkwarden-specific package rule from `.renovaterc.json5` after a newer image is manually tested and rolled out successfully.
 
+### 🔖 gitops-tools Renovate hold (Argo CD repo-server)
+
+Decision:
+
+-   Pin `ghcr.io/ajaykumar4/gitops-tools` to `2026.8.0` in `kubernetes/apps/app-cluster/argo-system/argo-cd/values.yaml` and disable Renovate updates for it until the repo-server init script is adapted.
+
+Context:
+
+-   Renovate PR #486 (2026.8.0 ➔ 2026.11.0) merged on 2026-11-02 and left the new `argocd-repo-server` pod in `Init:CrashLoopBackOff` (`cp: can't stat '/custom-tools/helm-plugins/helm-secrets/plugins/helm-secrets-cli/plugin.yaml'`). The two old pods kept serving, but the rollout never completed and the `argo` and `apps` applications showed Degraded.
+-   2026.11.0 renamed the helm-secrets plugin directories: `helm-plugins/helm-secrets/...` became `helm-plugins/secrets/`, `secrets-getter/` and `secrets-post-renderer/` (helm-secrets 4.7.10). The init script copies from the old path.
+
+Assumptions:
+
+-   `2026.8.0` is the last known-good image with Argo CD 3.5.x. A local simulation (the real init script, then `quay.io/argoproj/argocd:v3.5.6` with Helm 4.2.1) loaded the `secrets` plugin and ran `helm secrets`.
+-   An adapted script (delete the `cp .../helm-secrets-cli/plugin.yaml` line) also loaded the new `secrets`, `secrets-getter` and `secrets-post-renderer` plugins in that simulation, but no decrypt of a real `*.sops.yaml` was tested.
+
+Validation checks:
+
+-   `kubectl -n argo-system get pods -l app.kubernetes.io/name=argocd-repo-server` shows 2/2 Running on the same ReplicaSet and no `Init:CrashLoopBackOff`.
+-   `kubectl -n argo-system get applications` shows `argo` and `apps` Healthy.
+
+Rollback:
+
+-   Revert this change; the stuck rollout returns, so only do that together with the script change below.
+
+Next actions:
+
+-   [ ] Adapt the init script for the new plugin layout, test an end-to-end `helm secrets` decrypt of a `*.sops.yaml` in a scratch repo-server, then bump the tag and remove the Renovate hold.
+
 ### 🔖 ExternalDNS Renovate hold
 
 Decision:
