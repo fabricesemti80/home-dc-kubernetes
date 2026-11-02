@@ -22,6 +22,26 @@ CLUSTER_LABELS = {
     "infra-cluster": "Infra Cluster",
 }
 
+# Explicit LAN-only links: Homepage cannot discover infra-cluster routes, and
+# automatic route generation intentionally includes only public .dev hosts.
+STATIC_INFRA_MONITORING = {
+    "Grafana": {
+        "icon": "grafana.png",
+        "href": "http://grafana.krapulax.home",
+        "description": "Infrastructure metrics dashboards",
+    },
+    "VictoriaMetrics": {
+        "icon": "victoriametrics.png",
+        "href": "http://victoriametrics.krapulax.home/vmui/",
+        "description": "Metrics storage and query UI",
+    },
+    "Alertmanager": {
+        "icon": "alertmanager.png",
+        "href": "http://alertmanager.krapulax.home",
+        "description": "Monitoring alerts and silences",
+    },
+}
+
 ICON_MAP = {
     "argo-cd": "argo-cd.png",
     "homepage": "homepage.png",
@@ -401,7 +421,17 @@ def update_services(infra_routes: list[dict]) -> bool:
 def main():
     changed = set()
     groups = set()
-    infra_routes: list[dict] = []
+    monitoring_group = "Infra Cluster - monitoring"
+    groups.add(monitoring_group)
+    infra_routes: list[dict] = [
+        {
+            "gethomepage.dev/group": monitoring_group,
+            "gethomepage.dev/name": name,
+            "gethomepage.dev/weight": "20",
+            **{f"gethomepage.dev/{key}": value for key, value in service.items()},
+        }
+        for name, service in STATIC_INFRA_MONITORING.items()
+    ]
 
     route_files = sorted(
         glob.glob(os.path.join(APPS_DIR, "**", "*http-route*.yaml"), recursive=True)

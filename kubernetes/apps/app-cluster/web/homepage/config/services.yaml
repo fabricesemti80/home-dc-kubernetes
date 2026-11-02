@@ -5,10 +5,22 @@
         description: Shared LLM gateway
 
 - Infra Cluster - monitoring:
+    - Alertmanager:
+        icon: alertmanager.png
+        href: http://alertmanager.krapulax.home
+        description: Monitoring alerts and silences
+    - Grafana:
+        icon: grafana.png
+        href: http://grafana.krapulax.home
+        description: Infrastructure metrics dashboards
     - Uptime Kuma:
         icon: uptime-kuma.png
         href: https://uptime.krapulax.dev
         description: External availability monitoring
+    - VictoriaMetrics:
+        icon: victoriametrics.png
+        href: http://victoriametrics.krapulax.home/vmui/
+        description: Metrics storage and query UI
 
 - Infra Cluster - network:
     - Technitium:
