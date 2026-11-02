@@ -70,13 +70,13 @@ spec:
             summary: Deployment {{ $labels.namespace }}/{{ $labels.deployment }} has unavailable replicas
             description: Replicas were unavailable for most of the last 15 minutes. Averaged so a pod that is briefly Ready between crashes does not reset the alert.
         - alert: KubernetesPodCrashLooping
+          # Growth is max - min of the counter inside the window, not increase():
           # VictoriaMetrics increase() counts a newly appeared series' first value
-          # as growth, so require the series to have existed 30 minutes ago;
-          # otherwise every vmagent restart or relabel fires for pods with old
-          # restart counts (observed live: 9 false positives with constant counters).
-          expr: |
-            (increase(kube_pod_container_status_restarts_total[30m]) > 3)
-              and (kube_pod_container_status_restarts_total offset 30m)
+          # as growth (observed live: 9 false positives with constant counters),
+          # while an "offset" guard would hide brand-new pods for the first 30
+          # minutes. Restart counters never decrease within one pod, so max - min
+          # is exact and works from the pod's first sample.
+          expr: (max_over_time(kube_pod_container_status_restarts_total[30m]) - min_over_time(kube_pod_container_status_restarts_total[30m])) > 3
           for: 5m
           labels:
             severity: warning
@@ -87,8 +87,7 @@ spec:
           expr: |
             (kube_pod_container_status_last_terminated_reason{reason="OOMKilled"} == 1)
               and on (cluster, namespace, pod, container)
-              ((increase(kube_pod_container_status_restarts_total[15m]) > 0)
-                and (kube_pod_container_status_restarts_total offset 15m))
+              ((max_over_time(kube_pod_container_status_restarts_total[15m]) - min_over_time(kube_pod_container_status_restarts_total[15m])) > 0)
           for: 1m
           labels:
             severity: warning
