@@ -184,10 +184,11 @@ spec:
             summary: Disk {{ $labels.chip }} on {{ $labels.instance }} is above 70 degrees Celsius
             description: Check airflow and the disk's workload.
         - alert: SmartCollectorMissing
-          expr: absent(smartctl_devices)
+          # absent() fires only when no series match, so check each expected node.
+          expr: absent(smartctl_devices{node="infra-cp-01"}) or absent(smartctl_devices{node="infra-wk-01"})
           for: 30m
           labels:
             severity: warning
           annotations:
-            summary: Infra node SMART metrics are missing
-            description: Check the smartctl-exporter DaemonSet and its scrape target.
+            summary: SMART metrics are missing for infra node {{ $labels.node }}
+            description: Check the smartctl-exporter pod on that node and its scrape target.
