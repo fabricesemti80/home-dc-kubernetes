@@ -16,6 +16,13 @@ The rebuild flow is staged in the same spirit as the upstream
 prepare hardware, prepare the workstation, render configuration, bootstrap
 Talos, bootstrap Argo, then verify GitOps.
 
+## 🔐 Secrets and Environment Variables
+
+Every Doppler runtime secret, SOPS file, template secret input, local identity
+file and environment variable is listed in
+[docs/secrets-and-env-vars.md](docs/secrets-and-env-vars.md). The layering
+rationale is in [docs/cluster/secret-strategy.md](docs/cluster/secret-strategy.md).
+
 ## 🎯 Target State
 
 | Cluster       | Argo name       | Platform             | Role                              |
@@ -126,6 +133,7 @@ Useful docs:
 -   [docs/cluster/README.md](docs/cluster/README.md)
 -   [docs/cluster/dual-cluster-management.md](docs/cluster/dual-cluster-management.md)
 -   [docs/cluster/secret-strategy.md](docs/cluster/secret-strategy.md)
+-   [docs/secrets-and-env-vars.md](docs/secrets-and-env-vars.md)
 
 ## 🏗️ Stage 2: Infrastructure
 
