@@ -6,6 +6,7 @@ resources:
   - ./config/http-route.yaml
   - ./config/rules.yaml
   - ./config/dashboard.yaml
+  - ./config/kiosk-dashboard.yaml
   - ./config/nfs-exporter.yaml
 configMapGenerator:
   - name: grafana-k8s-dashboard-15661
@@ -14,5 +15,7 @@ configMapGenerator:
       - k8s-dashboard-15661.json=./config/dashboards/k8s-dashboard-15661.json
     options:
       disableNameSuffixHash: true
+      annotations:
+        grafana_folder: Kubernetes
       labels:
         grafana_dashboard: '1'

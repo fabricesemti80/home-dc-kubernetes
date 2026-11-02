@@ -1,0 +1,18 @@
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMServiceScrape
+metadata:
+  name: smartctl-exporter
+  namespace: monitoring
+spec:
+  selector:
+    matchLabels:
+      monitoring.krapulax.home/target: smartctl-exporter
+  endpoints:
+    - port: metrics
+      path: /metrics
+      interval: 120s
+      scrapeTimeout: 60s
+      relabelConfigs:
+        - sourceLabels: [__meta_kubernetes_pod_node_name]
+          targetLabel: node

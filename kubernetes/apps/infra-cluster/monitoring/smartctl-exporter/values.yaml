@@ -1,0 +1,50 @@
+---
+global:
+  createDefaultServiceAccount: false
+controllers:
+  smartctl-exporter:
+    type: daemonset
+    annotations:
+      reloader.stakater.com/auto: 'true'
+    containers:
+      app:
+        image:
+          repository: quay.io/prometheuscommunity/smartctl-exporter
+          tag: v0.15.0
+        args:
+          - --smartctl.interval=120s
+          - --smartctl.rescan=30m
+        probes:
+          liveness: &probe
+            enabled: true
+            custom: true
+            spec:
+              httpGet:
+                path: /
+                port: 9633
+              periodSeconds: 60
+              timeoutSeconds: 10
+          readiness: *probe
+        # smartctl needs raw block-device access, so this one workload is privileged
+        # (the monitoring namespace already allows it). It only issues read-only
+        # SMART queries.
+        securityContext:
+          privileged: true
+          runAsUser: 0
+          runAsGroup: 0
+        resources:
+          requests:
+            cpu: 10m
+            memory: 32Mi
+          limits:
+            memory: 128Mi
+defaultPodOptions:
+  automountServiceAccountToken: false
+service:
+  app:
+    controller: smartctl-exporter
+    ports:
+      metrics:
+        port: 9633
+    labels:
+      monitoring.krapulax.home/target: smartctl-exporter

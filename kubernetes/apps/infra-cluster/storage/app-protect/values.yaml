@@ -33,3 +33,6 @@ apps:
 - name: remote-write-proxy
   namespace: monitoring
   protect: false
+- name: smartctl-exporter
+  namespace: monitoring
+  protect: false

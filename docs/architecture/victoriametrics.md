@@ -43,6 +43,14 @@ PVE currently schedules guests 4090 and 4095–4097 weekly on Sunday and PBS gue
 -   QNAP telemetry is optional and not implemented. Uptime Kuma continues to own external website checks.
 -   The Grafana infrastructure, PVE and PBS dashboards were opened against live metrics. Alertmanager failed to start due to the generated StatefulSet label; its naming fix and in-cluster firing/resolved Slack verification remain deployment gates. Backup restore and full end-to-end monitoring acceptance remain open.
 
+## Dashboards and disk health
+
+Dashboards are provisioned from Git through the Grafana sidecar. Each dashboard ConfigMap carries a `grafana_folder` annotation (`Kubernetes`, `Infrastructure`, `Backup`, `Kiosk`) and Grafana mirrors that as a folder. The community K8S dashboard (15661) was audited query by query: 68 of its 151 queries returned no data because they need cAdvisor and kubelet volume metrics, which are not collected (see the kubelet gap above). Those panels were removed; re-vendor the dashboard when a verified kubelet path exists. The Argo CD community dashboard (14584) is not provisioned: on Argo CD v3.5.6 the controller does not expose the `argocd_app_*` and `argocd_cluster_*` series it needs.
+
+SMART data comes from two paths. The two infra nodes run a privileged `smartctl-exporter` DaemonSet (read-only SMART queries; it needs raw block-device access and the `monitoring` namespace allows privileged pods). `pve-00` uses the node-exporter textfile collectors for SMART and NVMe already installed on the host. The `Disk SMART health` dashboard combines both. App-cluster VMs have virtual disks without SMART, so their physical disks are the `pve-00` ones. The `disk-health` alert group covers SMART failure, NVMe media errors, bad sectors, wear above 80 percent, disk temperature and a missing collector; it is tested with `promtool`. The QNAP NAS has no SMART collection.
+
+The `Homelab status (kiosk)` dashboard is meant for a wall tablet: large status tiles and two trend panels, one-minute refresh. Grafana playlists live in Grafana's own database, which is not persistent here, so create the playlist in the UI after each Grafana restart or keep using the dashboard directly.
+
 ## Storage and recovery
 
 VictoriaMetrics uses a 20 GiB `local-path` PVC with 30-day retention. Its metric history is intentionally opted out of app-protect and can be lost with the worker; a retained local PV is not an offsite backup. Grafana has no persistent database: provisioned dashboards, datasource settings and admin credentials are reconstructed from Git and Doppler. UI-created dashboards, user accounts and other unprovisioned changes will not survive a restart. Alertmanager silence persistence is not configured; active silences can be lost on restart.

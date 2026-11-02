@@ -169,6 +169,12 @@ grafana:
     limits:
       memory: 768Mi
   sidecar:
+    dashboards:
+      # Place each dashboard ConfigMap in the Grafana folder named by its
+      # grafana_folder annotation.
+      folderAnnotation: grafana_folder
+      provider:
+        foldersFromFilesStructure: true
     resources:
       requests:
         cpu: 10m
