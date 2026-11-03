@@ -11,6 +11,27 @@ spec:
     kubernetes:
       envoyDeployment:
         replicas: 2
+        pod:
+          # Keep the gateways off k8s-wrkr-03, which is the most loaded worker
+          # (see docs/architecture/workload-placement.md), and keep the two
+          # replicas on different nodes. Soft rules: they still schedule on
+          # wrkr-03 if nothing else fits.
+          affinity:
+            nodeAffinity:
+              preferredDuringSchedulingIgnoredDuringExecution:
+                - weight: 100
+                  preference:
+                    matchExpressions:
+                      - key: kubernetes.io/hostname
+                        operator: NotIn
+                        values: [k8s-wrkr-03]
+          topologySpreadConstraints:
+            - maxSkew: 1
+              topologyKey: kubernetes.io/hostname
+              whenUnsatisfiable: ScheduleAnyway
+              labelSelector:
+                matchLabels:
+                  app.kubernetes.io/name: envoy
         container:
           imageRepository: mirror.gcr.io/envoyproxy/envoy
           resources:
