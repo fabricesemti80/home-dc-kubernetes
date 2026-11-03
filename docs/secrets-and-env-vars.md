@@ -20,7 +20,9 @@ Some values below are **Doppler cross-project references**. Their source of trut
 
 | Doppler key                                 | Source                                  | Kubernetes Secret (namespace/name → key)                          | Consumer                                      | Function                                                           |
 | ------------------------------------------- | --------------------------------------- | ----------------------------------------------------------------- | --------------------------------------------- | ------------------------------------------------------------------ |
-| `OPENCODE_ZEN_API_KEY`                   | Operator (OpenCode Console key)          | `hermes/hermes-opencode-zen` → `OPENCODE_ZEN_API_KEY`                 | Hermes Agent                                  | OpenCode Zen inference key                |
+| `HERMES_LLM_ADDRESS` | Operator | `hermes/hermes-llm` → `HERMES_LLM_ADDRESS` | Hermes Agent | OpenAI-compatible API base URL |
+| `HERMES_LLM_MODEL` | Operator | `hermes/hermes-llm` → `HERMES_LLM_MODEL` | Hermes Agent | Inference model ID |
+| `HERMES_LLM_API_KEY` | Operator | `hermes/hermes-llm` → `HERMES_LLM_API_KEY` | Hermes Agent | Inference provider API key |
 | `GITHUB_APP_ID`                             | Operator (GitHub App)                   | `arc-system/arc-github-app-secret` → `github_app_id`              | ARC runner scale set `arc-runner-set-homelab` | GitHub App ID for self-hosted runners                              |
 | `GITHUB_APP_INSTALLATION_ID`                | Operator (GitHub App)                   | `arc-system/arc-github-app-secret` → `github_app_installation_id` | ARC                                           | GitHub App installation ID                                         |
 | `GITHUB_APP_PRIVATE_KEY`                    | Operator (GitHub App)                   | `arc-system/arc-github-app-secret` → `github_app_private_key`     | ARC                                           | GitHub App private key                                             |

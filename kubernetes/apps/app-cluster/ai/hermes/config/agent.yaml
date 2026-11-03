@@ -36,15 +36,15 @@ spec:
       raw:
         model:
           provider: custom
-          default: minimax-m3
-          base_url: https://opencode.ai/inference/openai/v1
-          key_env: OPENCODE_ZEN_API_KEY
+          default: "${HERMES_LLM_MODEL}"
+          base_url: "${HERMES_LLM_ADDRESS}"
+          key_env: HERMES_LLM_API_KEY
       apiServer:
         enabled: true
         port: 8642
     envFrom:
       - secretRef:
-          name: hermes-opencode-zen
+          name: hermes-llm
     storage:
       persistence:
         enabled: true
