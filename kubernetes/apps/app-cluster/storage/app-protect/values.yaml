@@ -67,3 +67,7 @@ apps:
 - name: vmagent-queue
   namespace: monitoring
   protect: false
+- name: hermes
+  namespace: hermes
+  claim: hermes-data
+  protect: false

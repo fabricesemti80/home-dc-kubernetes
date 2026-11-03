@@ -1,0 +1,55 @@
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: hermes-runtime
+  namespace: hermes
+automountServiceAccountToken: false
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: hermes-data
+  namespace: hermes
+  annotations:
+    argocd.argoproj.io/sync-options: Prune=false,Delete=false
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: agents.hermeum.app/v1alpha1
+kind: HermesAgent
+metadata:
+  name: hermes
+  namespace: hermes
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  hermes:
+    image: docker.io/nousresearch/hermes-agent:v0.22.6
+    config:
+      raw:
+        model:
+          provider: custom
+          default: openai/gpt-5-mini
+          base_url: https://litellm.krapulax.dev/v1
+          key_env: HERMES_LITELLM_API_KEY
+      apiServer:
+        enabled: true
+        port: 8642
+    envFrom:
+      - secretRef:
+          name: hermes-litellm
+    storage:
+      persistence:
+        enabled: true
+        existingClaim: hermes-data
+  security:
+    rbac:
+      createServiceAccount: false
+      serviceAccountName: hermes-runtime

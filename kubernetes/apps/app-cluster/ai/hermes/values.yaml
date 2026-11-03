@@ -1,0 +1,9 @@
+---
+manager:
+  heartbeat:
+    enabled: false
+rbac:
+  watchNamespaces:
+    - hermes
+metrics:
+  enabled: false
