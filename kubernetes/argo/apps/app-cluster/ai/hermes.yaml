@@ -1,0 +1,28 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: hermes
+  namespace: argo-system
+spec:
+  project: kubernetes
+  sources:
+    - repoURL: https://github.com/fabricesemti80/home-dc-kubernetes.git
+      path: kubernetes/apps/app-cluster/ai/hermes
+      targetRevision: main
+      ref: repo
+    - repoURL: ghcr.io/hermeum/charts
+      chart: hermes-agent-operator
+      targetRevision: 0.5.4
+      helm:
+        releaseName: hermes-agent-operator
+        valueFiles:
+          - $repo/kubernetes/apps/app-cluster/ai/hermes/values.yaml
+  destination:
+    name: app-cluster
+    namespace: hermes
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+      - PruneLast=true
