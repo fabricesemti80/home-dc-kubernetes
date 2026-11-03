@@ -24,6 +24,15 @@ The rules are **preferences**, not requirements. A pod still schedules on `k8s-w
 -   Nothing prevents drift back to `k8s-wrkr-03` for workloads without these rules, and an automatic rebalancer (descheduler) is not installed.
 -   Memory limits remain heavily overcommitted on every worker; this change does not address that.
 
+## Reading the node table
+
+The Kubernetes dashboard's node table sums `kube_pod_container_resource_requests` and `..._limits`. Finished pods (`Succeeded`/`Failed`) stay in those metrics until they are deleted, although they use nothing. On 2026-11-03 `k8s-wrkr-03` held 24 finished `protect-*` backup pods, which showed 108% CPU requests when the running pods requested 47% (1.85 of 4 cores) and 56% memory requests against an actual 36%. Two changes remove that:
+
+-   The `app-protect` chart keeps one successful job per CronJob (`successfulJobsHistoryLimit: 1`, was 3); failed jobs stay at 3 for diagnosis. The stale-export alert reads the CronJob's last-success time, not its pods.
+-   The dashboard queries only count pods that are `Pending` or `Running` (a join on `kube_pod_status_phase`). Panels and any future alert summing these metrics should use the same filter. One finished pod per CronJob remains in the pod list but no longer counts.
+
+Memory limits remain overcommitted (about 150% on `k8s-wrkr-03` counting running pods only). Node memory in use was 16–25% on 2026-11-03. Per-pod usage is not collected (no cAdvisor), so limits should not be lowered blindly.
+
 ## Validation
 
 1. After Argo syncs, run `kubectl get pods -A -o wide --field-selector spec.nodeName=k8s-wrkr-03` and confirm the Envoy and Argo pods have left.
