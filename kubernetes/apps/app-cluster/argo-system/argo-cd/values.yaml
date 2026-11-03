@@ -3,6 +3,18 @@ crds:
   install: true
   # -- Keep CRDs on chart uninstall
   keep: false
+global:
+  affinity:
+    # Keep the chart's soft pod anti-affinity (replicas on different nodes) and
+    # prefer other nodes than k8s-wrkr-03, the most loaded worker (soft rule).
+    podAntiAffinity: soft
+    nodeAffinity:
+      type: soft
+      matchExpressions:
+        - key: kubernetes.io/hostname
+          operator: NotIn
+          values:
+            - k8s-wrkr-03
 configs:
   params:
     server.insecure: true
