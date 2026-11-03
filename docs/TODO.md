@@ -28,6 +28,39 @@ Talos 1.14 supports Kubernetes 1.33 to 1.37, but the platform does not yet: Cili
 -   upgrade Talos one node at a time with an etcd snapshot first: workers, then the GPU worker (verify the NVIDIA driver and a Jellyfin transcode), then the control plane (the API is unavailable while the single control plane reboots). On the infra-cluster confirm both Technitium instances are Ready between nodes. Roll back with `talosctl rollback`;
 -   then run `talosctl upgrade-k8s --to 1.36.x` with the 1.14 client, using `--dry-run` first.
 
+## 📈 Collect per-pod resource usage and right-size memory limits
+
+Container metrics (cAdvisor) and kubelet volume metrics are not collected in either cluster because the Talos kubelet serving certificates are not signed by the cluster CA, and the monitoring stack deliberately does not skip TLS verification (see `docs/architecture/victoriametrics.md`). Without per-pod usage, limits cannot be lowered safely: on 2026-11-03 `k8s-wrkr-03` had about 150% memory limits (running pods only) while the node itself used 16-25% of its memory.
+
+### 🔹 Completion criteria
+
+-   establish a verified kubelet scrape path (trusted serving certificates or an authenticated proxy with RBAC), without `insecureSkipVerify`;
+-   re-vendor the Kubernetes dashboard (Grafana 15661) so its cAdvisor panels show data, and re-check the pruned panels;
+-   review the largest memory limits against measured usage; set limits close to requests only where usage supports it;
+-   revisit the Argo CD dashboard (14584) separately: Argo CD v3.5.6 exposed no `argocd_app_*` series on 2026-11-02.
+
+## 💾 Test Proxmox CSI volumes for pods that need to move between workers
+
+Most app volumes are `local-path` and bound to the worker that first used them, which blocks rebalancing. The Proxmox CSI plugin may allow a volume on a local ZFS pool to detach from one worker VM and attach to another on the same Proxmox host; that is community-reported only and is not yet proven here. Per `home-dc-terraform`'s `nodes.auto.tfvars` the worker disks currently sit on `local-hdd`, the old 4 TB HDD, so a `local-nvme` StorageClass would also take load off that drive.
+
+### 🔹 Completion criteria
+
+-   create a scoped Proxmox API token for the plugin (Doppler, plus `docs/secrets-and-env-vars.md`);
+-   install the plugin with a `local-nvme` StorageClass and the node topology labels it needs;
+-   run a throwaway PVC test: write data, cordon the node, recreate the pod on another worker, confirm the data and the attach/detach time;
+-   confirm how Proxmox VM backups treat the attached CSI disks, and keep Backrest as the real backup;
+-   if the test fails, drop the plan and reconsider (the decision depends on this test).
+
+## 🚚 Move stateful pods off `k8s-wrkr-03`
+
+Nine pods on `k8s-wrkr-03` are tied to node-local volumes. The largest are `immich-machine-learning` (1 GiB requested) and `sabnzbd` (512 MiB, after its memory fix); the rest are small. Moving one means restoring its data onto another worker's volume and changing its `nodeSelector`.
+
+### 🔹 Completion criteria
+
+-   do this after the Proxmox CSI test above, or by restoring from a fresh Backrest snapshot onto a new `local-path` volume on the target worker;
+-   move one app per change, keep the old volume (`Retain`) until the app is verified, and document rollback;
+-   re-check node requests with the corrected dashboard (`docs/architecture/workload-placement.md`) before and after.
+
 ## ☁️ Validate ExternalDNS upgrades before re-enabling Renovate
 
 ExternalDNS chart `1.22.0` changed Cloudflare Tunnel HTTPRoute reconciliation: it attempted to publish proxied A records for the private Envoy address (`10.0.40.103`) instead of the configured tunnel CNAME targets. Cloudflare rejected those records and withdrew public `*.krapulax.dev` DNS during sync.
