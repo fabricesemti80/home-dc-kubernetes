@@ -9,11 +9,11 @@ API for port-forwarding. Operator telemetry is disabled.
 Set these three values in Doppler `home-dc-kubernetes/apps` before the first
 sync. The starting profile uses OpenRouter's free NVIDIA Nemotron 3 Ultra.
 
-| Parameter | Starting value |
-| --- | --- |
-| `HERMES_LLM_ADDRESS` | `https://openrouter.ai/api/v1` |
-| `HERMES_LLM_MODEL` | `nvidia/nemotron-3-ultra-550b-a55b:free` |
-| `HERMES_LLM_API_KEY` | Dedicated OpenRouter API key |
+| Parameter            | Starting value                           |
+| -------------------- | ---------------------------------------- |
+| `HERMES_LLM_ADDRESS` | `https://openrouter.ai/api/v1`           |
+| `HERMES_LLM_MODEL`   | `nvidia/nemotron-3-ultra-550b-a55b:free` |
+| `HERMES_LLM_API_KEY` | Dedicated OpenRouter API key             |
 
 Switch to another OpenAI-compatible provider by updating the three values
 together. After Doppler updates `hermes/hermes-llm`, restart the Hermes pod
@@ -27,13 +27,13 @@ can be lost if that worker's disk fails.
 
 ## Rollout and rollback
 
-- [ ] Create the dedicated OpenRouter key and populate the three Doppler values.
-- [ ] Manually sync the `hermes` Argo Application. Check the operator Deployment,
-  HermesAgent status, StatefulSet readiness, and the bound `hermes-data` claim.
-- [ ] Port-forward the `hermes` Service on port 8642 and send a test
-  completion with the operator-generated `API_SERVER_KEY`. Confirm the request
-  succeeds and OpenRouter records usage under the free model ID.
-- [ ] To roll back, delete the HermesAgent while the operator is still running.
-  Revert the Git change and sync the parent before deleting the `hermes` Argo
-  Application. Preserve the `hermes-data` claim and namespace for recovery.
-  Revoke the inference key if retiring the pilot.
+-   [ ] Create the dedicated OpenRouter key and populate the three Doppler values.
+-   [ ] Manually sync the `hermes` Argo Application. Check the operator Deployment,
+        HermesAgent status, StatefulSet readiness, and the bound `hermes-data` claim.
+-   [ ] Port-forward the `hermes` Service on port 8642 and send a test
+        completion with the operator-generated `API_SERVER_KEY`. Confirm the request
+        succeeds and OpenRouter records usage under the free model ID.
+-   [ ] To roll back, delete the HermesAgent while the operator is still running.
+        Revert the Git change and sync the parent before deleting the `hermes` Argo
+        Application. Preserve the `hermes-data` claim and namespace for recovery.
+        Revoke the inference key if retiring the pilot.
