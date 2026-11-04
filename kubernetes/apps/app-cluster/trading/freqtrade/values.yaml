@@ -1,0 +1,124 @@
+---
+global:
+  createDefaultServiceAccount: false
+
+defaultPodOptions:
+  automountServiceAccountToken: false
+  annotations:
+    reloader.stakater.com/auto: "true"
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+    runAsGroup: 1000
+    fsGroup: 1000
+    fsGroupChangePolicy: OnRootMismatch
+  # local-path volume: the pod must stay with its data.
+  nodeSelector:
+    kubernetes.io/hostname: k8s-wrkr-01-gpu
+
+controllers:
+  freqtrade:
+    # One bot per database: never run two pods against the same SQLite file.
+    strategy: Recreate
+    annotations:
+      reloader.stakater.com/auto: "true"
+    containers:
+      app:
+        image:
+          repository: docker.io/freqtradeorg/freqtrade
+          tag: "2026.10"
+        args:
+          - trade
+          - --config
+          - /freqtrade/config/config.json
+          - --strategy
+          - LlmTrendStrategy
+          - --strategy-path
+          - /freqtrade/strategies
+          - --userdir
+          - /freqtrade/user_data
+          - --db-url
+          - sqlite:////freqtrade/user_data/tradesv3.dryrun.sqlite
+        env:
+          TZ: Europe/London
+          # LLM entry veto (see docs/architecture/freqtrade-trading-bot.md).
+          LLM_FILTER_ENABLED: "true"
+          LLM_BASE_URL: http://litellm.krapulax.home/v1
+          LLM_MODEL: openrouter/claude-haiku-5.5
+          LLM_CACHE_HOURS: "12"
+          LLM_RETRY_MINUTES: "30"
+          LLM_LOG_PATH: /freqtrade/user_data/llm_decisions.jsonl
+          FREQTRADE__API_SERVER__PASSWORD:
+            valueFrom:
+              secretKeyRef:
+                name: freqtrade-secrets
+                key: FREQTRADE_UI_PASSWORD
+          FREQTRADE__API_SERVER__JWT_SECRET_KEY:
+            valueFrom:
+              secretKeyRef:
+                name: freqtrade-secrets
+                key: FREQTRADE_JWT_SECRET
+          FREQTRADE__API_SERVER__WS_TOKEN:
+            valueFrom:
+              secretKeyRef:
+                name: freqtrade-secrets
+                key: FREQTRADE_WS_TOKEN
+          LLM_API_KEY:
+            valueFrom:
+              secretKeyRef:
+                name: freqtrade-secrets
+                key: FREQTRADE_LLM_API_KEY
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
+        probes:
+          liveness: &probes
+            enabled: true
+            custom: true
+            spec:
+              httpGet:
+                path: /api/v1/ping
+                port: 8080
+              initialDelaySeconds: 60
+              periodSeconds: 30
+              timeoutSeconds: 5
+              failureThreshold: 5
+          readiness: *probes
+        resources:
+          requests:
+            cpu: 50m
+            memory: 384Mi
+          limits:
+            cpu: "1"
+            memory: 1Gi
+
+service:
+  app:
+    controller: freqtrade
+    ports:
+      http:
+        port: 8080
+        targetPort: 8080
+
+persistence:
+  config:
+    type: persistentVolumeClaim
+    accessMode: ReadWriteOnce
+    storageClass: local-path
+    size: 2Gi
+    globalMounts:
+      - path: /freqtrade/user_data
+  bot-config:
+    type: configMap
+    name: freqtrade-config
+    globalMounts:
+      - path: /freqtrade/config
+        readOnly: true
+  strategies:
+    type: configMap
+    name: freqtrade-strategies
+    globalMounts:
+      - path: /freqtrade/strategies
+        readOnly: true

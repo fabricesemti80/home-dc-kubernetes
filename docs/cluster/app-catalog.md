@@ -15,6 +15,7 @@ This document provides an index of all applications deployed in the Kubernetes c
 | ci-cd                   | 2         | Actions runner controller and runner set            |
 | cert-manager            | 1         | Certificate manager                                 |
 | doppler-operator-system | 1         | Doppler operator                                    |
+| trading                 | 1         | Freqtrade crypto bot (dry-run)                      |
 
 ---
 
@@ -33,6 +34,12 @@ This document provides an index of all applications deployed in the Kubernetes c
 | sonarr      | TV Manager       | lscr.io/linuxserver/sonarr       | 8989 | sonarr.krapulax.dev      | TV automation            |
 | sabnzbd     | Usenet Client    | lscr.io/linuxserver/sabnzbd      | 8080 | sabnzbd.krapulax.dev     | Usenet downloads         |
 | recyclarr   | Sync Tool        | ghcr.io/recyclarr/recyclarr      | -    | -                        | Aria2/Radarr sync (cron) |
+
+### 📈 trading
+
+| App       | Type        | Image                  | Port | Domain                  | Notes                                     |
+| --------- | ----------- | ---------------------- | ---- | ----------------------- | ----------------------------------------- |
+| freqtrade | Trading Bot | freqtradeorg/freqtrade | 8080 | freqtrade.krapulax.home | Dry-run only; internal UI; LLM entry veto |
 
 ### 🔹 network
 
