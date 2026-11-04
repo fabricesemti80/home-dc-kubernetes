@@ -6,20 +6,59 @@ defaultPodOptions:
   automountServiceAccountToken: false
   nodeSelector:
     kubernetes.io/hostname: k8s-wrkr-03
+  # The Seerr image runs as the non-root `node` user (UID 1000). fsGroup does not
+  # chown hostPath-backed local-path volumes, so the init container below does.
+  securityContext:
+    runAsUser: 1000
+    runAsGroup: 1000
+    fsGroup: 1000
+    fsGroupChangePolicy: OnRootMismatch
 
 controllers:
   jellyseerr:
-    strategy: RollingUpdate
+    # The first start of a new major version migrates the SQLite database in place
+    # (one-way). Never run the old and the new pod against it at the same time.
+    strategy: Recreate
+    initContainers:
+      fix-permissions:
+        image:
+          repository: docker.io/library/alpine
+          tag: "3.24"
+        command:
+          - sh
+          - -c
+          - chown -R 1000:1000 /app/config
+        securityContext:
+          runAsUser: 0
+          runAsGroup: 0
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+              - ALL
+            add:
+              - CHOWN
+        resources:
+          requests:
+            cpu: 10m
+            memory: 16Mi
+          limits:
+            memory: 64Mi
     containers:
       app:
+        # Jellyseerr is now Seerr (seerr-team/seerr). The fallenbagel/jellyseerr image
+        # is frozen at 2.7.3 and deprecated; the data migrates automatically on first start.
         image:
-          repository: fallenbagel/jellyseerr
-          tag: latest
-          digest: sha256:4538137bc5af902dece165f2bf73776d9cf4eafb6dd714670724af8f3eb77764
+          repository: ghcr.io/seerr-team/seerr
+          tag: v3.5.1
+          digest: sha256:d8fab675b55ad293ded98fd71efcfd46054cbad9746534ae1cc4794a88c0b3be
         env:
           TZ: Europe/London
-          PUID: "0"
-          PGID: "0"
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
         probes:
           liveness: &probes
             enabled: true
