@@ -43,3 +43,7 @@ task backups:run CLUSTER=app-cluster PLAN=immich-db
 
 -   Prowlarr, qBittorrent and Immich: revert the commit; their data formats are unchanged by these patch and minor bumps.
 -   Seerr: reverting the image is not enough once the database has migrated. Scale the app to zero, restore the pre-merge snapshot with `task backups:restore CLUSTER=app-cluster PLAN=app-jellyseerr SNAPSHOT=<id>` (it restores into a disposable directory, nothing is overwritten), copy `db/` and `settings.json` back into the volume, then revert the commit.
+
+## Outcome (2026-11-04)
+
+Merged as #512. Immich, Prowlarr and qBittorrent rolled out within minutes. The Jellyseerr rollout needed one manual step (the strategy patch described in `docs/operations/2026-11-04-usenet-article-failures.md`), done after a fresh export and Backrest snapshot (`app-jellyseerr`) and before the first Seerr start. Verified afterwards: Seerr 3.5.1 Ready, migrations applied, `/app/config` owned by UID 1000, 8 requests with the same statuses, default Sonarr and Radarr servers kept, a Sonarr connection test succeeded, public and internal routes answered 200.
