@@ -11,11 +11,11 @@ apps:
     operator: Exists
     effect: NoSchedule
   schedule: 0 1 * * *
+# Retired 2026-11-04: the unmanaged second node was removed. Its PV is retained and
+# unused; existing snapshots are kept for rollback.
 - name: technitium-1
   namespace: network
-  node: infra-wk-01
-  claim: config-technitium-1
-  schedule: 5 1 * * *
+  protect: false
 - name: autokuma
   namespace: monitoring
   node: infra-wk-01
