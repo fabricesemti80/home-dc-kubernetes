@@ -30,6 +30,7 @@ layout:
   App Cluster - media:
     style: row
     columns: 3
+  App Cluster - trading:
   App Cluster - web:
   Infra Cluster - ai:
   Infra Cluster - monitoring:
