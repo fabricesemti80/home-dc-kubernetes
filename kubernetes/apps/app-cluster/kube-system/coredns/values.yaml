@@ -39,43 +39,6 @@ servers:
       - name: loop
       - name: prometheus
         parameters: 0.0.0.0:9153
-  # Torrent indexer domains used by Prowlarr. The public resolvers the nodes use
-  # (1.1.1.1, 1.0.0.1, 8.8.8.8) answer 0.0.0.0 for these names from this network, so
-  # Prowlarr cannot connect; Technitium resolves them. Only these exact domains (and
-  # their subdomains) are sent to Technitium; add a domain here only after checking
-  # that the site is reachable. Not covered, because the sites refuse this network or
-  # sit behind a Cloudflare challenge: EZTV (HTTP 451), 1337x, kickasstorrents.
-  - zones:
-      - zone: knaben.org
-        scheme: dns://
-        use_tcp: true
-      - zone: uindex.org
-        scheme: dns://
-        use_tcp: true
-      - zone: limetorrents.fun
-        scheme: dns://
-        use_tcp: true
-      - zone: torrentdownloads.pro
-        scheme: dns://
-        use_tcp: true
-    port: 53
-    plugins:
-      - name: errors
-      - name: template
-        parameters: IN AAAA
-        configBlock: |-
-          rcode NOERROR
-      - name: forward
-        parameters: . 10.0.40.53
-        configBlock: |-
-          max_concurrent 1000
-      - name: cache
-        parameters: "300"
-        configBlock: |-
-          serve_stale
-      - name: loop
-      - name: prometheus
-        parameters: 0.0.0.0:9153
   - zones:
       - zone: .
         scheme: dns://
@@ -100,6 +63,31 @@ servers:
         parameters: IN AAAA
         configBlock: |-
           rcode NOERROR
+      # Torrent indexer domains used by Prowlarr. The public resolvers the nodes use
+      # (1.1.1.1, 1.0.0.1, 8.8.8.8) answer 0.0.0.0 for these names from this network, so
+      # Prowlarr cannot connect; Technitium resolves them. Only these domains (and their
+      # subdomains) go to Technitium; add one only after checking the site is reachable.
+      # Not covered: EZTV (HTTP 451), 1337x and kickasstorrents (Cloudflare challenge).
+      # This must be a stanza of this server block, not a separate zone block: autopath
+      # resolves search-path queries through this block's chain, and accepts the public
+      # resolvers' 0.0.0.0 answer before a separate zone block is ever consulted.
+      # forward accepts a single FROM zone, hence one stanza per domain.
+      - name: forward
+        parameters: knaben.org 10.0.40.53
+        configBlock: |-
+          max_concurrent 1000
+      - name: forward
+        parameters: uindex.org 10.0.40.53
+        configBlock: |-
+          max_concurrent 1000
+      - name: forward
+        parameters: limetorrents.fun 10.0.40.53
+        configBlock: |-
+          max_concurrent 1000
+      - name: forward
+        parameters: torrentdownloads.pro 10.0.40.53
+        configBlock: |-
+          max_concurrent 1000
       - name: forward
         parameters: . /etc/resolv.conf
       - name: cache

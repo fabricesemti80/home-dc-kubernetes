@@ -6,7 +6,9 @@ Prowlarr only has The Pirate Bay, so several shows have a single thin swarm. Add
 
 ## Change
 
-CoreDNS gets one more server block (`kubernetes/apps/app-cluster/kube-system/coredns/values.yaml`) that forwards exactly these zones, and their subdomains, to Technitium. Everything else keeps using the node resolvers.
+The default CoreDNS server block (`kubernetes/apps/app-cluster/kube-system/coredns/values.yaml`) gets four extra `forward` stanzas, one per zone (`forward` accepts a single FROM zone), that send these zones and their subdomains to Technitium. Everything else keeps using the node resolvers.
+
+It has to be inside the default block rather than a separate zone block (first tried in #514, which did not work): pods ask for `knaben.org` through the search-path suffixes first, and the `autopath` plugin of the default block resolves those through its own chain. It accepted the public resolvers' `0.0.0.0` answer before a separate zone block was consulted. `krapulax.home` works as a separate block only because the public resolvers answer NXDOMAIN for it, so `autopath` moves on.
 
 | Zone                   | Prowlarr indexer     | HTTPS check through Technitium's answer |
 | ---------------------- | -------------------- | --------------------------------------- |
@@ -27,8 +29,8 @@ Prowlarr itself is configured through its UI/API, not Git: add the four indexers
 
 ## Validation
 
-1. Render: `helm template coredns oci://ghcr.io/coredns/charts/coredns --version 1.50.0 -f kubernetes/apps/app-cluster/kube-system/coredns/values.yaml` shows the new server block.
-2. Behaviour (done before merge, CoreDNS v1.15.0 in a container with the rendered block): the four zones resolve to real addresses, `thepiratebay.org` (not covered) and other names are unchanged, `AAAA` is empty.
+1. Render: `helm template coredns oci://ghcr.io/coredns/charts/coredns --version 1.50.0 -f kubernetes/apps/app-cluster/kube-system/coredns/values.yaml` shows four `forward <zone> 10.0.40.53` lines before `forward . /etc/resolv.conf`.
+2. Behaviour (before merge, CoreDNS v1.15.0 in a container with the rendered block, minus the `kubernetes` and `autopath` plugins that need a cluster): the four zones resolve to real addresses, `thepiratebay.org` (not covered) and other names are unchanged, `AAAA` is empty. A single `forward` with several FROM zones silently did not work, which is why there is one stanza per zone.
 3. After merge: Argo `coredns` Healthy; from a pod `getent hosts knaben.org` returns a non-zero address; Prowlarr "Test All" passes for the new indexers.
 
 ## Rollback
