@@ -42,6 +42,16 @@ STATIC_INFRA_MONITORING = {
     },
 }
 
+# Explicit LAN-only app-cluster links: the trading bot UI is internal only (no .dev
+# host), and Homepage discovery strips annotations from internal routes.
+STATIC_APP_TRADING = {
+    "Freqtrade": {
+        "icon": "mdi-chart-line",
+        "href": "http://freqtrade.krapulax.home",
+        "description": "Crypto trading bot (dry-run)",
+    },
+}
+
 ICON_MAP = {
     "argo-cd": "argo-cd.png",
     "homepage": "homepage.png",
@@ -432,6 +442,18 @@ def main():
         }
         for name, service in STATIC_INFRA_MONITORING.items()
     ]
+
+    trading_group = "App Cluster - trading"
+    groups.add(trading_group)
+    infra_routes.extend(
+        {
+            "gethomepage.dev/group": trading_group,
+            "gethomepage.dev/name": name,
+            "gethomepage.dev/weight": "20",
+            **{f"gethomepage.dev/{key}": value for key, value in service.items()},
+        }
+        for name, service in STATIC_APP_TRADING.items()
+    )
 
     route_files = sorted(
         glob.glob(os.path.join(APPS_DIR, "**", "*http-route*.yaml"), recursive=True)

@@ -1,3 +1,9 @@
+- App Cluster - trading:
+    - Freqtrade:
+        icon: mdi-chart-line
+        href: http://freqtrade.krapulax.home
+        description: Crypto trading bot (dry-run)
+
 - Infra Cluster - ai:
     - LiteLLM:
         icon: https://cdn.jsdelivr.net/gh/selfhst/icons/png/litellm.png
