@@ -58,7 +58,7 @@ The StatefulSet must report `1/1` ready and the final query must return the zone
 
 The app-cluster nodes use public resolvers (`1.1.1.1`, `1.0.0.1`), which do not know the infra-cluster names (checked 2026-11-04: `litellm.krapulax.home` and `grafana.krapulax.home` returned NXDOMAIN from app-cluster pods while Technitium answered both). The app-cluster CoreDNS therefore has a dedicated zone block that forwards `krapulax.home` to Technitium at `10.0.40.53`; all other names keep using the node resolvers.
 
--   The zone block mirrors the default one: no AAAA answers (IPv6 is disabled), a 60-second cache and `serve_stale`, so a short Technitium outage does not break names already looked up.
+-   The zone block mirrors the default one: no AAAA answers (IPv6 is disabled), a 60-second cache and `serve_stale`. During a Technitium outage, a name that was looked up within the last hour is still answered from the stale cache; a name that was not looked up in that window (or never) fails with SERVFAIL. Tested with a CoreDNS container in front of a stopped upstream: answered while the entry was fresh and while it was expired inside the stale window, SERVFAIL beyond it.
 -   Technitium is a single replica, so while it is down, new `krapulax.home` lookups from pods fail instead of falling back to a resolver that returns NXDOMAIN or nothing.
 -   Validation: from a pod, `nslookup litellm.krapulax.home` returns `10.0.40.106`, and `nslookup example.com` still resolves.
 -   Rollback: revert the change; CoreDNS reloads its configuration without a restart.
