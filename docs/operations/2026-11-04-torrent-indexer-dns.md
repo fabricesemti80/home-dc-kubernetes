@@ -36,3 +36,22 @@ Prowlarr itself is configured through its UI/API, not Git: add the four indexers
 ## Rollback
 
 Revert the commit; Argo rolls CoreDNS back. In Prowlarr delete the added indexers (Sonarr and Radarr drop their synced copies).
+
+## Outcome (2026-11-04, after #514 and #515)
+
+-   #514 alone did not work from pods (see "Change"); #515 fixed it. From the Prowlarr pod `knaben.org`, `www.limetorrents.fun` and the other covered names now resolve to real addresses, `thepiratebay.org` (not covered) is unchanged.
+-   Added in Prowlarr (priority 25, default app sync profile): **Knaben** and **LimeTorrents**. Both return results through live searches. LimeTorrents had 172 and 193 seeders on the Dark Matter S01E05 and Lioness S02E05 releases, against 38 to 39 on The Pirate Bay. Both synced into Sonarr; Radarr received Knaben only (Prowlarr syncs by category, LimeTorrents did not appear in Radarr).
+-   Not added: **Uindex** (creation rejected, "blocked by CloudFlare Protection") and **Torrent Downloads** (created, then every search failed and Prowlarr disabled it, so it was deleted). Their DNS zones are in CoreDNS anyway; they are harmless and can be removed from the values file if they stay unused.
+-   Three stalled Dark Matter torrents were removed and blocklisted; Sonarr re-grabbed E03, E05 and E08 from LimeTorrents.
+
+## qBittorrent queue limits (live setting, not in Git)
+
+qBittorrent allowed 3 simultaneous downloads and 5 active torrents in total, and slow torrents counted against that. Three stuck torrents with almost no seeds held all the download slots, so better-seeded replacements stayed `queuedDL` at 0%. Changed through the WebUI API (stored in `qBittorrent.conf` on the backed-up volume; the init container only rewrites the WebUI password):
+
+| Setting                    | Before | After |
+| -------------------------- | ------ | ----- |
+| `dont_count_slow_torrents` | false  | true  |
+| `max_active_downloads`     | 3      | 5     |
+| `max_active_torrents`      | 5      | 10    |
+
+Revert in qBittorrent: Options > BitTorrent > Torrent Queueing.
