@@ -11,6 +11,34 @@ service:
   clusterIP: "10.43.0.10"
 replicaCount: 2
 servers:
+  # Local zone: resolve homelab names from Technitium (10.0.40.53), which holds the
+  # records ExternalDNS publishes for both clusters. The nodes only use public
+  # resolvers, which do not know the infra-cluster names. Everything else keeps
+  # using the node resolvers. If Technitium is unreachable, stale answers are
+  # served for up to an hour (serve_stale).
+  - zones:
+      - zone: krapulax.home
+        scheme: dns://
+        use_tcp: true
+    port: 53
+    plugins:
+      - name: errors
+      # Same as the default zone: no unusable AAAA answers (IPv6 is disabled).
+      - name: template
+        parameters: IN AAAA
+        configBlock: |-
+          rcode NOERROR
+      - name: forward
+        parameters: . 10.0.40.53
+        configBlock: |-
+          max_concurrent 1000
+      - name: cache
+        parameters: "60"
+        configBlock: |-
+          serve_stale
+      - name: loop
+      - name: prometheus
+        parameters: 0.0.0.0:9153
   - zones:
       - zone: .
         scheme: dns://
