@@ -64,6 +64,17 @@ apps:
   - transcodes
   - metadata
   schedule: 35 1 * * *
+- name: freqtrade
+  namespace: trading
+  node: k8s-wrkr-01-gpu
+  claim: freqtrade
+  excludes:
+  - data
+  - logs
+  - backtest_results
+  - hyperopt_results
+  - plot
+  schedule: 40 1 * * *
 - name: vmagent-queue
   namespace: monitoring
   protect: false

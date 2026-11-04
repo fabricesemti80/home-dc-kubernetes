@@ -99,6 +99,12 @@ proxy_config:
       litellm_params:
         model: openrouter/openrouter/free
         api_key: os.environ/AI_OPENROUTER_API_KEY
+    # Paid. Used by Freqtrade's entry veto (app-cluster trading/freqtrade)
+    # through a budget-capped virtual key.
+    - model_name: openrouter/claude-haiku-5.5
+      litellm_params:
+        model: openrouter/anthropic/claude-haiku-5.5
+        api_key: os.environ/AI_OPENROUTER_API_KEY
     # - model_name: openrouter/deepseek-v3.1
     #   litellm_params:
     #     model: openrouter/deepseek/deepseek-chat-v3.1
