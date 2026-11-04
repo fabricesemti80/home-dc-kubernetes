@@ -61,6 +61,27 @@ Nine pods on `k8s-wrkr-03` are tied to node-local volumes. The largest are `immi
 -   move one app per change, keep the old volume (`Retain`) until the app is verified, and document rollback;
 -   re-check node requests with the corrected dashboard (`docs/architecture/workload-placement.md`) before and after.
 
+## 🐘 Upgrade the Immich database from PostgreSQL 14 (final release 2026-11-12)
+
+`kubernetes/apps/app-cluster/media/immich/values.yaml` runs `ghcr.io/immich-app/postgres:14-vectorchord0.4.3-pgvectors0.2.0`. PostgreSQL 14's final release is **2026-11-12** (postgresql.org versioning policy, checked 2026-11-04). Renovate proposes `16-vectorchord0.4.3-pgvectors0.2.0`, but a major-version tag bump cannot start on the existing data directory (`immich-postgres-data`), so it must not be merged as a plain image update.
+
+### 🔹 Completion criteria
+
+-   take a fresh logical export with the `immich-db` Backrest plan and prove a restore into a scratch PostgreSQL 16 instance of the same image family;
+-   follow Immich's supported upgrade path for the VectorChord image and check the extension versions after the restore (`vchord`, `vector`);
+-   run the cutover in a window: stop Immich, restore into a new volume, switch the image, verify search, ML jobs and the external-library scan, keep the old volume (`Retain`) until verified;
+-   document rollback (old image and old volume) and update `docs/cluster/database-backups.md`.
+
+## 🎞️ Plan the Jellyfin 12 upgrade
+
+Jellyfin is pinned to `lscr.io/linuxserver/jellyfin:10.11.11`; upstream is at 12.4 (linuxserver `latest` carries `12.4ubu2604-ls58`). Direct upgrades from 10.11.x are supported, but the 12.0 release notes say the database changes prevent rolling back without a full restore, that all non-built-in plugins should be removed first, that a full library scan is required afterwards, and that legacy `/emby/*` and `/mediabrowser/*` routes and legacy authorization were removed (old third-party clients may stop working).
+
+### 🔹 Completion criteria
+
+-   take a Backrest snapshot of `/config` and test the migration on a copy of the config volume first (as done for Seerr), including the NVIDIA hardware transcoding settings on the GPU worker;
+-   check client compatibility (the apps and TVs in use) and the Seerr, Sonarr and Radarr integrations against the 12.x API;
+-   run it in a maintenance window, then a full library scan, and document the restore path.
+
 ## ☁️ Validate ExternalDNS upgrades before re-enabling Renovate
 
 ExternalDNS chart `1.22.0` changed Cloudflare Tunnel HTTPRoute reconciliation: it attempted to publish proxied A records for the private Envoy address (`10.0.40.103`) instead of the configured tunnel CNAME targets. Cloudflare rejected those records and withdrew public `*.krapulax.dev` DNS during sync.

@@ -26,7 +26,7 @@ This document provides an index of all applications deployed in the Kubernetes c
 | App         | Type             | Image                            | Port | Domain                   | Notes                    |
 | ----------- | ---------------- | -------------------------------- | ---- | ------------------------ | ------------------------ |
 | jellyfin    | Media Server     | lscr.io/linuxserver/jellyfin     | 8096 | jelly.krapulax.dev       | Media player             |
-| jellyseerr  | Request Manager  | fallenbagel/jellyseerr           | 5055 | requests.krapulax.dev    | Media requests           |
+| jellyseerr  | Request Manager  | seerr-team/seerr                 | 5055 | requests.krapulax.dev    | Media requests           |
 | immich      | Photo Management | ghcr.io/immich-app/immich-server | 2283 | photos.krapulax.dev      | Photo/video backup       |
 | prowlarr    | Indexer Manager  | lscr.io/linuxserver/prowlarr     | 9696 | prowlarr.krapulax.dev    | Usenet/Torrent indexers  |
 | qbittorrent | Torrent Client   | lscr.io/linuxserver/qbittorrent  | 8080 | qbittorrent.krapulax.dev | Torrent downloads        |
