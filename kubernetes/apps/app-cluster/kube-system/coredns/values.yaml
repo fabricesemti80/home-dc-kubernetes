@@ -39,6 +39,43 @@ servers:
       - name: loop
       - name: prometheus
         parameters: 0.0.0.0:9153
+  # Torrent indexer domains used by Prowlarr. The public resolvers the nodes use
+  # (1.1.1.1, 1.0.0.1, 8.8.8.8) answer 0.0.0.0 for these names from this network, so
+  # Prowlarr cannot connect; Technitium resolves them. Only these exact domains (and
+  # their subdomains) are sent to Technitium; add a domain here only after checking
+  # that the site is reachable. Not covered, because the sites refuse this network or
+  # sit behind a Cloudflare challenge: EZTV (HTTP 451), 1337x, kickasstorrents.
+  - zones:
+      - zone: knaben.org
+        scheme: dns://
+        use_tcp: true
+      - zone: uindex.org
+        scheme: dns://
+        use_tcp: true
+      - zone: limetorrents.fun
+        scheme: dns://
+        use_tcp: true
+      - zone: torrentdownloads.pro
+        scheme: dns://
+        use_tcp: true
+    port: 53
+    plugins:
+      - name: errors
+      - name: template
+        parameters: IN AAAA
+        configBlock: |-
+          rcode NOERROR
+      - name: forward
+        parameters: . 10.0.40.53
+        configBlock: |-
+          max_concurrent 1000
+      - name: cache
+        parameters: "300"
+        configBlock: |-
+          serve_stale
+      - name: loop
+      - name: prometheus
+        parameters: 0.0.0.0:9153
   - zones:
       - zone: .
         scheme: dns://
