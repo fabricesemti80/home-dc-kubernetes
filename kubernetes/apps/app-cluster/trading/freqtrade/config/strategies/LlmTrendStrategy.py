@@ -7,7 +7,7 @@ timeout, bad reply) vetoes the entry: fail closed.
 
 Environment:
     LLM_FILTER_ENABLED  "true" (default) or "false" to trade on rules alone
-    LLM_BASE_URL        OpenAI-compatible base URL, e.g. http://litellm.krapulax.home/v1
+    LLM_BASE_URL        OpenAI-compatible base URL, e.g. https://litellm.krapulax.dev/v1
     LLM_API_KEY         LiteLLM virtual key
     LLM_MODEL           model name exposed by LiteLLM
     LLM_CACHE_HOURS     how long a verdict per pair is reused (default 12)
@@ -223,7 +223,13 @@ class LlmTrendStrategy(IStrategy):
         req = urllib.request.Request(
             f"{base_url}/chat/completions",
             data=body,
-            headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
+            headers={
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json",
+                # Cloudflare (the tunnel in front of LiteLLM) blocks the default
+                # Python-urllib User-Agent with error 1010.
+                "User-Agent": "freqtrade-llm-veto/1.0",
+            },
             method="POST",
         )
         try:

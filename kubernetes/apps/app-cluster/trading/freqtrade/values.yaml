@@ -43,7 +43,9 @@ controllers:
           TZ: Europe/London
           # LLM entry veto (see docs/architecture/freqtrade-trading-bot.md).
           LLM_FILTER_ENABLED: "true"
-          LLM_BASE_URL: http://litellm.krapulax.home/v1
+          # Tunnel URL: the infra-internal name litellm.krapulax.home does not resolve
+          # from app-cluster pods (NXDOMAIN, checked 2026-11-04).
+          LLM_BASE_URL: https://litellm.krapulax.dev/v1
           LLM_MODEL: openrouter/claude-haiku-5.5
           LLM_CACHE_HOURS: "12"
           LLM_RETRY_MINUTES: "30"

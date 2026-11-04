@@ -46,7 +46,7 @@ flowchart LR
 
 ## Assumptions
 
--   Pods on the app cluster resolve `litellm.krapulax.home` through CoreDNS forwarding to Technitium. Validate from the pod; if it fails, set `LLM_BASE_URL` to the in-cluster or tunnel URL.
+-   `litellm.krapulax.home` does not resolve from app-cluster pods (NXDOMAIN, checked 2026-11-04), so the bot uses the tunnel URL `https://litellm.krapulax.dev/v1`. Cloudflare blocks Python's default User-Agent (error 1010), so the strategy sends its own. If the infra-internal name is made resolvable from the app cluster, the internal URL can be used instead.
 -   OpenRouter serves `anthropic/claude-haiku-5.5` (checked 2026-11-04); LiteLLM exposes it as `openrouter/claude-haiku-5.5`.
 -   Kraken's public API is reachable from the cluster without authentication.
 -   LLM backtests are not possible: `confirm_trade_entry` only runs in dry-run/live. Backtests measure the technical baseline only.
@@ -68,7 +68,7 @@ The PVC holds the trade database (SQLite) and the LLM decision log. It is enroll
 2. After sync: the Argo app is `Synced/Healthy` and the pod is `Ready` (`/api/v1/ping`).
 3. Logs show `Dry run is enabled`, Kraken markets loaded, and the strategy `LlmTrendStrategy` loaded.
 4. FreqUI login works at `http://freqtrade.krapulax.home`.
-5. From the pod, LiteLLM answers: `kubectl -n trading exec deploy/freqtrade -- python -c "import urllib.request;print(urllib.request.urlopen('http://litellm.krapulax.home/health/liveliness').status)"`.
+5. From the pod, LiteLLM answers: `kubectl -n trading exec deploy/freqtrade -- python -c "import urllib.request;r=urllib.request.Request('https://litellm.krapulax.dev/health/liveliness',headers={'User-Agent':'freqtrade-llm-veto/1.0'});print(urllib.request.urlopen(r).status)"`.
 6. The first entry signal writes a line to `llm_decisions.jsonl` with `"ok": true`.
 
 ## Rollback
