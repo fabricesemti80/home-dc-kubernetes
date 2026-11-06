@@ -1,0 +1,108 @@
+---
+global:
+  createDefaultServiceAccount: false
+
+defaultPodOptions:
+  automountServiceAccountToken: false
+  # The config PVC is node-local (local-path); keep the pod with its data.
+  nodeSelector:
+    kubernetes.io/hostname: infra-wk-01
+
+controllers:
+  netbootxyz:
+    # Single replica with a node-local RWO volume.
+    strategy: Recreate
+    containers:
+      app:
+        image:
+          repository: ghcr.io/netbootxyz/netbootxyz
+          tag: "0.7.6-nbxyz4"
+        env:
+          TZ: Europe/London
+          # Matches the other apps writing to the NAS media share.
+          PUID: "0"
+          PGID: "0"
+          WEB_APP_PORT: "3000"
+          NGINX_PORT: "80"
+          # dnsmasq TFTP: send data from port 69 too, instead of a new random
+          # port per transfer. This is what lets TFTP work through a Cilium
+          # LoadBalancer IP (the reply matches the original flow and is
+          # reverse-NATed to the LB IP). Without it, PXE clients get replies
+          # from an unexpected address/port and time out.
+          TFTPD_OPTS: "--tftp-single-port"
+        resources:
+          requests:
+            cpu: 20m
+            memory: 128Mi
+          limits:
+            cpu: "1"
+            memory: 512Mi
+        probes:
+          liveness:
+            enabled: true
+            custom: true
+            spec:
+              tcpSocket:
+                port: 3000
+              initialDelaySeconds: 30
+              periodSeconds: 30
+              timeoutSeconds: 5
+              failureThreshold: 3
+          readiness:
+            enabled: true
+            custom: true
+            spec:
+              tcpSocket:
+                port: 80
+              initialDelaySeconds: 10
+              periodSeconds: 15
+              timeoutSeconds: 5
+              failureThreshold: 3
+
+service:
+  # Web UI (menu editor, asset downloader). Internal gateway only.
+  app:
+    controller: netbootxyz
+    primary: true
+    # Two services would otherwise become netbootxyz-app / netbootxyz-boot.
+    forceRename: netbootxyz
+    ports:
+      http:
+        port: 3000
+        targetPort: 3000
+  # What PXE clients talk to: TFTP for the iPXE bootloader, then HTTP for
+  # locally mirrored assets. Fixed LB IP so DHCP next-server never changes.
+  boot:
+    controller: netbootxyz
+    forceRename: netbootxyz-boot
+    type: LoadBalancer
+    externalTrafficPolicy: Cluster
+    annotations:
+      io.cilium/lb-ipam-ips: 10.0.40.108
+    ports:
+      tftp:
+        port: 69
+        targetPort: 69
+        protocol: UDP
+      assets:
+        port: 8080
+        targetPort: 80
+        protocol: TCP
+
+persistence:
+  # Menus, boot.cfg, custom menus, web app settings. Small, backed up.
+  config:
+    type: persistentVolumeClaim
+    accessMode: ReadWriteOnce
+    storageClass: local-path
+    size: 1Gi
+    globalMounts:
+      - path: /config
+  # ISOs, kernels/initrds. Large and re-downloadable, so on the NAS, not
+  # the worker disk. kubelet creates the subPath on first mount.
+  assets:
+    enabled: true
+    existingClaim: netboot-assets-pvc
+    globalMounts:
+      - path: /assets
+        subPath: netboot/assets

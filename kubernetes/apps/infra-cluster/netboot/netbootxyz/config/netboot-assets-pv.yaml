@@ -1,0 +1,23 @@
+---
+# Same NAS export as media-library-pv; a separate PV because PVCs are
+# namespace-scoped. The pod mounts the netboot/assets subPath only.
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: netboot-assets-pv
+  annotations:
+    argocd.argoproj.io/sync-wave: "-3"
+spec:
+  capacity:
+    storage: 500Gi
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  mountOptions:
+    - nfsvers=4.1
+  nfs:
+    server: 10.0.40.2
+    path: /media
+  claimRef:
+    namespace: netboot
+    name: netboot-assets-pvc
