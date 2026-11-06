@@ -7,10 +7,9 @@ metadata:
   name: netbootxyz-internal
   namespace: netboot
   annotations:
-    external-dns.alpha.kubernetes.io/target: kubernetes.krapulax.home
     gethomepage.dev/description: "PXE boot menus and ISOs"
     gethomepage.dev/enabled: "true"
-    gethomepage.dev/group: "App Cluster - infrastructure"
+    gethomepage.dev/group: "Infra Cluster - netboot"
     gethomepage.dev/href: "http://netboot.krapulax.home"
     gethomepage.dev/icon: "netboot.png"
     gethomepage.dev/name: "netboot.xyz"

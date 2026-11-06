@@ -16,7 +16,6 @@ This document provides an index of all applications deployed in the Kubernetes c
 | cert-manager            | 1         | Certificate manager                                 |
 | doppler-operator-system | 1         | Doppler operator                                    |
 | trading                 | 1         | Freqtrade crypto bot (dry-run)                      |
-| netboot                 | 1         | netboot.xyz PXE boot server                         |
 
 ---
 
@@ -41,12 +40,6 @@ This document provides an index of all applications deployed in the Kubernetes c
 | App       | Type        | Image                  | Port | Domain                  | Notes                                     |
 | --------- | ----------- | ---------------------- | ---- | ----------------------- | ----------------------------------------- |
 | freqtrade | Trading Bot | freqtradeorg/freqtrade | 8080 | freqtrade.krapulax.home | Dry-run only; internal UI; LLM entry veto |
-
-### 🥾 netboot
-
-| App        | Type       | Image                         | Port         | Domain                | Notes                                          |
-| ---------- | ---------- | ----------------------------- | ------------ | --------------------- | ---------------------------------------------- |
-| netbootxyz | PXE Server | ghcr.io/netbootxyz/netbootxyz | 3000, 69/udp | netboot.krapulax.home | TFTP + assets on LB `10.0.40.108`; internal UI |
 
 ### 🔹 network
 
@@ -96,17 +89,18 @@ The `local-path` provisioner supplies worker-local `ReadWriteOnce` volumes.
 
 Argo CD on `app-cluster` also deploys these `infra-cluster` workloads:
 
-| App                          | Type       | Image                                       | Notes                      |
-| ---------------------------- | ---------- | ------------------------------------------- | -------------------------- |
-| doppler-operator-infra       | Secrets    | mirror.gcr.io/dopplerhq/kubernetes-operator | Doppler operator           |
-| reloader-infra               | Reloader   | stakater/reloader                           | Config reload watcher      |
-| uptime-kuma-infra            | Monitoring | louislam/uptime-kuma                        | Uptime monitoring          |
-| cloudflare-tunnel-infra      | Tunnel     | cloudflare/cloudflared                      | Cloudflare Tunnel          |
-| envoy-gateway-infra          | Gateway    | envoyproxy/gateway                          | Gateway API implementation |
-| tailscale-infra              | Tailscale  | tailscale/tailscale                         | Tailscale operator         |
-| technitium-dns-infra         | DNS Sync   | external-dns                                | Internal DNS records       |
-| technitium-infra             | DNS        | technitium/dns-server                       | DNS admin/server           |
-| local-path-provisioner-infra | Storage    | rancher/local-path-provisioner              | Local PV provisioner       |
+| App                          | Type       | Image                                       | Notes                                               |
+| ---------------------------- | ---------- | ------------------------------------------- | --------------------------------------------------- |
+| doppler-operator-infra       | Secrets    | mirror.gcr.io/dopplerhq/kubernetes-operator | Doppler operator                                    |
+| reloader-infra               | Reloader   | stakater/reloader                           | Config reload watcher                               |
+| uptime-kuma-infra            | Monitoring | louislam/uptime-kuma                        | Uptime monitoring                                   |
+| cloudflare-tunnel-infra      | Tunnel     | cloudflare/cloudflared                      | Cloudflare Tunnel                                   |
+| envoy-gateway-infra          | Gateway    | envoyproxy/gateway                          | Gateway API implementation                          |
+| tailscale-infra              | Tailscale  | tailscale/tailscale                         | Tailscale operator                                  |
+| technitium-dns-infra         | DNS Sync   | external-dns                                | Internal DNS records                                |
+| technitium-infra             | DNS        | technitium/dns-server                       | DNS admin/server                                    |
+| local-path-provisioner-infra | Storage    | rancher/local-path-provisioner              | Local PV provisioner                                |
+| netbootxyz                   | PXE Server | ghcr.io/netbootxyz/netbootxyz               | PXE on LB `10.0.40.108`; UI `netboot.krapulax.home` |
 
 Both clusters also have a `nas-backup` GitOps Application provisioning the retained
 `backups/k8s-backup` NFS claim; no storage-server image runs for this target.

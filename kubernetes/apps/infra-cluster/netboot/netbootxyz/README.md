@@ -1,16 +1,16 @@
 # 🥾 netboot.xyz notes
 
-PXE boot server: iPXE menus over TFTP, ISOs over HTTP.
+PXE boot server on the **infra cluster** (`infra-wk-01`): iPXE menus over TFTP, ISOs over HTTP. Use `--context infra-cluster` (or your infra kubeconfig) for the `kubectl` commands below.
 Design: [netbootxyz.md](../../../../../docs/architecture/netbootxyz.md).
 Rollout checklist: [netbootxyz-rollout.md](../../../../../docs/plan/netbootxyz-rollout.md).
 
-| What               | Where                                                         |
-| ------------------ | ------------------------------------------------------------- |
-| Web UI             | `http://netboot.krapulax.home` (internal only, no login)      |
-| TFTP / next-server | `10.0.40.108` udp/69                                          |
-| Local assets       | `http://10.0.40.108:8080/`                                    |
-| Config             | `/config` on PVC `netbootxyz` (local-path, `k8s-wrkr-01-gpu`) |
-| Assets on NAS      | `10.0.40.2:/media/netboot/assets` → `/assets` in the pod      |
+| What               | Where                                                     |
+| ------------------ | --------------------------------------------------------- |
+| Web UI             | `http://netboot.krapulax.home` (internal only, no login)  |
+| TFTP / next-server | `10.0.40.108` udp/69                                      |
+| Local assets       | `http://10.0.40.108:8080/`                                |
+| Config             | `/config` on PVC `netbootxyz` (local-path, `infra-wk-01`) |
+| Assets on NAS      | `10.0.40.2:/media/netboot/assets` → `/assets` in the pod  |
 
 ## 🌐 Point the network at it (UniFi)
 

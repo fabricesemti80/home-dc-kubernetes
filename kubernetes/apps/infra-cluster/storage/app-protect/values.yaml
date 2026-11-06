@@ -21,6 +21,13 @@ apps:
   node: infra-wk-01
   hostPath: /var/autokuma/data
   schedule: 15 1 * * *
+- name: netbootxyz
+  namespace: netboot
+  node: infra-wk-01
+  claim: netbootxyz
+  excludes:
+  - '*.log'
+  schedule: 30 1 * * *
 - name: victoriametrics-metrics
   namespace: monitoring
   protect: false

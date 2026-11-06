@@ -10,7 +10,7 @@ spec:
   project: kubernetes
   sources:
     - repoURL: "https://github.com/fabricesemti80/home-dc-kubernetes.git"
-      path: kubernetes/apps/app-cluster/netboot/netbootxyz
+      path: kubernetes/apps/infra-cluster/netboot/netbootxyz
       targetRevision: main
       ref: repo
     - repoURL: ghcr.io/bjw-s-labs/helm
@@ -19,9 +19,9 @@ spec:
       helm:
         releaseName: netbootxyz
         valueFiles:
-          - $repo/kubernetes/apps/app-cluster/netboot/netbootxyz/values.yaml
+          - $repo/kubernetes/apps/infra-cluster/netboot/netbootxyz/values.yaml
   destination:
-    name: app-cluster
+    name: infra-cluster
     namespace: netboot
   syncPolicy:
     automated:

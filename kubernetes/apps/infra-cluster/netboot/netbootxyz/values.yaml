@@ -6,7 +6,7 @@ defaultPodOptions:
   automountServiceAccountToken: false
   # The config PVC is node-local (local-path); keep the pod with its data.
   nodeSelector:
-    kubernetes.io/hostname: k8s-wrkr-01-gpu
+    kubernetes.io/hostname: infra-wk-01
 
 controllers:
   netbootxyz:

@@ -309,31 +309,6 @@
           }
         }
       ]
-    },
-    {
-      "id": "app-netbootxyz",
-      "repo": "nas",
-      "paths": ["/backups/app-cluster/exports/netbootxyz/current"],
-      "schedule": {
-        "cron": "15 3 * * *",
-        "clock": "CLOCK_UTC"
-      },
-      "retention": {
-        "policyTimeBucketed": {
-          "daily": 14,
-          "weekly": 8,
-          "monthly": 6
-        }
-      },
-      "hooks": [
-        {
-          "conditions": ["CONDITION_SNAPSHOT_START"],
-          "onError": "ON_ERROR_FATAL",
-          "actionCommand": {
-            "command": "test -f /backups/app-cluster/exports/netbootxyz/current/.captured-at && test -n \"$(find /backups/app-cluster/exports/netbootxyz/current/.captured-at -mmin -1560 -print)\""
-          }
-        }
-      ]
     }
   ]
 }

@@ -75,13 +75,6 @@ apps:
   - hyperopt_results
   - plot
   schedule: 40 1 * * *
-- name: netbootxyz
-  namespace: netboot
-  node: k8s-wrkr-01-gpu
-  claim: netbootxyz
-  excludes:
-  - '*.log'
-  schedule: 45 1 * * *
 - name: vmagent-queue
   namespace: monitoring
   protect: false
