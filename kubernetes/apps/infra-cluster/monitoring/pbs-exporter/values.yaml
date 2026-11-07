@@ -9,7 +9,7 @@ controllers:
       app:
         image:
           repository: ghcr.io/natrontech/pbs-exporter
-          tag: v0.9.4
+          tag: v0.10.0
         env:
           PBS_ENDPOINT: https://pbs.krapulax.home:8007
           PBS_USERNAME: prometheus@pbs
