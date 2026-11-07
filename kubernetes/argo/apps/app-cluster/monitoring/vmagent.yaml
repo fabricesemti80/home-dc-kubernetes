@@ -15,7 +15,7 @@ spec:
       ref: repo
     - repoURL: https://victoriametrics.github.io/helm-charts/
       chart: victoria-metrics-k8s-stack
-      targetRevision: 0.97.0
+      targetRevision: 0.97.1
       helm:
         releaseName: vmagent-app
         valueFiles:
