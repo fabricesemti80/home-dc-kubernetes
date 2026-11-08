@@ -1,0 +1,42 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: longhorn
+  namespace: argo-system
+  annotations:
+    # After the wave-0 prerequisites (Cilium, Envoy Gateway/Gateway API CRDs) and local-path (-1).
+    argocd.argoproj.io/sync-wave: '1'
+spec:
+  project: kubernetes
+  sources:
+    - repoURL: "https://github.com/fabricesemti80/home-dc-kubernetes.git"
+      path: kubernetes/apps/app-cluster/storage/longhorn
+      targetRevision: main
+      ref: repo
+    - repoURL: https://charts.longhorn.io
+      chart: longhorn
+      targetRevision: 1.13.0
+      helm:
+        releaseName: longhorn
+        valueFiles:
+          - $repo/kubernetes/apps/app-cluster/storage/longhorn/values.yaml
+  destination:
+    name: app-cluster
+    namespace: longhorn-system
+  syncPolicy:
+    # Deliberately NO `automated` block until the Talos worker rollout is verified
+    # (docs/operations/longhorn.md): merging this file must not deploy Longhorn onto nodes
+    # that lack iscsi-tools, the `longhorn` volume or the kubelet bind mount, and it would
+    # flip the cluster default StorageClass. Sync manually, then enable automation in a
+    # follow-up PR (same approach as cloudflare-dns).
+    retry:
+      limit: 3
+      backoff:
+        duration: 10s
+        factor: 2
+        maxDuration: 3m
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+      - PruneLast=true

@@ -1,0 +1,13 @@
+---
+# Longhorn manager, instance-manager and CSI pods need privileged host access
+# (nsenter, /dev, host mounts). Talos defaults to the baseline Pod Security profile.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: longhorn-system
+  annotations:
+    # Deleting this namespace would delete every Longhorn volume and replica.
+    argocd.argoproj.io/sync-options: Prune=false,Delete=false
+  labels:
+    pod-security.kubernetes.io/enforce: privileged
+    pod-security.kubernetes.io/enforce-version: latest

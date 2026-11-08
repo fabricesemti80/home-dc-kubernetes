@@ -1,0 +1,40 @@
+---
+# Longhorn on the Talos app-cluster. Talos requirements (iscsi-tools and util-linux-tools
+# extensions, the `longhorn` user volume and the /var/mnt/longhorn kubelet bind mount)
+# live in talos/app/talconfig.yaml and talos/app/patches/worker/machine-longhorn.yaml.
+# See docs/operations/longhorn.md.
+
+preUpgradeChecker:
+  # Argo CD does not support Helm hooks of this kind; Longhorn docs say to disable it.
+  jobEnabled: false
+
+defaultSettings:
+  # Mount point of the Talos `longhorn` user volume (the passed-through 500 GB SSD).
+  defaultDataPath: /var/mnt/longhorn
+  defaultReplicaCount: '{"v1":"3","v2":"3"}'
+  # The data path is a dedicated partition, so the default 30% reserve is overly cautious.
+  storageReservedPercentageForDefaultDisk: "10"
+  upgradeChecker: false
+  allowCollectingLonghornUsageMetrics: false
+
+persistence:
+  createStorageClass: true
+  # Longhorn is the cluster default StorageClass; local-path is explicitly non-default.
+  defaultClass: true
+  defaultClassReplicaCount: 3
+  # Repository convention: never delete the underlying data when a claim goes away.
+  reclaimPolicy: Retain
+  volumeBindingMode: Immediate
+  defaultFsType: ext4
+
+longhornUI:
+  replicas: 1
+
+# The UI is exposed through config/http-route-internal.yaml (internal Envoy gateway only).
+ingress:
+  enabled: false
+httproute:
+  enabled: false
+metrics:
+  serviceMonitor:
+    enabled: false

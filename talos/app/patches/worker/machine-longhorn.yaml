@@ -1,0 +1,14 @@
+---
+# Longhorn runs in the kubelet container namespace and needs the host data path
+# (the `longhorn` user volume mounted by Talos at /var/mnt/longhorn) bind-mounted with
+# rshared propagation. Workers only: the controller has no such volume.
+machine:
+  kubelet:
+    extraMounts:
+      - destination: /var/mnt/longhorn
+        type: bind
+        source: /var/mnt/longhorn
+        options:
+          - bind
+          - rshared
+          - rw

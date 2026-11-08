@@ -54,6 +54,7 @@ This repository is the main deployment home for the Talos clusters, Kubernetes r
 -   Use `ReadWriteOnce` access mode and a `Retain` reclaim policy so PVC deletion preserves the underlying PV data for restore.
 -   Keep workloads that share a volume co-located on the same worker; do not move a pod to another worker without restoring its data.
 -   This applies to all namespaces unless explicitly justified otherwise.
+-   Longhorn (`longhorn` StorageClass, the cluster default class) is available on the app-cluster but no app uses it yet. Always set `storageClass` explicitly: leaving it empty silently selects Longhorn. Longhorn is a single-host failure domain and not a backup; see `docs/operations/longhorn.md`.
 -   Example pattern:
     ```yaml
     persistence:
