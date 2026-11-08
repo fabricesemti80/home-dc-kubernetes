@@ -18,18 +18,20 @@ Do not skip or reorder. Each step has a verification below. Merging a PR changes
 1.  **Proxmox PR (`home-dc-proxmox`)** — prepare the SSDs on `pve-00` (optional, guarded signature wipe: explicit by-id list, explicit opt-in variable, refuses mounted/swap/ZFS/VM-referenced disks). Run its `--check` first, then the apply as that PR documents. The SSDs must be blank before Talos sees them.
 2.  **Terraform PR (`home-dc-terraform`)** — attach each SSD as `scsi2`: 4095 `k8s-wrkr-01-gpu` ← `…2344E8836BF7`, 4096 `k8s-wrkr-02` ← `…2344E8836D00`, 4097 `k8s-wrkr-03` ← `…2349E8875927`. Follow that PR for the root-credential constraint and the VM stop/start required to attach a disk (one worker at a time; the local-path volumes on that worker are unavailable during its restart).
 3.  **Merge this PR.** Safe: the Longhorn Argo Application has no automated sync, so Argo only registers it (`OutOfSync`). If your Argo settings auto-sync new Applications, stop and check before merging.
-4.  **Talos, one worker at a time** (`k8s-wrkr-03` 10.0.40.97, then `k8s-wrkr-02` 10.0.40.96, then `k8s-wrkr-01-gpu` 10.0.40.95; the GPU worker last, then verify a Jellyfin transcode). Take an etcd snapshot first: `talosctl -n 10.0.40.90 etcd snapshot <file>` (store it outside Git). The control plane is untouched.
-    1.  Update your local, git-ignored `nodes.yaml` schematic IDs to match the Git change (workers `613e1592…1245`, GPU worker `fb73a192…01c2`, control plane unchanged) so `task template:configure` does not revert them, and regenerate: `task talos:app:generate-config`.
-    2.  Pre-flight on the node: `talosctl -n <ip> get disks` shows the ~465 GiB SSD as a separate, unpartitioned disk (guest serial = SSD serial); `kubectl cordon <node>` if you want to avoid new scheduling.
-    3.  Upgrade to the new schematic image. The live OS is `v1.13.8`; pin it so the extension change is not mixed with a Talos version bump (drop `VERSION` only if you intend to move to `talenv.yaml`'s version): `task talos:app:upgrade-node IP=<ip> VERSION=v1.13.8`. Wait for the node to be `Ready`.
-    4.  Apply the new machine config (adds the `longhorn` volume and kubelet bind mount): `task talos:app:apply-node IP=<ip> MODE=auto`. **The SSD must be attached first (step 2); applying the kubelet bind mount while `/var/mnt/longhorn` does not exist is the failure mode to avoid.**
-    5.  `kubectl uncordon <node>`; run the [node checks](#verification) before the next worker.
+4.  **Talos, one worker at a time.** First, locally: update your git-ignored `nodes.yaml` schematic IDs to match the Git change (workers `613e1592…1245`, GPU worker `fb73a192…01c2`, control plane unchanged) so `task template:configure` does not revert them, and regenerate: `task talos:app:generate-config`. Then run the guarded tasks (they do not touch the control plane):
+    ```sh
+    task talos:app:longhorn-rollout          # etcd snapshot, then k8s-wrkr-03, k8s-wrkr-02, k8s-wrkr-01-gpu (GPU last); stops at the first failure
+    # or step by step:
+    task talos:app:etcd-snapshot             # saved under .private/app-cluster/, outside Git
+    task talos:app:longhorn-node IP=10.0.40.97   # then 10.0.40.96, then 10.0.40.95
+    ```
+    Per worker, `longhorn-node` runs: **preflight** (worker, exactly one blank ~500 GB disk, schematic change pending, node `Ready`), `kubectl cordon`, **upgrade** to the new schematic image pinned to the node's running Talos version so the extension change is not mixed with a version bump (skipped if the node already runs the target schematic), **apply** the machine config (adds the `longhorn` volume and kubelet bind mount), wait for `Ready`, **verify** (extensions, both volumes, shared mount, kubelet), `kubectl uncordon`. A failure leaves the node cordoned; fix the cause and re-run the same task (it is idempotent). The read-only parts are available alone: `task talos:app:longhorn-preflight IP=<ip>` and `task talos:app:longhorn-verify IP=<ip>`. The SSD must be attached and blank first (steps 1-2); applying the bind mount while `/var/mnt/longhorn` does not exist is the failure mode the preflight prevents. After the GPU worker, verify a Jellyfin transcode.
 5.  **Argo sync (manual).** Preview, then sync only the Longhorn Application:
     ```sh
     argocd app diff longhorn      # or the Argo CD UI: Diff
     argocd app sync longhorn      # or the UI: Sync
     ```
-    This creates `longhorn-system`, the Helm release, the HTTPRoute and the `longhorn` StorageClass, and **makes it the default class** from that moment (see [default class](#default-storageclass-impact)).
+    This creates `longhorn-system`, the Helm release, the HTTPRoute and the `longhorn` StorageClass, and **makes it the default class** from that moment (see [default class](#default-storageclass-impact)). The HTTPRoute (`longhorn.krapulax.home` on `envoy-internal`) is picked up by the Technitium ExternalDNS instance, which publishes the DNS record automatically within about a minute: no manual record and no Cloudflare record. Check with `dig +short longhorn.krapulax.home` (it must equal `kubernetes.krapulax.home`, `10.0.40.102`).
 6.  **Follow-up PR** (after the checks pass and soak): add the `automated` sync block to `kubernetes/argo/apps/app-cluster/storage/longhorn.yaml`, matching the other storage apps.
 
 ## Verification
@@ -60,6 +62,7 @@ kubectl -n longhorn-system get nodes.longhorn.io -o jsonpath='{range .items[*]}{
 kubectl -n longhorn-system get settings.longhorn.io default-data-path default-replica-count
 kubectl get sc                                      # longhorn (default), local-path (not default)
 kubectl get sc -o jsonpath='{range .items[*]}{.metadata.name}{" "}{.metadata.annotations.storageclass\.kubernetes\.io/is-default-class}{"\n"}{end}'
+dig +short longhorn.krapulax.home                  # internal DNS record, same answer as kubernetes.krapulax.home (10.0.40.102)
 curl -sI http://longhorn.krapulax.home              # internal route (LAN only)
 ```
 
