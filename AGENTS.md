@@ -25,6 +25,16 @@ This repository is the main deployment home for the Talos clusters, Kubernetes r
 -   Record names, locations, writers, readers and purpose only. Never write secret values into the file, a commit, a log or chat.
 -   Before finishing, check for drift: `grep -rl "kind: DopplerSecret" kubernetes`, `find . -name "*.sops.yaml"` and `grep -rnE "os\.environ|getenv|\\$\{?[A-Z_]{4,}" scripts hack .taskfiles`. Every result must be reflected in the inventory.
 
+## Documentation, README and diagrams
+
+Keep the documentation in step with the code **in the same change**.
+
+-   Update [`README.md`](README.md) (stages, prerequisites, commands) and the matching file under `docs/` (design with assumptions, validation and rollback) whenever behaviour, commands, prerequisites, hostnames, ports or ownership change.
+-   Update `docs/cluster/app-catalog.md` for every app added, removed or renamed (hostname, cluster, namespace, storage class).
+-   Update the diagrams whenever the topology changes: [`docs/architecture.svg`](docs/architecture.svg) and any diagram in the affected architecture doc (clusters and components, storage backends, ingress and DNS, secret flows, dependencies on the other `home-dc-*` repositories). If you cannot update a diagram, name the stale one in the PR instead of leaving it silently wrong.
+-   Update the secrets and environment variables inventory (previous section) and `TODO.md` (tick or add items).
+-   Before finishing, search for stale references to anything you renamed or removed (hostnames, tasks, paths).
+
 ## Repository conventions
 
 -   High-level architecture documents live under `docs/architecture/`.
@@ -44,6 +54,14 @@ This repository is the main deployment home for the Talos clusters, Kubernetes r
 -   Corresponding Argo Applications live under: `kubernetes/argo/apps/<cluster>/<namespace>/<app>.yaml`
 -   Each app should have: `values.yaml`, `kustomization.yaml`, and `config/` subdirectory
 -   Use the app-template chart pattern for new apps
+
+### Exposure and DNS
+
+-   **Internal by default.** Every new app with a web UI or API gets an internal route: an `HTTPRoute` (`config/http-route-internal.yaml`) attached to `envoy-internal` (`sectionName: http`) with hostname `<app>.krapulax.home` and the annotation `external-dns.alpha.kubernetes.io/target: kubernetes.krapulax.home`. The Technitium ExternalDNS instance (zone `krapulax.home`, `--gateway-name=envoy-internal`) publishes the record automatically once the route exists: no manual DNS record, and no Cloudflare record. Copy an existing route (`storage/backrest`, `storage/longhorn`, the media apps). After the sync, `dig +short <app>.krapulax.home` must equal `kubernetes.krapulax.home` (`10.0.40.102`).
+-   **External exposure is opt-in and must be asked about.** Before adding any public route (a Cloudflare tunnel hostname under `krapulax.dev`, an external `HTTPRoute`, a Cloudflare Access application or any `home-dc-terraform` Cloudflare change), **ask the user whether the app needs external exposure**. Never assume it, and say which access policy would apply (`bypass` or Access with allowed emails). The default answer is no.
+-   An app with no web service (operator, CronJob, controller) needs no route; say so in the design doc.
+-   If an app's UI has no authentication (for example Longhorn), say so in the design doc and keep it internal. Do not offer external exposure for it without an authentication layer.
+-   Record the hostname in `docs/cluster/app-catalog.md` and in the app's architecture doc.
 
 ### Storage Standards
 
