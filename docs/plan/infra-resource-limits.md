@@ -73,6 +73,11 @@ limits keep generous headroom above it.
 | infra-cp-01 | 5950m / 14.8Gi | 1731m (29%) / 4864Mi (32%) | 2850m (47%) / 14292Mi (94%)  | 653m / 7945Mi             | 7822Mi        |
 | infra-wk-01 | 3950m / 7.1Gi  | 791m (20%) / 1741Mi (23%)  | 4250m (107%) / 7424Mi (101%) | 286m / 3265Mi             | 4522Mi        |
 
+The retirement residue (KubeVirt node labels and zero-capacity
+`devices.kubevirt.io/*` resources, leases, namespaces) was removed on
+2026-11-09 with operator approval; it reserved no CPU or memory, so the
+numbers below are unaffected.
+
 Both nodes have ample request headroom: the ~1.4 CPU / 2.5Gi that Kestra,
 its dind sidecar, Postgres and VersityGW reserved on infra-cp-01 is gone.
 infra-wk-01 working set is ~43% of capacity, well under the 75% target.

@@ -67,6 +67,21 @@ Removed (verified absent):
 -   Namespaces have no `metadata.finalizers` and are `Active` (only the
     standard `spec.finalizers: [kubernetes]`), so nothing is stuck.
 
+Operator-authorized cleanup (2026-11-09, done by the agent with the
+operator's explicit approval; Kubernetes objects only, no Talos or node
+changes, nothing in Doppler or on the NAS):
+
+| Step          | Deleted / changed                                                                                                                                                                                                                                                  | Evidence                                                                                                                                                                                                                                |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Node residue  | 511 `*.node.kubevirt.io/*` labels on infra-cp-01 and 327 on infra-wk-01; annotations `kubevirt.io/heartbeat` and `kubevirt.io/ksm-handler-managed` on both; `devices.kubevirt.io/{kvm,tun,vhost-net,sev}` from `status.capacity` and `status.allocatable` on both. | After 20 s: 0 KubeVirt labels, annotations and extended resources on either node; both nodes `Ready`.                                                                                                                                   |
+| Leases        | `kubevirt/{61e1d0f4.kubevirt.io,virt-controller,virt-operator}`, `cdi/{cdi-controller-leader-election-helper,cdi-operator-leader-election-helper}` (holders were long-gone pods).                                                                                  | Deleted; namespaces removed afterwards.                                                                                                                                                                                                 |
+| Stale Secrets | `kestra/{kestra-basic-auth,kestra-homelab-ops,kestra-postgres,versitygw-root}`; Pulse `DopplerSecret`s `doppler-operator-system/{pulse-agent-token,pulse-secrets}` and their `monitoring/{pulse-agent-token,pulse-secrets}` Secrets.                               | Before deletion: no pod or workload template, ConfigMap (Backrest/app-protect config), Argo Application or Git manifest referenced them; none had owners or finalizers. Afterwards: none listed. The Doppler projects were not touched. |
+| Namespaces    | `kubevirt`, `kubevirt-lab`, `kubevirt-manager`, `cdi`, `kestra`.                                                                                                                                                                                                   | All `NotFound`; no namespace `Terminating`. Both Kestra PVs are `Released` with `Retain`; local-path-provisioner logged no delete. All 56 Argo Applications Synced/Healthy afterwards.                                                  |
+
+Not deleted (no approval): the two Kestra PV objects and their directories,
+and the unrelated `Released` PV `pvc-7f6beb16-162f-4b3a-be3a-dd5f20e66542`
+(`ai/litellm-postgres`, `Retain`).
+
 Retained Kestra data (recorded 2026-11-09 before the `kestra` namespace was
 deleted; both PVs re-verified `persistentVolumeReclaimPolicy: Retain`
 immediately beforehand). The PV objects and on-disk directories are kept;
@@ -119,6 +134,8 @@ directory) needs separate approval.
 
 -   [x] Install retained NAS claims and verify encrypted target backup/restore on both clusters; move disposable smoke to non-root UID `1004`.
 -   [x] Retire the approved Kestra/KubeVirt/CDI/Manager workloads while preserving the two Kestra claims.
+-   [x] Remove retirement residue and the five namespaces, keeping both Kestra PVs `Retain`/`Released` (2026-11-09, #555).
+-   [ ] Decide whether to keep or delete the retained Kestra PVs and their directories (separate approval).
 -   [x] Verify root-only squash, UID `1004` encrypted target backup/restore and unrelated UID `65534` write denial on both clusters.
 -   [x] Deploy and verify the [Backrest replacement](backrest.md); complete database/original recovery checks and restore-gated legacy retirement on both clusters (2026-10-30).
 -   [ ] Add and restore-test an independent offsite copy; the NAS target is not offsite protection.
