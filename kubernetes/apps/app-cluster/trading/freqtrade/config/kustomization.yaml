@@ -4,6 +4,7 @@ kind: Kustomization
 resources:
   - ./doppler-secret.yaml
   - ./http-route-internal.yaml
+  - ./pvc-data.yaml
 # Fixed names: values.yaml mounts these ConfigMaps, and Reloader restarts
 # the pod when they change.
 generatorOptions:

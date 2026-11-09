@@ -1,0 +1,19 @@
+---
+# Longhorn volume that will replace the local-path PVC `freqtrade` (migration pilot, see
+# docs/operations/local-path-to-longhorn.md). It is created EMPTY and unused first, so the data can be
+# copied in while the bot keeps running on the old volume; a later change points values.yaml at it.
+# Prune=false: removing this file from Git must never delete the volume that holds the bot's database.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: freqtrade-data
+  namespace: trading
+  annotations:
+    argocd.argoproj.io/sync-options: Prune=false
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: longhorn
+  resources:
+    requests:
+      storage: 2Gi
