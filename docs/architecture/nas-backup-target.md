@@ -67,30 +67,53 @@ Removed (verified absent):
 -   Namespaces have no `metadata.finalizers` and are `Active` (only the
     standard `spec.finalizers: [kubernetes]`), so nothing is stuck.
 
-Intentionally preserved (do not remove without separate approval):
+Retained Kestra data (recorded 2026-11-09 before the `kestra` namespace was
+deleted; both PVs re-verified `persistentVolumeReclaimPolicy: Retain`
+immediately beforehand). The PV objects and on-disk directories are kept;
+only the namespace, and with it the two PVC objects, were removed.
 
-| Resource                                                                   | Detail                                                                                                                                              |
-| -------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Namespaces `kestra`, `kubevirt`, `kubevirt-lab`, `kubevirt-manager`, `cdi` | Kept as a safeguard per the procedure. `kubevirt-lab`/`kubevirt-manager` hold only `kube-root-ca.crt` and the `default` ServiceAccount.             |
-| PVC `kestra/data-versitygw-0`                                              | Bound, 20Gi, `local-path`, → PV `pvc-fd07c4d1-8b6e-41b4-b620-e7da2d24387b` (`Retain`, infra-cp-01).                                                 |
-| PVC `kestra/kestra-postgres`                                               | Bound, 10Gi, `local-path`, → PV `pvc-f966ded9-9ade-46a9-a226-878444653d1d` (`Retain`, infra-cp-01). Same bindings as the saved preflight inventory. |
+| PVC (former)              | PV                                         | Size | Node        | Directory (`hostPath`, `rancher.io/local-path`)                                                |
+| ------------------------- | ------------------------------------------ | ---- | ----------- | ---------------------------------------------------------------------------------------------- |
+| `kestra/data-versitygw-0` | `pvc-fd07c4d1-8b6e-41b4-b620-e7da2d24387b` | 20Gi | infra-cp-01 | `/var/local-path-provisioner/pvc-fd07c4d1-8b6e-41b4-b620-e7da2d24387b_kestra_data-versitygw-0` |
+| `kestra/kestra-postgres`  | `pvc-f966ded9-9ade-46a9-a226-878444653d1d` | 10Gi | infra-cp-01 | `/var/local-path-provisioner/pvc-f966ded9-9ade-46a9-a226-878444653d1d_kestra_kestra-postgres`  |
 
-Leftovers that are not data and are safe to clean up later (operator step,
-not done by agents; see the PR for exact commands):
+Both were `ReadWriteOnce`, StorageClass `local-path`. The PV UIDs of the old
+claims equal the PV names after `pvc-`.
 
-| Leftover                                                                                                                                                                  | Why it remains                                                                                                                                      | Impact                                                                             |
-| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
-| Secrets `kestra/{kestra-basic-auth,kestra-homelab-ops,kestra-postgres,versitygw-root}`                                                                                    | Doppler-synced (`secrets.doppler.com/subtype=dopplerSecret`); their `DopplerSecret` CRs were removed, so they are orphaned and no longer refreshed. | Credential copies at rest; kept for a Kestra rollback until the PVC data decision. |
-| Leases `kubevirt/{61e1d0f4.kubevirt.io,virt-controller,virt-operator}`, `cdi/{cdi-controller-leader-election-helper,cdi-operator-leader-election-helper}`                 | Leader-election objects are not owned by the operator CRs.                                                                                          | None.                                                                              |
-| ~510 `*.node.kubevirt.io/*` labels on infra-cp-01, ~330 on infra-wk-01; annotations `kubevirt.io/heartbeat` (last 2026-10-29) and `kubevirt.io/ksm-handler-managed=false` | virt-handler wrote them to the Node objects; uninstall does not strip them.                                                                         | Cosmetic. `ksm-handler-managed=false` means KubeVirt did not manage KSM.           |
-| Node extended resources `devices.kubevirt.io/{kvm,tun,vhost-net,sev}` = 0                                                                                                 | Device-plugin capacity stays on the Node status after the plugin is gone.                                                                           | None (capacity 0); cleared by a kubelet restart or a status patch.                 |
+#### Rebinding a retained Kestra PV (rollback)
 
-Unrelated residue noticed during the same sweep: `DopplerSecret`
-`pulse-agent-token`/`pulse-secrets` (and their `monitoring/` Secrets) remain
-from the Pulse retirement (#460); their Argo tracking IDs name the removed
-`pulse-infra`/`pulse-agent-infra` Applications. PV
-`pvc-7f6beb16-162f-4b3a-be3a-dd5f20e66542` (`ai/litellm-postgres`,
-`Retain`) is `Released`. Both are out of scope here and left untouched.
+A `Released` PV keeps the deleted claim's UID in `spec.claimRef` and will not
+bind until that UID is cleared. local-path-provisioner never removes a
+`Retain` PV's directory.
+
+```sh
+export KUBECONFIG=.private/infra-cluster/kubeconfig
+PV=pvc-f966ded9-9ade-46a9-a226-878444653d1d   # or pvc-fd07c4d1-… for VersityGW
+kubectl get pv "$PV" -o jsonpath='{.spec.persistentVolumeReclaimPolicy} {.status.phase}{"\n"}'  # expect: Retain Released
+kubectl create namespace kestra
+# Keep claimRef namespace/name so only the original claim can bind; drop uid/resourceVersion.
+kubectl patch pv "$PV" --type=merge -p '{"spec":{"claimRef":{"uid":null,"resourceVersion":null}}}'
+kubectl apply -f - <<'YAML'
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: kestra-postgres          # or data-versitygw-0
+  namespace: kestra
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: local-path
+  volumeName: pvc-f966ded9-9ade-46a9-a226-878444653d1d
+  resources:
+    requests:
+      storage: 10Gi              # 20Gi for data-versitygw-0
+YAML
+kubectl -n kestra get pvc   # expect Bound to the same PV
+```
+
+The PV's node affinity pins any consumer to infra-cp-01. To read the data
+without redeploying Kestra, bind the PVC as above and mount it read-only in a
+throwaway pod; Talos has no host shell. Final data deletion (PV object and
+directory) needs separate approval.
 
 ## Next actions
 
