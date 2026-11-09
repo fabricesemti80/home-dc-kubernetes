@@ -15,9 +15,9 @@ This document captures architectural and automation work that is intentionally d
 
 ## ☸️ Upgrade Talos to 1.14 and plan the Kubernetes version path
 
-Renovate proposed kubelet `v1.37.2`, but Talos 1.13 supports Kubernetes 1.31 to 1.36 only: `talosctl upgrade-k8s --to 1.37.2` is refused ("version of Kubernetes 1.37.2 is too new to be used with Talos 1.13.8"; the 1.13 client says `unsupported upgrade path 1.36->1.37`). Talos 1.13 is also out of community support now that 1.14 is released (latest `v1.14.5`). Current state: app-cluster Talos `v1.13.8` with Kubernetes `v1.36.3` (one control plane, so one etcd member), infra-cluster Talos `v1.13.6` with Kubernetes `v1.36.2`.
+Renovate proposed kubelet `v1.37.2`, but Talos 1.13 supports Kubernetes 1.31 to 1.36 only: `talosctl upgrade-k8s --to 1.37.2` is refused ("version of Kubernetes 1.37.2 is too new to be used with Talos 1.13.8"; the 1.13 client says `unsupported upgrade path 1.36->1.37`). Talos 1.13 is also out of community support now that 1.14 is released (latest `v1.14.5`). Current state: app-cluster Talos `v1.13.12` on all four nodes with Kubernetes `v1.36.6` (both upgraded on 2026-11-09, see the [procedure](operations/kubernetes-version-policy.md#upgrading-the-app-cluster-nodes); one control plane, so one etcd member), infra-cluster Talos `v1.13.6` with Kubernetes `v1.36.2`.
 
-Talos 1.14 supports Kubernetes 1.33 to 1.37, but the platform does not yet: Cilium 1.20 (latest `v1.20.4`), cert-manager 1.21 (latest `v1.21.3`) and Envoy Gateway 1.9 document support through 1.36 only. Stay on Kubernetes 1.36.x (a `--to 1.36.6` dry run passes on both clusters) and revisit 1.37 once those releases add it.
+Talos 1.14 supports Kubernetes 1.33 to 1.37, but the platform does not yet: Cilium 1.20 (latest `v1.20.4`), cert-manager 1.21 (latest `v1.21.3`) and Envoy Gateway 1.9 document support through 1.36 only. Stay on Kubernetes 1.36.x (the app-cluster is on 1.36.6; a `--to 1.36.6` dry run passes on the infra-cluster) and revisit 1.37 once those releases add it.
 
 ### 🔹 Completion criteria
 

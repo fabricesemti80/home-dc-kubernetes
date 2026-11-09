@@ -59,7 +59,7 @@ Observed read-only on 2026-11-08: the only StorageClass is `local-path` and it i
 
 ## Assumptions
 
-1.  The live nodes run Talos `v1.13.8` while `talenv.yaml` targets `v1.13.12`; the extensions exist for both versions in the Image Factory. The runbook upgrades with an explicit `VERSION` so the schematic change and the Talos version bump are separate decisions.
+1.  At rollout the live nodes ran Talos `v1.13.8` while `talenv.yaml` targeted `v1.13.12`; the extensions exist for both versions in the Image Factory. The runbook upgrades with an explicit `VERSION` so the schematic change and the Talos version bump are separate decisions. All four nodes were moved to `v1.13.12` afterwards (2026-11-09), and the NVIDIA modules plus a GPU transcode were verified on that version.
 2.  The Terraform PR attaches the SSDs as `scsi2` (QEMU HARDDISK, `ssd=1`, `discard=on`; serials equal the SSD serials), so the guest sees one ~465 GiB disk per worker. The attach needs a VM stop/start (operator step).
 3.  The SSD's old signatures are gone before Talos first sees the disk (Proxmox PR's guarded wipe, or `talosctl wipe disk`), because Talos only provisions a volume on a disk with sufficient **free** space; a foreign partition table can make that fail.
 4.  Talos `v1.13`'s CEL environment supports `disk.size`, `GiB`, `system_disk` (documented for v1.13) and `talosctl validate` accepts the rendered documents (verified offline).
