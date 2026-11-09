@@ -5,10 +5,13 @@ reloader:
   podMonitor:
     enabled: true
     namespace: "{{ .Release.Namespace }}"
-  resources:
-    requests:
-      cpu: 10m
-      memory: 64Mi
-    limits:
-      cpu: 250m
-      memory: 256Mi
+  deployment:
+    # The chart only reads reloader.deployment.resources; a top-level
+    # reloader.resources key is silently ignored.
+    resources:
+      requests:
+        cpu: 10m
+        memory: 64Mi
+      limits:
+        cpu: 250m
+        memory: 256Mi
