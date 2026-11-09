@@ -26,8 +26,23 @@ spec:
         spec:
           restartPolicy: Never
           automountServiceAccountToken: false
+          {{- if .selector }}
+          {{- if .hostPath }}
+          {{- fail (printf "app-protect: %s uses hostPath, which is node-local: set node, not selector" .name) }}
+          {{- end }}
+          # Network-attached (RWO) volume that can move between nodes: run where the app's pod runs.
+          # A ReadWriteOnce volume is attached to one node at a time; a job on another node would fail to mount it.
+          affinity:
+            podAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+              - topologyKey: kubernetes.io/hostname
+                labelSelector:
+                  matchLabels:
+                    {{- toYaml .selector | nindent 22 }}
+          {{- else }}
           nodeSelector:
-            kubernetes.io/hostname: {{ .node }}
+            kubernetes.io/hostname: {{ required (printf "app-protect: %s needs node (node-local volume) or selector (movable volume)" .name) .node }}
+          {{- end }}
           {{- with .tolerations }}
           tolerations:
             {{- toYaml . | nindent 12 }}
