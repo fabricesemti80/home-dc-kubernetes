@@ -32,7 +32,7 @@ Keep the documentation in step with the code **in the same change**.
 -   Update [`README.md`](README.md) (stages, prerequisites, commands) and the matching file under `docs/` (design with assumptions, validation and rollback) whenever behaviour, commands, prerequisites, hostnames, ports or ownership change.
 -   Update `docs/cluster/app-catalog.md` for every app added, removed or renamed (hostname, cluster, namespace, storage class).
 -   Update the diagrams whenever the topology changes: [`docs/architecture.svg`](docs/architecture.svg) and any diagram in the affected architecture doc (clusters and components, storage backends, ingress and DNS, secret flows, dependencies on the other `home-dc-*` repositories). If you cannot update a diagram, name the stale one in the PR instead of leaving it silently wrong.
--   Update the secrets and environment variables inventory (previous section) and `TODO.md` (tick or add items).
+-   Update the secrets and environment variables inventory (previous section). Follow-up work is tracked as [GitHub issues](https://github.com/fabricesemti80/home-dc-kubernetes/issues) (order and gates: the "Roadmap: order of work and gates" issue): close or comment on the issue you finished, and open one for any follow-up you leave behind.
 -   Before finishing, search for stale references to anything you renamed or removed (hostnames, tasks, paths).
 
 ## Repository conventions

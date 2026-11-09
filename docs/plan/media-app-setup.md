@@ -90,7 +90,7 @@ To verify hardware acceleration, force a playback that **transcodes** (Direct Pl
 
 ### Removing media safely
 
-Deleting files directly from the NAS does **not** remove the corresponding monitored title in Sonarr/Radarr; an automatic search may download it again. First remove the title or change its monitoring in the appropriate manager, and check that qBittorrent is no longer seeding the same files. A private, limited-mount NFS file manager with trash/restore is planned **after offsite backups are tested** in [the infrastructure roadmap](../../TODO.md). Do not grant such a tool write access to Immich originals or NAS snapshots.
+Deleting files directly from the NAS does **not** remove the corresponding monitored title in Sonarr/Radarr; an automatic search may download it again. First remove the title or change its monitoring in the appropriate manager, and check that qBittorrent is no longer seeding the same files. A private, limited-mount NFS file manager with trash/restore is planned **after offsite backups are tested** in [the file manager issue](https://github.com/fabricesemti80/home-dc-kubernetes/issues/544). Do not grant such a tool write access to Immich originals or NAS snapshots.
 
 ## End-to-end checks and rollback
 
