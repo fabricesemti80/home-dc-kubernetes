@@ -50,6 +50,48 @@ Pre-merge retirement evidence: the preparation task completed against live infra
 
 Post-merge evidence (2026-10-29): both permanent Argo Applications are Synced/Healthy and both `backups/k8s-backup` claims are Bound. Their encrypted backup/check/restore probes passed and removed their test Jobs/repositories. The four retired Application registrations were removed without cascade because the parent's global `Prune=false` deliberately skipped them. Ordered live retirement completed: no remaining Kestra/KubeVirt runtime pods, KubeVirt/CDI CRDs or associated webhooks; both Kestra PVCs remain Bound to their original retained PVs. Kestra used its configured 360-second shutdown grace; the procedure now waits for pod deletion before checking completion and budgets at least the configured grace plus 60 seconds. Parent `apps` and all child Applications reported Healthy after convergence. These are target and retirement checks, not evidence of scheduled application backups.
 
+### Live reconciliation (2026-11-09, issue #555)
+
+Read-only check against infra-cluster, ~11 days after the retirement. Git
+registrations being gone was not taken as proof; each item below was queried.
+
+Removed (verified absent):
+
+-   No Kestra, VersityGW, KubeVirt, CDI or Manager pods in any namespace.
+-   No `*kubevirt*`/`*cdi*` CRDs, validating/mutating webhooks, APIServices,
+    ClusterRoles/ClusterRoleBindings or PriorityClasses.
+-   No Kestra/KubeVirt/CDI Argo Applications; all 56 Applications on the
+    Argo controller (app-cluster) are Synced/Healthy.
+-   No `DopplerSecret` CRs for Kestra/VersityGW remain in
+    `doppler-operator-system`.
+-   Namespaces have no `metadata.finalizers` and are `Active` (only the
+    standard `spec.finalizers: [kubernetes]`), so nothing is stuck.
+
+Intentionally preserved (do not remove without separate approval):
+
+| Resource                                                                   | Detail                                                                                                                                              |
+| -------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Namespaces `kestra`, `kubevirt`, `kubevirt-lab`, `kubevirt-manager`, `cdi` | Kept as a safeguard per the procedure. `kubevirt-lab`/`kubevirt-manager` hold only `kube-root-ca.crt` and the `default` ServiceAccount.             |
+| PVC `kestra/data-versitygw-0`                                              | Bound, 20Gi, `local-path`, → PV `pvc-fd07c4d1-8b6e-41b4-b620-e7da2d24387b` (`Retain`, infra-cp-01).                                                 |
+| PVC `kestra/kestra-postgres`                                               | Bound, 10Gi, `local-path`, → PV `pvc-f966ded9-9ade-46a9-a226-878444653d1d` (`Retain`, infra-cp-01). Same bindings as the saved preflight inventory. |
+
+Leftovers that are not data and are safe to clean up later (operator step,
+not done by agents; see the PR for exact commands):
+
+| Leftover                                                                                                                                                                  | Why it remains                                                                                                                                      | Impact                                                                             |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| Secrets `kestra/{kestra-basic-auth,kestra-homelab-ops,kestra-postgres,versitygw-root}`                                                                                    | Doppler-synced (`secrets.doppler.com/subtype=dopplerSecret`); their `DopplerSecret` CRs were removed, so they are orphaned and no longer refreshed. | Credential copies at rest; kept for a Kestra rollback until the PVC data decision. |
+| Leases `kubevirt/{61e1d0f4.kubevirt.io,virt-controller,virt-operator}`, `cdi/{cdi-controller-leader-election-helper,cdi-operator-leader-election-helper}`                 | Leader-election objects are not owned by the operator CRs.                                                                                          | None.                                                                              |
+| ~510 `*.node.kubevirt.io/*` labels on infra-cp-01, ~330 on infra-wk-01; annotations `kubevirt.io/heartbeat` (last 2026-10-29) and `kubevirt.io/ksm-handler-managed=false` | virt-handler wrote them to the Node objects; uninstall does not strip them.                                                                         | Cosmetic. `ksm-handler-managed=false` means KubeVirt did not manage KSM.           |
+| Node extended resources `devices.kubevirt.io/{kvm,tun,vhost-net,sev}` = 0                                                                                                 | Device-plugin capacity stays on the Node status after the plugin is gone.                                                                           | None (capacity 0); cleared by a kubelet restart or a status patch.                 |
+
+Unrelated residue noticed during the same sweep: `DopplerSecret`
+`pulse-agent-token`/`pulse-secrets` (and their `monitoring/` Secrets) remain
+from the Pulse retirement (#460); their Argo tracking IDs name the removed
+`pulse-infra`/`pulse-agent-infra` Applications. PV
+`pvc-7f6beb16-162f-4b3a-be3a-dd5f20e66542` (`ai/litellm-postgres`,
+`Retain`) is `Released`. Both are out of scope here and left untouched.
+
 ## Next actions
 
 -   [x] Install retained NAS claims and verify encrypted target backup/restore on both clusters; move disposable smoke to non-root UID `1004`.

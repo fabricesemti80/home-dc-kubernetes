@@ -10,6 +10,13 @@ spec:
     pod:
       labels:
         krapulax.dev/tailscale-router: infra
+      tailscaleContainer:
+        resources:
+          requests:
+            cpu: 10m
+            memory: 64Mi
+          limits:
+            memory: 256Mi
       tolerations:
         - key: node-role.kubernetes.io/control-plane
           operator: Exists
