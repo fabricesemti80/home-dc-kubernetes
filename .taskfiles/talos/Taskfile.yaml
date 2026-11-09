@@ -52,6 +52,91 @@ tasks:
     requires:
       vars: [IP]
 
+  app:etcd-snapshot:
+    desc: Save an etcd snapshot of the app-cluster outside Git (.private/app-cluster/)
+    vars:
+      CONTROLLER_IP:
+        sh: yq -r '.nodes[] | select(.controlPlane == true) | .ipAddress' {{.TALOS_DIR}}/talconfig.yaml
+      SNAPSHOT: '{{.PRIVATE_DIR}}/app-cluster/etcd-{{now | date "20060102-150405"}}.db'
+    cmds:
+      - mkdir -p {{.PRIVATE_DIR}}/app-cluster
+      - talosctl --nodes {{.CONTROLLER_IP}} --endpoints {{.CONTROLLER_IP}} etcd snapshot {{.SNAPSHOT}}
+      - echo "Saved {{.SNAPSHOT}}"
+    preconditions:
+      - test -f {{.TALOSCONFIG}}
+      - which talosctl yq
+
+  app:longhorn-preflight:
+    desc: Read-only checks before the Longhorn rollout on one worker [IP=required]
+    cmd: '{{.SCRIPTS_DIR}}/longhorn-talos-node.sh preflight {{.IP}}'
+    requires:
+      vars: [IP]
+    preconditions:
+      - test -f {{.TALOSCONFIG}}
+      - which talosctl kubectl yq jq
+
+  app:longhorn-verify:
+    desc: Read-only checks after the Longhorn rollout on one worker [IP=required]
+    cmd: '{{.SCRIPTS_DIR}}/longhorn-talos-node.sh verify {{.IP}}'
+    requires:
+      vars: [IP]
+    preconditions:
+      - test -f {{.TALOSCONFIG}}
+      - which talosctl yq
+
+  app:longhorn-node:
+    desc: Longhorn Talos rollout for ONE worker - preflight, cordon, upgrade to the new schematic image, apply config, verify, uncordon [IP=required, VERSION=optional]
+    prompt: This reboots the worker (upgrade, then config apply). Do one worker at a time; the GPU worker last. Continue?
+    vars:
+      NODE:
+        sh: kubectl get nodes -o json | jq -r --arg ip '{{.IP}}' '.items[] | select(any(.status.addresses[]; .type == "InternalIP" and .address == $ip)) | .metadata.name'
+      RUNNING_VERSION:
+        sh: talosctl -n {{.IP}} version | awk '/^Server:/ {s = 1} s && /Tag:/ {print $2; exit}'
+      # Pinned to the running Talos version so the extension change is not mixed with a version bump.
+      UPGRADE_VERSION: '{{.VERSION | default .RUNNING_VERSION}}'
+    cmds:
+      - task: app:longhorn-preflight
+        vars: {IP: '{{.IP}}'}
+      - kubectl cordon {{.NODE}}
+      - |
+        if {{.SCRIPTS_DIR}}/longhorn-talos-node.sh needs-upgrade {{.IP}}; then
+          task talos:upgrade-node IP={{.IP}} VERSION={{.UPGRADE_VERSION}}
+          kubectl wait --for=condition=Ready node/{{.NODE}} --timeout=15m
+        else
+          echo "Already on the target schematic; skipping the upgrade."
+        fi
+      - task talos:apply-node IP={{.IP}} MODE=auto
+      - kubectl wait --for=condition=Ready node/{{.NODE}} --timeout=10m
+      - task: app:longhorn-verify
+        vars: {IP: '{{.IP}}'}
+      - kubectl uncordon {{.NODE}}
+      - echo "{{.NODE}} done. Check the next worker only after this one is healthy."
+    requires:
+      vars: [IP]
+    preconditions:
+      - test -f {{.TALOSCONFIG}}
+      - which kubectl talhelper talosctl yq jq
+
+  app:longhorn-rollout:
+    desc: Longhorn Talos rollout for all workers, one at a time - etcd snapshot, then k8s-wrkr-03, k8s-wrkr-02, k8s-wrkr-01-gpu (GPU last)
+    prompt: This takes an etcd snapshot, then reboots three workers in turn (03, 02, GPU). Stops at the first failure. Continue?
+    vars:
+      IP_03:
+        sh: yq -r '.nodes[] | select(.hostname == "k8s-wrkr-03") | .ipAddress' {{.TALOS_DIR}}/talconfig.yaml
+      IP_02:
+        sh: yq -r '.nodes[] | select(.hostname == "k8s-wrkr-02") | .ipAddress' {{.TALOS_DIR}}/talconfig.yaml
+      IP_GPU:
+        sh: yq -r '.nodes[] | select(.hostname == "k8s-wrkr-01-gpu") | .ipAddress' {{.TALOS_DIR}}/talconfig.yaml
+    cmds:
+      - task: app:etcd-snapshot
+      - task --yes talos:app:longhorn-node IP={{.IP_03}}
+      - task --yes talos:app:longhorn-node IP={{.IP_02}}
+      - task --yes talos:app:longhorn-node IP={{.IP_GPU}}
+      - echo "All workers done. Verify a Jellyfin transcode on the GPU worker, then sync Longhorn in Argo (docs/operations/longhorn.md)."
+    preconditions:
+      - test -f {{.TALOSCONFIG}}
+      - which kubectl talhelper talosctl yq jq
+
   infra:bootstrap:
     desc: Bootstrap infra-cluster Kubernetes and write kubeconfig
     prompt: Bootstrap infra-cluster etcd on {{.INFRA_ENDPOINT}}? Run this only once per cluster.

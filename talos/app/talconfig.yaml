@@ -42,7 +42,7 @@ nodes:
     installDisk: "/dev/sda"
     machineSpec:
       secureboot: false
-    talosImageURL: factory.talos.dev/installer/af8eb82417d3deaa94d2ef19c3b590b0dac1b2549d0b9b35b3da2bc325de75f7
+    talosImageURL: factory.talos.dev/installer/fb73a1920c434ba8ec579d24f15097f18ffb171342b1c61f68c063d1b2b601c2
     controlPlane: false
     patches:
       - "@./patches/k8s-wrkr-01-gpu/machine-kernel.yaml"
@@ -61,7 +61,7 @@ nodes:
     installDisk: "/dev/sda"
     machineSpec:
       secureboot: false
-    talosImageURL: factory.talos.dev/installer/376567988ad370138ad8b2698212367b8edcb69b5fd68c80be1f2ec7d603b4ba
+    talosImageURL: factory.talos.dev/installer/613e1592b2da41ae5e265e8789429f22e121aab91cb4deb6bc3c0b6262961245
     controlPlane: false
     networkInterfaces:
       - deviceSelector:
@@ -78,7 +78,7 @@ nodes:
     installDisk: "/dev/sda"
     machineSpec:
       secureboot: false
-    talosImageURL: factory.talos.dev/installer/376567988ad370138ad8b2698212367b8edcb69b5fd68c80be1f2ec7d603b4ba
+    talosImageURL: factory.talos.dev/installer/613e1592b2da41ae5e265e8789429f22e121aab91cb4deb6bc3c0b6262961245
     controlPlane: false
     networkInterfaces:
       - deviceSelector:
@@ -92,15 +92,26 @@ nodes:
         mtu: 1500
 # Global patches
 
-# Dedicated data disk on each worker; verify the non-system device before applying.
+# Dedicated data disks on each worker, never the Talos system disk.
+# Disks are told apart by size so the two volumes can never claim each other's disk:
+#   - local-path-provisioner: the 100 GiB Proxmox data disk (scsi1).
+#   - longhorn: the ~465 GiB raw SATA SSD passed through from pve-00 (scsi2).
 worker:
   userVolumes:
     - name: local-path-provisioner
       provisioning:
         diskSelector:
-          match: "!system_disk"
+          match: "!system_disk && disk.size < 200u * GiB"
         minSize: 80GiB
         maxSize: 90GiB
+    - name: longhorn
+      provisioning:
+        diskSelector:
+          match: "!system_disk && disk.size > 400u * GiB"
+        minSize: 400GiB
+        grow: true
+  patches:
+    - "@./patches/worker/machine-longhorn.yaml"
 patches:
   - "@./patches/global/machine-files.yaml"
   - "@./patches/global/machine-kubelet.yaml"

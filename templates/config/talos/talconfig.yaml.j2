@@ -136,14 +136,29 @@ patches:
 #% endfor %#
 
 # Dedicated worker data disks, never the Talos system disk.
+# Disks are told apart by size so the two volumes can never claim each other's disk:
+#   - local-path-provisioner: the 100 GiB Proxmox data disk (scsi1).
+#   - longhorn: the ~465 GiB raw SATA SSD passed through from pve-00 (scsi2).
 worker:
   userVolumes:
     - name: local-path-provisioner
       provisioning:
         diskSelector:
-          match: "!system_disk"
+          match: "!system_disk && disk.size < 200u * GiB"
         minSize: 80GiB
         maxSize: 90GiB
+    - name: longhorn
+      provisioning:
+        diskSelector:
+          match: "!system_disk && disk.size > 400u * GiB"
+        minSize: 400GiB
+        grow: true
+#% if (nodes | selectattr('controller', 'equalto', False) | list | length) and (talos_patches('worker') | length) %#
+  patches:
+#% for file in talos_patches('worker') %#
+    - "@./patches/worker/#{ file | basename }#"
+#% endfor %#
+#% endif %#
 
 #% for file in talos_patches('controller') %#
 #% if loop.index == 1 %#
@@ -153,14 +168,3 @@ controlPlane:
 #% endif %#
     - "@./patches/controller/#{ file | basename }#"
 #% endfor %#
-
-#% if (nodes | selectattr('controller', 'equalto', False) | list | length) and (talos_patches('worker') | length) %#
-#% for file in talos_patches('worker') %#
-#% if loop.index == 1 %#
-# Worker patches
-worker:
-  patches:
-#% endif %#
-    - "@./patches/worker/#{ file | basename }#"
-#% endfor %#
-#% endif %#
