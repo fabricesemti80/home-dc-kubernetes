@@ -72,7 +72,7 @@ preflight() {
 
 verify() {
   require_worker
-  local extensions name phase
+  local extensions name phase mounts kubelet
   extensions=$(talosctl -n "$ip" get extensions 2>/dev/null)
   for name in iscsi-tools util-linux-tools; do
     awk -v n="$name" '$6 == n {found = 1} END {exit !found}' <<<"$extensions" || fail "extension $name is missing on $ip (upgrade to the new schematic first)"
@@ -80,15 +80,33 @@ verify() {
   done
   [[ $(running_schematic) == "$(configured_schematic)" ]] || fail "running schematic differs from talos/app/talconfig.yaml"
   ok "schematic matches talos/app/talconfig.yaml"
+  # Talos provisions user volumes asynchronously after a config apply; allow up to 2 minutes.
   for name in u-longhorn u-local-path-provisioner; do
-    phase=$(talosctl -n "$ip" get volumestatus "$name" -o yaml 2>/dev/null | yq -r '.spec.phase' || true)
-    [[ $phase == ready ]] || fail "volume $name is '${phase:-missing}', expected 'ready'"
+    for _ in $(seq 1 24); do
+      phase=$(talosctl -n "$ip" get volumestatus "$name" -o yaml 2>/dev/null | yq -r '.spec.phase' || true)
+      [[ $phase == ready ]] && break
+      sleep 5
+    done
+    [[ $phase == ready ]] || fail "volume $name is '${phase:-missing}' after 2 minutes, expected 'ready'"
     ok "volume $name ready"
   done
-  talosctl -n "$ip" read /proc/mounts 2>/dev/null | grep -q ' /var/mnt/longhorn ' || fail "/var/mnt/longhorn is not mounted on $ip"
+  # Capture first: `talosctl ... | grep -q` under pipefail reports a broken pipe as a failure.
+  for _ in $(seq 1 24); do
+    mounts=$(talosctl -n "$ip" read /proc/mounts 2>/dev/null || true)
+    grep -q ' /var/mnt/longhorn ' <<<"$mounts" && break
+    sleep 5
+  done
+  grep -q ' /var/mnt/longhorn ' <<<"$mounts" || fail "/var/mnt/longhorn is not mounted on $ip"
   ok "/var/mnt/longhorn is mounted"
-  talosctl -n "$ip" service kubelet 2>/dev/null | grep -Eq '^STATE +Running' || fail "kubelet is not Running on $ip"
-  ok "kubelet Running"
+  # Applying the kubelet extraMounts restarts the kubelet; wait for it (up to 3 minutes).
+  for _ in $(seq 1 36); do
+    kubelet=$(talosctl -n "$ip" service kubelet 2>/dev/null || true)
+    grep -Eq '^STATE +Running' <<<"$kubelet" && grep -Eq '^HEALTH +OK' <<<"$kubelet" && break
+    sleep 5
+  done
+  grep -Eq '^STATE +Running' <<<"$kubelet" || fail "kubelet is not Running on $ip after 3 minutes"
+  grep -Eq '^HEALTH +OK' <<<"$kubelet" || fail "kubelet is Running but not healthy on $ip"
+  ok "kubelet Running and healthy"
 }
 
 case $mode in

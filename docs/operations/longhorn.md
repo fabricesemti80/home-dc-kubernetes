@@ -45,7 +45,9 @@ talosctl -n <ip> get disks                          # ~465 GiB SSD, plus 100 GiB
 talosctl -n <ip> get volumestatus u-longhorn u-local-path-provisioner
 talosctl -n <ip> get mountstatus | grep -E 'longhorn|local-path'
 #   u-longhorn must be on the ~465 GiB disk (xfs, /var/mnt/longhorn);
-#   u-local-path-provisioner must still be on the SAME 100 GiB disk as before (compare the LOCATION recorded before).
+#   u-local-path-provisioner must still be on the SAME 100 GiB disk as before. Do not compare /dev/sdX names: the kernel
+#   may swap them across the reboot (observed 2026-11-09: the 100 GiB disk went from sdb to sdc). Compare size and the
+#   xfs partition label instead: `talosctl -n <ip> get discoveredvolumes | grep u-local-path-provisioner` (xfs, ~97 GB).
 talosctl -n <ip> service kubelet                    # Running, no errors about extraMounts
 talosctl -n <ip> read /proc/mounts | grep longhorn  # shared mount present
 kubectl get nodes -o wide                           # all Ready
@@ -100,6 +102,7 @@ kubectl -n default delete pod/longhorn-smoke pvc/longhorn-smoke
 -   **Talos upgrades:** the data volume is on its own disk and survives `talosctl upgrade`. Never `talosctl reset` a worker without evicting its Longhorn replicas first (UI → Node → disable scheduling → evict) and confirming the volumes are healthy on the other two.
 -   **Capacity:** keep volumes well below one SSD in total; Longhorn stops scheduling replicas on a disk below its minimal-available threshold. Failing SSD: the pending-sector SSD is the likeliest first failure; watch Node → Disk status and the SMART data of the SSD that reported 3 pending sectors (see the Proxmox PR's host inventory).
 -   **Upgrades:** Renovate bumps the chart version in `kubernetes/argo/apps/app-cluster/storage/longhorn.yaml`. Longhorn supports upgrades one minor at a time and requires healthy volumes; read the release notes, and upgrade engines afterwards.
+-   **First rollout (2026-11-09), what to expect:** each worker drained, upgraded (reboot) and then applied the config without a second reboot. After the apply the `u-longhorn` volume appears within seconds and the kubelet restarts once (extraMounts), so pods on that node restart again briefly; `longhorn-verify` therefore waits for the volumes, the mount and a healthy kubelet. The apps pinned to a worker by local-path volumes (Immich database on `k8s-wrkr-02`, Jellyfin on the GPU worker, the media managers on `k8s-wrkr-03`) were unavailable for the duration of that worker's reboot, a few minutes each. After the GPU worker's reboot the NVIDIA operator pods needed about two minutes to republish `nvidia.com/gpu`; Jellyfin stays `Pending` until then. Longhorn also creates a second, non-default `longhorn-static` StorageClass (reclaim `Delete`); it is chart-created and unused.
 
 ## Rollback
 
