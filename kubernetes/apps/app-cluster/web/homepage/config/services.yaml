@@ -1,3 +1,9 @@
+- App Cluster - storage:
+    - Longhorn:
+        icon: longhorn.png
+        href: http://longhorn.krapulax.home
+        description: Distributed block storage (internal, no login)
+
 - App Cluster - trading:
     - Freqtrade:
         icon: mdi-chart-line

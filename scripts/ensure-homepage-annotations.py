@@ -52,6 +52,16 @@ STATIC_APP_TRADING = {
     },
 }
 
+# Explicit LAN-only app-cluster links: the Longhorn UI is internal only (no .dev host,
+# no authentication), so it is listed here instead of being discovered from a route.
+STATIC_APP_STORAGE = {
+    "Longhorn": {
+        "icon": "longhorn.png",
+        "href": "http://longhorn.krapulax.home",
+        "description": "Distributed block storage (internal, no login)",
+    },
+}
+
 ICON_MAP = {
     "argo-cd": "argo-cd.png",
     "homepage": "homepage.png",
@@ -453,6 +463,18 @@ def main():
             **{f"gethomepage.dev/{key}": value for key, value in service.items()},
         }
         for name, service in STATIC_APP_TRADING.items()
+    )
+
+    storage_group = "App Cluster - storage"
+    groups.add(storage_group)
+    infra_routes.extend(
+        {
+            "gethomepage.dev/group": storage_group,
+            "gethomepage.dev/name": name,
+            "gethomepage.dev/weight": "20",
+            **{f"gethomepage.dev/{key}": value for key, value in service.items()},
+        }
+        for name, service in STATIC_APP_STORAGE.items()
     )
 
     route_files = sorted(
