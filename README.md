@@ -250,11 +250,17 @@ kubectl get pv media-library-pv
 The app cluster uses:
 
 -   `local-path` StorageClass for node-local app config/state PVCs (`ReadWriteOnce`, `Retain`).
--   `longhorn` StorageClass (cluster default, 3 replicas on dedicated passthrough SSDs, `Retain`): prepared but not yet used by any app; not a backup and a single host failure domain. See [docs/operations/longhorn.md](docs/operations/longhorn.md).
+-   `longhorn` StorageClass (cluster default, 3 replicas on dedicated passthrough SSDs, `Retain`): deployed 2026-11-09; no app uses it yet (the freqtrade pilot migration is in progress, see [local-path to Longhorn](docs/operations/local-path-to-longhorn.md)). Not a backup and a single host failure domain. See [docs/operations/longhorn.md](docs/operations/longhorn.md).
 -   Static NFS PV/PVC (`media-library-pv` / `media-library-pvc`) at `10.0.40.2:/media` for media/downloads.
 
 Do not restore stateful apps until the bound worker node, volume node affinity,
 and any required backup data have been verified.
+
+Application config backups (`app-protect` export jobs, read by Backrest): a job for an app on a
+node-local volume (`local-path`) is pinned to the node that holds the data (`node`); for an app on a
+movable Longhorn volume it follows the app's pod (`selector`, pod affinity), because a ReadWriteOnce
+volume is attached to one node at a time. See
+[Backrest operations](docs/operations/backrest.md#protecting-and-opting-out-apps).
 
 Verify public and internal routing:
 
