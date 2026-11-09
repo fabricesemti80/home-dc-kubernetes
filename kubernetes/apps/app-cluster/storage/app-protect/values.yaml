@@ -66,8 +66,10 @@ apps:
   schedule: 35 1 * * *
 - name: freqtrade
   namespace: trading
-  node: k8s-wrkr-01-gpu
-  claim: freqtrade
+  selector:
+    app.kubernetes.io/instance: freqtrade
+    app.kubernetes.io/controller: freqtrade
+  claim: freqtrade-data
   excludes:
   - data
   - logs

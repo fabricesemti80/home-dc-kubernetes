@@ -60,7 +60,7 @@ flowchart LR
 
 ## Backups
 
-The PVC holds the trade database (SQLite) and the LLM decision log. It is enrolled in `app-protect` (export 01:40 UTC) and Backrest (`app-freqtrade`, 03:10 UTC). The `app-protect` snapshot runs `PRAGMA integrity_check` on every copied SQLite file and fails closed, so a copy taken mid-write is rejected rather than stored. Downloaded market data, logs and backtest output are excluded; they can be re-downloaded.
+The data volume `freqtrade-data` (Longhorn, 3 replicas, 2 Gi) holds the trade database (SQLite) and the LLM decision log, so the pod is not tied to a node. Longhorn is not a backup: the volume is enrolled in `app-protect` (export 01:40 UTC, scheduled on the node where the pod runs) and Backrest (`app-freqtrade`, 03:10 UTC). The `app-protect` snapshot runs `PRAGMA integrity_check` on every copied SQLite file and fails closed, so a copy taken mid-write is rejected rather than stored. Downloaded market data, logs and backtest output are excluded; they can be re-downloaded. The volume was migrated from `local-path` on 2026-11-09; see [local-path to Longhorn](../operations/local-path-to-longhorn.md).
 
 ## Validation
 
@@ -73,4 +73,4 @@ The PVC holds the trade database (SQLite) and the LLM decision log. It is enroll
 
 ## Rollback
 
-Delete `kubernetes/argo/apps/app-cluster/trading/freqtrade.yaml` (or revert the commit). Argo prunes the workload. The PVC is `Retain` and stays until deleted deliberately. No real funds are involved in phase 1, so there are no open positions to unwind.
+Delete `kubernetes/argo/apps/app-cluster/trading/freqtrade.yaml` (or revert the commit). Argo prunes the workload. The `freqtrade-data` claim is annotated `Prune=false` and its volume is `Retain`, so the data stays until deleted deliberately. To return the bot to `local-path` after the Longhorn cutover, follow the order in the migration runbook's Rollback section (claim the old volume first); a plain revert would start the bot on an empty database. No real funds are involved in phase 1, so there are no open positions to unwind.

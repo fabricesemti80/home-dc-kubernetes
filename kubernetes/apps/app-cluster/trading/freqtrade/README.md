@@ -7,7 +7,7 @@ Rollout and going-live checklist: [freqtrade-rollout.md](../../../../../docs/pla
 -   UI: `http://freqtrade.krapulax.home` (user `freqtrader`, password `FREQTRADE_UI_PASSWORD` in Doppler)
 -   Strategy: `config/strategies/LlmTrendStrategy.py` (4h EMA trend rules; Claude Haiku via LiteLLM can only veto entries)
 -   Bot config: `config/config.json`; secrets come in as `FREQTRADE__*` environment variables
--   Data (`/freqtrade/user_data` on a local-path PVC): `tradesv3.dryrun.sqlite`, `llm_decisions.jsonl`
+-   Data (`/freqtrade/user_data` on the `freqtrade-data` Longhorn PVC, migrated from local-path on 2026-11-09): `tradesv3.dryrun.sqlite`, `llm_decisions.jsonl`
 
 Useful commands:
 

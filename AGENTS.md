@@ -73,7 +73,7 @@ Keep the documentation in step with the code **in the same change**.
 -   Use `ReadWriteOnce` access mode and a `Retain` reclaim policy so PVC deletion preserves the underlying PV data for restore.
 -   Keep workloads that share a volume co-located on the same worker; do not move a pod to another worker without restoring its data.
 -   This applies to all namespaces unless explicitly justified otherwise.
--   Longhorn (`longhorn` StorageClass, the cluster default class) is available on the app-cluster but no app uses it yet. Always set `storageClass` explicitly: leaving it empty silently selects Longhorn. Longhorn is a single-host failure domain and not a backup; see `docs/operations/longhorn.md`.
+-   Longhorn (`longhorn` StorageClass, the cluster default class) is available on the app-cluster. Only freqtrade (`freqtrade-data`, pilot) uses it so far; every other app stays on `local-path` until the pilot has soaked. Always set `storageClass` explicitly: leaving it empty silently selects Longhorn. Longhorn is a single-host failure domain and not a backup; see `docs/operations/longhorn.md` and, for moving an app, `docs/operations/local-path-to-longhorn.md`.
 -   Example pattern:
     ```yaml
     persistence:
