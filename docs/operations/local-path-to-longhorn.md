@@ -66,12 +66,49 @@ Then prove the point of the migration: drain the node the app runs on (`kubectl 
 
 ### 5. Soak and clean up
 
-After several days of normal running: `kubectl get pv | grep Released` shows the old volume. Delete the PV object once you no longer want the rollback path; the files remain on the node under `/var/mnt/local-path-provisioner/` until removed, which is harmless (the volume is small) but note it.
+After several days of normal running: `kubectl get pv | grep Released` shows the old volume. Keep it as long as you want the rollback path. To remove it:
+
+1.  `kubectl delete pv <old-pv>`. This does **not** delete the data: local-path volumes are `Retain`, so the files stay on the node in `/var/mnt/local-path-provisioner/<pv>_<ns>_<claim>`.
+2.  Remove that exact directory with a short-lived pod on the node (`nodeName: <node>`, a `hostPath` volume of `/var/mnt/local-path-provisioner` with `type: Directory`, command `rm -rf /h/<pv>_<ns>_<claim>`), then delete the pod. Use the exact directory name; never a wildcard. (Verified on scratch volumes on 2026-11-09.)
+
+Never leave a retained PV `Available` (claimRef cleared) without a claim being created for it in the same breath: any new claim of the same class and a size that fits will bind it.
 
 ## Rollback
 
 -   **Before step 3 merges:** delete the empty `<app>-data` PVC (and its leftover `Retain` PV and Longhorn volume). Nothing else changed.
--   **After step 3:** revert the change. Argo recreates a claim from the old values; to get the old data back instead of an empty volume, clear the `claimRef` on the old `Released` PV (`kubectl patch pv <pv> -p '{"spec":{"claimRef":null}}'`) and create the claim with `volumeName: <pv>`, or restore the app's data from Backrest. The data written on Longhorn since the cutover is not in the old volume; it is in the Backrest exports taken after the cutover.
+-   **After step 3:** follow the order below. **Do not simply revert and wait.** Argo CD auto-syncs with self-heal (and the `apps` parent does too), so the revert recreates the old claim and the app at the same moment. The old PV is still `Released`, and a `Released` volume is never matched by a new claim: the local-path provisioner creates a **new, empty volume** and the app starts with an empty database. This was reproduced on 2026-11-09 with a scratch volume (the app found no data), and creating the correct claim afterwards fails because the claim already exists with a different volume.
+
+### Rollback after step 3 (recommended order: claim the old volume first, then revert)
+
+1.  Find the old volume. It is `Released`, its `claimRef` still names the old claim, and it still holds the data:
+    ```sh
+    kubectl get pv | grep '<ns>/<old-claim>'
+    ```
+2.  Immediately before you merge the revert, free it and claim it under the **old claim name and old spec** in one go. The claim binds at once, with no pod needed (verified 2026-11-09):
+    ```sh
+    kubectl patch pv <old-pv> -p '{"spec":{"claimRef":null}}'
+    kubectl -n <ns> apply -f - <<EOF
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata: {name: <old-claim>}
+    spec:
+      accessModes: [ReadWriteOnce]
+      storageClassName: local-path
+      volumeName: <old-pv>
+      resources: {requests: {storage: <old-size>}}
+    EOF
+    kubectl -n <ns> get pvc <old-claim>   # Bound to <old-pv>
+    ```
+3.  Decide about newer data. The old volume holds the data as of the cutover; anything the app wrote on Longhorn since then exists only on the Longhorn volume and in the Backrest exports taken after the cutover. If that matters, restore it into the old claim before the revert (for example with a one-off Job that mounts `<old-claim>`, see [Backrest operations](backrest.md)); for freqtrade (a dry-run bot) the loss is acceptable.
+4.  Merge the revert. Argo applies the reverted Deployment and the chart's claim, which has the same name and spec as the one you created. Check that the Application is `Synced` and `Healthy`, the claim is still `Bound` to `<old-pv>`, and the app shows its data. (The Kubernetes side of this sequence was tested; Argo adopting the pre-created claim has not been, so check it.)
+
+### If the revert was already merged and the app started on an empty volume
+
+Stop it from writing further, then bring the old data back without creating a claim that conflicts with the one Argo made:
+
+1.  Pause reconciliation, parent first (the same procedure as [Rollback Phase 6/7](../cluster/installation.md)): `argocd app set apps --sync-policy none`, then `argocd app set <app> --sync-policy none`. Scale the app to zero.
+2.  Free the old PV and claim it under a **different** name (`<app>-restore`, same spec with `volumeName: <old-pv>`), then copy the files into the live claim with a one-off Job that mounts both, or restore from Backrest into the live claim.
+3.  Delete the temporary claim, scale the app up, and resume GitOps (`task sync-argo-bootstrap`, `task reconcile`).
 
 ## Backups and this change
 
