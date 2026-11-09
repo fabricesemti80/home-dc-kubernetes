@@ -12,9 +12,6 @@ defaultPodOptions:
     runAsGroup: 1000
     fsGroup: 1000
     fsGroupChangePolicy: OnRootMismatch
-  # local-path volume: the pod must stay with its data.
-  nodeSelector:
-    kubernetes.io/hostname: k8s-wrkr-01-gpu
 
 controllers:
   freqtrade:
@@ -107,9 +104,7 @@ service:
 persistence:
   config:
     type: persistentVolumeClaim
-    accessMode: ReadWriteOnce
-    storageClass: local-path
-    size: 2Gi
+    existingClaim: freqtrade-data # Longhorn volume declared in config/pvc-data.yaml
     globalMounts:
       - path: /freqtrade/user_data
   bot-config:

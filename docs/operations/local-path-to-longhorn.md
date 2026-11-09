@@ -127,9 +127,9 @@ Stop it from writing further, then bring the old data back without creating a cl
 | Data            | `tradesv3.dryrun.sqlite` (~94 KB); `data`, `logs`, `backtest_results`, `hyperopt_results`, `plot` are excluded and regenerated |
 | Pod labels      | `app.kubernetes.io/instance: freqtrade`, `app.kubernetes.io/controller: freqtrade`                                             |
 
-1.  PR: `kubernetes/apps/app-cluster/trading/freqtrade/config/pvc-data.yaml` (this change).
-2.  `scripts/longhorn-migrate-copy.sh trading freqtrade freqtrade-data 1000 1000`.
-3.  Cutover PR: in `values.yaml` replace the `persistence.config` block with `type: persistentVolumeClaim`, `existingClaim: freqtrade-data`, the same `globalMounts`, and delete `defaultPodOptions.nodeSelector`; in the `app-protect` values change the freqtrade entry to `claim: freqtrade-data` and `selector:` with the two labels instead of `node: k8s-wrkr-01-gpu`.
-4.  Verify as above, including the drain test.
+1.  Done 2026-11-09 (#537): `kubernetes/apps/app-cluster/trading/freqtrade/config/pvc-data.yaml`.
+2.  Done 2026-11-09: `scripts/longhorn-migrate-copy.sh trading freqtrade freqtrade-data 1000 1000` (export captured 09:57 UTC; the table row counts of the copy matched the live database, files owned by `1000:1000`, write test as uid 1000 ok).
+3.  Cutover PR (this change): in `values.yaml` replace the `persistence.config` block with `type: persistentVolumeClaim`, `existingClaim: freqtrade-data`, the same `globalMounts`, and delete `defaultPodOptions.nodeSelector`; in the `app-protect` values change the freqtrade entry to `claim: freqtrade-data` and `selector:` with the two labels instead of `node: k8s-wrkr-01-gpu`.
+4.  Verify as above, with a node-failover test: cordon the node the pod runs on, delete only the pod, confirm it restarts on another node with its data, then uncordon.
 
 The tool was exercised on 2026-11-09 against a disposable Longhorn volume: fresh export, copy, `integrity_check=ok`, file ownership `1000:1000`, and a write test as uid 1000 with WAL mode. Its guards were checked against the production claim (refused: wrong storage class), a missing app, a missing PVC, a bad uid, and a populated target (refused: not empty).

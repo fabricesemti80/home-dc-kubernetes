@@ -37,9 +37,9 @@ This document provides an index of all applications deployed in the Kubernetes c
 
 ### 📈 trading
 
-| App       | Type        | Image                  | Port | Domain                  | Notes                                     |
-| --------- | ----------- | ---------------------- | ---- | ----------------------- | ----------------------------------------- |
-| freqtrade | Trading Bot | freqtradeorg/freqtrade | 8080 | freqtrade.krapulax.home | Dry-run only; internal UI; LLM entry veto |
+| App       | Type        | Image                  | Port | Domain                  | Notes                                                                          |
+| --------- | ----------- | ---------------------- | ---- | ----------------------- | ------------------------------------------------------------------------------ |
+| freqtrade | Trading Bot | freqtradeorg/freqtrade | 8080 | freqtrade.krapulax.home | Dry-run only; internal UI; LLM entry veto; data on Longhorn (`freqtrade-data`) |
 
 ### 🔹 network
 
@@ -55,9 +55,9 @@ This document provides an index of all applications deployed in the Kubernetes c
 
 The `local-path` provisioner supplies worker-local `ReadWriteOnce` volumes (the standard for app config/state).
 
-| App      | Type          | Chart             | Port | Domain                 | Notes                                                                                                                                         |
-| -------- | ------------- | ----------------- | ---- | ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| longhorn | Block storage | longhorn/longhorn | 80   | longhorn.krapulax.home | Default StorageClass, 3 replicas on passthrough SSDs, internal UI only, manual sync, no app uses it yet; [runbook](../operations/longhorn.md) |
+| App      | Type          | Chart             | Port | Domain                 | Notes                                                                                                                                                         |
+| -------- | ------------- | ----------------- | ---- | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| longhorn | Block storage | longhorn/longhorn | 80   | longhorn.krapulax.home | Default StorageClass, 3 replicas on passthrough SSDs, internal UI only, manual sync, first app on it: freqtrade (pilot); [runbook](../operations/longhorn.md) |
 
 ### 🔹 argo-system
 

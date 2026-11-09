@@ -15,7 +15,7 @@ flowchart LR
     Kraken[Kraken public market data] --> FT[Freqtrade pod<br/>namespace trading]
     FT -->|entry candidate only| LiteLLM[LiteLLM gateway<br/>infra cluster]
     LiteLLM --> OR[OpenRouter: Claude Haiku 5.5]
-    FT --> PVC[(local-path PVC<br/>SQLite trades + LLM log)]
+    FT --> PVC[(freqtrade-data PVC<br/>Longhorn, 3 replicas<br/>SQLite trades + LLM log)]
     User -->|freqtrade.krapulax.home| Envoy[Envoy internal gateway] --> FT
     Doppler -->|UI + LLM credentials| FT
 ```
@@ -30,7 +30,7 @@ flowchart LR
     -   **LLM veto**: before any dry-run/live entry, the strategy sends 60 daily candles (numbers only, no news or free text) to the model and enters only on a `risk_on` verdict. Verdicts are cached per pair for 12 hours and appended to `/freqtrade/user_data/llm_decisions.jsonl`.
 -   Account: `dry_run: true`, simulated wallet of £500, at most 3 open trades, long-only spot, no leverage, no futures.
 -   UI: FreqUI (bundled in the image) on the internal gateway only: `http://freqtrade.krapulax.home`. No external route, no Cloudflare tunnel.
--   Placement: pinned to `k8s-wrkr-01-gpu`, the least-loaded worker ([workload placement](workload-placement.md)); the PVC is node-local.
+-   Placement: any worker. The data volume `freqtrade-data` is a Longhorn volume with a replica on each worker, so the scheduler can move the pod and the volume follows (apps still on `local-path` stay pinned, see [workload placement](workload-placement.md)). The backup export job runs on whichever node holds the pod.
 
 ## Design decisions
 
@@ -60,7 +60,7 @@ flowchart LR
 
 ## Backups
 
-The PVC holds the trade database (SQLite) and the LLM decision log. It is enrolled in `app-protect` (export 01:40 UTC) and Backrest (`app-freqtrade`, 03:10 UTC). The `app-protect` snapshot runs `PRAGMA integrity_check` on every copied SQLite file and fails closed, so a copy taken mid-write is rejected rather than stored. Downloaded market data, logs and backtest output are excluded; they can be re-downloaded.
+The data volume `freqtrade-data` (Longhorn, 3 replicas, 2 Gi) holds the trade database (SQLite) and the LLM decision log, so the pod is not tied to a node. Longhorn is not a backup: the volume is enrolled in `app-protect` (export 01:40 UTC, scheduled on the node where the pod runs) and Backrest (`app-freqtrade`, 03:10 UTC). The `app-protect` snapshot runs `PRAGMA integrity_check` on every copied SQLite file and fails closed, so a copy taken mid-write is rejected rather than stored. Downloaded market data, logs and backtest output are excluded; they can be re-downloaded. The volume was migrated from `local-path` on 2026-11-09; see [local-path to Longhorn](../operations/local-path-to-longhorn.md).
 
 ## Validation
 
@@ -73,4 +73,4 @@ The PVC holds the trade database (SQLite) and the LLM decision log. It is enroll
 
 ## Rollback
 
-Delete `kubernetes/argo/apps/app-cluster/trading/freqtrade.yaml` (or revert the commit). Argo prunes the workload. The PVC is `Retain` and stays until deleted deliberately. No real funds are involved in phase 1, so there are no open positions to unwind.
+Delete `kubernetes/argo/apps/app-cluster/trading/freqtrade.yaml` (or revert the commit). Argo prunes the workload. The `freqtrade-data` claim is annotated `Prune=false` and its volume is `Retain`, so the data stays until deleted deliberately. To return the bot to `local-path` after the Longhorn cutover, follow the order in the migration runbook's Rollback section (claim the old volume first); a plain revert would start the bot on an empty database. No real funds are involved in phase 1, so there are no open positions to unwind.
