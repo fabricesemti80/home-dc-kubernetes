@@ -86,10 +86,17 @@ Design and limits: [architecture](../architecture/backrest.md#application-config
 
 Add a new app (protected):
 
-1. Add an entry: `name`, `namespace`, `node` (where the volume lives), `schedule`
-   (daily UTC cron, staggered, outside 03:00-04:00), and `claim` (PVC name) or
-   `hostPath`. Add `excludes` for caches/logs/regenerable data (fnmatch on a name
-   or relative path). Add `tolerations` for tainted nodes.
+1. Add an entry: `name`, `namespace`, `schedule` (daily UTC cron, staggered, outside
+   03:00-04:00), and `claim` (PVC name) or `hostPath`. Say where the job runs:
+   `node` for a node-local volume (`local-path`, `hostPath`: the node that holds the
+   data), or `selector` for a movable ReadWriteOnce volume (Longhorn): the app's pod
+   labels, e.g. `app.kubernetes.io/instance: <app>` and `app.kubernetes.io/controller: <app>`.
+   With `selector` the job is scheduled onto the node where the app's pod runs, because a
+   ReadWriteOnce volume is attached to one node at a time and a job on another node would
+   fail to mount it. If the app is scaled to zero the job stays `Pending` and the export goes
+   stale (the freshness hook then fails); set `protect: false` for an app that is intentionally
+   off. Add `excludes` for caches/logs/regenerable data (fnmatch on a name or relative path).
+   Add `tolerations` for tainted nodes.
 2. Copy an existing `app-<name>` plan in `config.json`: path
    `/backups/<cluster>/exports/<name>/current`, start hook checking `.captured-at`
    is newer than 1560 minutes, schedule about 90 minutes after the export.
