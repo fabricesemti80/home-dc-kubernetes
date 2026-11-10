@@ -131,5 +131,60 @@ Stop it from writing further, then bring the old data back without creating a cl
 2.  Done 2026-11-09: `scripts/longhorn-migrate-copy.sh trading freqtrade freqtrade-data 1000 1000` (export captured 09:57 UTC; the table row counts of the copy matched the live database, files owned by `1000:1000`, write test as uid 1000 ok).
 3.  Cutover PR (this change): in `values.yaml` replace the `persistence.config` block with `type: persistentVolumeClaim`, `existingClaim: freqtrade-data`, the same `globalMounts`, and delete `defaultPodOptions.nodeSelector`; in the `app-protect` values change the freqtrade entry to `claim: freqtrade-data` and `selector:` with the two labels instead of `node: k8s-wrkr-01-gpu`.
 4.  Verify as above, with a node-failover test: cordon the node the pod runs on, delete only the pod, confirm it restarts on another node with its data, then uncordon.
+5.  Soak in progress ([#551](https://github.com/fabricesemti80/home-dc-kubernetes/issues/551)). The old volume is gated, see below.
+
+### Soak evidence
+
+Read-only checks. The cutover pod started at 2026-11-09 11:19:51 UTC. The 10:10 UTC Backrest run on 2026-11-09 was the manual verification run, not a scheduled one.
+
+| Check (2026-11-10, 08:18 UTC)                                             | Result                                                                                                                                                                                                                                                    |
+| ------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Export `protect-freqtrade`, 01:40 UTC (first scheduled run after cutover) | Job `protect-freqtrade-29904580` `Complete` 01:40:00-01:40:05 on `k8s-wrkr-03` (the pod's node, so `selector` works). Init log `snapshot ok: 1 SQLite database(s) via backup API`                                                                         |
+| Backrest `app-freqtrade`, 03:10 UTC (first scheduled run after cutover)   | `STATUS_SUCCESS`, snapshot `b47b5b961de7`, 2 files / 94,241 B processed, ~99.7 KB added. Same file count and bytes as every run 2026-11-05 to 2026-11-09 (all `STATUS_SUCCESS`)                                                                           |
+| Pod                                                                       | `freqtrade-6d45644bd8-js7fz` `Running`, ready, 0 restarts, on `k8s-wrkr-03`                                                                                                                                                                               |
+| Longhorn volume `pvc-bfa1224a-bd62-432f-a56e-d2e3bc5aec65`                | `attached` to `k8s-wrkr-03`, `healthy`, 3 replicas `running`, one on each worker. Last replica healthy since 2026-11-09 15:29 UTC, after `k8s-wrkr-01-gpu` came back `Ready` at 15:28. All three Longhorn nodes `Ready`/schedulable                       |
+| Alertmanager (infra-cluster)                                              | 0 alerts, 0 active silences. `ALERTS` history (last 30 h): only `KubernetesPodCrashLooping` 2026-11-09 11:01-11:33 UTC in `kube-system`, `gpu-operator` and `longhorn-system` (`csi-provisioner`), during the node reboots. None in `trading`, none since |
+| Old PV `pvc-1b6eb81e-faec-4c9d-a3e3-b5505965345b`                         | `Released`, `Retain`, claimRef `trading/freqtrade`, `local-path`, 2 Gi, node affinity `k8s-wrkr-01-gpu`. Directory present (`talosctl ls`, read-only) with `tradesv3.dryrun.sqlite` 94,208 B, last changed 2026-11-09 10:08:56 UTC                        |
+
+Not verified: Slack (Alertmanager keeps no history, so the `ALERTS` series is the record), and a Backrest restore of a post-cutover snapshot.
+
+### Deleting the old volume (gated, not authorized yet)
+
+**Earliest date: 2026-11-14, after the 03:10 UTC Backrest run.** All of the following must hold, and the operator must approve the deletion explicitly:
+
+-   [ ] Five consecutive scheduled export and Backrest runs since cutover (2026-11-10 to 2026-11-14) are `Complete`/`STATUS_SUCCESS` with about 94 KB processed. 2026-11-10: done (1/5).
+-   [ ] No firing alert in `trading`, and none for the Longhorn volume, over the same period. Pod restarts unchanged unless explained.
+-   [ ] Volume `healthy` with 3 running replicas on 3 nodes.
+-   [ ] A post-cutover snapshot restored to the NAS (`task backups:restore CLUSTER=app-cluster PLAN=app-freqtrade SNAPSHOT=<id>`), and `PRAGMA integrity_check` is `ok` on the restored `tradesv3.dryrun.sqlite`.
+
+Procedure (deletion removes the only rollback path in [Rollback after step 3](#rollback-after-step-3-recommended-order-claim-the-old-volume-first-then-revert)):
+
+```sh
+PV=pvc-1b6eb81e-faec-4c9d-a3e3-b5505965345b
+DIR=pvc-1b6eb81e-faec-4c9d-a3e3-b5505965345b_trading_freqtrade
+# 1. Re-check: must print "Released Retain trading/freqtrade"
+kubectl get pv $PV -o jsonpath='{.status.phase} {.spec.persistentVolumeReclaimPolicy} {.spec.claimRef.namespace}/{.spec.claimRef.name}{"\n"}'
+# 2. Delete the PV object (Retain: the files stay on the node)
+kubectl delete pv $PV
+# 3. Delete exactly that directory on k8s-wrkr-01-gpu, then the pod
+kubectl -n local-path-storage apply -f - <<EOF
+apiVersion: v1
+kind: Pod
+metadata: {name: rm-freqtrade-old-pv}
+spec:
+  nodeName: k8s-wrkr-01-gpu
+  restartPolicy: Never
+  containers:
+    - name: rm
+      image: busybox
+      command: [sh, -ec, 'test -d "/h/$DIR" && rm -rf "/h/$DIR" && ! test -e "/h/$DIR"']
+      volumeMounts: [{name: h, mountPath: /h}]
+  volumes: [{name: h, hostPath: {path: /var/mnt/local-path-provisioner, type: Directory}}]
+EOF
+kubectl -n local-path-storage wait --for=jsonpath='{.status.phase}'=Succeeded pod/rm-freqtrade-old-pv --timeout=120s
+kubectl -n local-path-storage logs rm-freqtrade-old-pv; kubectl -n local-path-storage delete pod rm-freqtrade-old-pv
+```
+
+`$DIR` is expanded by the shell into the manifest (the heredoc is unquoted on purpose), so the pod sees the literal directory name. The pod runs in `local-path-storage` because that namespace is labelled `pod-security.kubernetes.io/enforce: privileged` (checked 2026-11-10). `default` has no label, so the Talos cluster-wide default (`baseline`) would reject a `hostPath` volume. Afterwards, `kubectl get pv | grep $PV` and `talosctl -n 10.0.40.95 ls /var/mnt/local-path-provisioner` must no longer show it. Tick the issue item and record the date here.
 
 The tool was exercised on 2026-11-09 against a disposable Longhorn volume: fresh export, copy, `integrity_check=ok`, file ownership `1000:1000`, and a write test as uid 1000 with WAL mode. Its guards were checked against the production claim (refused: wrong storage class), a missing app, a missing PVC, a bad uid, and a populated target (refused: not empty).

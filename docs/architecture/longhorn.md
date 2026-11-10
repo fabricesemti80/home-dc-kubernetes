@@ -1,6 +1,6 @@
 # Longhorn on the app-cluster
 
-**Status:** prepared in Git, **not applied**. Nothing described here is live until the operator runs the [rollout](../operations/longhorn.md#rollout-order).
+**Status:** live since 2026-11-09 (rollout done, Argo Application still on manual sync). One app uses it: freqtrade (`trading/freqtrade-data`, pilot, soak in progress, see [#551](https://github.com/fabricesemti80/home-dc-kubernetes/issues/551) and the [worked example](../operations/local-path-to-longhorn.md#worked-example-freqtrade)).
 
 ## Problem
 
@@ -56,6 +56,52 @@ Observed read-only on 2026-11-08: the only StorageClass is `local-path` and it i
 -   **Capacity.** About 465 GiB raw per node, about 420 GiB schedulable after the 10% reserve (Longhorn's 25% minimal-available threshold lowers this further). With 3 replicas every volume consumes its size on all three nodes, so the usable pool is about **one SSD** (roughly 300-400 GiB of volume capacity).
 -   **Performance.** SATA SSDs shared by Longhorn's synchronous 3-way replication and the host's page cache; fine for config/state, not benchmarked.
 -   **Out of scope:** migrating apps, the infra-cluster (physical), a Longhorn backup target, V2 data engine, monitoring dashboards/alerts for Longhorn.
+
+## Node-down pod deletion policy (decision 2026-11-10)
+
+**Decision: keep `node-down-pod-deletion-policy: do-nothing`** (Longhorn's default; `values.yaml` does not set it, live value `do-nothing` read on 2026-11-10). No Git change. Recovery from an unplanned single-worker failure is a manual, fenced step: [Longhorn operations, worker down](../operations/longhorn.md#a-worker-is-down-unplanned).
+
+### Context
+
+-   With `do-nothing`, Kubernetes never force-deletes a pod on a node that stops reporting: after about 5 minutes it is marked for deletion and stays `Terminating`. The `ReadWriteOnce` Longhorn volume stays attached to the lost node, so a Deployment's replacement pod hangs in `ContainerCreating` and a StatefulSet creates no replacement at all (Longhorn 1.13 docs, _Node Failure Handling_). The app stays down until the node returns or an operator force-deletes the old pod.
+-   The other options force-delete such pods so the volume can be reattached elsewhere: `delete-deployment-pod`, `delete-statefulset-pod`, `delete-both-statefulset-and-deployment-pod`.
+-   Only Longhorn volumes are affected. Every other app-cluster app is pinned to its worker by `local-path` and cannot move whatever the setting is.
+-   The only Longhorn consumer is freqtrade: a **Deployment** (`strategy: Recreate`, one replica), dry-run, ~94 KB SQLite. No StatefulSet uses Longhorn.
+-   Related setting, live `true` (default): `auto-delete-pod-when-volume-detached-unexpectedly`. Longhorn already restarts a controller-managed pod whose volume was detached under it.
+
+### Options
+
+| Option                                       | Effect for freqtrade (Deployment, RWO)                                                      | Benefit                                                                       | Risk / cost                                                                                                                                                                                                                     |
+| -------------------------------------------- | ------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `do-nothing` (current, **chosen**)           | Down until the worker returns or an operator force-deletes the pod                          | No unfenced takeover. The operator checks the VM is off before moving the app | Unattended recovery needs a person. `KubernetesNodeNotReady` (5 min) alerts on Slack                                                                                                                                            |
+| `delete-deployment-pod`                      | Pod force-deleted, volume reattached and pod started on a healthy worker, typically minutes | Unattended failover for a crashed worker VM                                   | No fencing: "node down" means the kubelet stopped reporting, not that the VM is off. A hung kubelet whose container keeps writing, or a worker that comes back, briefly gives two writers on one ext4 filesystem. Untested here |
+| `delete-statefulset-pod`                     | No effect (freqtrade is not a StatefulSet)                                                  | None today                                                                    | Same no-fencing risk for any future StatefulSet                                                                                                                                                                                 |
+| `delete-both-statefulset-and-deployment-pod` | Same as `delete-deployment-pod`                                                             | Covers future StatefulSets too                                                | Widest blast radius of the no-fencing risk                                                                                                                                                                                      |
+
+### Why `do-nothing` fits this topology
+
+-   **The policy only matters for one VM failing alone.** All three workers are VMs on `pve-00`. Planned maintenance uses drains (policy not involved). Losing the host takes every worker and every replica at once, and no policy helps.
+-   **That failure is rare and fencing is cheap.** The operator can confirm in Proxmox that the VM is stopped (or stop it) in a minute, which removes the two-writer risk an automatic force-delete cannot rule out.
+-   **The pilot gains little.** A dry-run bot can be down for hours. The volumes that would later gain most from automatic failover (Immich PostgreSQL) are the ones where an unfenced takeover could do most damage.
+-   **Untested.** Node-failure behaviour on this cluster has not been tested. The 2026-11-09 failover test cordoned the node and deleted the pod, which is the planned-maintenance path.
+
+### Assumptions
+
+1.  `KubernetesNodeNotReady` (infra-cluster vmalert, `for: 5m`) reaches the operator for app-cluster workers.
+2.  Hours of freqtrade downtime after an unplanned worker failure are acceptable.
+3.  Kubernetes' non-graceful node shutdown (`node.kubernetes.io/out-of-service` taint, GA since 1.28) is a fenced alternative to deleting the pod by hand. It has not been tested with Longhorn here.
+
+### Revisit when
+
+-   an app whose downtime matters moves to Longhorn, or a StatefulSet does; or
+-   a controlled node-failure test is run (stop one worker VM in Proxmox, time the manual recovery, then repeat with `delete-deployment-pod` on a scratch Deployment).
+
+If it changes, set `defaultSettings.nodeDownPodDeletionPolicy` in `kubernetes/apps/app-cluster/storage/longhorn/values.yaml`. The Longhorn Application syncs manually, so the change goes live only after `argocd app sync longhorn`. Rollback: remove the key and sync again (setting changes do not restart volumes).
+
+### Next actions
+
+-   [x] Record the decision and the manual recovery procedure (2026-11-10).
+-   [ ] Controlled node-failure test on a scratch Longhorn Deployment (needs its own issue; not opened yet).
 
 ## Assumptions
 
