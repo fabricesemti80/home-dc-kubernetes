@@ -137,6 +137,9 @@ controllers:
                 key: IMMICH_DB_PASSWORD
           POSTGRES_DB: immich
           POSTGRES_INITDB_ARGS: --data-checksums
+          # Longhorn volumes are ext4 with a lost+found at the root, which initdb refuses to use as a data
+          # directory: keep the cluster in a subdirectory.
+          PGDATA: /var/lib/postgresql/data/pgdata
         probes:
           liveness: &db-probes
             enabled: true
