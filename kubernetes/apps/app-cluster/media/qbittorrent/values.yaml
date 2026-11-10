@@ -82,8 +82,6 @@ controllers:
 defaultPodOptions:
   automountServiceAccountToken: false
   hostname: qbittorrent
-  nodeSelector:
-    kubernetes.io/hostname: k8s-wrkr-03
 
 service:
   app:
@@ -104,9 +102,7 @@ service:
 persistence:
   config:
     type: persistentVolumeClaim
-    accessMode: ReadWriteOnce
-    storageClass: local-path
-    size: 2Gi
+    existingClaim: qbittorrent-longhorn
     globalMounts:
       - path: /config
   downloads:
