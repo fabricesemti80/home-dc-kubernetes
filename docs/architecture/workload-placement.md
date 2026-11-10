@@ -20,7 +20,7 @@ The rules are **preferences**, not requirements. A pod still schedules on `k8s-w
 -   No node carries a `NoSchedule` taint except the control plane, so all three workers can take these pods.
 -   The 15 movable pods request 1,110m CPU in total. Moving them evenly would raise `k8s-wrkr-02` memory requests from about 66% to about 87%; the preference toward the less-loaded GPU worker is expected to keep that lower. Verify after rollout.
 -   Small controllers (cert-manager, doppler-operator, arc-controller, GPU-operator discovery, about 0.9 GiB together) are not covered; they have separate charts.
--   Pods with `local-path` volumes (media apps, backrest, immich) stay where their data is. Moving them needs a restore from Backrest and a `nodeSelector` change per app.
+-   Pods keep their node pin where one still exists (Immich, Backrest, Jellyfin for the GPU). Since 2026-11-10 the app-cluster volumes are Longhorn, so removing a pin no longer needs a data restore; the arr group, qBittorrent, Jellyseerr, Recyclarr and Prowlarr already dropped theirs.
 -   Nothing prevents drift back to `k8s-wrkr-03` for workloads without these rules, and an automatic rebalancer (descheduler) is not installed.
 -   Memory limits remain heavily overcommitted on every worker; this change does not address that.
 

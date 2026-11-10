@@ -1,6 +1,6 @@
 # Longhorn on the app-cluster
 
-**Status:** live since 2026-11-09 (rollout done, Argo Application still on manual sync). One app uses it: freqtrade (`trading/freqtrade-data`, pilot, soak in progress, see [#551](https://github.com/fabricesemti80/home-dc-kubernetes/issues/551) and the [worked example](../operations/local-path-to-longhorn.md#worked-example-freqtrade)).
+**Status:** live since 2026-11-09 (rollout done, Argo Application still on manual sync). Every app-cluster app claim runs on it since 2026-11-10: freqtrade (pilot) and the 14 claims migrated one app at a time (see [#552](https://github.com/fabricesemti80/home-dc-kubernetes/issues/552) and the [runbook](../operations/local-path-to-longhorn.md)). The old local-path claims are retained for rollback. Soak in progress, see [#551](https://github.com/fabricesemti80/home-dc-kubernetes/issues/551).
 
 ## Problem
 
@@ -47,7 +47,7 @@ Observed read-only on 2026-11-08: the only StorageClass is `local-path` and it i
 
 -   **Unaffected:** every existing PVC (a bound PVC never changes class), and every app with an explicit `storageClass`/`storageClassName`. All app-cluster apps in Git set `local-path` explicitly, or `storageClassName: ""` for the static NFS claims (`media-library-pvc`, `k8s-backup`), which opt out of any default.
 -   **Could change:** a PVC (or StatefulSet `volumeClaimTemplate`) created **without** a class, by a future app or a chart update, will now be provisioned by Longhorn (3 replicas, `Retain`) instead of staying `Pending`. A PVC already `Pending` without a class would also be assigned `longhorn` retroactively once the default exists. None exists today: a review of `kubernetes/apps/app-cluster` found only explicit classes, and a read-only `kubectl get pvc -A` on 2026-11-08 showed 15 `local-path` claims and two static NFS claims with `storageClassName: ""`.
--   Repository convention is unchanged: **config/state PVCs keep `storageClass: local-path`** and are backed up by Backrest. No application is migrated to Longhorn in this work.
+-   Repository convention (updated 2026-11-10): **app-cluster config/state PVCs use explicit Longhorn claims** and are backed up by Backrest; `local-path` stays only for retained rollback claims and the infra-cluster. The migration is described in the [runbook](../operations/local-path-to-longhorn.md).
 
 ## Limits, honestly
 
@@ -65,8 +65,8 @@ Observed read-only on 2026-11-08: the only StorageClass is `local-path` and it i
 
 -   With `do-nothing`, Kubernetes never force-deletes a pod on a node that stops reporting: after about 5 minutes it is marked for deletion and stays `Terminating`. The `ReadWriteOnce` Longhorn volume stays attached to the lost node, so a Deployment's replacement pod hangs in `ContainerCreating` and a StatefulSet creates no replacement at all (Longhorn 1.13 docs, _Node Failure Handling_). The app stays down until the node returns or an operator force-deletes the old pod.
 -   The other options force-delete such pods so the volume can be reattached elsewhere: `delete-deployment-pod`, `delete-statefulset-pod`, `delete-both-statefulset-and-deployment-pod`.
--   Only Longhorn volumes are affected. Every other app-cluster app is pinned to its worker by `local-path` and cannot move whatever the setting is.
--   The only Longhorn consumer is freqtrade: a **Deployment** (`strategy: Recreate`, one replica), dry-run, ~94 KB SQLite. No StatefulSet uses Longhorn.
+-   Only Longhorn volumes are affected, and since 2026-11-10 that is every app-cluster app claim: with `do-nothing` an unplanned worker failure leaves its Longhorn-backed pods (media apps, Immich, Backrest, vmagent) down until the operator fences the VM and force-deletes them. Node pins kept for Immich, Backrest and Jellyfin (GPU) still tie those pods to one worker; the others (arr group, qBittorrent, Jellyseerr, Recyclarr, Prowlarr) no longer have one.
+-   The 2026-11-10 decision below was taken when freqtrade was the only Longhorn consumer; **revisit it now that production workloads use Longhorn** (the revisit trigger below has been met).
 -   Related setting, live `true` (default): `auto-delete-pod-when-volume-detached-unexpectedly`. Longhorn already restarts a controller-managed pod whose volume was detached under it.
 
 ### Options
