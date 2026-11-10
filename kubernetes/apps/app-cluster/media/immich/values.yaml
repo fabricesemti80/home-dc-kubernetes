@@ -126,7 +126,7 @@ controllers:
       app:
         image:
           repository: ghcr.io/immich-app/postgres
-          tag: 14-vectorchord0.4.3-pgvectors0.2.0
+          tag: 16-vectorchord0.4.3-pgvector0.8.1
         env:
           TZ: Europe/London
           POSTGRES_USER: postgres
@@ -218,7 +218,9 @@ persistence:
           - path: /data
   postgres-data:
     type: persistentVolumeClaim
-    existingClaim: immich-postgres-data-longhorn
+    # PostgreSQL 16 data directory on a fresh claim (logical restore from the PG14 export). The PG14 claim
+    # `immich-postgres-data-longhorn` is kept untouched as the rollback volume.
+    existingClaim: immich-postgres16-data-longhorn
     advancedMounts:
       database:
         app:
