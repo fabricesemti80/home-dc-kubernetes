@@ -32,7 +32,7 @@ This document provides an index of all applications deployed in the Kubernetes c
 | qbittorrent | Torrent Client   | lscr.io/linuxserver/qbittorrent  | 8080 | qbittorrent.krapulax.dev | Torrent downloads                        |
 | radarr      | Movie Manager    | lscr.io/linuxserver/radarr       | 7878 | radarr.krapulax.dev      | Movie automation; Longhorn config        |
 | sonarr      | TV Manager       | lscr.io/linuxserver/sonarr       | 8989 | sonarr.krapulax.dev      | TV automation; Longhorn config           |
-| sabnzbd     | Usenet Client    | lscr.io/linuxserver/sabnzbd      | 8080 | sabnzbd.krapulax.dev     | Usenet downloads                         |
+| sabnzbd     | Usenet Client    | lscr.io/linuxserver/sabnzbd      | 8080 | sabnzbd.krapulax.dev     | Usenet downloads; Longhorn config        |
 | recyclarr   | Sync Tool        | ghcr.io/recyclarr/recyclarr      | -    | -                        | Sonarr/Radarr sync; Longhorn config      |
 
 ### 📈 trading

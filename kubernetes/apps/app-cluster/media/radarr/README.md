@@ -22,6 +22,6 @@ Recommended first settings:
 
 The pod mounts:
 
--   `/config` on the retained Longhorn ReadWriteOnce PVC `radarr-longhorn`; follow the [migration runbook](../../../../../docs/operations/local-path-to-longhorn.md#radarr-cutover-planned) before cutover and retain the old claim for rollback.
+-   `/config` on the retained Longhorn ReadWriteOnce PVC `radarr-longhorn`; see the [migration record](../../../../../docs/operations/local-path-to-longhorn.md#radarr-cutover-completed-2026-11-10). The old local-path claim is retained for rollback.
 -   `/media` on the shared NFS library
 -   `/downloads` on the shared NFS completed-downloads path

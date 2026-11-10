@@ -4,7 +4,7 @@ global:
 
 controllers:
   sabnzbd:
-    strategy: RollingUpdate
+    strategy: Recreate
     initContainers:
       whitelist-config:
         image:
@@ -152,8 +152,6 @@ controllers:
 defaultPodOptions:
   automountServiceAccountToken: false
   hostname: sabnzbd
-  nodeSelector:
-    kubernetes.io/hostname: k8s-wrkr-03
 
 service:
   app:
@@ -166,9 +164,7 @@ service:
 persistence:
   config:
     type: persistentVolumeClaim
-    accessMode: ReadWriteOnce
-    storageClass: local-path
-    size: 2Gi
+    existingClaim: sabnzbd-longhorn
     globalMounts:
       - path: /config
   media:

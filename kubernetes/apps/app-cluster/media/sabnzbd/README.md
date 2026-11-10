@@ -27,7 +27,7 @@ Usenet server details can be added in the UI for now.
 
 The pod mounts:
 
--   `/config` on a local-path ReadWriteOnce PVC
+-   `/config` on the retained Longhorn ReadWriteOnce PVC `sabnzbd-longhorn`; follow the [migration runbook](../../../../../docs/operations/local-path-to-longhorn.md#sabnzbd-cutover-planned) before cutover and retain the old claim for rollback.
 -   `/media` on the shared NFS library
 -   `/downloads` on `downloads/complete`
 -   `/incomplete-downloads` on `downloads/incomplete`

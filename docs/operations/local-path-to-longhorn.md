@@ -44,11 +44,19 @@ After merge, sync Sonarr and app-protect, verify series, download clients and in
 
 **Observed outcome (#569):** The quiesced offline copy and copied SQLite integrity passed with 30 series. Sonarr started on `k8s-wrkr-01-gpu` with 30 series, two download clients, four indexers and one tag. Longhorn volume `pvc-7c678069-372c-46fa-800e-4662513770a8` was healthy with three running replicas. Its protect job followed the pod; post-cutover snapshot `33a991c1821e` restored with SQLite integrity ok and 30 series. The old claim and PV remain retained; Argo automation and the backup schedule were restored.
 
-### Radarr cutover (planned)
+### Radarr cutover (completed 2026-11-10)
 
 Migrate `media/radarr` (2 GiB, local-path, retained) to pre-created `media/radarr-longhorn` (2 GiB, Longhorn, retained). Confirm a fresh `app-radarr` snapshot and isolated SQLite restore, then pause `apps`, `radarr` and `app-protect` Argo reconciliation, suspend `protect-radarr`, annotate the source PVC `Prune=false,Delete=false` and `IgnoreExtraneous`, and scale Radarr to zero. Copy and verify the quiesced source with `scripts/longhorn-copy-offline.sh media radarr radarr-longhorn`. Keep the writer stopped until merge; patch the stopped Deployment strategy to `Recreate` with `rollingUpdate: null`, as in the Recyclarr example.
 
 After merge, sync Radarr and app-protect, verify movies, download clients and indexers without exposing API keys, three healthy replicas, and a fresh backup and isolated SQLite restore. Restore the protect schedule and Argo policies. Preserve the old claim and PV through soak; rollback requires stopping Radarr and restoring newer Longhorn data to the retained source before reverting.
+
+**Observed outcome (#570):** The quiesced offline copy and copied SQLite integrity passed with 57 movies. Radarr started on `k8s-wrkr-03` with 57 movies, one download client and three indexers. Longhorn volume `pvc-2c90dee3-c35e-4077-8ae3-ecd8327adc90` was healthy with three running replicas. Its protect job followed the pod; post-cutover snapshot `731ac5bb5cf3` restored with SQLite integrity ok and 57 movies. The old claim and PV remain retained; Argo automation and the backup schedule were restored.
+
+### SABnzbd cutover (planned)
+
+Migrate `media/sabnzbd` (2 GiB, local-path, retained) to pre-created `media/sabnzbd-longhorn` (2 GiB, Longhorn, retained); shared NFS downloads remain unchanged. Confirm a fresh `app-sabnzbd` backup and isolated restore and record queue status without exposing API keys. Pause `apps`, `sabnzbd` and `app-protect`, suspend `protect-sabnzbd`, annotate the source PVC `Prune=false,Delete=false` and `IgnoreExtraneous`, and scale SABnzbd to zero. Copy the quiesced source with `scripts/longhorn-copy-offline.sh media sabnzbd sabnzbd-longhorn`; verify contents and keep the writer stopped until merge. Patch the stopped Deployment strategy to `Recreate` with `rollingUpdate: null`, as in the Recyclarr example.
+
+After merge, sync SABnzbd and app-protect, verify the API and queue, three healthy replicas, and a fresh backup and isolated restore. Restore the protect schedule and Argo settings. Preserve the old claim and PV through soak; rollback requires stopping SABnzbd and restoring newer Longhorn data to the retained source before reverting.
 
 ## Ground rules
 
