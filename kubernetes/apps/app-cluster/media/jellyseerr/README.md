@@ -17,4 +17,4 @@ Recommended first settings:
 
 The pod mounts:
 
--   `/app/config` on a local-path ReadWriteOnce PVC
+-   `/app/config` on the retained Longhorn ReadWriteOnce PVC `jellyseerr-longhorn`. Follow the [migration runbook](../../../../../docs/operations/local-path-to-longhorn.md#jellyseerr-cutover-planned) before cutover; retain the previous local-path claim for rollback.

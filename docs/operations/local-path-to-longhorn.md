@@ -20,11 +20,19 @@ After merge, sync Recyclarr and app-protect, confirm the workload starts with th
 
 **Observed outcome (#566):** The offline copy verified file contents, ownership, permissions and symlinks. Recyclarr started on `k8s-wrkr-01-gpu`; Longhorn volume `pvc-420ba2a5-fd50-4097-9f8f-8da65ed3dbed` was healthy with three running replicas. Its protect job followed it onto that node. Post-cutover Backrest snapshot `b1113a214c8b` restored successfully; restored settings and Sonarr/Radarr mapping files matched the new export. The original local-path claim remains Bound to retained PV `pvc-ac77dff5-a8a0-4f18-b180-e2dc0a26aade`, with `Prune=false,Delete=false` and `IgnoreExtraneous`; do not delete it during the soak. Argo automation and the protect schedule were restored.
 
-### Prowlarr cutover (planned)
+### Prowlarr cutover (completed 2026-11-10)
 
 Migrate only `media/prowlarr` (2 GiB, local-path, retained) to the pre-created `media/prowlarr-longhorn` (2 GiB, Longhorn, retained). Prowlarr contains SQLite state and indexer credentials: do not expose files or API keys when checking it. Confirm a fresh `app-prowlarr` backup and isolated SQLite restore before stopping it. Pause the `apps`, `prowlarr` and `app-protect` Argo Applications, suspend `protect-prowlarr`, annotate the source PVC `Prune=false,Delete=false`, and scale Prowlarr to zero. Run `scripts/longhorn-copy-offline.sh media prowlarr prowlarr-longhorn`; keep the writer stopped until the copy and its integrity checks pass. Patch the stopped Deployment strategy to `Recreate` with `rollingUpdate: null`, as in the Recyclarr example, before merging.
 
 After merge, sync Prowlarr and app-protect, confirm the UI/API and indexer searches work without printing credentials, verify three healthy Longhorn replicas and take and restore a new `app-prowlarr` backup. Resume the protect schedule and original Argo settings. Preserve the old local-path claim and PV through a multi-day soak. Rollback requires quiescing Prowlarr and copying back any newer data before reverting; never allow a revert to provision an empty old claim.
+
+**Observed outcome (#567):** Offline copy and copied SQLite integrity passed. Prowlarr started on `k8s-wrkr-01-gpu` with all four indexers and the Sonarr/Radarr connections; a live NZBgeek search returned 10 results. Longhorn volume `pvc-cf021a50-6fc3-40b2-9720-6028bc34d931` was healthy with three running replicas. Its protect job followed it; post-cutover snapshot `93d347ac0923` restored with SQLite integrity ok and four indexers. The old local-path claim and PV remain retained for rollback; Argo automation and the protect schedule were restored.
+
+### Jellyseerr cutover (planned)
+
+Migrate `media/jellyseerr` (2 GiB, local-path, retained) to the pre-created `media/jellyseerr-longhorn` (2 GiB, Longhorn, retained). Stop Jellyseerr before the complete offline copy; retain its UID/GID 1000 ownership and do not expose API keys or settings. A fresh `app-jellyseerr` backup and isolated SQLite restore are prerequisites. Pause `apps`, `jellyseerr` and `app-protect`, suspend `protect-jellyseerr`, annotate the old claim `Prune=false,Delete=false` and `IgnoreExtraneous`, then scale Jellyseerr to zero. Copy and verify with `scripts/longhorn-copy-offline.sh media jellyseerr jellyseerr-longhorn`; keep the writer stopped until cutover. This Deployment already uses `Recreate`.
+
+After merge, sync Jellyseerr and app-protect; verify its version, existing requests, default Sonarr/Radarr connections, three healthy replicas, and a fresh backup and restore. Resume the original protect schedule and Argo settings. Keep the old claim and PV for rollback and copy back newer data before reverting.
 
 ## Ground rules
 

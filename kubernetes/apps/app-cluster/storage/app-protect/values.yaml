@@ -28,8 +28,10 @@ apps:
   schedule: 10 1 * * *
 - name: jellyseerr
   namespace: media
-  node: k8s-wrkr-03
-  claim: jellyseerr
+  selector:
+    app.kubernetes.io/instance: jellyseerr
+    app.kubernetes.io/controller: jellyseerr
+  claim: jellyseerr-longhorn
   excludes:
   - logs
   schedule: 15 1 * * *
