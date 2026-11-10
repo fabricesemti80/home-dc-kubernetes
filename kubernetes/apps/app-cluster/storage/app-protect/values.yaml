@@ -41,8 +41,10 @@ apps:
   schedule: 15 1 * * *
 - name: sabnzbd
   namespace: media
-  node: k8s-wrkr-03
-  claim: sabnzbd
+  selector:
+    app.kubernetes.io/instance: sabnzbd
+    app.kubernetes.io/controller: sabnzbd
+  claim: sabnzbd-longhorn
   excludes:
   - logs
   schedule: 20 1 * * *
