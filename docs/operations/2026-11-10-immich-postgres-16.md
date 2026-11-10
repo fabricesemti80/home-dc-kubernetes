@@ -29,4 +29,11 @@ Delete `immich-postgres-data-longhorn` (and its kustomization entry) after a few
 
 ## Outcome
 
-_Filled in after the cutover._
+Done 2026-11-10. Server 16.10, data checksums on, `shared_preload_libraries = vchord.so`.
+
+-   Rehearsal first: the latest snapshot restored into a scratch PG16 pod of the same image (3,518 assets at that time, `vchord 0.4.3`, `vector 0.8.1`, 2 vchord indexes).
+-   Final export taken after Immich was stopped: 5,092 assets, 1 user. After the restore into the live PG16 instance: 5,092 assets, 1 user, 0 albums, same extensions (`earthdistance` 1.1 to 1.2 is the bundled contrib bump), 2 vchord indexes. Immich 3.3.6 ping 200, ML `pong`, no errors in the server log.
+-   A new native export ran with `pg_dump` 16.10 against server 16.10, and an `immich-db` Backrest backup succeeded. The `backrest_backup` login was re-provisioned with `task backups:credentials`.
+-   Snag: the first start failed because initdb refuses a Longhorn (ext4) volume root containing `lost+found`. Fixed with `PGDATA=/var/lib/postgresql/data/pgdata`. It was applied live first (signing was unavailable) and committed afterwards; do not sync the Immich app from a revision without it.
+-   Not tested: search relevance and thumbnail generation (left to a UI check).
+-   Rollback volume `immich-postgres-data-longhorn` (PG14) kept; delete it after a few days (see `docs/TODO.md`).
