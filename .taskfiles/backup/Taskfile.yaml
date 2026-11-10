@@ -32,8 +32,9 @@ tasks:
       vars: [CLUSTER]
     vars:
       TARGET_KUBECONFIG: '{{if eq .CLUSTER "infra-cluster"}}{{.ROOT_DIR}}/.private/infra-cluster/kubeconfig{{else}}{{.ROOT_DIR}}/kubeconfig{{end}}'
+      STATE_CLAIM: '{{if eq .CLUSTER "infra-cluster"}}backrest{{else}}backrest-longhorn{{end}}'
     cmds:
-      - kubectl --kubeconfig '{{.TARGET_KUBECONFIG}}' -n backups get deployment/backrest pvc/backrest pvc/k8s-backup
+      - kubectl --kubeconfig '{{.TARGET_KUBECONFIG}}' -n backups get deployment/backrest pvc/{{.STATE_CLAIM}} pvc/k8s-backup
       - python3 '{{.ROOT_DIR}}/scripts/backrest.py' status '{{.CLUSTER}}'
 
   export:
