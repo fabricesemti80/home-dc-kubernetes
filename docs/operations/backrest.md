@@ -132,7 +132,8 @@ directory; verify `SHA256SUMS`, `app`, `captured-at`, `database.json`, and fully
 the dump with the matching `pg_restore --file=/dev/null database.dump`.
 
 Use a fresh isolated PostgreSQL instance, never the live database. Immich needs
-the exact compatible vector-enabled image in its export CronJob; plain PG14 is
+the exact compatible vector-enabled image in its export CronJob (now
+`16-vectorchord0.4.3-pgvector0.8.1`); plain PostgreSQL is
 not sufficient. LiteLLM needs compatible PG17. Initialize with the recorded
 `bootstrap_role` (currently `postgres`); preserve it for PG17 `GRANTED BY` semantics.
 Create other roles from `roles.sql`, omitting only the exact `CREATE ROLE` line
