@@ -27,7 +27,7 @@ Usenet server details can be added in the UI for now.
 
 The pod mounts:
 
--   `/config` on a local-path ReadWriteOnce PVC
+-   `/config` on a Longhorn ReadWriteOnce PVC (`sabnzbd-longhorn`, declared in `config/pvc-config-longhorn.yaml`; the old local-path claim `sabnzbd` is retained until the migration is signed off, see docs/architecture/longhorn.md)
 -   `/media` on the shared NFS library
 -   `/downloads` on `downloads/complete`
 -   `/incomplete-downloads` on `downloads/incomplete`

@@ -6,6 +6,7 @@ components:
 resources:
 - doppler.yaml
 - http-route.yaml
+- pvc-state.yaml
 - export.yaml
 configMapGenerator:
 - name: backrest-settings

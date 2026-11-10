@@ -9,7 +9,7 @@ Design, assumptions and limits: [docs/architecture/longhorn.md](../architecture/
 -   Replicated block storage (3 replicas) on the three passed-through 500 GB SSDs, StorageClass `longhorn` (default, `Retain`).
 -   **Single failure domain:** all SSDs and all three workers live on `pve-00`. Losing the host, its power or its SATA controller loses every replica at once.
 -   **Longhorn volumes are not a backup.** Backrest remains the backup; enroll any app that moves to Longhorn in `app-protect`/Backrest as described in [backrest.md](backrest.md#protecting-and-opting-out-apps). Replication also copies deletions and corruption.
--   **No application is migrated by this work.** Existing PVCs stay on `local-path`; apps keep `storageClass: local-path` (the repository standard for config/state). Moving an app is a separate, per-app change with a Backrest restore test.
+-   Existing local-path claims do not move by changing a StorageClass. The app-cluster migration requires the gated offline copy in [the all-claims cutover runbook](app-cluster-longhorn-cutover.md); retained local-path claims remain available for rollback.
 
 ## Rollout order
 

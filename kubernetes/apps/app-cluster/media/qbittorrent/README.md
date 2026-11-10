@@ -20,7 +20,7 @@ Recommended first settings:
 
 The pod mounts:
 
--   `/config` on a local-path ReadWriteOnce PVC
+-   `/config` on a Longhorn ReadWriteOnce PVC (`qbittorrent-longhorn`, declared in `config/pvc-config-longhorn.yaml`; the old local-path claim `qbittorrent` is retained until the migration is signed off, see docs/architecture/longhorn.md)
 -   `/downloads` on the shared NFS completed-downloads path
 -   `/incomplete-downloads` on the shared NFS incomplete-downloads path
 

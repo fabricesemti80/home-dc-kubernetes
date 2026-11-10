@@ -43,9 +43,7 @@ defaultPodOptions:
 persistence:
   config:
     type: persistentVolumeClaim
-    accessMode: ReadWriteOnce
-    storageClass: local-path
-    size: 1Gi
+    existingClaim: recyclarr-longhorn # Longhorn volume declared in config/pvc-config-longhorn.yaml
     globalMounts:
       - path: /config
   config-file:

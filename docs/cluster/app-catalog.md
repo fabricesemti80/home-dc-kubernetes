@@ -53,11 +53,11 @@ This document provides an index of all applications deployed in the Kubernetes c
 
 ### 💾 storage
 
-The `local-path` provisioner supplies worker-local `ReadWriteOnce` volumes (the standard for app config/state).
+App-cluster config, state, caches and queues use `longhorn` after the gated [cutover](../operations/app-cluster-longhorn-cutover.md); old `local-path` claims are retained for rollback. The physical infra cluster keeps its own storage.
 
-| App      | Type          | Chart             | Port | Domain                 | Notes                                                                                                                                                         |
-| -------- | ------------- | ----------------- | ---- | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| longhorn | Block storage | longhorn/longhorn | 80   | longhorn.krapulax.home | Default StorageClass, 3 replicas on passthrough SSDs, internal UI only, manual sync, first app on it: freqtrade (pilot); [runbook](../operations/longhorn.md) |
+| App      | Type          | Chart             | Port | Domain                 | Notes                                                                                                                     |
+| -------- | ------------- | ----------------- | ---- | ---------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| longhorn | Block storage | longhorn/longhorn | 80   | longhorn.krapulax.home | Default StorageClass, 3 replicas on passthrough SSDs, internal UI only, manual sync; [runbook](../operations/longhorn.md) |
 
 ### 🔹 argo-system
 

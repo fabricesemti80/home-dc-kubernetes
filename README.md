@@ -249,8 +249,8 @@ kubectl get pv media-library-pv
 
 The app cluster uses:
 
--   `local-path` StorageClass for node-local app config/state PVCs (`ReadWriteOnce`, `Retain`).
--   `longhorn` StorageClass (cluster default, 3 replicas on dedicated passthrough SSDs, `Retain`): deployed 2026-11-09; freqtrade (`freqtrade-data`) is the first app on it (pilot, see [local-path to Longhorn](docs/operations/local-path-to-longhorn.md)); all other apps stay on `local-path` until the pilot has soaked. Not a backup and a single host failure domain. See [docs/operations/longhorn.md](docs/operations/longhorn.md).
+-   `longhorn` StorageClass for app-cluster config, state, caches and queues (`ReadWriteOnce`, `Retain`), with 3 replicas on dedicated passthrough SSDs. It is not a backup and all replicas share one host failure domain. **Existing claims require a gated offline copy before switching:** follow [the all-claims cutover runbook](docs/operations/app-cluster-longhorn-cutover.md) before merging its PR.
+-   `local-path` remains available for retained pre-migration claims and rollback. The physical infra cluster keeps its existing storage.
 -   Static NFS PV/PVC (`media-library-pv` / `media-library-pvc`) at `10.0.40.2:/media` for media/downloads.
 
 Do not restore stateful apps until the bound worker node, volume node affinity,

@@ -79,12 +79,9 @@ service:
         port: 9898
 persistence:
   state:
-    type: persistentVolumeClaim
-    accessMode: ReadWriteOnce
-    storageClass: local-path
-    size: 4Gi
-    annotations:
-      argocd.argoproj.io/sync-options: Prune=false,Delete=false
+    # Longhorn claim defined in config/pvc-state.yaml; the old local-path claim `backrest` is no longer
+    # rendered but is retained (Prune=false,Delete=false) as the rollback copy.
+    existingClaim: backrest-longhorn
     globalMounts:
     - path: /state
   target:

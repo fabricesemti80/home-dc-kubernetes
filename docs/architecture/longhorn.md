@@ -1,10 +1,34 @@
 # Longhorn on the app-cluster
 
-**Status:** live since 2026-11-09 (rollout done, Argo Application still on manual sync). One app uses it: freqtrade (`trading/freqtrade-data`, pilot, soak in progress, see [#551](https://github.com/fabricesemti80/home-dc-kubernetes/issues/551) and the [worked example](../operations/local-path-to-longhorn.md#worked-example-freqtrade)).
+**Status:** Longhorn has been live since 2026-11-09; its Argo Application is still on manual sync. On 2026-11-10, freqtrade was the only migrated app (pilot; see [#551](https://github.com/fabricesemti80/home-dc-kubernetes/issues/551)). The remaining app-cluster claims require the gated cutover described below.
+
+## Planned app-cluster claim migration
+
+The operator requested migration of all app-cluster `local-path` claims, including
+regenerable caches, the vmagent queue and Backrest state. The physical infra
+cluster is excluded and retains its own storage. Longhorn replicas share one
+host and do not replace independent backups; moving Backrest's own state to
+Longhorn introduces a recovery dependency on Longhorn, so its configuration and
+repository credentials must also be recoverable from independent backups.
+
+Existing PVC storage classes cannot be changed in place. Each claim needs a new
+Longhorn volume and a verified transfer before any workload switches to it.
+Stateful writers must be stopped for the final copy and remain stopped until
+cutover: an online export followed by a later cutover can lose intervening
+writes. Preserve the old retained volumes and test recovery. Recreate disposable
+caches only when the consumer and other references are explicitly updated.
+The Immich PostgreSQL and vmagent StatefulSet migrations require their own
+controller-specific handling; a generic SQLite export is not sufficient.
+
+Assumptions and gates: Longhorn nodes remain healthy and have sufficient
+per-node capacity for three replicas; verified independent backups exist for
+every stateful service including Backrest; each cutover has an operator-approved
+outage, a verified final copy and a documented rollback. Do not merge an
+auto-synced cutover until its target claims have been populated and validated.
 
 ## Problem
 
-All app-cluster state lives on `local-path` volumes: node-local, bound to the worker that first used them, and lost with that worker's 100 GiB virtual data disk. Three unused 500 GB SATA SSDs (Crucial MX500, about 465.76 GiB each) sit in `pve-00`. The goal is replicated block storage on those SSDs that apps can adopt later, without touching the existing `local-path` volumes.
+At the initial design, app-cluster state lived on node-local `local-path` volumes, tied to workers' 100 GiB virtual data disks. Three unused 500 GB SATA SSDs in `pve-00` were allocated to replicated block storage.
 
 ## Decision
 
@@ -45,9 +69,9 @@ All app-cluster state lives on `local-path` volumes: node-local, bound to the wo
 
 Observed read-only on 2026-11-08: the only StorageClass is `local-path` and it is **already not the default** (`local-path` values set `defaultClass: false`; the live annotation is `false`). Making `longhorn` the default therefore does not need a change to `local-path`; the repository keeps `defaultClass: false` explicitly and `scripts/validate.sh` now fails if any chart other than Longhorn sets a default class.
 
--   **Unaffected:** every existing PVC (a bound PVC never changes class), and every app with an explicit `storageClass`/`storageClassName`. All app-cluster apps in Git set `local-path` explicitly, or `storageClassName: ""` for the static NFS claims (`media-library-pvc`, `k8s-backup`), which opt out of any default.
+-   **Unaffected at rollout:** existing PVCs (a bound PVC never changes class) and explicitly classed PVCs. The static NFS claims `media-library-pvc` and `k8s-backup` opt out of the default with `storageClassName: ""`.
 -   **Could change:** a PVC (or StatefulSet `volumeClaimTemplate`) created **without** a class, by a future app or a chart update, will now be provisioned by Longhorn (3 replicas, `Retain`) instead of staying `Pending`. A PVC already `Pending` without a class would also be assigned `longhorn` retroactively once the default exists. None exists today: a review of `kubernetes/apps/app-cluster` found only explicit classes, and a read-only `kubectl get pvc -A` on 2026-11-08 showed 15 `local-path` claims and two static NFS claims with `storageClassName: ""`.
--   Repository convention is unchanged: **config/state PVCs keep `storageClass: local-path`** and are backed up by Backrest. No application is migrated to Longhorn in this work.
+-   The later app-cluster migration uses explicit Longhorn claims and preserves old local-path claims for rollback; see [the cutover runbook](../operations/app-cluster-longhorn-cutover.md). The physical infra cluster is unchanged.
 
 ## Limits, honestly
 
@@ -55,13 +79,15 @@ Observed read-only on 2026-11-08: the only StorageClass is `local-path` and it i
 -   **Longhorn volumes are not a backup.** Backrest (`docs/operations/backrest.md`) remains the backup mechanism, and an app on Longhorn must still be enrolled in `app-protect`. No Longhorn backup target or snapshot schedule is configured here.
 -   **Capacity.** About 465 GiB raw per node, about 420 GiB schedulable after the 10% reserve (Longhorn's 25% minimal-available threshold lowers this further). With 3 replicas every volume consumes its size on all three nodes, so the usable pool is about **one SSD** (roughly 300-400 GiB of volume capacity).
 -   **Performance.** SATA SSDs shared by Longhorn's synchronous 3-way replication and the host's page cache; fine for config/state, not benchmarked.
--   **Out of scope:** migrating apps, the infra-cluster (physical), a Longhorn backup target, V2 data engine, monitoring dashboards/alerts for Longhorn.
+-   **Outside the original deployment:** a Longhorn backup target, V2 data engine and monitoring dashboards/alerts. The physical infra cluster remains outside the app-cluster migration.
 
 ## Node-down pod deletion policy (decision 2026-11-10)
 
 **Decision: keep `node-down-pod-deletion-policy: do-nothing`** (Longhorn's default; `values.yaml` does not set it, live value `do-nothing` read on 2026-11-10). No Git change. Recovery from an unplanned single-worker failure is a manual, fenced step: [Longhorn operations, worker down](../operations/longhorn.md#a-worker-is-down-unplanned).
 
 ### Context
+
+The following context and comparison describe the decision on 2026-11-10, when only freqtrade used Longhorn. Revisit it after migrating production workloads.
 
 -   With `do-nothing`, Kubernetes never force-deletes a pod on a node that stops reporting: after about 5 minutes it is marked for deletion and stays `Terminating`. The `ReadWriteOnce` Longhorn volume stays attached to the lost node, so a Deployment's replacement pod hangs in `ContainerCreating` and a StatefulSet creates no replacement at all (Longhorn 1.13 docs, _Node Failure Handling_). The app stays down until the node returns or an operator force-deletes the old pod.
 -   The other options force-delete such pods so the volume can be reattached elsewhere: `delete-deployment-pod`, `delete-statefulset-pod`, `delete-both-statefulset-and-deployment-pod`.

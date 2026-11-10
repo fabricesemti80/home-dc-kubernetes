@@ -22,4 +22,4 @@ For download categories, library paths and the full connection order, see [the m
 
 The pod mounts:
 
--   `/config` on a local-path ReadWriteOnce PVC
+-   `/config` on a Longhorn ReadWriteOnce PVC (`prowlarr-longhorn`, declared in `config/pvc-config-longhorn.yaml`; the old local-path claim `prowlarr` is retained until the migration is signed off, see docs/architecture/longhorn.md)

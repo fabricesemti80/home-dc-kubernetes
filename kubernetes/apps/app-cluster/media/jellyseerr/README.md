@@ -17,4 +17,4 @@ Recommended first settings:
 
 The pod mounts:
 
--   `/app/config` on a local-path ReadWriteOnce PVC
+-   `/app/config` on a Longhorn ReadWriteOnce PVC (`jellyseerr-longhorn`, declared in `config/pvc-config-longhorn.yaml`; the old local-path claim `jellyseerr` is retained until the migration is signed off, see docs/architecture/longhorn.md)

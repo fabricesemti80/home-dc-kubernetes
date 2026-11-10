@@ -6,3 +6,4 @@ resources:
   - ./http-route-internal.yaml
   - ./peer-service.yaml
   - ./doppler-secret.yaml
+  - ./pvc-config-longhorn.yaml

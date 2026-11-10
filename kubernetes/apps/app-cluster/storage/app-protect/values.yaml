@@ -4,8 +4,10 @@ cluster: app-cluster
 apps:
 - name: sonarr
   namespace: media
-  node: k8s-wrkr-03
-  claim: sonarr
+  selector:
+    app.kubernetes.io/instance: sonarr
+    app.kubernetes.io/controller: sonarr
+  claim: sonarr-longhorn
   excludes: &id001
   - MediaCover
   - logs
@@ -14,41 +16,53 @@ apps:
   schedule: 0 1 * * *
 - name: radarr
   namespace: media
-  node: k8s-wrkr-03
-  claim: radarr
+  selector:
+    app.kubernetes.io/instance: radarr
+    app.kubernetes.io/controller: radarr
+  claim: radarr-longhorn
   excludes: *id001
   schedule: 5 1 * * *
 - name: prowlarr
   namespace: media
-  node: k8s-wrkr-03
-  claim: prowlarr
+  selector:
+    app.kubernetes.io/instance: prowlarr
+    app.kubernetes.io/controller: prowlarr
+  claim: prowlarr-longhorn
   excludes: *id001
   schedule: 10 1 * * *
 - name: jellyseerr
   namespace: media
-  node: k8s-wrkr-03
-  claim: jellyseerr
+  selector:
+    app.kubernetes.io/instance: jellyseerr
+    app.kubernetes.io/controller: jellyseerr
+  claim: jellyseerr-longhorn
   excludes:
   - logs
   schedule: 15 1 * * *
 - name: sabnzbd
   namespace: media
-  node: k8s-wrkr-03
-  claim: sabnzbd
+  selector:
+    app.kubernetes.io/instance: sabnzbd
+    app.kubernetes.io/controller: sabnzbd
+  claim: sabnzbd-longhorn
   excludes:
   - logs
   schedule: 20 1 * * *
 - name: qbittorrent
   namespace: media
-  node: k8s-wrkr-03
-  claim: qbittorrent
+  selector:
+    app.kubernetes.io/instance: qbittorrent
+    app.kubernetes.io/controller: qbittorrent
+  claim: qbittorrent-longhorn
   excludes:
   - logs
   schedule: 25 1 * * *
 - name: recyclarr
   namespace: media
-  node: k8s-wrkr-03
-  claim: recyclarr
+  selector:
+    app.kubernetes.io/instance: recyclarr
+    app.kubernetes.io/controller: recyclarr
+  claim: recyclarr-longhorn
   excludes:
   - cache
   - logs
@@ -56,8 +70,10 @@ apps:
   schedule: 30 1 * * *
 - name: jellyfin
   namespace: media
-  node: k8s-wrkr-01-gpu
-  claim: jellyfin-config
+  selector:
+    app.kubernetes.io/instance: jellyfin
+    app.kubernetes.io/controller: jellyfin
+  claim: jellyfin-config-longhorn
   excludes:
   - cache
   - log

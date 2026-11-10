@@ -94,16 +94,12 @@ persistence:
       - path: /transcode
   config:
     type: persistentVolumeClaim
-    accessMode: ReadWriteOnce
-    storageClass: local-path
-    size: 5Gi
+    existingClaim: jellyfin-config-longhorn # Longhorn volume declared in config/pvc-config-longhorn.yaml
     globalMounts:
       - path: /config
   cache:
     type: persistentVolumeClaim
-    accessMode: ReadWriteOnce
-    storageClass: local-path
-    size: 20Gi
+    existingClaim: jellyfin-cache-longhorn # Longhorn volume declared in config/pvc-cache-longhorn.yaml
     globalMounts:
       - path: /cache
   media:

@@ -53,9 +53,7 @@ service:
 persistence:
   config:
     type: persistentVolumeClaim
-    accessMode: ReadWriteOnce
-    storageClass: local-path
-    size: 2Gi
+    existingClaim: sonarr-longhorn # Longhorn volume declared in config/pvc-config-longhorn.yaml
     globalMounts:
       - path: /config
   media:

@@ -20,7 +20,7 @@ Storage layout:
     -   `subPath: immich/library`
     -   mounted read-only
 -   PostgreSQL, Redis, and ML cache
-    -   local-path ReadWriteOnce PVCs
+    -   Longhorn ReadWriteOnce PVCs `immich-postgres-data-longhorn`, `immich-redis-data-longhorn`, `immich-model-cache-longhorn` (old local-path claims `immich-postgres-data`, `immich-redis-data`, `immich-model-cache` retained until sign-off)
 
 Controller note:
 

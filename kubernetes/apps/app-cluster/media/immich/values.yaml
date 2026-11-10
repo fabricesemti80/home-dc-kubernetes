@@ -203,27 +203,21 @@ persistence:
             readOnly: true
   model-cache:
     type: persistentVolumeClaim
-    accessMode: ReadWriteOnce
-    storageClass: local-path
-    size: 10Gi
+    existingClaim: immich-model-cache-longhorn # Longhorn volume declared in config/pvc-model-cache-longhorn.yaml
     advancedMounts:
       machine-learning:
         app:
           - path: /cache
   redis-data:
     type: persistentVolumeClaim
-    accessMode: ReadWriteOnce
-    storageClass: local-path
-    size: 2Gi
+    existingClaim: immich-redis-data-longhorn # Longhorn volume declared in config/pvc-redis-data-longhorn.yaml
     advancedMounts:
       redis:
         app:
           - path: /data
   postgres-data:
     type: persistentVolumeClaim
-    accessMode: ReadWriteOnce
-    storageClass: local-path
-    size: 20Gi
+    existingClaim: immich-postgres-data-longhorn # Longhorn volume declared in config/pvc-postgres-data-longhorn.yaml
     advancedMounts:
       database:
         app:

@@ -7,3 +7,5 @@ resources:
   - ./http-route.yaml
   - ./http-route-internal.yaml
   - ./transcode-cleanup.yaml
+  - ./pvc-config-longhorn.yaml
+  - ./pvc-cache-longhorn.yaml

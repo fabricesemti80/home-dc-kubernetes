@@ -19,6 +19,8 @@ Current intent:
 -   Radarr gets a `Movies 1080p` profile
 -   movie quality definitions are tightened so obviously bogus tiny grabs are rejected by minimum size rules
 
+Storage: `/config` is the Longhorn claim `recyclarr-longhorn` (old local-path claim `recyclarr` retained until sign-off).
+
 Validation:
 
 -   check the pod logs for successful Sonarr and Radarr sync runs
