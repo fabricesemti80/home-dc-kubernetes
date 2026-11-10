@@ -91,8 +91,22 @@ spec:
           persistentVolumeClaim: {claimName: $target}
 EOF
 created=true
-if ! kubectl -n "$ns" wait --for=condition=complete "job/$job" --timeout=7200s; then
+deadline=$((SECONDS + 7200))
+succeeded=false
+while ((SECONDS < deadline)); do
+  status=$(kubectl -n "$ns" get job "$job" -o json) || fail "Cannot read job $job; target may contain partial data"
+  if [[ $(jq -r '.status.succeeded // 0' <<<"$status") -ge 1 ]]; then
+    succeeded=true
+    break
+  fi
+  if [[ $(jq -r '.status.failed // 0' <<<"$status") -ge 1 ]]; then
+    kubectl -n "$ns" logs "job/$job" --all-containers --tail=30 >&2 || true
+    fail 'Copy job failed; target may contain partial data and must not be used'
+  fi
+  sleep 3
+done
+if ! $succeeded; then
   kubectl -n "$ns" logs "job/$job" --all-containers --tail=30 >&2 || true
-  fail 'Copy failed or timed out; target may contain partial data and must not be used'
+  fail 'Copy job timed out; target may contain partial data and must not be used'
 fi
 kubectl -n "$ns" logs "job/$job" --all-containers
