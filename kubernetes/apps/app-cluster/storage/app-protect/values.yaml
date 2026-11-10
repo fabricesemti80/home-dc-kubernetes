@@ -4,8 +4,10 @@ cluster: app-cluster
 apps:
 - name: sonarr
   namespace: media
-  node: k8s-wrkr-03
-  claim: sonarr
+  selector:
+    app.kubernetes.io/instance: sonarr
+    app.kubernetes.io/controller: sonarr
+  claim: sonarr-longhorn
   excludes: &id001
   - MediaCover
   - logs

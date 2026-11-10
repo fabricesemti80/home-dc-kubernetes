@@ -19,7 +19,7 @@ Recommended first settings:
 
 The pod mounts:
 
--   `/config` on a local-path ReadWriteOnce PVC
+-   `/config` on the retained Longhorn ReadWriteOnce PVC `sonarr-longhorn`; follow the [migration runbook](../../../../../docs/operations/local-path-to-longhorn.md#sonarr-cutover-planned) before cutover and retain the old claim for rollback.
 -   `/media` on the shared NFS library
 -   `/downloads` on the shared NFS completed-downloads path
 

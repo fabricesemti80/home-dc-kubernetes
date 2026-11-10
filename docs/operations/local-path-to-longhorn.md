@@ -28,11 +28,19 @@ After merge, sync Prowlarr and app-protect, confirm the UI/API and indexer searc
 
 **Observed outcome (#567):** Offline copy and copied SQLite integrity passed. Prowlarr started on `k8s-wrkr-01-gpu` with all four indexers and the Sonarr/Radarr connections; a live NZBgeek search returned 10 results. Longhorn volume `pvc-cf021a50-6fc3-40b2-9720-6028bc34d931` was healthy with three running replicas. Its protect job followed it; post-cutover snapshot `93d347ac0923` restored with SQLite integrity ok and four indexers. The old local-path claim and PV remain retained for rollback; Argo automation and the protect schedule were restored.
 
-### Jellyseerr cutover (planned)
+### Jellyseerr cutover (completed 2026-11-10)
 
 Migrate `media/jellyseerr` (2 GiB, local-path, retained) to the pre-created `media/jellyseerr-longhorn` (2 GiB, Longhorn, retained). Stop Jellyseerr before the complete offline copy; retain its UID/GID 1000 ownership and do not expose API keys or settings. A fresh `app-jellyseerr` backup and isolated SQLite restore are prerequisites. Pause `apps`, `jellyseerr` and `app-protect`, suspend `protect-jellyseerr`, annotate the old claim `Prune=false,Delete=false` and `IgnoreExtraneous`, then scale Jellyseerr to zero. Copy and verify with `scripts/longhorn-copy-offline.sh media jellyseerr jellyseerr-longhorn`; keep the writer stopped until cutover. This Deployment already uses `Recreate`.
 
 After merge, sync Jellyseerr and app-protect; verify its version, existing requests, default Sonarr/Radarr connections, three healthy replicas, and a fresh backup and restore. Resume the original protect schedule and Argo settings. Keep the old claim and PV for rollback and copy back newer data before reverting.
+
+**Observed outcome (#568):** The quiesced offline copy verified file contents, ownership, modes and symlinks. The copied SQLite database passed integrity checks with 12 requests and root ownership `1000:1000`. Seerr 3.5.1 started on `k8s-wrkr-01-gpu` with the same 12 request statuses and default Sonarr/Radarr connections. Longhorn volume `pvc-580c5547-2e14-4d18-a278-1e5bb44351bb` was healthy with three running replicas. Its protect job followed the pod; post-cutover snapshot `c8fd35fc0e27` restored with SQLite integrity ok and 12 requests. The old claim and PV remain retained; Argo automation and the backup schedule were restored.
+
+### Sonarr cutover (planned)
+
+Migrate `media/sonarr` (2 GiB, local-path, retained) to the pre-created `media/sonarr-longhorn` (2 GiB, Longhorn, retained). Confirm a fresh `app-sonarr` snapshot and isolated SQLite restore, then pause `apps`, `sonarr` and `app-protect` Argo reconciliation, suspend `protect-sonarr`, annotate the source PVC `Prune=false,Delete=false` and `IgnoreExtraneous`, and scale Sonarr to zero. Copy and verify the quiesced source with `scripts/longhorn-copy-offline.sh media sonarr sonarr-longhorn`. Keep the writer stopped until merge; patch the stopped Deployment strategy to `Recreate` with `rollingUpdate: null`, as in the Recyclarr example.
+
+After merge, sync Sonarr and app-protect, verify series, download clients and indexers without exposing API keys, three healthy replicas, and a fresh backup and isolated SQLite restore. Restore the protect schedule and Argo policies. Preserve the old claim and PV through soak; rollback requires stopping Sonarr and restoring newer Longhorn data to the retained source before reverting.
 
 ## Ground rules
 
