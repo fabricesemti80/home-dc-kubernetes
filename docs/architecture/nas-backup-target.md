@@ -50,10 +50,92 @@ Pre-merge retirement evidence: the preparation task completed against live infra
 
 Post-merge evidence (2026-10-29): both permanent Argo Applications are Synced/Healthy and both `backups/k8s-backup` claims are Bound. Their encrypted backup/check/restore probes passed and removed their test Jobs/repositories. The four retired Application registrations were removed without cascade because the parent's global `Prune=false` deliberately skipped them. Ordered live retirement completed: no remaining Kestra/KubeVirt runtime pods, KubeVirt/CDI CRDs or associated webhooks; both Kestra PVCs remain Bound to their original retained PVs. Kestra used its configured 360-second shutdown grace; the procedure now waits for pod deletion before checking completion and budgets at least the configured grace plus 60 seconds. Parent `apps` and all child Applications reported Healthy after convergence. These are target and retirement checks, not evidence of scheduled application backups.
 
+### Live reconciliation (2026-11-09, issue #555)
+
+Read-only check against infra-cluster, ~11 days after the retirement. Git
+registrations being gone was not taken as proof; each item below was queried.
+
+Removed (verified absent):
+
+-   No Kestra, VersityGW, KubeVirt, CDI or Manager pods in any namespace.
+-   No `*kubevirt*`/`*cdi*` CRDs, validating/mutating webhooks, APIServices,
+    ClusterRoles/ClusterRoleBindings or PriorityClasses.
+-   No Kestra/KubeVirt/CDI Argo Applications; all 56 Applications on the
+    Argo controller (app-cluster) are Synced/Healthy.
+-   No `DopplerSecret` CRs for Kestra/VersityGW remain in
+    `doppler-operator-system`.
+-   Namespaces have no `metadata.finalizers` and are `Active` (only the
+    standard `spec.finalizers: [kubernetes]`), so nothing is stuck.
+
+Operator-authorized cleanup (2026-11-09, done by the agent with the
+operator's explicit approval; Kubernetes objects only, no Talos or node
+changes, nothing in Doppler or on the NAS):
+
+| Step          | Deleted / changed                                                                                                                                                                                                                                                  | Evidence                                                                                                                                                                                                                                |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Node residue  | 511 `*.node.kubevirt.io/*` labels on infra-cp-01 and 327 on infra-wk-01; annotations `kubevirt.io/heartbeat` and `kubevirt.io/ksm-handler-managed` on both; `devices.kubevirt.io/{kvm,tun,vhost-net,sev}` from `status.capacity` and `status.allocatable` on both. | After 20 s: 0 KubeVirt labels, annotations and extended resources on either node; both nodes `Ready`.                                                                                                                                   |
+| Leases        | `kubevirt/{61e1d0f4.kubevirt.io,virt-controller,virt-operator}`, `cdi/{cdi-controller-leader-election-helper,cdi-operator-leader-election-helper}` (holders were long-gone pods).                                                                                  | Deleted; namespaces removed afterwards.                                                                                                                                                                                                 |
+| Stale Secrets | `kestra/{kestra-basic-auth,kestra-homelab-ops,kestra-postgres,versitygw-root}`; Pulse `DopplerSecret`s `doppler-operator-system/{pulse-agent-token,pulse-secrets}` and their `monitoring/{pulse-agent-token,pulse-secrets}` Secrets.                               | Before deletion: no pod or workload template, ConfigMap (Backrest/app-protect config), Argo Application or Git manifest referenced them; none had owners or finalizers. Afterwards: none listed. The Doppler projects were not touched. |
+| Namespaces    | `kubevirt`, `kubevirt-lab`, `kubevirt-manager`, `cdi`, `kestra`.                                                                                                                                                                                                   | All `NotFound`; no namespace `Terminating`. Both Kestra PVs are `Released` with `Retain`; local-path-provisioner logged no delete. All 56 Argo Applications Synced/Healthy afterwards.                                                  |
+
+Not deleted (no approval): the two Kestra PV objects and their directories,
+and the unrelated `Released` PV `pvc-7f6beb16-162f-4b3a-be3a-dd5f20e66542`
+(`ai/litellm-postgres`, `Retain`).
+
+Retained Kestra data (recorded 2026-11-09 before the `kestra` namespace was
+deleted; both PVs re-verified `persistentVolumeReclaimPolicy: Retain`
+immediately beforehand). The PV objects and on-disk directories are kept;
+only the namespace, and with it the two PVC objects, were removed.
+
+| PVC (former)              | PV                                         | Size | Node        | Directory (`hostPath`, `rancher.io/local-path`)                                                |
+| ------------------------- | ------------------------------------------ | ---- | ----------- | ---------------------------------------------------------------------------------------------- |
+| `kestra/data-versitygw-0` | `pvc-fd07c4d1-8b6e-41b4-b620-e7da2d24387b` | 20Gi | infra-cp-01 | `/var/local-path-provisioner/pvc-fd07c4d1-8b6e-41b4-b620-e7da2d24387b_kestra_data-versitygw-0` |
+| `kestra/kestra-postgres`  | `pvc-f966ded9-9ade-46a9-a226-878444653d1d` | 10Gi | infra-cp-01 | `/var/local-path-provisioner/pvc-f966ded9-9ade-46a9-a226-878444653d1d_kestra_kestra-postgres`  |
+
+Both were `ReadWriteOnce`, StorageClass `local-path`. The PV UIDs of the old
+claims equal the PV names after `pvc-`.
+
+#### Rebinding a retained Kestra PV (rollback)
+
+A `Released` PV keeps the deleted claim's UID in `spec.claimRef` and will not
+bind until that UID is cleared. local-path-provisioner never removes a
+`Retain` PV's directory.
+
+```sh
+export KUBECONFIG=.private/infra-cluster/kubeconfig
+PV=pvc-f966ded9-9ade-46a9-a226-878444653d1d   # or pvc-fd07c4d1-… for VersityGW
+kubectl get pv "$PV" -o jsonpath='{.spec.persistentVolumeReclaimPolicy} {.status.phase}{"\n"}'  # expect: Retain Released
+kubectl create namespace kestra
+# Keep claimRef namespace/name so only the original claim can bind; drop uid/resourceVersion.
+kubectl patch pv "$PV" --type=merge -p '{"spec":{"claimRef":{"uid":null,"resourceVersion":null}}}'
+kubectl apply -f - <<'YAML'
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: kestra-postgres          # or data-versitygw-0
+  namespace: kestra
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: local-path
+  volumeName: pvc-f966ded9-9ade-46a9-a226-878444653d1d
+  resources:
+    requests:
+      storage: 10Gi              # 20Gi for data-versitygw-0
+YAML
+kubectl -n kestra get pvc   # expect Bound to the same PV
+```
+
+The PV's node affinity pins any consumer to infra-cp-01. To read the data
+without redeploying Kestra, bind the PVC as above and mount it read-only in a
+throwaway pod; Talos has no host shell. Final data deletion (PV object and
+directory) needs separate approval.
+
 ## Next actions
 
 -   [x] Install retained NAS claims and verify encrypted target backup/restore on both clusters; move disposable smoke to non-root UID `1004`.
 -   [x] Retire the approved Kestra/KubeVirt/CDI/Manager workloads while preserving the two Kestra claims.
+-   [x] Remove retirement residue and the five namespaces, keeping both Kestra PVs `Retain`/`Released` (2026-11-09, #555).
+-   [ ] Decide whether to keep or delete the retained Kestra PVs and their directories (separate approval).
 -   [x] Verify root-only squash, UID `1004` encrypted target backup/restore and unrelated UID `65534` write denial on both clusters.
 -   [x] Deploy and verify the [Backrest replacement](backrest.md); complete database/original recovery checks and restore-gated legacy retirement on both clusters (2026-10-30).
 -   [ ] Add and restore-test an independent offsite copy; the NAS target is not offsite protection.

@@ -112,8 +112,9 @@ instances in `backups`, using pinned upstream Backrest v1.14.1. Internal UIs:
 `backrest.krapulax.home` and `backrest-infra.krapulax.home`.
 See the [Backrest runbook](../operations/backrest.md) for coverage and cutover gates.
 Kestra and the KubeVirt/CDI/Manager trial are removed from desired configuration.
-Their existing resources require the [ordered retirement procedure](../architecture/nas-backup-target.md#kestra--kubevirt-retirement);
-retained Kestra PVCs are intentional.
+Their runtime was removed by the [ordered retirement procedure](../architecture/nas-backup-target.md#kestra--kubevirt-retirement);
+its namespaces and leftovers were removed on 2026-11-09. Only the two Kestra PVs
+remain, `Released` with `Retain`, so they can be rebound (see that section).
 
 ---
 
