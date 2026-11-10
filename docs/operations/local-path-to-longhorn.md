@@ -4,6 +4,29 @@ One app at a time. The aim is an app whose data is no longer tied to one worker:
 
 Pilot: **freqtrade** (a dry-run trading bot with a ~100 KB SQLite database), worked example at the end.
 
+## Migration status (2026-11-10)
+
+Every app-cluster claim has been moved, one app per PR, with a quiesced offline copy (`scripts/longhorn-copy-offline.sh`) and its own backup, isolated restore and post-cutover verification. Tracking issue: [#552](https://github.com/fabricesemti80/home-dc-kubernetes/issues/552).
+
+| App               | Claims                                                            | PR   |
+| ----------------- | ----------------------------------------------------------------- | ---- |
+| freqtrade (pilot) | `freqtrade-data`                                                  | #537 |
+| Recyclarr         | `recyclarr`                                                       | #566 |
+| Prowlarr          | `prowlarr`                                                        | #567 |
+| Jellyseerr        | `jellyseerr`                                                      | #568 |
+| Sonarr            | `sonarr`                                                          | #569 |
+| Radarr            | `radarr`                                                          | #570 |
+| SABnzbd           | `sabnzbd`                                                         | #571 |
+| qBittorrent       | `qbittorrent`                                                     | #572 |
+| Jellyfin          | `jellyfin-config`, `jellyfin-cache`                               | #573 |
+| Immich            | `immich-postgres-data`, `immich-redis-data`, `immich-model-cache` | #574 |
+| Backrest          | `backrest`                                                        | #575 |
+| vmagent           | `persistent-queue-data-vmagent-…-0`                               | #576 |
+
+The 14 old local-path claims (all but freqtrade, whose volume was already removed) are **retained, `Bound`, annotated `Prune=false,Delete=false` and `IgnoreExtraneous`**, as the rollback copies. They are not deleted by this work. Deleting them needs the soak gate in [Deleting the old volume](#deleting-the-old-volume) and the operator's explicit approval; after deletion the rollback is Backrest only.
+
+They keep consuming space on each worker's 100 GiB `local-path` data disk (about 80 GiB of requests in total; the largest are Immich PostgreSQL 20 GiB, Jellyfin cache 20 GiB and the model cache 10 GiB), so check `df` on those disks before relying on the headroom. Because Argo no longer renders them, the `apps` parent shows them as extraneous; the `IgnoreExtraneous` annotation keeps `apps` `Synced` (checked 2026-11-10: `argocd app diff apps` empty).
+
 ### Recyclarr cutover (completed 2026-11-10)
 
 Migrate only Recyclarr in this change; all other workloads remain on their current claims. The operator selected one-at-a-time cutovers after Longhorn's first day of pilot soak. The source is `media/recyclarr` (1 GiB, local-path, `Retain`); the manually pre-created target is `media/recyclarr-longhorn` (1 GiB, Longhorn, `Retain`). Recyclarr is a Deployment on `k8s-wrkr-03`, not a Kubernetes CronJob. Its `protect-recyclarr` job currently reads the source on that node; after cutover it follows the Recyclarr pod using pod affinity.
@@ -86,9 +109,11 @@ Migrate `backups/backrest` (4 GiB; `/state` holds the generated `config.json`, t
 
 **Observed outcome (#575):** A fresh `backrest-config` snapshot restored with a `config.json` identical to the live state before the stop. The offline copy verified. Backrest started on `k8s-wrkr-03`; the Longhorn volume was healthy with three running replicas. A new native Immich export followed by an `immich-db` Backrest run produced a snapshot whose `captured-at` was the post-cutover export, proving Backrest and the export job share the new volume. Old claim retained.
 
-### vmagent queue cutover (planned)
+### vmagent queue cutover (completed 2026-11-10)
 
 Migrate the StatefulSet-owned queue claim `monitoring/persistent-queue-data-vmagent-vmagent-app-victoria-metrics-k8s-stack-0` (5 GiB) to a standalone `...-longhorn` claim. A StatefulSet `volumeClaimTemplate` is immutable and always yields the same claim name, so the VMAgent is switched to Deployment mode (`statefulMode` off) with `spec.volumes` naming the new claim as `persistent-queue-data`; the operator (v0.75.2) then mounts it at `/tmp/vmagent-remotewrite-data`. This was exercised on a disposable VMAgent before the cutover: the operator removed the old StatefulSet, created a Ready Deployment on the Longhorn claim, and left the old claim untouched. Queue contents are buffered samples only. Order: pause `apps` and `vmagent-app`, set `spec.paused: true` on the VMAgent so the operator does not recreate the StatefulSet, scale the StatefulSet to zero, annotate the old claim, copy with `scripts/longhorn-copy-offline.sh monitoring <old> <new>` (the claim root is the queue), merge, sync, then unpause. Verify the Deployment is Ready, the old StatefulSet is gone, remote write resumes (`vmagent_remotewrite_*` series on the infra VictoriaMetrics) and the queue backlog drains.
+
+**Observed outcome (#576):** The offline copy verified. The operator removed the old StatefulSet and the Deployment became Ready with `-remoteWrite.tmpDataPath=/tmp/vmagent-remotewrite-data` mounted from the Longhorn claim; the volume was healthy with three running replicas. Remote write returned 2XX (151 requests) with 0 pending bytes, 0 dropped packets and 0 retries. The old claim was left untouched. The control-plane scrape warnings (`10.0.40.90:10257` and `:10259`) in the vmagent log are not related to this change.
 
 ## Ground rules
 

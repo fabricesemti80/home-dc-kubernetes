@@ -53,11 +53,11 @@ This document provides an index of all applications deployed in the Kubernetes c
 
 ### 💾 storage
 
-The `local-path` provisioner supplies worker-local `ReadWriteOnce` volumes (the standard for app config/state).
+The app-cluster apps use Longhorn (`ReadWriteOnce`, 3 replicas) for config, state, caches and queues; the `local-path` provisioner only holds the retained pre-migration claims (rollback copies).
 
-| App      | Type          | Chart             | Port | Domain                 | Notes                                                                                                                                                         |
-| -------- | ------------- | ----------------- | ---- | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| longhorn | Block storage | longhorn/longhorn | 80   | longhorn.krapulax.home | Default StorageClass, 3 replicas on passthrough SSDs, internal UI only, manual sync, first app on it: freqtrade (pilot); [runbook](../operations/longhorn.md) |
+| App      | Type          | Chart             | Port | Domain                 | Notes                                                                                                                                                          |
+| -------- | ------------- | ----------------- | ---- | ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| longhorn | Block storage | longhorn/longhorn | 80   | longhorn.krapulax.home | Default StorageClass, 3 replicas on passthrough SSDs, internal UI only, manual sync, used by every app-cluster app claim; [runbook](../operations/longhorn.md) |
 
 ### 🔹 argo-system
 

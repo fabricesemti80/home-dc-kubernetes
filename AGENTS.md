@@ -68,25 +68,22 @@ Keep the documentation in step with the code **in the same change**.
 
 #### Configuration Storage
 
--   **Default**: Use `storageClass: local-path` for all config/configMaps PVCs on the app-cluster.
--   Volumes are node-local worker user volumes provisioned by the `local-path-provisioner`; they are bound to the worker that first consumes them.
--   Use `ReadWriteOnce` access mode and a `Retain` reclaim policy so PVC deletion preserves the underlying PV data for restore.
--   Keep workloads that share a volume co-located on the same worker; do not move a pod to another worker without restoring its data.
--   This applies to all namespaces unless explicitly justified otherwise.
--   Longhorn (`longhorn` StorageClass, the cluster default class) is available on the app-cluster. Only freqtrade (`freqtrade-data`, pilot) uses it so far; every other app stays on `local-path` until the pilot has soaked. Always set `storageClass` explicitly: leaving it empty silently selects Longhorn. Longhorn is a single-host failure domain and not a backup; see `docs/operations/longhorn.md` and, for moving an app, `docs/operations/local-path-to-longhorn.md`.
--   Example pattern:
+-   **Default**: Use an explicit `existingClaim` pointing at a Longhorn PVC (`storageClassName: longhorn`, declared in the app's `config/pvc-<name>-longhorn.yaml`) for config, state, caches and queues on the app-cluster. Declare the claim yourself with `Prune=false,Delete=false`: an app-template `persistence` entry with `storageClass` would be rendered with the chart and removed with it.
+-   Longhorn (`longhorn` StorageClass, the cluster default class) replicates each volume three times across the workers (single host failure domain, not a backup; see `docs/operations/longhorn.md`). All app-cluster app claims run on it since 2026-11-10. `local-path` remains only for the retained pre-migration claims (rollback copies) and for the physical infra-cluster. Always set `storageClass` explicitly: leaving it empty silently selects Longhorn.
+-   Use `ReadWriteOnce` access mode and a `Retain` reclaim policy so PVC deletion preserves the underlying PV data for restore. A ReadWriteOnce volume attaches to one node at a time: single-replica workloads use `strategy: Recreate`, and `app-protect` entries use `selector` (follow the pod), not `node`.
+-   Keep workloads that share a volume co-located; node pins that exist only for hardware (the Jellyfin GPU) stay.
+-   Moving an existing app between classes is never an in-place change: follow `docs/operations/local-path-to-longhorn.md` (offline copy with `scripts/longhorn-copy-offline.sh`, one app per PR, old claim retained).
+-   Example pattern (claim in `config/pvc-config-longhorn.yaml`):
     ```yaml
     persistence:
         config:
             type: persistentVolumeClaim
-            accessMode: ReadWriteOnce
-            storageClass: local-path
-            size: 2Gi
+            existingClaim: myapp-longhorn
     ```
 
 #### Shared Media and Downloads
 
--   **Media/downloads only**: Use the established `media-library-pvc` NFS share at `10.0.40.2:/media` for large shared files. Database and app configuration state stay on backed-up local worker volumes.
+-   **Media/downloads only**: Use the established `media-library-pvc` NFS share at `10.0.40.2:/media` for large shared files. Database and app configuration state stay on backed-up Longhorn volumes.
 -   **Never** create new PVs with `Delete` reclaim policy; use `Retain`.
 -   A PVC is namespace-scoped: provision a corresponding retained NFS claim in each namespace that needs media access.
 -   Example pattern:
@@ -105,7 +102,7 @@ Keep the documentation in step with the code **in the same change**.
                   subPath: downloads/complete
     ```
 
-**TARGET STATE**: App-cluster media app config/state PVCs use `local-path` (`ReadWriteOnce`, `Retain`). Apps that consume shared media or downloads also mount `media-library-pvc` (NFS). The separate physical infra-cluster's storage is unchanged.
+**TARGET STATE** (reached 2026-11-10): App-cluster config/state, cache and queue PVCs use Longhorn (`ReadWriteOnce`, `Retain`). Apps that consume shared media or downloads also mount `media-library-pvc` (NFS). The separate physical infra-cluster's storage is unchanged. The old local-path claims are kept until the soak ends (see issue #552).
 
 ### Backup Enrollment
 
