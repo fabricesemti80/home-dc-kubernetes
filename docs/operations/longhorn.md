@@ -2,7 +2,7 @@
 
 Design, assumptions and limits: [docs/architecture/longhorn.md](../architecture/longhorn.md).
 
-> **Status:** prepared in Git only. Nothing below has been run. Every step that changes the live host, VMs or cluster is an explicit operator action.
+> **Status:** rolled out on 2026-11-09 (steps 1-5 done; step 6, automated sync, still open). Every step that changes the live host, VMs or cluster is an explicit operator action.
 
 ## What you get, and what you do not
 
@@ -103,6 +103,15 @@ kubectl -n default delete pod/longhorn-smoke pvc/longhorn-smoke
 -   **Capacity:** keep volumes well below one SSD in total; Longhorn stops scheduling replicas on a disk below its minimal-available threshold. Failing SSD: the pending-sector SSD is the likeliest first failure; watch Node → Disk status and the SMART data of the SSD that reported 3 pending sectors (see the Proxmox PR's host inventory).
 -   **Upgrades:** Renovate bumps the chart version in `kubernetes/argo/apps/app-cluster/storage/longhorn.yaml`. Longhorn supports upgrades one minor at a time and requires healthy volumes; read the release notes, and upgrade engines afterwards.
 -   **First rollout (2026-11-09), what to expect:** each worker drained, upgraded (reboot) and then applied the config without a second reboot. After the apply the `u-longhorn` volume appears within seconds and the kubelet restarts once (extraMounts), so pods on that node restart again briefly; `longhorn-verify` therefore waits for the volumes, the mount and a healthy kubelet. The apps pinned to a worker by local-path volumes (Immich database on `k8s-wrkr-02`, Jellyfin on the GPU worker, the media managers on `k8s-wrkr-03`) were unavailable for the duration of that worker's reboot, a few minutes each. After the GPU worker's reboot the NVIDIA operator pods needed about two minutes to republish `nvidia.com/gpu`; Jellyfin stays `Pending` until then. Longhorn also creates a second, non-default `longhorn-static` StorageClass (reclaim `Delete`); it is chart-created and unused.
+
+### A worker is down (unplanned)
+
+`node-down-pod-deletion-policy` is `do-nothing` ([decision](../architecture/longhorn.md#node-down-pod-deletion-policy-decision-2026-11-10)): a pod with a Longhorn volume on a lost worker stays `Terminating` and its replacement waits in `ContainerCreating` until you act. Not tested yet on this cluster.
+
+1.  `KubernetesNodeNotReady` fires. Find the affected pods: `kubectl get pods -A -o wide --field-selector spec.nodeName=<node>`; Longhorn consumers are the claims with storage class `longhorn`.
+2.  **Fence first.** On `pve-00`, confirm the VM is stopped (`qm status <vmid>`: 4095 `k8s-wrkr-01-gpu`, 4096 `k8s-wrkr-02`, 4097 `k8s-wrkr-03`), or stop it. Do not continue while the VM may still be running: two writers corrupt the filesystem.
+3.  Force-delete only the stuck pod: `kubectl -n <ns> delete pod <pod> --force --grace-period=0`. The volume is reattached on a healthy worker and the replacement pod starts with the same data. The volume runs `degraded` on two replicas until the worker returns.
+4.  Start the VM, wait for the node to be `Ready` and the volume to return to `healthy` (the replica rebuilds).
 
 ## Rollback
 
