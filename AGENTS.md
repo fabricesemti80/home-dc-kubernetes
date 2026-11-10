@@ -102,7 +102,7 @@ Keep the documentation in step with the code **in the same change**.
                   subPath: downloads/complete
     ```
 
-**TARGET STATE** (reached 2026-11-10): App-cluster config/state, cache and queue PVCs use Longhorn (`ReadWriteOnce`, `Retain`). Apps that consume shared media or downloads also mount `media-library-pvc` (NFS). The separate physical infra-cluster's storage is unchanged. The old local-path claims are kept until the soak ends (see issue #552).
+**TARGET STATE** (reached 2026-11-10): App-cluster config/state, cache and queue PVCs use Longhorn (`ReadWriteOnce`, `Retain`). Apps that consume shared media or downloads also mount `media-library-pvc` (NFS). The separate physical infra-cluster's storage is unchanged. The old local-path claims were deleted on 2026-11-10 (see issue #578); rollback for an app is its Backrest restore.
 
 ### Backup Enrollment
 

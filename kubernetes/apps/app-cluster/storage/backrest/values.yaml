@@ -79,8 +79,8 @@ service:
         port: 9898
 persistence:
   state:
-    # Longhorn claim defined in config/pvc-state.yaml. The old local-path claim `backrest` is no longer
-    # rendered but is retained (Prune=false,Delete=false) as the rollback copy.
+    # Longhorn claim defined in config/pvc-state.yaml (the old local-path claim `backrest` was deleted on
+    # 2026-11-10; rollback is a Backrest restore).
     existingClaim: backrest-longhorn
     globalMounts:
     - path: /state

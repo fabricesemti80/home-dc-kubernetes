@@ -53,7 +53,7 @@ This document provides an index of all applications deployed in the Kubernetes c
 
 ### 💾 storage
 
-The app-cluster apps use Longhorn (`ReadWriteOnce`, 3 replicas) for config, state, caches and queues; the `local-path` provisioner only holds the retained pre-migration claims (rollback copies).
+The app-cluster apps use Longhorn (`ReadWriteOnce`, 3 replicas) for config, state, caches and queues. The `local-path` provisioner stays deployed but no app-cluster claim uses it any more (old claims deleted 2026-11-10).
 
 | App      | Type          | Chart             | Port | Domain                 | Notes                                                                                                                                                          |
 | -------- | ------------- | ----------------- | ---- | ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
