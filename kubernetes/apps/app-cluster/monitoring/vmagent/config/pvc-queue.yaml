@@ -1,0 +1,21 @@
+---
+# Longhorn replacement for the StatefulSet-owned local-path claim
+# `persistent-queue-data-vmagent-vmagent-app-victoria-metrics-k8s-stack-0` (vmagent persistent remote-write queue).
+# A StatefulSet volumeClaimTemplate is immutable and always yields the same claim name, so the VMAgent is switched
+# to Deployment mode (statefulMode off) and mounts this standalone claim as volume persistent-queue-data; see values.yaml.
+# Same size (5Gi). Populate it from the old claim while vmagent is stopped BEFORE syncing the cutover.
+# Prune=false,Delete=false: neither removing this file nor deleting the Application may delete the volume.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: persistent-queue-data-vmagent-vmagent-app-victoria-metrics-k8s-stack-0-longhorn
+  namespace: monitoring
+  annotations:
+    argocd.argoproj.io/sync-options: Prune=false,Delete=false
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: longhorn
+  resources:
+    requests:
+      storage: 5Gi

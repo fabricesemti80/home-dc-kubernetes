@@ -72,16 +72,18 @@ vmagent:
         - key: app.kubernetes.io/name
           operator: NotIn
           values: [metrics-server]
-    statefulMode: true
-    statefulStorage:
-      volumeClaimTemplate:
-        spec:
-          storageClassName: local-path
-          accessModes:
-            - ReadWriteOnce
-          resources:
-            requests:
-              storage: 5Gi
+    # Deployment mode on a standalone Longhorn claim. A StatefulSet volumeClaimTemplate is immutable and its claim
+    # name (persistent-queue-data-<pod>) would re-bind the old local-path claim, so statefulMode is off. The
+    # operator uses a user-supplied volume named `persistent-queue-data` instead of its emptyDir and mounts it at
+    # /tmp/vmagent-remotewrite-data (the -remoteWrite.tmpDataPath it sets itself).
+    # RWO volume: never surge, stop the old pod before starting the new one.
+    rollingUpdate:
+      maxSurge: 0
+      maxUnavailable: 1
+    volumes:
+      - name: persistent-queue-data
+        persistentVolumeClaim:
+          claimName: persistent-queue-data-vmagent-vmagent-app-victoria-metrics-k8s-stack-0-longhorn
     remoteWriteSettings:
       maxDiskUsagePerURL: 4GiB
       label:
