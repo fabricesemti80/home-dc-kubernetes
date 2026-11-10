@@ -52,11 +52,19 @@ After merge, sync Radarr and app-protect, verify movies, download clients and in
 
 **Observed outcome (#570):** The quiesced offline copy and copied SQLite integrity passed with 57 movies. Radarr started on `k8s-wrkr-03` with 57 movies, one download client and three indexers. Longhorn volume `pvc-2c90dee3-c35e-4077-8ae3-ecd8327adc90` was healthy with three running replicas. Its protect job followed the pod; post-cutover snapshot `731ac5bb5cf3` restored with SQLite integrity ok and 57 movies. The old claim and PV remain retained; Argo automation and the backup schedule were restored.
 
-### SABnzbd cutover (planned)
+### SABnzbd cutover (completed 2026-11-10)
 
 Migrate `media/sabnzbd` (2 GiB, local-path, retained) to pre-created `media/sabnzbd-longhorn` (2 GiB, Longhorn, retained); shared NFS downloads remain unchanged. Confirm a fresh `app-sabnzbd` backup and isolated restore and record queue status without exposing API keys. Pause `apps`, `sabnzbd` and `app-protect`, suspend `protect-sabnzbd`, annotate the source PVC `Prune=false,Delete=false` and `IgnoreExtraneous`, and scale SABnzbd to zero. Copy the quiesced source with `scripts/longhorn-copy-offline.sh media sabnzbd sabnzbd-longhorn`; verify contents and keep the writer stopped until merge. Patch the stopped Deployment strategy to `Recreate` with `rollingUpdate: null`, as in the Recyclarr example.
 
 After merge, sync SABnzbd and app-protect, verify the API and queue, three healthy replicas, and a fresh backup and isolated restore. Restore the protect schedule and Argo settings. Preserve the old claim and PV through soak; rollback requires stopping SABnzbd and restoring newer Longhorn data to the retained source before reverting.
+
+**Observed outcome (#571):** Offline copy verified; copied history database passed integrity checks. SABnzbd started on `k8s-wrkr-03` with API responding and an empty idle queue. Longhorn volume `pvc-d30b8324-965c-4b16-bdc7-0063b8d90c2f` was healthy with three running replicas. Its protect job followed the pod; post-cutover snapshot `c20c60fcfd34` restored with matching configuration and history integrity ok. The old claim and PV remain retained; Argo automation and the backup schedule were restored.
+
+### qBittorrent cutover (planned)
+
+Migrate `media/qbittorrent` (2 GiB, local-path, retained) to pre-created `media/qbittorrent-longhorn` (2 GiB, Longhorn, retained); the shared NFS downloads and the `qbittorrent-peer` LoadBalancer (10.0.40.104, `externalTrafficPolicy: Cluster`) are unchanged, so dropping the node pin is safe. Record the torrent count and states through the WebUI API without printing the password. Pause `apps`, `qbittorrent` and `app-protect`, suspend `protect-qbittorrent`, annotate the source PVC `Prune=false,Delete=false` and `IgnoreExtraneous`, scale qBittorrent to zero (torrents pause; partial data lives on NFS) and copy with `scripts/longhorn-copy-offline.sh media qbittorrent qbittorrent-longhorn`. It holds `qBittorrent.conf`, the queue settings changed on 2026-11-10 and resume data, none of it SQLite; compare file counts and the preference values after cutover. This Deployment already uses `Recreate`.
+
+After merge, sync qBittorrent and app-protect, verify the torrent count matches, the Sonarr download client test passes, three healthy replicas, and a fresh backup and isolated restore of `qBittorrent.conf`. Restore the protect schedule and Argo settings. Preserve the old claim through soak.
 
 ## Ground rules
 

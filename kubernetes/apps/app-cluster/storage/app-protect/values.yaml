@@ -50,8 +50,10 @@ apps:
   schedule: 20 1 * * *
 - name: qbittorrent
   namespace: media
-  node: k8s-wrkr-03
-  claim: qbittorrent
+  selector:
+    app.kubernetes.io/instance: qbittorrent
+    app.kubernetes.io/controller: qbittorrent
+  claim: qbittorrent-longhorn
   excludes:
   - logs
   schedule: 25 1 * * *
