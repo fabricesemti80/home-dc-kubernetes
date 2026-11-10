@@ -20,8 +20,10 @@ apps:
   schedule: 5 1 * * *
 - name: prowlarr
   namespace: media
-  node: k8s-wrkr-03
-  claim: prowlarr
+  selector:
+    app.kubernetes.io/instance: prowlarr
+    app.kubernetes.io/controller: prowlarr
+  claim: prowlarr-longhorn
   excludes: *id001
   schedule: 10 1 * * *
 - name: jellyseerr

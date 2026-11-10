@@ -1,0 +1,20 @@
+---
+# Longhorn replacement for the local-path PVC `prowlarr` (see docs/architecture/longhorn.md).
+# The old claim and its retained PV are NOT touched: the data is copied in while the
+# writer is stopped, and values.yaml mounts this claim via existingClaim.
+# Prune=false,Delete=false: removing this file or the Application must never delete the volume.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: prowlarr-longhorn
+  namespace: media
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+    argocd.argoproj.io/sync-options: Prune=false,Delete=false
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: longhorn
+  resources:
+    requests:
+      storage: 2Gi

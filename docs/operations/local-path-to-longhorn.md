@@ -4,7 +4,7 @@ One app at a time. The aim is an app whose data is no longer tied to one worker:
 
 Pilot: **freqtrade** (a dry-run trading bot with a ~100 KB SQLite database), worked example at the end.
 
-### Recyclarr cutover (planned)
+### Recyclarr cutover (completed 2026-11-10)
 
 Migrate only Recyclarr in this change; all other workloads remain on their current claims. The operator selected one-at-a-time cutovers after Longhorn's first day of pilot soak. The source is `media/recyclarr` (1 GiB, local-path, `Retain`); the manually pre-created target is `media/recyclarr-longhorn` (1 GiB, Longhorn, `Retain`). Recyclarr is a Deployment on `k8s-wrkr-03`, not a Kubernetes CronJob. Its `protect-recyclarr` job currently reads the source on that node; after cutover it follows the Recyclarr pod using pod affinity.
 
@@ -17,6 +17,14 @@ kubectl -n media patch deployment recyclarr --type=merge -p '{"spec":{"strategy"
 ```
 
 After merge, sync Recyclarr and app-protect, confirm the workload starts with the copied data, verify the Longhorn volume has three healthy replicas, run a fresh `protect-recyclarr` export and `app-recyclarr` Backrest backup and restore, then resume the original scheduling and auto-sync policies. Preserve the old volume for a multi-day soak. For rollback, stop writers, restore newer Longhorn data if needed, and retain or rebind the old source claim _before_ reverting as described below; never let Argo create an empty replacement.
+
+**Observed outcome (#566):** The offline copy verified file contents, ownership, permissions and symlinks. Recyclarr started on `k8s-wrkr-01-gpu`; Longhorn volume `pvc-420ba2a5-fd50-4097-9f8f-8da65ed3dbed` was healthy with three running replicas. Its protect job followed it onto that node. Post-cutover Backrest snapshot `b1113a214c8b` restored successfully; restored settings and Sonarr/Radarr mapping files matched the new export. The original local-path claim remains Bound to retained PV `pvc-ac77dff5-a8a0-4f18-b180-e2dc0a26aade`, with `Prune=false,Delete=false` and `IgnoreExtraneous`; do not delete it during the soak. Argo automation and the protect schedule were restored.
+
+### Prowlarr cutover (planned)
+
+Migrate only `media/prowlarr` (2 GiB, local-path, retained) to the pre-created `media/prowlarr-longhorn` (2 GiB, Longhorn, retained). Prowlarr contains SQLite state and indexer credentials: do not expose files or API keys when checking it. Confirm a fresh `app-prowlarr` backup and isolated SQLite restore before stopping it. Pause the `apps`, `prowlarr` and `app-protect` Argo Applications, suspend `protect-prowlarr`, annotate the source PVC `Prune=false,Delete=false`, and scale Prowlarr to zero. Run `scripts/longhorn-copy-offline.sh media prowlarr prowlarr-longhorn`; keep the writer stopped until the copy and its integrity checks pass. Patch the stopped Deployment strategy to `Recreate` with `rollingUpdate: null`, as in the Recyclarr example, before merging.
+
+After merge, sync Prowlarr and app-protect, confirm the UI/API and indexer searches work without printing credentials, verify three healthy Longhorn replicas and take and restore a new `app-prowlarr` backup. Resume the protect schedule and original Argo settings. Preserve the old local-path claim and PV through a multi-day soak. Rollback requires quiescing Prowlarr and copying back any newer data before reverting; never allow a revert to provision an empty old claim.
 
 ## Ground rules
 
