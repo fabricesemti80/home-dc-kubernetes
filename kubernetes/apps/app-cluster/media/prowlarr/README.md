@@ -22,4 +22,4 @@ For download categories, library paths and the full connection order, see [the m
 
 The pod mounts:
 
--   `/config` on the retained Longhorn ReadWriteOnce PVC `prowlarr-longhorn`. Follow the [migration runbook](../../../../../docs/operations/local-path-to-longhorn.md#prowlarr-cutover-planned) before merging the cutover; retain the previous local-path claim for rollback.
+-   `/config` on the retained Longhorn ReadWriteOnce PVC `prowlarr-longhorn`; see the [migration record](../../../../../docs/operations/local-path-to-longhorn.md#prowlarr-cutover-completed-2026-11-10). The previous local-path claim is retained for rollback.

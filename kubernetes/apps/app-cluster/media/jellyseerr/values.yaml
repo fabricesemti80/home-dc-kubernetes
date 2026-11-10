@@ -4,10 +4,7 @@ global:
 
 defaultPodOptions:
   automountServiceAccountToken: false
-  nodeSelector:
-    kubernetes.io/hostname: k8s-wrkr-03
-  # The Seerr image runs as the non-root `node` user (UID 1000). fsGroup does not
-  # chown hostPath-backed local-path volumes, so the init container below does.
+  # Keep the permission fix for copied config files owned by the non-root node user.
   securityContext:
     runAsUser: 1000
     runAsGroup: 1000
@@ -91,8 +88,6 @@ service:
 persistence:
   config:
     type: persistentVolumeClaim
-    accessMode: ReadWriteOnce
-    storageClass: local-path
-    size: 2Gi
+    existingClaim: jellyseerr-longhorn
     globalMounts:
       - path: /app/config

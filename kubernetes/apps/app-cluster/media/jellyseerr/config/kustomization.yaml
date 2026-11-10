@@ -4,3 +4,4 @@ kind: Kustomization
 resources:
   - ./http-route.yaml
   - ./http-route-internal.yaml
+  - ./pvc-config-longhorn.yaml
