@@ -61,16 +61,9 @@ Nine pods on `k8s-wrkr-03` are tied to node-local volumes. The largest are `immi
 -   move one app per change, keep the old volume (`Retain`) until the app is verified, and document rollback;
 -   re-check node requests with the corrected dashboard (`docs/architecture/workload-placement.md`) before and after.
 
-## 🐘 Upgrade the Immich database from PostgreSQL 14 (final release 2026-11-12)
+## 🐘 Immich database: PostgreSQL 14 → 16 (done 2026-11-10, before the 2026-11-12 final release)
 
-`kubernetes/apps/app-cluster/media/immich/values.yaml` runs `ghcr.io/immich-app/postgres:14-vectorchord0.4.3-pgvectors0.2.0`. PostgreSQL 14's final release is **2026-11-12** (postgresql.org versioning policy, checked 2026-11-04). Renovate proposes `16-vectorchord0.4.3-pgvectors0.2.0`, but a major-version tag bump cannot start on the existing data directory (`immich-postgres-data`), so it must not be merged as a plain image update.
-
-### 🔹 Completion criteria
-
--   take a fresh logical export with the `immich-db` Backrest plan and prove a restore into a scratch PostgreSQL 16 instance of the same image family;
--   follow Immich's supported upgrade path for the VectorChord image and check the extension versions after the restore (`vchord`, `vector`);
--   run the cutover in a window: stop Immich, restore into a new volume, switch the image, verify search, ML jobs and the external-library scan, keep the old volume (`Retain`) until verified;
--   document rollback (old image and old volume) and update `docs/cluster/database-backups.md`.
+Done: see [the operations note](operations/2026-11-10-immich-postgres-16.md). Remaining: delete the PG14 rollback volume `immich-postgres-data-longhorn` after a few days of normal running (and its entry in `kubernetes/apps/app-cluster/media/immich/config/kustomization.yaml`).
 
 ## 🎞️ Plan the Jellyfin 12 upgrade
 

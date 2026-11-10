@@ -1,0 +1,20 @@
+---
+# PostgreSQL 16 data directory for Immich (see docs/operations/2026-11-10-immich-postgres-16.md).
+# A fresh claim: a major-version image cannot start on the PG14 data directory. The PG14 claim
+# `immich-postgres-data-longhorn` is kept untouched as the rollback volume.
+# Prune=false,Delete=false: removing this file or the Application must never delete the volume.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: immich-postgres16-data-longhorn
+  namespace: media
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+    argocd.argoproj.io/sync-options: Prune=false,Delete=false
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: longhorn
+  resources:
+    requests:
+      storage: 20Gi
