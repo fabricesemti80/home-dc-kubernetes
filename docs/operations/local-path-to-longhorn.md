@@ -25,7 +25,11 @@ Every app-cluster claim has been moved, one app per PR, with a quiesced offline 
 
 The 14 old local-path claims (all but freqtrade, whose volume was already removed) are **retained, `Bound`, annotated `Prune=false,Delete=false` and `IgnoreExtraneous`**, as the rollback copies. They are not deleted by this work. Deleting them needs the soak gate in [Deleting the old volume](#deleting-the-old-volume) and the operator's explicit approval; after deletion the rollback is Backrest only.
 
-They keep consuming space on each worker's 100 GiB `local-path` data disk (about 80 GiB of requests in total; the largest are Immich PostgreSQL 20 GiB, Jellyfin cache 20 GiB and the model cache 10 GiB), so check `df` on those disks before relying on the headroom. Because Argo no longer renders them, the `apps` parent shows them as extraneous; the `IgnoreExtraneous` annotation keeps `apps` `Synced` (checked 2026-11-10: `argocd app diff apps` empty).
+They keep their space on each worker's 100 GiB `local-path` data disk. Requested per node (sum of the bound claims): `k8s-wrkr-01-gpu` 25 GiB, `k8s-wrkr-02` 27 GiB, `k8s-wrkr-03` 27 GiB (about 79 GiB across the three workers, not per disk). Measured usage on 2026-11-10 (`talosctl usage /var/mnt/local-path-provisioner`) is far lower: about 1 MB, 0.33 GB and 1.15 GB. There is ample headroom, so keeping them through the soak is not a capacity concern. Because Argo no longer renders them, the `apps` parent shows them as extraneous; the `IgnoreExtraneous` annotation keeps `apps` `Synced` (checked 2026-11-10: `argocd app diff apps` empty).
+
+### Failover test (2026-11-10)
+
+Planned-maintenance path, as for the freqtrade pilot: `k8s-wrkr-03` cordoned and the pods of the three movable apps on it deleted (radarr, sabnzbd, qBittorrent). All three restarted on the other workers (`k8s-wrkr-01-gpu`, `k8s-wrkr-02`) within about a minute, with their data: Radarr's library, SABnzbd idle and qBittorrent's 12 torrents; all 15 Longhorn volumes stayed `attached`/`healthy`. The node was then uncordoned. Not covered: pods that are still pinned (Immich, Backrest, the Immich ML pod, Jellyfin for the GPU) and an unplanned worker failure, which with `node-down-pod-deletion-policy: do-nothing` needs the operator to fence the VM and force-delete the pods ([operations](longhorn.md#a-worker-is-down-unplanned)).
 
 ### Recyclarr cutover (completed 2026-11-10)
 
