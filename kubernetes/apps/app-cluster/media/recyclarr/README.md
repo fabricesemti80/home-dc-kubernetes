@@ -19,7 +19,7 @@ Current intent:
 -   Radarr gets a `Movies 1080p` profile
 -   movie quality definitions are tightened so obviously bogus tiny grabs are rejected by minimum size rules
 
-Storage: `/config` uses the retained Longhorn claim `recyclarr-longhorn`. The old local-path claim is retained during soak; see [the migration record](../../../../../docs/operations/local-path-to-longhorn.md#recyclarr-cutover-completed-2026-11-10).
+Storage: `/config` uses the Longhorn claim `recyclarr-longhorn`; see [the migration record](../../../../../docs/operations/local-path-to-longhorn.md#recyclarr-cutover-completed-2026-11-10). The old local-path claim was deleted on 2026-11-10.
 
 Validation:
 

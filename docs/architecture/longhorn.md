@@ -1,6 +1,6 @@
 # Longhorn on the app-cluster
 
-**Status:** live since 2026-11-09 (rollout done, Argo Application still on manual sync). Every app-cluster app claim runs on it since 2026-11-10: freqtrade (pilot) and the 14 claims migrated one app at a time (see [#552](https://github.com/fabricesemti80/home-dc-kubernetes/issues/552) and the [runbook](../operations/local-path-to-longhorn.md)). The old local-path claims are retained for rollback. Soak in progress, see [#551](https://github.com/fabricesemti80/home-dc-kubernetes/issues/551).
+**Status:** live since 2026-11-09 (rollout done, Argo Application still on manual sync). Every app-cluster app claim runs on it since 2026-11-10: freqtrade (pilot) and the 14 claims migrated one app at a time (see [#552](https://github.com/fabricesemti80/home-dc-kubernetes/issues/552) and the [runbook](../operations/local-path-to-longhorn.md)). The old local-path claims were deleted on 2026-11-10 (rollback is Backrest only). Soak of the Longhorn side continues, see [#551](https://github.com/fabricesemti80/home-dc-kubernetes/issues/551).
 
 ## Problem
 

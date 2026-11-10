@@ -20,7 +20,7 @@ Storage layout:
     -   `subPath: immich/library`
     -   mounted read-only
 -   PostgreSQL, Redis, and ML cache
-    -   Longhorn ReadWriteOnce PVCs `immich-postgres-data-longhorn`, `immich-redis-data-longhorn`, `immich-model-cache-longhorn`; the old local-path claims are retained for rollback, see [the migration record](../../../../../docs/operations/local-path-to-longhorn.md#immich-cutover-planned)
+    -   Longhorn ReadWriteOnce PVCs `immich-postgres-data-longhorn`, `immich-redis-data-longhorn`, `immich-model-cache-longhorn`; the old local-path claims were deleted on 2026-11-10, see [the migration record](../../../../../docs/operations/local-path-to-longhorn.md#immich-cutover-completed-2026-11-10)
 
 Controller note:
 
