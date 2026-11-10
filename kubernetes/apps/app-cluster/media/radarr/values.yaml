@@ -4,12 +4,10 @@ global:
 
 defaultPodOptions:
   automountServiceAccountToken: false
-  nodeSelector:
-    kubernetes.io/hostname: k8s-wrkr-03
 
 controllers:
   radarr:
-    strategy: RollingUpdate
+    strategy: Recreate
     containers:
       app:
         image:
@@ -52,9 +50,7 @@ service:
 persistence:
   config:
     type: persistentVolumeClaim
-    accessMode: ReadWriteOnce
-    storageClass: local-path
-    size: 2Gi
+    existingClaim: radarr-longhorn
     globalMounts:
       - path: /config
   media:

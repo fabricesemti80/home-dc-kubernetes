@@ -16,8 +16,10 @@ apps:
   schedule: 0 1 * * *
 - name: radarr
   namespace: media
-  node: k8s-wrkr-03
-  claim: radarr
+  selector:
+    app.kubernetes.io/instance: radarr
+    app.kubernetes.io/controller: radarr
+  claim: radarr-longhorn
   excludes: *id001
   schedule: 5 1 * * *
 - name: prowlarr
