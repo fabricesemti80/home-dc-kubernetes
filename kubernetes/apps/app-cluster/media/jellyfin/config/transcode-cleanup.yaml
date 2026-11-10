@@ -20,6 +20,9 @@ spec:
         spec:
           restartPolicy: OnFailure
           automountServiceAccountToken: false
+          # A Longhorn volume attaches to one node at a time: run where Jellyfin runs (GPU pin).
+          nodeSelector:
+            kubernetes.io/hostname: k8s-wrkr-01-gpu
           containers:
             - name: cleanup
               image: busybox:1.38
@@ -43,4 +46,4 @@ spec:
           volumes:
             - name: cache
               persistentVolumeClaim:
-                claimName: jellyfin-cache
+                claimName: jellyfin-cache-longhorn

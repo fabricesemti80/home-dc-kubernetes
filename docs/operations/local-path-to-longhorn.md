@@ -60,11 +60,17 @@ After merge, sync SABnzbd and app-protect, verify the API and queue, three healt
 
 **Observed outcome (#571):** Offline copy verified; copied history database passed integrity checks. SABnzbd started on `k8s-wrkr-03` with API responding and an empty idle queue. Longhorn volume `pvc-d30b8324-965c-4b16-bdc7-0063b8d90c2f` was healthy with three running replicas. Its protect job followed the pod; post-cutover snapshot `c20c60fcfd34` restored with matching configuration and history integrity ok. The old claim and PV remain retained; Argo automation and the backup schedule were restored.
 
-### qBittorrent cutover (planned)
+### qBittorrent cutover (completed 2026-11-10)
 
 Migrate `media/qbittorrent` (2 GiB, local-path, retained) to pre-created `media/qbittorrent-longhorn` (2 GiB, Longhorn, retained); the shared NFS downloads and the `qbittorrent-peer` LoadBalancer (10.0.40.104, `externalTrafficPolicy: Cluster`) are unchanged, so dropping the node pin is safe. Record the torrent count and states through the WebUI API without printing the password. Pause `apps`, `qbittorrent` and `app-protect`, suspend `protect-qbittorrent`, annotate the source PVC `Prune=false,Delete=false` and `IgnoreExtraneous`, scale qBittorrent to zero (torrents pause; partial data lives on NFS) and copy with `scripts/longhorn-copy-offline.sh media qbittorrent qbittorrent-longhorn`. It holds `qBittorrent.conf`, the queue settings changed on 2026-11-10 and resume data, none of it SQLite; compare file counts and the preference values after cutover. This Deployment already uses `Recreate`.
 
 After merge, sync qBittorrent and app-protect, verify the torrent count matches, the Sonarr download client test passes, three healthy replicas, and a fresh backup and isolated restore of `qBittorrent.conf`. Restore the protect schedule and Argo settings. Preserve the old claim through soak.
+
+**Observed outcome (#572):** Offline copy verified. qBittorrent started with the same 12 torrents and queue preferences; Sonarr reported no download-client health issues. Longhorn volume was healthy with three running replicas, the protect job ran on the pod's node and the post-cutover snapshot restored with a matching `qBittorrent.conf`. The node pin was dropped; the old claim and PV remain retained.
+
+### Jellyfin cutover (planned)
+
+Migrate `media/jellyfin-config` (5 GiB, 1.9 GB used, SQLite library state) and `media/jellyfin-cache` (20 GiB, empty) to pre-created `jellyfin-config-longhorn` and `jellyfin-cache-longhorn`. The GPU node pin and `runtimeClassName: nvidia` **stay** (they exist for the NVIDIA GPU, not for local-path). The weekly `jellyfin-transcode-cleanup` CronJob now mounts the Longhorn cache claim and is pinned to the GPU node so it can attach the volume. Suspend `protect-jellyfin` and `jellyfin-transcode-cleanup`, pause `apps`, `jellyfin` and `app-protect`, annotate both source PVCs, scale Jellyfin to zero and copy each claim with `scripts/longhorn-copy-offline.sh`. Verify the copied SQLite databases and the media library counts after cutover, and that hardware transcoding still works.
 
 ## Ground rules
 
