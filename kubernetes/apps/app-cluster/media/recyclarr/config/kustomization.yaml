@@ -4,3 +4,4 @@ kind: Kustomization
 resources:
   - ./doppler-secret.yaml
   - ./recyclarr-configmap.yaml
+  - ./pvc-config-longhorn.yaml

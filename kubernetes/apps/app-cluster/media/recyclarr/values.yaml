@@ -4,7 +4,7 @@ global:
 
 controllers:
   recyclarr:
-    strategy: RollingUpdate
+    strategy: Recreate
     annotations:
       reloader.stakater.com/auto: "true"
     containers:
@@ -37,15 +37,11 @@ defaultPodOptions:
     runAsUser: 0
     runAsGroup: 0
     fsGroup: 0
-  nodeSelector:
-    kubernetes.io/hostname: k8s-wrkr-03
 
 persistence:
   config:
     type: persistentVolumeClaim
-    accessMode: ReadWriteOnce
-    storageClass: local-path
-    size: 1Gi
+    existingClaim: recyclarr-longhorn
     globalMounts:
       - path: /config
   config-file:

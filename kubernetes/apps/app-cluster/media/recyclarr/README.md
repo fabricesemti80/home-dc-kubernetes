@@ -19,6 +19,8 @@ Current intent:
 -   Radarr gets a `Movies 1080p` profile
 -   movie quality definitions are tightened so obviously bogus tiny grabs are rejected by minimum size rules
 
+Storage: `/config` uses the retained Longhorn claim `recyclarr-longhorn`. The old local-path claim is retained during cutover and soak; follow [the migration runbook](../../../../../docs/operations/local-path-to-longhorn.md#recyclarr-cutover-planned) before merging the cutover.
+
 Validation:
 
 -   check the pod logs for successful Sonarr and Radarr sync runs

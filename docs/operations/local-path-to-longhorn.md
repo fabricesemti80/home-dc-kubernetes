@@ -4,6 +4,20 @@ One app at a time. The aim is an app whose data is no longer tied to one worker:
 
 Pilot: **freqtrade** (a dry-run trading bot with a ~100 KB SQLite database), worked example at the end.
 
+### Recyclarr cutover (planned)
+
+Migrate only Recyclarr in this change; all other workloads remain on their current claims. The operator selected one-at-a-time cutovers after Longhorn's first day of pilot soak. The source is `media/recyclarr` (1 GiB, local-path, `Retain`); the manually pre-created target is `media/recyclarr-longhorn` (1 GiB, Longhorn, `Retain`). Recyclarr is a Deployment on `k8s-wrkr-03`, not a Kubernetes CronJob. Its `protect-recyclarr` job currently reads the source on that node; after cutover it follows the Recyclarr pod using pod affinity.
+
+**Pre-merge gate:** confirm a recent successful `app-recyclarr` snapshot and healthy Longhorn nodes, pause `apps`, `recyclarr` and `app-protect` auto-sync, suspend `protect-recyclarr`, stop Recyclarr, and copy the complete quiesced source to the unused Longhorn target with `scripts/longhorn-copy-offline.sh media recyclarr recyclarr-longhorn`. Verify the copy and keep the source claim and PV (`Retain`, `Prune=false,Delete=false`). Do not merge until the verified copy exists and the source remains stopped. This offline final copy avoids the write-loss window in the earlier export-based procedure.
+
+While Recyclarr remains scaled to zero and Argo is paused, atomically remove the live Deployment's defaulted RollingUpdate fields when setting Recreate; otherwise Argo server-side diff rejects the strategy change:
+
+```sh
+kubectl -n media patch deployment recyclarr --type=merge -p '{"spec":{"strategy":{"type":"Recreate","rollingUpdate":null}}}'
+```
+
+After merge, sync Recyclarr and app-protect, confirm the workload starts with the copied data, verify the Longhorn volume has three healthy replicas, run a fresh `protect-recyclarr` export and `app-recyclarr` Backrest backup and restore, then resume the original scheduling and auto-sync policies. Preserve the old volume for a multi-day soak. For rollback, stop writers, restore newer Longhorn data if needed, and retain or rebind the old source claim _before_ reverting as described below; never let Argo create an empty replacement.
+
 ## Ground rules
 
 -   **Argo CD auto-syncs with prune and self-heal.** Anything merged to `main` goes live within minutes. The order below exists because of that: the empty target volume is merged first, the data is copied while the old app keeps running, and only then does a second change switch the app over.
