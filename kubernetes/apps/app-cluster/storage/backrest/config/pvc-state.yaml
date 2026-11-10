@@ -1,0 +1,19 @@
+---
+# Longhorn replacement for the local-path claim `backrest` (created by the app-template `state`
+# persistence entry). values.yaml mounts it via existingClaim. Same size (4Gi). Populate it from the old claim
+# while Backrest is stopped BEFORE merging/syncing the cutover; see docs/operations/local-path-to-longhorn.md.
+# Prune=false,Delete=false: neither removing this file nor deleting the Application may delete the volume.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: backrest-longhorn
+  namespace: backups
+  annotations:
+    argocd.argoproj.io/sync-options: Prune=false,Delete=false
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: longhorn
+  resources:
+    requests:
+      storage: 4Gi

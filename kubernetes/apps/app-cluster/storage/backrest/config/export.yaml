@@ -78,7 +78,7 @@ spec:
           volumes:
           - name: state
             persistentVolumeClaim:
-              claimName: backrest
+              claimName: backrest-longhorn
           - name: runtime
             configMap:
               name: backrest-runtime
