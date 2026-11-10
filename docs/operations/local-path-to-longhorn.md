@@ -131,7 +131,7 @@ Stop it from writing further, then bring the old data back without creating a cl
 2.  Done 2026-11-09: `scripts/longhorn-migrate-copy.sh trading freqtrade freqtrade-data 1000 1000` (export captured 09:57 UTC; the table row counts of the copy matched the live database, files owned by `1000:1000`, write test as uid 1000 ok).
 3.  Cutover PR (this change): in `values.yaml` replace the `persistence.config` block with `type: persistentVolumeClaim`, `existingClaim: freqtrade-data`, the same `globalMounts`, and delete `defaultPodOptions.nodeSelector`; in the `app-protect` values change the freqtrade entry to `claim: freqtrade-data` and `selector:` with the two labels instead of `node: k8s-wrkr-01-gpu`.
 4.  Verify as above, with a node-failover test: cordon the node the pod runs on, delete only the pod, confirm it restarts on another node with its data, then uncordon.
-5.  Soak in progress ([#551](https://github.com/fabricesemti80/home-dc-kubernetes/issues/551)). The old volume is gated, see below.
+5.  Old volume deleted on 2026-11-10 at the operator's explicit request, before the soak gate below was met ([#551](https://github.com/fabricesemti80/home-dc-kubernetes/issues/551)).
 
 ### Soak evidence
 
@@ -148,7 +148,11 @@ Read-only checks. The cutover pod started at 2026-11-09 11:19:51 UTC. The 10:10 
 
 Not verified: Slack (Alertmanager keeps no history, so the `ALERTS` series is the record), and a Backrest restore of a post-cutover snapshot.
 
-### Deleting the old volume (gated, not authorized yet)
+### Deleting the old volume
+
+**Done 2026-11-10, ahead of the gate.** The operator explicitly approved deleting the old volume after one night of soak (1/5) and without a post-cutover restore test. The PV `pvc-1b6eb81e-faec-4c9d-a3e3-b5505965345b` was deleted, and the helper pod removed exactly `/var/mnt/local-path-provisioner/pvc-1b6eb81e-faec-4c9d-a3e3-b5505965345b_trading_freqtrade` on `k8s-wrkr-01-gpu` (log `removed`; `kubectl get pv` no longer lists it). Pre-checks: PV `Released`/`Retain`, claimRef `trading/freqtrade`, and the Deployment mounted only `freqtrade-data` (Longhorn). **Rollback is now Backrest only:** post-cutover snapshot `b47b5b961de7` and the 2026-11-05 to 2026-11-09 snapshots of plan `app-freqtrade`. The local-path rollback in [Rollback after step 3](#rollback-after-step-3-recommended-order-claim-the-old-volume-first-then-revert) no longer applies.
+
+The original gate, kept for the remaining app migrations (#552):
 
 **Earliest date: 2026-11-14, after the 03:10 UTC Backrest run.** All of the following must hold, and the operator must approve the deletion explicitly:
 
