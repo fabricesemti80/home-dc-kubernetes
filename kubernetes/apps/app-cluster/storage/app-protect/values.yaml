@@ -47,8 +47,10 @@ apps:
   schedule: 25 1 * * *
 - name: recyclarr
   namespace: media
-  node: k8s-wrkr-03
-  claim: recyclarr
+  selector:
+    app.kubernetes.io/instance: recyclarr
+    app.kubernetes.io/controller: recyclarr
+  claim: recyclarr-longhorn
   excludes:
   - cache
   - logs
