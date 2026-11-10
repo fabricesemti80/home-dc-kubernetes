@@ -68,9 +68,15 @@ After merge, sync qBittorrent and app-protect, verify the torrent count matches,
 
 **Observed outcome (#572):** Offline copy verified. qBittorrent started with the same 12 torrents and queue preferences; Sonarr reported no download-client health issues. Longhorn volume was healthy with three running replicas, the protect job ran on the pod's node and the post-cutover snapshot restored with a matching `qBittorrent.conf`. The node pin was dropped; the old claim and PV remain retained.
 
-### Jellyfin cutover (planned)
+### Jellyfin cutover (completed 2026-11-10)
 
 Migrate `media/jellyfin-config` (5 GiB, 1.9 GB used, SQLite library state) and `media/jellyfin-cache` (20 GiB, empty) to pre-created `jellyfin-config-longhorn` and `jellyfin-cache-longhorn`. The GPU node pin and `runtimeClassName: nvidia` **stay** (they exist for the NVIDIA GPU, not for local-path). The weekly `jellyfin-transcode-cleanup` CronJob now mounts the Longhorn cache claim and is pinned to the GPU node so it can attach the volume. Suspend `protect-jellyfin` and `jellyfin-transcode-cleanup`, pause `apps`, `jellyfin` and `app-protect`, annotate both source PVCs, scale Jellyfin to zero and copy each claim with `scripts/longhorn-copy-offline.sh`. Verify the copied SQLite databases and the media library counts after cutover, and that hardware transcoding still works.
+
+**Observed outcome (#573):** Both offline copies verified. Jellyfin started on the GPU node with the Quadro P2000 visible and `/health` returning 200; both Longhorn volumes were healthy with three running replicas. The cleanup job ran against the Longhorn cache on the GPU node and the protect job ran on the same node. The post-cutover snapshot restored with its SQLite database passing integrity. Old claims retained.
+
+### Immich cutover (planned)
+
+Migrate `immich-postgres-data` (20 GiB), `immich-redis-data` (2 GiB) and `immich-model-cache` (10 GiB) to the pre-created `-longhorn` claims in one change. Immich is down for the duration. Order: take a fresh native export (`task backups:export CLUSTER=app-cluster APP=immich-db`) and a successful `immich-db` Backrest run; pause `apps`, `immich` and `app-protect`; suspend `backrest-export-immich-db`; annotate the three source claims; scale `immich`, `immich-machine-learning` and `immich-redis` to zero, **then** the `immich-database` StatefulSet. Before copying, require `pg_controldata` on the source claim to report the cluster as `shut down` (a clean shutdown), then copy each claim with `scripts/longhorn-copy-offline.sh` (byte-for-byte compare). Node pins are kept in this change. After merge, check the database logs show a normal start (no crash recovery), asset and user counts via the application, ML and Redis connectivity, three healthy replicas for each volume, and a new native export plus `immich-db` backup.
 
 ## Ground rules
 

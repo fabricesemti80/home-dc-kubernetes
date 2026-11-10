@@ -27,7 +27,7 @@ This document provides an index of all applications deployed in the Kubernetes c
 | ----------- | ---------------- | -------------------------------- | ---- | ------------------------ | ---------------------------------------- |
 | jellyfin    | Media Server     | lscr.io/linuxserver/jellyfin     | 8096 | jelly.krapulax.dev       | Media player; Longhorn config + cache    |
 | jellyseerr  | Request Manager  | seerr-team/seerr                 | 5055 | requests.krapulax.dev    | Media requests; Longhorn config          |
-| immich      | Photo Management | ghcr.io/immich-app/immich-server | 2283 | photos.krapulax.dev      | Photo/video backup                       |
+| immich      | Photo Management | ghcr.io/immich-app/immich-server | 2283 | photos.krapulax.dev      | Photo/video backup; Longhorn DB/Redis/ML |
 | prowlarr    | Indexer Manager  | lscr.io/linuxserver/prowlarr     | 9696 | prowlarr.krapulax.dev    | Usenet/Torrent indexers; Longhorn config |
 | qbittorrent | Torrent Client   | lscr.io/linuxserver/qbittorrent  | 8080 | qbittorrent.krapulax.dev | Torrent downloads; Longhorn config       |
 | radarr      | Movie Manager    | lscr.io/linuxserver/radarr       | 7878 | radarr.krapulax.dev      | Movie automation; Longhorn config        |

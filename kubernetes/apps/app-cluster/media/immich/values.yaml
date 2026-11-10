@@ -201,29 +201,24 @@ persistence:
           - path: /external-library
             subPath: immich/library
             readOnly: true
+  # Longhorn claims defined in config/pvc-*-longhorn.yaml. Node pins above are kept in this change.
   model-cache:
     type: persistentVolumeClaim
-    accessMode: ReadWriteOnce
-    storageClass: local-path
-    size: 10Gi
+    existingClaim: immich-model-cache-longhorn
     advancedMounts:
       machine-learning:
         app:
           - path: /cache
   redis-data:
     type: persistentVolumeClaim
-    accessMode: ReadWriteOnce
-    storageClass: local-path
-    size: 2Gi
+    existingClaim: immich-redis-data-longhorn
     advancedMounts:
       redis:
         app:
           - path: /data
   postgres-data:
     type: persistentVolumeClaim
-    accessMode: ReadWriteOnce
-    storageClass: local-path
-    size: 20Gi
+    existingClaim: immich-postgres-data-longhorn
     advancedMounts:
       database:
         app:
