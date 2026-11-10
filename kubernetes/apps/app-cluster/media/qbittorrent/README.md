@@ -20,7 +20,7 @@ Recommended first settings:
 
 The pod mounts:
 
--   `/config` on the retained Longhorn ReadWriteOnce PVC `qbittorrent-longhorn`; follow the [migration runbook](../../../../../docs/operations/local-path-to-longhorn.md#qbittorrent-cutover-planned) and retain the old claim for rollback.
+-   `/config` on the retained Longhorn ReadWriteOnce PVC `qbittorrent-longhorn`; see the [migration record](../../../../../docs/operations/local-path-to-longhorn.md#qbittorrent-cutover-completed-2026-11-10). The old local-path claim is retained for rollback.
 -   `/downloads` on the shared NFS completed-downloads path
 -   `/incomplete-downloads` on the shared NFS incomplete-downloads path
 
