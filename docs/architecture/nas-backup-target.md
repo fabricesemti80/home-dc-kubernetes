@@ -78,64 +78,31 @@ changes, nothing in Doppler or on the NAS):
 | Stale Secrets | `kestra/{kestra-basic-auth,kestra-homelab-ops,kestra-postgres,versitygw-root}`; Pulse `DopplerSecret`s `doppler-operator-system/{pulse-agent-token,pulse-secrets}` and their `monitoring/{pulse-agent-token,pulse-secrets}` Secrets.                               | Before deletion: no pod or workload template, ConfigMap (Backrest/app-protect config), Argo Application or Git manifest referenced them; none had owners or finalizers. Afterwards: none listed. The Doppler projects were not touched. |
 | Namespaces    | `kubevirt`, `kubevirt-lab`, `kubevirt-manager`, `cdi`, `kestra`.                                                                                                                                                                                                   | All `NotFound`; no namespace `Terminating`. Both Kestra PVs are `Released` with `Retain`; local-path-provisioner logged no delete. All 56 Argo Applications Synced/Healthy afterwards.                                                  |
 
-Not deleted (no approval): the two Kestra PV objects and their directories,
-and the unrelated `Released` PV `pvc-7f6beb16-162f-4b3a-be3a-dd5f20e66542`
-(`ai/litellm-postgres`, `Retain`).
+### Retained volumes deleted (2026-11-11, issue #562)
 
-Retained Kestra data (recorded 2026-11-09 before the `kestra` namespace was
-deleted; both PVs re-verified `persistentVolumeReclaimPolicy: Retain`
-immediately beforehand). The PV objects and on-disk directories are kept;
-only the namespace, and with it the two PVC objects, were removed.
+The three `Released` infra-cluster PVs left by retired or replaced workloads were deleted, object and on-disk directory, on `infra-cp-01`. This is **irreversible: there is no rollback**. Only an existing Backrest snapshot could restore covered data, and none was established for these directories. The operator approved the deletion on 2026-11-09 (issue) and again on 2026-11-11.
 
-| PVC (former)              | PV                                         | Size | Node        | Directory (`hostPath`, `rancher.io/local-path`)                                                |
-| ------------------------- | ------------------------------------------ | ---- | ----------- | ---------------------------------------------------------------------------------------------- |
-| `kestra/data-versitygw-0` | `pvc-fd07c4d1-8b6e-41b4-b620-e7da2d24387b` | 20Gi | infra-cp-01 | `/var/local-path-provisioner/pvc-fd07c4d1-8b6e-41b4-b620-e7da2d24387b_kestra_data-versitygw-0` |
-| `kestra/kestra-postgres`  | `pvc-f966ded9-9ade-46a9-a226-878444653d1d` | 10Gi | infra-cp-01 | `/var/local-path-provisioner/pvc-f966ded9-9ade-46a9-a226-878444653d1d_kestra_kestra-postgres`  |
+| Former claim                | PV                                         | Capacity | Directory under `/var/local-path-provisioner`                      | Why unused                                                                                                           |
+| --------------------------- | ------------------------------------------ | -------- | ------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------- |
+| `kestra/data-versitygw-0`   | `pvc-fd07c4d1-8b6e-41b4-b620-e7da2d24387b` | 20Gi     | `pvc-fd07c4d1-8b6e-41b4-b620-e7da2d24387b_kestra_data-versitygw-0` | Kestra retired, namespace deleted (#555); about 250 MB used at the last read-only check                              |
+| `kestra/kestra-postgres`    | `pvc-f966ded9-9ade-46a9-a226-878444653d1d` | 10Gi     | `pvc-f966ded9-9ade-46a9-a226-878444653d1d_kestra_kestra-postgres`  | Kestra retired; used size not measurable (permission denied)                                                         |
+| `ai/litellm-postgres` (old) | `pvc-7f6beb16-162f-4b3a-be3a-dd5f20e66542` | 10Gi     | `pvc-7f6beb16-162f-4b3a-be3a-dd5f20e66542_ai_litellm-postgres`     | Replaced: the live claim is Bound to `pvc-70207c00-0e3b-4a13-b325-2bbb35f477f4`; LiteLLM has its own Backrest export |
 
-Both were `ReadWriteOnce`, StorageClass `local-path`. The PV UIDs of the old
-claims equal the PV names after `pvc-`.
+Method (infra kubeconfig `.private/infra-cluster/kubeconfig` only, never the app-cluster one):
 
-#### Rebinding a retained Kestra PV (rollback)
+1. Recheck each PV live: phase `Released`, `Retain`, `hostPath` parent `/var/local-path-provisioner`, directory name starting with the PV name.
+2. `kubectl delete pv <name>`.
+3. A short-lived pod pinned to `infra-cp-01`, mounting only `/var/local-path-provisioner` at `/data`, ran `test -d /data/<exact basename> && rm -rf -- /data/<exact basename> && test ! -e /data/<exact basename>`; then the pod was deleted. Never a glob, never the parent.
+4. Verified: no `Released` PV remains and the helper pods are gone.
 
-A `Released` PV keeps the deleted claim's UID in `spec.claimRef` and will not
-bind until that UID is cleared. local-path-provisioner never removes a
-`Retain` PV's directory.
-
-```sh
-export KUBECONFIG=.private/infra-cluster/kubeconfig
-PV=pvc-f966ded9-9ade-46a9-a226-878444653d1d   # or pvc-fd07c4d1-… for VersityGW
-kubectl get pv "$PV" -o jsonpath='{.spec.persistentVolumeReclaimPolicy} {.status.phase}{"\n"}'  # expect: Retain Released
-kubectl create namespace kestra
-# Keep claimRef namespace/name so only the original claim can bind; drop uid/resourceVersion.
-kubectl patch pv "$PV" --type=merge -p '{"spec":{"claimRef":{"uid":null,"resourceVersion":null}}}'
-kubectl apply -f - <<'YAML'
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: kestra-postgres          # or data-versitygw-0
-  namespace: kestra
-spec:
-  accessModes: [ReadWriteOnce]
-  storageClassName: local-path
-  volumeName: pvc-f966ded9-9ade-46a9-a226-878444653d1d
-  resources:
-    requests:
-      storage: 10Gi              # 20Gi for data-versitygw-0
-YAML
-kubectl -n kestra get pvc   # expect Bound to the same PV
-```
-
-The PV's node affinity pins any consumer to infra-cp-01. To read the data
-without redeploying Kestra, bind the PVC as above and mount it read-only in a
-throwaway pod; Talos has no host shell. Final data deletion (PV object and
-directory) needs separate approval.
+The helper pod must run in the `local-path-storage` namespace (PodSecurity `privileged`). In `default` (baseline) the API rejects `hostPath` volumes; the first attempt failed that way after the PV objects were already deleted, so the directories were removed by the retry. The Freqtrade PV (#551) was out of scope.
 
 ## Next actions
 
 -   [x] Install retained NAS claims and verify encrypted target backup/restore on both clusters; move disposable smoke to non-root UID `1004`.
 -   [x] Retire the approved Kestra/KubeVirt/CDI/Manager workloads while preserving the two Kestra claims.
 -   [x] Remove retirement residue and the five namespaces, keeping both Kestra PVs `Retain`/`Released` (2026-11-09, #555).
--   [ ] Decide whether to keep or delete the retained Kestra PVs and their directories (separate approval).
+-   [x] Delete the three `Released` infra-cluster PVs and their directories (2026-11-11, #562; see the record above, no rollback).
 -   [x] Verify root-only squash, UID `1004` encrypted target backup/restore and unrelated UID `65534` write denial on both clusters.
 -   [x] Deploy and verify the [Backrest replacement](backrest.md); complete database/original recovery checks and restore-gated legacy retirement on both clusters (2026-10-30).
 -   [ ] Add and restore-test an independent offsite copy; the NAS target is not offsite protection.

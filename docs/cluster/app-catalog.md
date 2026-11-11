@@ -113,8 +113,10 @@ instances in `backups`, using pinned upstream Backrest v1.14.1. Internal UIs:
 See the [Backrest runbook](../operations/backrest.md) for coverage and cutover gates.
 Kestra and the KubeVirt/CDI/Manager trial are removed from desired configuration.
 Their runtime was removed by the [ordered retirement procedure](../architecture/nas-backup-target.md#kestra--kubevirt-retirement);
-its namespaces and leftovers were removed on 2026-11-09. Only the two Kestra PVs
-remain, `Released` with `Retain`, so they can be rebound (see that section).
+its namespaces and leftovers were removed on 2026-11-09, and the three `Released`
+PVs they left on the infra cluster (Kestra object store, Kestra PostgreSQL and the
+old LiteLLM PostgreSQL) were deleted with their directories on 2026-11-11 (#562,
+[record](../architecture/nas-backup-target.md#retained-volumes-deleted-2026-11-11-issue-562)).
 
 ---
 
