@@ -79,6 +79,24 @@ only your disposable restore directory after recording successful checks.
 
 ## Protecting and opting out apps
 
+## Issue #541 evidence ledger
+
+This is a gate, not evidence of completed recovery. Append one reviewed record
+per workload/class. Never include secret values, credentials, or private dumps.
+
+| Class/workload                           | Source point and UTC time                                                                                                                                      | Exact source/restore versions                                                          | Isolation and checks                                                                      | Outcome / blocker                                 |
+| ---------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- | ------------------------------------------------- |
+| Technitium DNS                           | Pending; exact instance and ownership not established here                                                                                                     | Pending                                                                                | Native settings/zone/auth import, isolated authentication and DNS checks                  | Not accepted                                      |
+| Native media exports                     | Pending per application                                                                                                                                        | Pending                                                                                | Contents, isolated native import, authentication and functional settings checks           | Not accepted                                      |
+| Cold-state recovery                      | Pending per workload and approved 03:00 UTC window                                                                                                             | Pending                                                                                | Writer/Argo coordination, graceful stop/capture/restart, isolated restore                 | Not accepted                                      |
+| Immich compatible database/originals set | Existing recovery point IDs and outcomes are recorded below; verify exact IDs/times for the reported PostgreSQL 16 rehearsal before accepting a compatible set | PostgreSQL 16 rehearsal reported in task context; verify exact Immich/extensions image | Restore DB and originals together; verify mappings, referenced files and snapshot content | Prior tested set only; current acceptance pending |
+| Proxmox VM scope and restore             | Operator confirmation pending                                                                                                                                  | Pending                                                                                | Confirm VM inclusion/exclusion and conduct an operator-reviewed restore test              | Not accepted                                      |
+
+Do not promote a workload based solely on a successful scheduled backup, a file
+restore, or a PostgreSQL import rehearsal. Keep the evidence with the immutable
+snapshot IDs and verification output; redact paths or identifiers if they expose
+secrets.
+
 Application config is protected by default through Git, not Kubernetes labels.
 Each app has one entry in `kubernetes/apps/<cluster>/storage/app-protect/values.yaml`
 and a matching `app-<name>` plan in that cluster's `backrest/config/config.json`.
@@ -239,6 +257,11 @@ against the complete restored photo tree using the independently escrowed
 Keychain key. `--overwrite=never` is not used as content-readback evidence because
 it can skip existing files. Disposable SQL namespaces/PVC contents and successful
 restore scratch copies were removed after verification.
+
+This is the documented 2026-10-30 recovery evidence (PG14), not evidence for
+the PostgreSQL 16 rehearsal reported in the current task. The compatible current
+Immich database/originals set remains pending until the rehearsal's immutable
+IDs, exact versions, capture times and joint validation are recorded.
 
 Restore-gated retirement completed separately on both clusters: legacy operators,
 K8up CRDs/policies and enumerated old repository paths are gone. New repositories
