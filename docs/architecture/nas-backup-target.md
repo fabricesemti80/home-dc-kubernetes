@@ -82,18 +82,233 @@ Not deleted (no approval): the two Kestra PV objects and their directories,
 and the unrelated `Released` PV `pvc-7f6beb16-162f-4b3a-be3a-dd5f20e66542`
 (`ai/litellm-postgres`, `Retain`).
 
-Retained Kestra data (recorded 2026-11-09 before the `kestra` namespace was
-deleted; both PVs re-verified `persistentVolumeReclaimPolicy: Retain`
-immediately beforehand). The PV objects and on-disk directories are kept;
-only the namespace, and with it the two PVC objects, were removed.
+Retained data recorded on 2026-11-09 before deleting the `kestra` namespace.
+The 2026-11-11 live recheck confirmed the infra-cluster PVs remain `Released`
+with `Retain`; no app-cluster PV is `Released`. See the current read-only
+preflight and conditional deletion procedure below before any future cleanup.
 
-| PVC (former)              | PV                                         | Size | Node        | Directory (`hostPath`, `rancher.io/local-path`)                                                |
-| ------------------------- | ------------------------------------------ | ---- | ----------- | ---------------------------------------------------------------------------------------------- |
-| `kestra/data-versitygw-0` | `pvc-fd07c4d1-8b6e-41b4-b620-e7da2d24387b` | 20Gi | infra-cp-01 | `/var/local-path-provisioner/pvc-fd07c4d1-8b6e-41b4-b620-e7da2d24387b_kestra_data-versitygw-0` |
-| `kestra/kestra-postgres`  | `pvc-f966ded9-9ade-46a9-a226-878444653d1d` | 10Gi | infra-cp-01 | `/var/local-path-provisioner/pvc-f966ded9-9ade-46a9-a226-878444653d1d_kestra_kestra-postgres`  |
+| Former claim                | PV                                         | PV capacity | Node        | Directory (`hostPath`, `rancher.io/local-path`)                                                | Read-only size observation  |
+| --------------------------- | ------------------------------------------ | ----------- | ----------- | ---------------------------------------------------------------------------------------------- | --------------------------- |
+| `kestra/data-versitygw-0`   | `pvc-fd07c4d1-8b6e-41b4-b620-e7da2d24387b` | 20Gi        | infra-cp-01 | `/var/local-path-provisioner/pvc-fd07c4d1-8b6e-41b4-b620-e7da2d24387b_kestra_data-versitygw-0` | 255832 KiB (`du -sk`)       |
+| `kestra/kestra-postgres`    | `pvc-f966ded9-9ade-46a9-a226-878444653d1d` | 10Gi        | infra-cp-01 | `/var/local-path-provisioner/pvc-f966ded9-9ade-46a9-a226-878444653d1d_kestra_kestra-postgres`  | Incomplete: `pg` unreadable |
+| `ai/litellm-postgres` (old) | `pvc-7f6beb16-162f-4b3a-be3a-dd5f20e66542` | 10Gi        | infra-cp-01 | `/var/local-path-provisioner/pvc-7f6beb16-162f-4b3a-be3a-dd5f20e66542_ai_litellm-postgres`     | Incomplete: `pg` unreadable |
 
-Both were `ReadWriteOnce`, StorageClass `local-path`. The PV UIDs of the old
-claims equal the PV names after `pvc-`.
+`du` was run read-only through the infra node-exporter pod's read-only
+`/host` mount. PostgreSQL `pg` directories returned `Permission denied`; the
+reported 4 KiB top-level entries are not a directory-size measurement. Do not
+substitute PV capacity for used bytes. The exact used size of both PostgreSQL
+directories is unknown.
+
+The infra PV list contained exactly those three `Released` PVs at recheck; all
+are `Retain`, `ReadWriteOnce`, with node affinity to `infra-cp-01`. The old
+LiteLLM PV has no live claim: the current `ai/litellm-postgres` PVC is Bound to
+different PV `pvc-70207c00-0e3b-4a13-b325-2bbb35f477f4`. However, LiteLLM and
+its Backrest export are active, and the old PV remains an archival recovery
+candidate. Kestra has no current PVC or workload consumer, but the existing
+rollback instructions below still rebind these claims. No archive restore
+validation was established by this recheck. Therefore **none of these three
+PV/data pairs is approved for deletion by this change**.
+
+Both Kestra PVs were `ReadWriteOnce`, StorageClass `local-path`. The PV UIDs of
+the old claims equal the PV names after `pvc-`.
+
+#### Live preflight and conditional deletion runbook
+
+This is a review-gated runbook, not authorization to execute it. Deletion of a
+PV object and its directory is irreversible. There is **no rollback** for
+deleted data or Doppler keys; restore is possible only from a pre-existing
+Backrest snapshot, if one exists and covers the exact data. Existing Backrest
+coverage for these three directories has not been established. Decide on any
+final archive/Backrest capture and verify its restore before a human approves
+deletion.
+
+Before each future deletion, use the infra kubeconfig explicitly and recheck
+the exact PV name, phase, `Retain` policy, claimRef, capacity, hostPath,
+nodeAffinity, live PVCs, pod/workload/Argo references, app-protect and Backrest
+plans, and current directory identity/size. Stop if any field differs from
+this record, if a consumer or rollback note remains, or if recovery evidence
+is incomplete. Do not include the Freqtrade PV
+`pvc-1b6eb81e-faec-4c9d-a3e3-b5505965345b` (#551).
+
+For a human-approved candidate only:
+
+1. Set the PV and exact directory values from that candidate's live PV spec;
+   validate them manually against the table. Never use a wildcard.
+2. Delete only that PV object using the infra kubeconfig. Confirm it is gone.
+3. Start a short-lived helper pod pinned to the spec's node (`infra-cp-01` for
+   the three recorded PVs). Mount only the parent
+   `/var/local-path-provisioner`, at `/data`, using `hostPath.type: Directory`.
+   Run `rm -rf -- /data/<exact-directory-basename-from-that-PV-spec>` and
+   verify `/data/<exact-directory-basename>` is absent. Never mount a parent
+   above `/var/local-path-provisioner`, run a glob, or remove that parent.
+   The manifest must contain only this hostPath mount and the exact target
+   command; do not reuse a helper with an unreviewed target.
+4. Verify the directory is absent and delete the helper pod. Record the
+   operator, time, PV, node, exact path and verification result.
+
+Every `kubectl` command in that future procedure, including helper-pod apply,
+logs and deletion, **MUST** use
+`--kubeconfig /Users/fs/Documents/repositories/infrastructure/home-dc-kubernetes/.private/infra-cluster/kubeconfig`
+(or `KUBECONFIG` set to that exact file). Never use the app-cluster
+`kubeconfig`.
+
+The following commands/manifests are templates for a future human-approved
+run, not commands to execute in this change. Apply **one** candidate's
+procedure only after its exact PV spec and approval have been rechecked. The
+helper manifests are separate so each embeds one exact directory basename.
+
+Set and retain the infra kubeconfig explicitly, then delete only the reviewed
+PV object:
+
+```sh
+INFRA_KUBECONFIG=/Users/fs/Documents/repositories/infrastructure/home-dc-kubernetes/.private/infra-cluster/kubeconfig
+kubectl --kubeconfig "$INFRA_KUBECONFIG" delete pv pvc-fd07c4d1-8b6e-41b4-b620-e7da2d24387b
+```
+
+For that PV only, save this manifest as `pv-cleanup.yaml`, then apply it,
+inspect completion/logs, verify the exact path is absent and delete the pod:
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+    name: pv-cleanup-fd07c4d1
+    namespace: default
+spec:
+    restartPolicy: Never
+    nodeSelector:
+        kubernetes.io/hostname: infra-cp-01
+    containers:
+        - name: cleanup
+          image: busybox:1.36.1
+          command: ["sh", "-ec"]
+          args:
+              - test -d /data/pvc-fd07c4d1-8b6e-41b4-b620-e7da2d24387b_kestra_data-versitygw-0 && rm -rf -- /data/pvc-fd07c4d1-8b6e-41b4-b620-e7da2d24387b_kestra_data-versitygw-0 && test ! -e /data/pvc-fd07c4d1-8b6e-41b4-b620-e7da2d24387b_kestra_data-versitygw-0
+          volumeMounts:
+              - name: local-path-parent
+                mountPath: /data
+    volumes:
+        - name: local-path-parent
+          hostPath:
+              path: /var/local-path-provisioner
+              type: Directory
+```
+
+```sh
+kubectl --kubeconfig "$INFRA_KUBECONFIG" apply -f pv-cleanup.yaml
+kubectl --kubeconfig "$INFRA_KUBECONFIG" wait --for=jsonpath='{.status.phase}'=Succeeded pod/pv-cleanup-fd07c4d1 --timeout=120s
+kubectl --kubeconfig "$INFRA_KUBECONFIG" logs pod/pv-cleanup-fd07c4d1
+kubectl --kubeconfig "$INFRA_KUBECONFIG" delete pod pv-cleanup-fd07c4d1
+```
+
+For `pvc-f966ded9-9ade-46a9-a226-878444653d1d`, substitute that exact PV name
+in the PV deletion command, and use this separately reviewed helper manifest:
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+    name: pv-cleanup-f966ded9
+    namespace: default
+spec:
+    restartPolicy: Never
+    nodeSelector:
+        kubernetes.io/hostname: infra-cp-01
+    containers:
+        - name: cleanup
+          image: busybox:1.36.1
+          command: ["sh", "-ec"]
+          args:
+              - test -d /data/pvc-f966ded9-9ade-46a9-a226-878444653d1d_kestra_kestra-postgres && rm -rf -- /data/pvc-f966ded9-9ade-46a9-a226-878444653d1d_kestra_kestra-postgres && test ! -e /data/pvc-f966ded9-9ade-46a9-a226-878444653d1d_kestra_kestra-postgres
+          volumeMounts:
+              - name: local-path-parent
+                mountPath: /data
+    volumes:
+        - name: local-path-parent
+          hostPath:
+              path: /var/local-path-provisioner
+              type: Directory
+```
+
+Use `pv-cleanup-f966ded9` for the corresponding explicit
+`kubectl --kubeconfig "$INFRA_KUBECONFIG" apply`, `wait`, `logs` and `delete
+pod` commands. For `pvc-7f6beb16-162f-4b3a-be3a-dd5f20e66542`, use that exact
+PV name in the deletion command and this separate helper:
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+    name: pv-cleanup-7f6beb16
+    namespace: default
+spec:
+    restartPolicy: Never
+    nodeSelector:
+        kubernetes.io/hostname: infra-cp-01
+    containers:
+        - name: cleanup
+          image: busybox:1.36.1
+          command: ["sh", "-ec"]
+          args:
+              - test -d /data/pvc-7f6beb16-162f-4b3a-be3a-dd5f20e66542_ai_litellm-postgres && rm -rf -- /data/pvc-7f6beb16-162f-4b3a-be3a-dd5f20e66542_ai_litellm-postgres && test ! -e /data/pvc-7f6beb16-162f-4b3a-be3a-dd5f20e66542_ai_litellm-postgres
+          volumeMounts:
+              - name: local-path-parent
+                mountPath: /data
+    volumes:
+        - name: local-path-parent
+          hostPath:
+              path: /var/local-path-provisioner
+              type: Directory
+```
+
+Use `pv-cleanup-7f6beb16` for the corresponding explicit
+`kubectl --kubeconfig "$INFRA_KUBECONFIG" apply`, `wait`, `logs` and `delete
+pod` commands. Before applying any manifest, confirm the named PV has already
+been deleted and revalidate the actual directory name from its recorded spec.
+
+For the second PV, use this exact deletion command:
+
+```sh
+kubectl --kubeconfig "$INFRA_KUBECONFIG" delete pv pvc-f966ded9-9ade-46a9-a226-878444653d1d
+```
+
+Then, only after deleting that PV, apply its manifest and verify/remove its
+helper:
+
+```sh
+kubectl --kubeconfig "$INFRA_KUBECONFIG" apply -f pv-cleanup.yaml
+kubectl --kubeconfig "$INFRA_KUBECONFIG" wait --for=jsonpath='{.status.phase}'=Succeeded pod/pv-cleanup-f966ded9 --timeout=120s
+kubectl --kubeconfig "$INFRA_KUBECONFIG" logs pod/pv-cleanup-f966ded9
+kubectl --kubeconfig "$INFRA_KUBECONFIG" delete pod pv-cleanup-f966ded9
+```
+
+For the old LiteLLM PV, use this exact deletion command:
+
+```sh
+kubectl --kubeconfig "$INFRA_KUBECONFIG" delete pv pvc-7f6beb16-162f-4b3a-be3a-dd5f20e66542
+```
+
+Then, only after deleting that PV, apply its manifest and verify/remove its
+helper:
+
+```sh
+kubectl --kubeconfig "$INFRA_KUBECONFIG" apply -f pv-cleanup.yaml
+kubectl --kubeconfig "$INFRA_KUBECONFIG" wait --for=jsonpath='{.status.phase}'=Succeeded pod/pv-cleanup-7f6beb16 --timeout=120s
+kubectl --kubeconfig "$INFRA_KUBECONFIG" logs pod/pv-cleanup-7f6beb16
+kubectl --kubeconfig "$INFRA_KUBECONFIG" delete pod pv-cleanup-7f6beb16
+```
+
+Use the same exact command sequence for the first candidate with helper name
+`pv-cleanup-fd07c4d1` shown above. These sequences are documentation only.
+Do not execute them without the separate human decision and recovery gates.
+
+Proposed directory basenames (not approved for deletion):
+
+```text
+pvc-fd07c4d1-8b6e-41b4-b620-e7da2d24387b_kestra_data-versitygw-0
+pvc-f966ded9-9ade-46a9-a226-878444653d1d_kestra_kestra-postgres
+pvc-7f6beb16-162f-4b3a-be3a-dd5f20e66542_ai_litellm-postgres
+```
 
 #### Rebinding a retained Kestra PV (rollback)
 
@@ -135,7 +350,10 @@ directory) needs separate approval.
 -   [x] Install retained NAS claims and verify encrypted target backup/restore on both clusters; move disposable smoke to non-root UID `1004`.
 -   [x] Retire the approved Kestra/KubeVirt/CDI/Manager workloads while preserving the two Kestra claims.
 -   [x] Remove retirement residue and the five namespaces, keeping both Kestra PVs `Retain`/`Released` (2026-11-09, #555).
--   [ ] Decide whether to keep or delete the retained Kestra PVs and their directories (separate approval).
+-   [ ] Decide whether to retain or delete all three `Released` infra-cluster
+        PVs and directories listed in the live preflight (separate approval,
+        archive/restore evidence, exact directory sizes, and no remaining rollback
+        references required first).
 -   [x] Verify root-only squash, UID `1004` encrypted target backup/restore and unrelated UID `65534` write denial on both clusters.
 -   [x] Deploy and verify the [Backrest replacement](backrest.md); complete database/original recovery checks and restore-gated legacy retirement on both clusters (2026-10-30).
 -   [ ] Add and restore-test an independent offsite copy; the NAS target is not offsite protection.

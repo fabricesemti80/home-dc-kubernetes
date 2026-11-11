@@ -74,7 +74,53 @@ Some values below are **Doppler cross-project references**. Their source of trut
 | `TUNNEL_CREDENTIALS_INFRA`, `TUNNEL_ID_INFRA`                                               | **Reference** → `home-dc-terraform/prd` | — (not synced)                                                         | Recovery/reference                   | Tunnel credentials JSON and ID                                  |
 | `BACKREST_REPOSITORY_PASSWORD`, `BACKREST_ADMIN_PASSWORD`, `BACKREST_ADMIN_PASSWORD_BCRYPT` | `scripts/backrest-secrets.py`           | `backups/backrest-secrets` (hash and repo password only)               | Backrest                             | Same roles as the app-cluster entries                           |
 
-**Retained but unused:** Kestra and Pulse values (`KESTRA_*`, `PULSE_*`, `POSTGRES_*`, `USERDB_*`, `ROOT_ACCESS_KEY`, `ROOT_SECRET_KEY`, `HOMELAB_SSH_*`) and older app-cluster values (`CODE_SERVER_PASSWORD`, `NEXTAUTH_*`, `LINKWARDEN_DB_PASSWORD`, `N8N_ENCRYPTION_KEY`) may still exist in Doppler for rollback. They are listed only in the migration helper `hack/copy-doppler-cluster-secrets.sh`, and no manifest consumes them. The stale synced copies on infra-cluster (`kestra/{kestra-basic-auth,kestra-homelab-ops,kestra-postgres,versitygw-root}`, the Pulse `DopplerSecret`s `pulse-agent-token`/`pulse-secrets` and their `monitoring/` Secrets) were deleted on 2026-11-09 (#555); the Doppler values were not touched.
+**Retired-app Doppler names under review (2026-11-11; values never read):**
+`home-dc-kubernetes/infra` currently contains `KESTRA_BASIC_AUTH_USERNAME`,
+`KESTRA_BASIC_AUTH_PASSWORD`, `POSTGRES_USER`, `POSTGRES_PASSWORD`,
+`POSTGRES_DB`, `USERDB_USER`, `USERDB_PASSWORD`, `ROOT_ACCESS_KEY`,
+`ROOT_SECRET_KEY`, `PULSE_INFRA_TOKEN`, `PULSE_AUTH_USER` and
+`PULSE_AUTH_PASS`. None is mapped by a current cluster `DopplerSecret`.
+Kubernetes Secret and DopplerSecret metadata on both clusters contained no
+Kestra, Pulse or KubeVirt leftovers at this check. The names are proposals,
+not authorization to remove keys.
+
+**Proposed Doppler key removals for later human confirmation** (all in
+`home-dc-kubernetes/infra`): `KESTRA_BASIC_AUTH_USERNAME`,
+`KESTRA_BASIC_AUTH_PASSWORD`, `PULSE_INFRA_TOKEN`, `PULSE_AUTH_USER` and
+`PULSE_AUTH_PASS`. Evidence: those exact names exist in this config, have no
+current cluster `DopplerSecret` mapping, and have no tracked consumer in the
+six checked sibling repositories; the only exact-key code references are the
+old migration helper, while `PULSE_AUTH_*` also appears in historical design
+notes. This is a proposal only; this task did not modify any Doppler key.
+
+Cross-repository reference check found `HOMELAB_SSH_PRIVATE_KEY` and
+`HOMELAB_SSH_KNOWN_HOSTS` consumed by active Kestra flows in `home-kestra`;
+preserve both. `PULSE_AGENT_TOKEN` is consumed by `home-kestra` Pulse-agent
+Ansible automation and must not be removed from that source; it was not found
+among the checked `home-dc-kubernetes` Doppler config names. Do not conflate
+it with `PULSE_INFRA_TOKEN`. The exact `PULSE_AUTH_*` names occur only in
+historical Kubernetes design/retirement material and the migration helper in
+this repository; `PULSE_INFRA_TOKEN` occurs in that helper. Their former
+Kubernetes runtime consumers are retired. The active flows and Ansible tasks
+in `home-kestra` mean the Kestra/Pulse service retirement must not be treated
+as retirement of all related automation or credentials.
+
+**Ambiguous; retain pending owner review:** `POSTGRES_USER`,
+`POSTGRES_PASSWORD`, `POSTGRES_DB`, `USERDB_USER`, `USERDB_PASSWORD`,
+`ROOT_ACCESS_KEY` and `ROOT_SECRET_KEY` are generic former-workload names.
+They remain in `hack/copy-doppler-cluster-secrets.sh`; generic PostgreSQL
+variable names also occur in repository backup/retirement scripts. The
+cross-repo scan did not establish that all such historical/helper references
+are disposable. KubeVirt has no distinct matching Doppler key name in the
+checked configs; do not infer that shared Proxmox/PBS/monitoring credentials
+belong to KubeVirt.
+
+Other older app-cluster Doppler keys (`CODE_SERVER_PASSWORD`, `NEXTAUTH_*`,
+`LINKWARDEN_DB_PASSWORD`, `N8N_ENCRYPTION_KEY`) remain outside this issue's
+retired-app scope. Their presence is not evidence of approval to delete.
+The stale synced Kestra and Pulse Kubernetes Secret/DopplerSecret objects
+recorded in the 2026-11-09 retirement report were already removed then; no
+Kubernetes object deletion is proposed by this change.
 
 ## SOPS-encrypted files in Git (age recipient in `.sops.yaml`)
 
