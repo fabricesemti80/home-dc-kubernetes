@@ -1,0 +1,28 @@
+---
+# Internal only: the netboot.xyz web UI has no authentication and can
+# rewrite boot menus, so it is never exposed through the external gateway.
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: netbootxyz-internal
+  namespace: netboot
+  annotations:
+    gethomepage.dev/description: "PXE boot menus and ISOs"
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/group: "Infra Cluster - netboot"
+    gethomepage.dev/href: "http://netboot.krapulax.home"
+    gethomepage.dev/icon: "netboot.png"
+    gethomepage.dev/name: "netboot.xyz"
+    gethomepage.dev/weight: "50"
+spec:
+  parentRefs:
+    - name: envoy-internal
+      namespace: network
+      sectionName: http
+  hostnames:
+    - netboot.krapulax.home
+  rules:
+    - backendRefs:
+        - name: netbootxyz
+          namespace: netboot
+          port: 3000

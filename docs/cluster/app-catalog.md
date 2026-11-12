@@ -93,17 +93,18 @@ The app-cluster apps use Longhorn (`ReadWriteOnce`, 3 replicas) for config, stat
 
 Argo CD on `app-cluster` also deploys these `infra-cluster` workloads:
 
-| App                          | Type       | Image                                       | Notes                      |
-| ---------------------------- | ---------- | ------------------------------------------- | -------------------------- |
-| doppler-operator-infra       | Secrets    | mirror.gcr.io/dopplerhq/kubernetes-operator | Doppler operator           |
-| reloader-infra               | Reloader   | stakater/reloader                           | Config reload watcher      |
-| uptime-kuma-infra            | Monitoring | louislam/uptime-kuma                        | Uptime monitoring          |
-| cloudflare-tunnel-infra      | Tunnel     | cloudflare/cloudflared                      | Cloudflare Tunnel          |
-| envoy-gateway-infra          | Gateway    | envoyproxy/gateway                          | Gateway API implementation |
-| tailscale-infra              | Tailscale  | tailscale/tailscale                         | Tailscale operator         |
-| technitium-dns-infra         | DNS Sync   | external-dns                                | Internal DNS records       |
-| technitium-infra             | DNS        | technitium/dns-server                       | DNS admin/server           |
-| local-path-provisioner-infra | Storage    | rancher/local-path-provisioner              | Local PV provisioner       |
+| App                          | Type       | Image                                       | Notes                                               |
+| ---------------------------- | ---------- | ------------------------------------------- | --------------------------------------------------- |
+| doppler-operator-infra       | Secrets    | mirror.gcr.io/dopplerhq/kubernetes-operator | Doppler operator                                    |
+| reloader-infra               | Reloader   | stakater/reloader                           | Config reload watcher                               |
+| uptime-kuma-infra            | Monitoring | louislam/uptime-kuma                        | Uptime monitoring                                   |
+| cloudflare-tunnel-infra      | Tunnel     | cloudflare/cloudflared                      | Cloudflare Tunnel                                   |
+| envoy-gateway-infra          | Gateway    | envoyproxy/gateway                          | Gateway API implementation                          |
+| tailscale-infra              | Tailscale  | tailscale/tailscale                         | Tailscale operator                                  |
+| technitium-dns-infra         | DNS Sync   | external-dns                                | Internal DNS records                                |
+| technitium-infra             | DNS        | technitium/dns-server                       | DNS admin/server                                    |
+| local-path-provisioner-infra | Storage    | rancher/local-path-provisioner              | Local PV provisioner                                |
+| netbootxyz                   | PXE Server | ghcr.io/netbootxyz/netbootxyz               | PXE on LB `10.0.40.108`; UI `netboot.krapulax.home` |
 
 Both clusters also have a `nas-backup` GitOps Application provisioning the retained
 `backups/k8s-backup` NFS claim; no storage-server image runs for this target.
