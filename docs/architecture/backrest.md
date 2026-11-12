@@ -32,6 +32,42 @@ Where the export job runs: for a node-local volume (`local-path`, `hostPath`) th
 
 Consistency and risk: SQLite databases are captured through SQLite's online backup API (one read transaction, transactionally consistent while the app runs, then `integrity_check`); other files are plain copies, and the app is not quiesced (no shutdown), so multi-file state across separate files is crash-consistent only. Servarr's own scheduled `Backups/` zips are included and are the stronger restore point. Exports sit as plaintext, UID-1004/0700 files on the NAS (they include API keys/credentials) before Restic encrypts them; this is the same NAS trust boundary as the repository ownership. File ownership is normalised to 1004:65534; re-chown on restore (apps run as root).
 
+## Issue #541: class-specific recovery acceptance
+
+Decision: preserve existing schedules, but do not equate their presence with
+restore-proven enrollment. The generic exporter above is not a native export
+implementation. Class acceptance requires the evidence below, reviewed before
+any enrollment change. A successful SQLite integrity check proves one database,
+not consistency across databases, configuration files and external systems.
+
+| Class                  | Required isolated restore proof before acceptance                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Technitium DNS         | Identify the exact authoritative instance and ownership read-only; validate a native export containing settings, zones and authentication material; import into an isolated matching-version instance and verify authentication, representative records and resolution without production DNS updates.                                                                                                                                                                                    |
+| Native media exports   | For each application/version, identify and validate the native export contents and settings coverage; import into an isolated matching application, authenticate and verify library definitions, profiles, indexer/client mappings and credential identity. Disable downloads, notifications and other outbound integrations. Included Servarr backup ZIPs alone are not proof of import.                                                                                                 |
+| Cold state             | Obtain workload-specific approval for the 03:00 UTC maintenance window, coordinate Argo and all writers, gracefully stop, capture the complete recovery directory, and restart safely. Restore the set in isolation and verify settings and queue/resume identity without production downloads. Never infer cold consistency from an online directory copy.                                                                                                                               |
+| Immich compatible sets | Record immutable database and originals snapshot IDs, capture times, PostgreSQL major/extensions and application version. Import the database in isolation, restore originals with the original path mappings, verify every database-referenced original exists and verify restored content against its snapshot. Authenticate the isolated application before acceptance. Separate online points require explicit compatibility checks; they are not automatically a paused matched set. |
+
+Assumptions and safety: existing backups remain useful partial recovery artifacts.
+No new downtime, public access, credentials, physical infra-cluster changes or
+Terraform execution are authorized by this gate. DNS ownership and LiteLLM
+credential investigations stay read-only. Restored secrets remain private; record
+identities and validation outcomes, never values. Isolated restores need a
+reviewed network boundary so recovered credentials cannot trigger production
+integrations.
+
+Validation: retain commands, UTC execution times, immutable source IDs, exact
+versions, isolation controls and functional outcomes per workload in the
+[evidence ledger](../operations/backrest.md#issue-541-evidence-ledger).
+Prioritize failed or uncovered workloads, not repeated successful file copies.
+Confirm Proxmox VM inclusion/exclusion scope, backup recency and an actual tested
+VM restore with the operator; neither a VM snapshot nor Kubernetes backup history
+provides that confirmation.
+
+Rollback: this documentation-only gate changes no running jobs or data. Revert
+the documentation if the acceptance policy changes; retain existing snapshots,
+keys and schedules. Any later implementation needs its own reviewed migration
+and rollback steps before code or live changes.
+
 ## Security and consistency
 
 -   DB export credentials are read-only dedicated PostgreSQL logins; original app credentials are not rotated. Recovery credentials are stored only in private staging and encrypted snapshots, never Git/logs.

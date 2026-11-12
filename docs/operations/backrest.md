@@ -79,6 +79,49 @@ only your disposable restore directory after recording successful checks.
 
 ## Protecting and opting out apps
 
+## Issue #541 evidence ledger
+
+This is a gate, not evidence of completed recovery. Append one reviewed record
+per workload/class. Never include secret values, credentials, or private dumps.
+
+| Class/workload                           | Source point and UTC time                                                                                                                                                                                                                        | Exact source/restore versions                           | Isolation and checks                                                                                                                                                      | Outcome / blocker                                                                                                                                                                      |
+| ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Technitium DNS                           | Pending; exact instance and ownership not established here                                                                                                                                                                                       | Pending                                                 | Native settings/zone/auth import, isolated authentication and DNS checks                                                                                                  | Not accepted                                                                                                                                                                           |
+| Native media exports                     | Pending per application                                                                                                                                                                                                                          | Pending                                                 | Contents, isolated native import, authentication and functional settings checks                                                                                           | Not accepted                                                                                                                                                                           |
+| Cold-state recovery                      | Pending per workload and approved 03:00 UTC window                                                                                                                                                                                               | Pending                                                 | Writer/Argo coordination, graceful stop/capture/restart, isolated restore                                                                                                 | Not accepted                                                                                                                                                                           |
+| Immich compatible database/originals set | PG16 scratch rehearsal and stopped-source production migration documented in `2026-11-10-immich-postgres-16.md`. Candidate latest pre-rehearsal backup: #684, snapshot `a1a5d572…`, 2026-11-10 06:40 UTC; file restore #733 at 08:50 UTC uses it | PG16 rehearsal image: VectorChord 0.4.3, pgvector 0.8.1 | Note reports 3,518 assets in scratch rehearsal and 5,092 after production import. Originals restore #15 is Oct 30 snapshot `00e242…`, not a demonstrated PG16-matched set | PG16 DB import rehearsal documented; candidate Backrest source/restore recorded, but operations do not establish linkage to PG16 import; compatible PG16/originals set not established |
+| Proxmox VM scope and restore             | Operator confirmation pending                                                                                                                                                                                                                    | Pending                                                 | Confirm VM inclusion/exclusion and conduct an operator-reviewed restore test                                                                                              | Not accepted                                                                                                                                                                           |
+
+Do not promote a workload based solely on a successful scheduled backup, a file
+restore, or a PostgreSQL import rehearsal. Keep the evidence with the immutable
+snapshot IDs and verification output; redact paths or identifiers if they expose
+secrets.
+
+Read-only `GetOperations` queries scoped to each configured plan with `lastN: 1000`
+found these additional file restores (all `STATUS_SUCCESS`, times UTC, 2026-11-10):
+
+| Config plan       | Restore operation IDs and start times          |
+| ----------------- | ---------------------------------------------- |
+| `app-sonarr`      | #734 08:50; #769 09:41; #774 09:47; #916 13:08 |
+| `app-radarr`      | #779 09:50; #784 09:57; #913 13:07             |
+| `app-prowlarr`    | #749 09:13; #754 09:24; #911 13:07             |
+| `app-jellyseerr`  | #759 09:28; #764 09:37; #910 13:07             |
+| `app-sabnzbd`     | #789 10:00; #794 10:07; #915 13:08             |
+| `app-qbittorrent` | #803 10:14; #912 13:07                         |
+| `app-recyclarr`   | #739 09:04; #744 09:10; #914 13:08             |
+| `app-jellyfin`    | #812 10:23; #909 13:06                         |
+| `app-freqtrade`   | #908 13:06                                     |
+
+These are Backrest file extractions only; none proves native application import,
+authentication, queue/resume correctness or cold-state consistency. Jellyseerr
+also has failed backup operations #41/#42 at 2026-10-31 06:31 UTC and #44/#45
+at 06:32 UTC; later scheduled backups and the file restores above succeeded.
+The `app-technitium-0` plan has successful backups (latest observed #342 at
+2026-11-11 02:30 UTC) but no restore operation in its queried history. The
+`app-autokuma` plan likewise has no restore operation. Neither establishes an
+application-level restore. The configured plans contain no separately identified
+cold-state restore operation, so cold recovery remains unproven.
+
 Application config is protected by default through Git, not Kubernetes labels.
 Each app has one entry in `kubernetes/apps/<cluster>/storage/app-protect/values.yaml`
 and a matching `app-<name>` plan in that cluster's `backrest/config/config.json`.
@@ -239,6 +282,34 @@ against the complete restored photo tree using the independently escrowed
 Keychain key. `--overwrite=never` is not used as content-readback evidence because
 it can skip existing files. Disposable SQL namespaces/PVC contents and successful
 restore scratch copies were removed after verification.
+
+The recovery operation history was queried read-only with `GetOperations`, scoped
+to each plan, `lastN: 1000`. Immich database plan successful file restores:
+
+-   Operation 11 restored snapshot `a05c8848…` on 2026-10-30 22:12 UTC (three
+    files, 33,146,880 bytes); this is the documented PG14 database-import source.
+-   Operation 684 backed up snapshot `a1a5d572…` at 2026-11-10 06:40 UTC;
+    restore operation 733 extracted that same snapshot at 08:50 UTC (three files,
+    33,566,720 bytes). This is the candidate latest pre-rehearsal snapshot; the
+    operation record does not link extraction to the PG16 import validation.
+-   Operations 847, 848 and 918 restored other DB-plan snapshots on
+    2026-11-10 10:35, 11:41 and 13:09 UTC respectively (three files each).
+    Operations 817 and 853 are also marked successful, but their snapshot IDs
+    were absent from the current `ListSnapshots` result. Snapshot restore
+    operations prove extraction only; they do not prove PostgreSQL import.
+-   Immich originals operation 15 restored snapshot `00e24288…` on
+    2026-10-30 22:19 UTC (27,929 files, 34,778,694,995 bytes). No later originals
+    restore operation appears in the queried plan history.
+
+The separate PG16 upgrade note documents an isolated PG16 rehearsal using the
+latest then-current DB snapshot (3,518 assets), followed by a stopped-source
+final export/import into production PG16 (5,092 assets). Operation 733 restored
+the candidate snapshot before the reported rehearsal, but the note does not
+explicitly tie that operation or snapshot ID to the PG16 import validation.
+The originals restore #15 is the Oct 30 snapshot, not a demonstrated PG16-matched
+set. The PG16 database-import rehearsal is documented, and Backrest file restore
+history is confirmed, but an isolated PG16 restore from a named snapshot paired
+with compatible originals is not proven by the available evidence.
 
 Restore-gated retirement completed separately on both clusters: legacy operators,
 K8up CRDs/policies and enumerated old repository paths are gone. New repositories
