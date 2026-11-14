@@ -43,7 +43,7 @@ controllers:
       app:
         image:
           repository: docker.io/library/python
-          tag: 3.15.1-slim
+          tag: 3.15.2-slim
         command: [python3, -u, /etc/pve-hardware/hardware_exporter.py]
         env:
           PVE_TOKEN_VALUE_FILE: /etc/pve-credentials/PVE_MONITORING_TOKEN_SECRET

@@ -45,7 +45,7 @@ controllers:
       app:
         image:
           repository: docker.io/library/python
-          tag: 3.15.1-slim
+          tag: 3.15.2-slim
         command: [python3, -u, /etc/pbs-tasks/task_exporter.py]
         env:
           PBS_API_TOKEN_FILE: /etc/pbs-credentials/PBS_MONITORING_TOKEN_SECRET
