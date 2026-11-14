@@ -126,7 +126,7 @@ controllers:
       app:
         image:
           repository: ghcr.io/immich-app/postgres
-          tag: 16-vectorchord0.4.3-pgvector0.8.1
+          tag: 17-vectorchord0.4.3-pgvector0.8.1
         env:
           TZ: Europe/London
           POSTGRES_USER: postgres
