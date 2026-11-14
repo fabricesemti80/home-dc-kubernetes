@@ -53,7 +53,7 @@ template:
       fsGroup: 123
     containers:
       - name: runner
-        image: ghcr.io/actions/actions-runner:latest@sha256:0ce3288e48b012a83685998f683a2ae0cbd284fa722c090dda0af5443215cf30
+        image: ghcr.io/actions/actions-runner:latest@sha256:4037925f16bd0626196684aff1853dabd242675c82efe08f0a2d376694738d19
         command: ["/home/runner/run.sh"]
         securityContext:
           runAsNonRoot: true
