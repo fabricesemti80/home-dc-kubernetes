@@ -1,0 +1,18 @@
+---
+# Fresh PostgreSQL 17 data directory; keep the PG16 claim for rollback.
+# See docs/operations/immich-postgres-17.md before syncing the migration.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: immich-postgres17-data-longhorn
+  namespace: media
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+    argocd.argoproj.io/sync-options: Prune=false,Delete=false
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: longhorn
+  resources:
+    requests:
+      storage: 20Gi
