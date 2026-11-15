@@ -5,7 +5,7 @@ replicaCount: 1
 
 image:
   repository: ghcr.io/berriai/litellm
-  tag: v1.108.3
+  tag: v1.109.1
   pullPolicy: IfNotPresent
 
 nodeSelector:
