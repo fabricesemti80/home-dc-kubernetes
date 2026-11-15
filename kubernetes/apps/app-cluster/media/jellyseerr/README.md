@@ -17,4 +17,6 @@ Recommended first settings:
 
 The pod mounts:
 
--   `/app/config` on the retained Longhorn ReadWriteOnce PVC `jellyseerr-longhorn`; see the [migration record](../../../../../docs/operations/local-path-to-longhorn.md#jellyseerr-cutover-completed-2026-11-10). The previous local-path claim is retained for rollback.
+-   `/app/config` on the retained Longhorn ReadWriteOnce PVC `jellyseerr-longhorn`; see the [migration record](../../../../../docs/operations/local-path-to-longhorn.md#jellyseerr-cutover-completed-2026-11-10). The previous local-path claim was deleted; restore from Backrest if needed.
+
+The config tree is owned by UID/GID 1000, verified on 2026-11-15. The former recursive ownership init container was removed: it could not traverse the Longhorn ext4 volume's `lost+found` directory, preventing startup. `fsGroup: 1000` remains configured. After restoring a backup, preserve UID/GID 1000 and verify the pod reaches Ready and `/api/v1/status` responds. If permissions prevent startup, inspect ownership without logging config contents; correct restored files offline before restarting. Do not reintroduce a recursive chown of the volume root.
