@@ -31,7 +31,7 @@ spec:
               type: RuntimeDefault
           containers:
           - name: export
-            image: ghcr.io/immich-app/postgres@sha256:2c6e74ea2c5d4d784f5eece3d25c8d1c8872623537eb048483a913fcfb3587cc
+            image: ghcr.io/immich-app/postgres@sha256:79b95b795f0911e95ffa4d092a2162c4d81a984d5629bc8f786afe0bc0657671
             command:
             - sh
             - /runtime/export-postgres.sh

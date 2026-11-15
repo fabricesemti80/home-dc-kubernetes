@@ -7,5 +7,6 @@ resources:
   - ./doppler-secret.yaml
   - ./pvc-postgres-data-longhorn.yaml
   - ./pvc-postgres16-data-longhorn.yaml
+  - ./pvc-postgres17-data-longhorn.yaml
   - ./pvc-redis-data-longhorn.yaml
   - ./pvc-model-cache-longhorn.yaml
