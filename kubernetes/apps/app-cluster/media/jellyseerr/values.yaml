@@ -4,7 +4,6 @@ global:
 
 defaultPodOptions:
   automountServiceAccountToken: false
-  # Keep the permission fix for copied config files owned by the non-root node user.
   securityContext:
     runAsUser: 1000
     runAsGroup: 1000
@@ -16,31 +15,6 @@ controllers:
     # The first start of a new major version migrates the SQLite database in place
     # (one-way). Never run the old and the new pod against it at the same time.
     strategy: Recreate
-    initContainers:
-      fix-permissions:
-        image:
-          repository: docker.io/library/alpine
-          tag: "3.24"
-        command:
-          - sh
-          - -c
-          - chown -R 1000:1000 /app/config
-        securityContext:
-          runAsUser: 0
-          runAsGroup: 0
-          allowPrivilegeEscalation: false
-          readOnlyRootFilesystem: true
-          capabilities:
-            drop:
-              - ALL
-            add:
-              - CHOWN
-        resources:
-          requests:
-            cpu: 10m
-            memory: 16Mi
-          limits:
-            memory: 64Mi
     containers:
       app:
         # Jellyseerr is now Seerr (seerr-team/seerr). The fallenbagel/jellyseerr image
