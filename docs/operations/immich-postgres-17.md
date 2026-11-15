@@ -20,3 +20,11 @@ On 2026-11-15, a fresh `immich-db` native export was backed up as snapshot `ec10
 ## Rollback and security
 
 Until validated, stop Immich, point the StatefulSet back to the PG16 image and `immich-postgres16-data-longhorn` claim and sync the revert. This loses writes made on PG17 after cutover unless separately exported and restored; retain the final PG16 export and backup. Never run both instances against one data directory. Keep credentials in Kubernetes secrets and do not log their values. If a restore or check fails, keep clients stopped and restore the previous service before resuming automation. PG16 volume retention is not an offsite backup.
+
+## Outcome (2026-11-15)
+
+-   Stopped all Immich clients and recorded 6,439 assets, one user, zero albums and zero database clients. Final PG16 backup operation 1236 produced snapshot `e600caec82048992f2371c485d637b98ea5b3f8fe162f1b880ccb4d49471cfcd`; restore operation 1240 succeeded and its archive passed checksums and `pg_restore` read verification.
+-   PR #605 was merged during the authorized cutover. The restored PG17 database matched all counts, had `vchord 0.4.3`, `vector 0.8.1` and two VectorChord indexes. The backup login was re-provisioned and authenticated with restricted privileges.
+-   Immich and machine-learning ping endpoints returned success. Search and thumbnails were not exercised during this cutover. Argo automation and the export schedule were restored; `apps`, `immich` and `backrest-app` reported Synced and Healthy.
+-   A PG17 `pg_dump` export and Backrest backup succeeded (operation 1241, snapshot `981b12c4bd9744ab198c3518eb8a020f8ad8a2dd7c842c2ba437ff70d9fb6ac1`); restore operation 1245 succeeded, and the restored archive passed checksum and dump-read checks. This is not a second database import test.
+-   `immich-postgres16-data-longhorn` remains retained for rollback. Reverting to it loses subsequent PG17 writes unless separately migrated. Temporary jobs, pods and isolated restore directories were removed.
