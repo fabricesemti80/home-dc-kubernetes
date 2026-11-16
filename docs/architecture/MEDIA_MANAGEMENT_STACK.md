@@ -153,6 +153,37 @@ already exist or can be created on the NFS server before workloads start.
 -   `jellyfin` serves its UI, can see `/data`, and reports `Healthy` at `/health`
 -   GPU transcode is verified in Jellyfin logs once `nvidia.com/gpu` is available
 
+## Ebook and audiobook services
+
+Chaptarr imports ebooks and audiobooks into the NAS library. Audiobookshelf reads those files via read-only mounts and stores accounts, playback progress and metadata on Longhorn. Both run on the app cluster in the existing `media` namespace.
+
+| App            | Public URL                            | Internal URL                          | Storage                                              |
+| -------------- | ------------------------------------- | ------------------------------------- | ---------------------------------------------------- |
+| Chaptarr       | `https://chaptarr.krapulax.dev`       | `http://chaptarr.krapulax.home`       | Longhorn config, NAS library and completed downloads |
+| Audiobookshelf | `https://audiobookshelf.krapulax.dev` | `http://audiobookshelf.krapulax.home` | Longhorn config and metadata, read-only NAS library  |
+
+```mermaid
+flowchart TD
+    Indexers --> Chaptarr
+    Downloaders["SABnzbd / qBittorrent"] --> Chaptarr
+    Chaptarr --> NAS["NAS ebook and audiobook folders"]
+    NAS --> Audiobookshelf
+```
+
+The external HTTPRoutes declare both public DNS names with `external-apps.krapulax.dev` as their target. The existing Cloudflare ExternalDNS controller can publish them while its Argo sync policy stays manual. Technitium ExternalDNS publishes the internal names. Both public routes rely on the apps' own logins, equivalent to bypassing Cloudflare Access. That lets Audiobookshelf native clients log in directly. Each app receives its first admin username and password from a dedicated Doppler-managed Secret and uses its loopback API to create the account on fresh storage. Readiness checks keep both routes from serving the apps until Chaptarr requires authentication everywhere and Audiobookshelf has a root user. The two Argo applications sync after the existing apps so startup cannot hold up earlier waves.
+
+### Setup and validation
+
+1. On the NAS, create `books` and `audiobooks` at the root of the existing media export. Give UID/GID `1000:1000` write access to those two directories and verify that Chaptarr can read completed downloads and remove imported Usenet jobs. Ensure downloader-created book category folders and files grant that access. Keep unrelated media directories out of these permissions changes.
+2. Before Argo syncs the apps, add the four [admin credential keys](../secrets-and-env-vars.md#doppler-runtime-secrets-app-cluster-home-dc-kubernetesapps) to `home-dc-kubernetes/apps` in Doppler. After sync, check that both deployments become ready. Sign in with the corresponding credentials and verify that an anonymous request receives a login or authorization challenge. The bootstrap keeps existing accounts on restart and restore. Rotate an existing login in its app and update the matching Doppler values together.
+3. In Chaptarr, create separate book and audiobook root folders at `/books` and `/audiobooks`. Add indexers that carry book categories and configure `sabnzbd.media.svc.cluster.local:8080` and/or `qbittorrent.media.svc.cluster.local:8080`. Use dedicated download categories such as `ebooks` and `audiobooks` under `/downloads`. Both clients and Chaptarr see completed files at the same path. Separate mounts mean torrent imports may copy files while the original remains available for seeding.
+4. In Audiobookshelf, add libraries pointing at `/audiobooks` and `/books`. Give listeners their own accounts. Verify an authorized test download imports, appears in the correct library, and can be opened or played from a client outside the LAN.
+5. Check that both HTTPRoutes per app are accepted and have resolved backends. Run `dig @1.1.1.1 +short chaptarr.krapulax.dev` and `dig @1.1.1.1 +short audiobookshelf.krapulax.dev` for public resolution. If either public name is missing, check Cloudflare ExternalDNS reconciliation. If the controller is unavailable, create only the missing proxied CNAMEs with target `external-apps.krapulax.dev` in Cloudflare, keeping the shared DNS application's manual sync gate in place. Verify the `.home` names against Technitium and confirm the two app-protect exports and Backrest plans succeed.
+
+### Rollback
+
+Remove the two apps and their routes through Argo, then verify ExternalDNS removes their records. Remove any CNAMEs that were created manually. Keep the retained Longhorn claims and NAS book folders for recovery. Remove their app-protect and Backrest plans together if retiring both workloads.
+
 ## 📝 Container Image Pinning (2026-09-30)
 
 The Jellyseerr, Prowlarr, and qBittorrent containers retain their upstream `latest` tags for Renovate discovery, while Kubernetes receives an explicit immutable digest. Renovate must update the digest through a reviewed PR; workloads do not silently change when an upstream tag moves.

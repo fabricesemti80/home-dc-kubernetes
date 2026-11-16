@@ -1,0 +1,112 @@
+---
+global:
+  createDefaultServiceAccount: false
+
+defaultPodOptions:
+  automountServiceAccountToken: false
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+    runAsGroup: 1000
+    fsGroup: 1000
+    fsGroupChangePolicy: OnRootMismatch
+
+controllers:
+  audiobookshelf:
+    strategy: Recreate
+    containers:
+      app:
+        image:
+          repository: ghcr.io/advplyr/audiobookshelf
+          tag: "2.37.2"
+          digest: sha256:b897c33f05972fb1bf484f7487bc878fa91ec8691335c1db6e2929c3a7658efa
+        env:
+          TZ: Europe/London
+          PORT: "13378"
+          CONFIG_PATH: /state/config
+          METADATA_PATH: /state/metadata
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
+        lifecycle:
+          postStart:
+            exec:
+              command:
+                - node
+                - /bootstrap/bootstrap-admin.cjs
+        probes:
+          liveness:
+            enabled: true
+            custom: true
+            spec:
+              httpGet:
+                path: /healthcheck
+                port: 13378
+              initialDelaySeconds: 30
+              periodSeconds: 20
+              timeoutSeconds: 5
+          readiness:
+            enabled: true
+            custom: true
+            spec:
+              # /status reports whether the root account has been created.
+              exec:
+                command:
+                  - node
+                  - -e
+                  - |
+                    fetch('http://127.0.0.1:13378/status', { signal: AbortSignal.timeout(3000) })
+                      .then(async (response) => {
+                        if (!response.ok || (await response.json()).isInit !== true) process.exit(1)
+                      })
+                      .catch(() => process.exit(1))
+              periodSeconds: 10
+              timeoutSeconds: 5
+              failureThreshold: 1
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            cpu: 1
+            memory: 2Gi
+
+service:
+  app:
+    controller: audiobookshelf
+    ports:
+      http:
+        port: 13378
+        targetPort: 13378
+
+persistence:
+  state:
+    type: persistentVolumeClaim
+    existingClaim: audiobookshelf-longhorn
+    globalMounts:
+      - path: /state
+  library:
+    type: persistentVolumeClaim
+    existingClaim: media-library-pvc
+    globalMounts:
+      - path: /books
+        subPath: books
+        readOnly: true
+      - path: /audiobooks
+        subPath: audiobooks
+        readOnly: true
+  bootstrap:
+    type: configMap
+    name: audiobookshelf-bootstrap
+    globalMounts:
+      - path: /bootstrap
+        readOnly: true
+  admin:
+    type: secret
+    name: audiobookshelf-admin
+    defaultMode: 0440
+    globalMounts:
+      - path: /run/admin-credentials
+        readOnly: true
