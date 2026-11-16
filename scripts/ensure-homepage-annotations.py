@@ -64,6 +64,8 @@ STATIC_APP_STORAGE = {
 
 ICON_MAP = {
     "argo-cd": "argo-cd.png",
+    "audiobookshelf": "audiobookshelf.png",
+    "chaptarr": "mdi-book-open-page-variant",
     "homepage": "homepage.png",
     "immich": "immich.png",
     "jellyfin": "jellyfin.png",
@@ -81,6 +83,8 @@ ICON_MAP = {
 
 DESCRIPTIONS = {
     "argo-cd": "GitOps control plane",
+    "audiobookshelf": "Audiobook streaming and ebook reading",
+    "chaptarr": "Ebook and audiobook library automation",
     "homepage": "Kubernetes-native homelab dashboard",
     "immich": "Photo and video management",
     "jellyfin": "Media streaming server",

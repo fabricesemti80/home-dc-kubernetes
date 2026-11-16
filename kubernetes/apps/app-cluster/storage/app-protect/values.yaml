@@ -93,6 +93,21 @@ apps:
   - hyperopt_results
   - plot
   schedule: 40 1 * * *
+- name: chaptarr
+  namespace: media
+  selector:
+    app.kubernetes.io/instance: chaptarr
+    app.kubernetes.io/controller: chaptarr
+  claim: chaptarr-longhorn
+  excludes: *id001
+  schedule: 45 1 * * *
+- name: audiobookshelf
+  namespace: media
+  selector:
+    app.kubernetes.io/instance: audiobookshelf
+    app.kubernetes.io/controller: audiobookshelf
+  claim: audiobookshelf-longhorn
+  schedule: 50 1 * * *
 - name: vmagent-queue
   namespace: monitoring
   protect: false

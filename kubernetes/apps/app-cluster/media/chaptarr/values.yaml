@@ -1,0 +1,99 @@
+---
+global:
+  createDefaultServiceAccount: false
+
+defaultPodOptions:
+  automountServiceAccountToken: false
+
+controllers:
+  chaptarr:
+    strategy: Recreate
+    containers:
+      app:
+        image:
+          repository: docker.io/chaptarr/chaptarr
+          tag: "0.9.1000"
+          digest: sha256:7bc5774c79bd6e2deb633dd8555116a672b56be03e2b756b29fb86bedd44944c
+        env:
+          TZ: Europe/London
+          PUID: "1000"
+          PGID: "1000"
+          UMASK: "002"
+        lifecycle:
+          postStart:
+            exec:
+              command:
+                - /usr/bin/php
+                - /bootstrap/bootstrap-admin.php
+        probes:
+          liveness:
+            enabled: true
+            custom: true
+            spec:
+              httpGet:
+                path: /ping
+                port: 8789
+              initialDelaySeconds: 30
+              periodSeconds: 20
+              timeoutSeconds: 5
+          readiness:
+            enabled: true
+            custom: true
+            spec:
+              # Finish local account setup before serving either ingress route.
+              exec:
+                command:
+                  - /bin/sh
+                  - -ec
+                  - |
+                    grep -Eq '<AuthenticationMethod>(Forms|Basic)</AuthenticationMethod>' /config/config.xml &&
+                    ! grep -Fq '<AuthenticationRequired>DisabledForLocalAddresses</AuthenticationRequired>' /config/config.xml &&
+                    wget -q -T 3 -O /dev/null http://127.0.0.1:8789/ping
+              periodSeconds: 10
+              timeoutSeconds: 5
+              failureThreshold: 1
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            cpu: 1
+            memory: 2Gi
+
+service:
+  app:
+    controller: chaptarr
+    ports:
+      http:
+        port: 8789
+        targetPort: 8789
+
+persistence:
+  config:
+    type: persistentVolumeClaim
+    existingClaim: chaptarr-longhorn
+    globalMounts:
+      - path: /config
+  library:
+    type: persistentVolumeClaim
+    existingClaim: media-library-pvc
+    globalMounts:
+      - path: /books
+        subPath: books
+      - path: /audiobooks
+        subPath: audiobooks
+      - path: /downloads
+        subPath: downloads/complete
+  bootstrap:
+    type: configMap
+    name: chaptarr-bootstrap
+    globalMounts:
+      - path: /bootstrap
+        readOnly: true
+  admin:
+    type: secret
+    name: chaptarr-admin
+    defaultMode: 0440
+    globalMounts:
+      - path: /run/admin-credentials
+        readOnly: true

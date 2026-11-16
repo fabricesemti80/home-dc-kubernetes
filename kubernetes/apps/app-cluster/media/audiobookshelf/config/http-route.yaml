@@ -1,0 +1,28 @@
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: audiobookshelf
+  namespace: media
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: audiobookshelf.krapulax.dev
+    external-dns.alpha.kubernetes.io/target: external-apps.krapulax.dev
+    gethomepage.dev/description: "Audiobook streaming and ebook reading"
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/group: "App Cluster - media"
+    gethomepage.dev/href: "https://audiobookshelf.krapulax.dev"
+    gethomepage.dev/icon: "audiobookshelf.png"
+    gethomepage.dev/name: "Audiobookshelf"
+    gethomepage.dev/weight: "10"
+spec:
+  parentRefs:
+    - name: envoy-external
+      namespace: network
+      sectionName: https
+  hostnames:
+    - audiobookshelf.krapulax.dev
+  rules:
+    - backendRefs:
+        - name: audiobookshelf
+          namespace: media
+          port: 13378

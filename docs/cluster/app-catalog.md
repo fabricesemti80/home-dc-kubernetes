@@ -6,7 +6,7 @@ This document provides an index of all applications deployed in the Kubernetes c
 
 | Namespace               | App Count | Description                                         |
 | ----------------------- | --------- | --------------------------------------------------- |
-| media                   | 9         | Media management and playback                       |
+| media                   | 11        | Media management and playback                       |
 | network                 | 5         | DNS, Cloudflare tunnel and gateway                  |
 | argo-system             | 1         | Argo CD                                             |
 | kube-system             | 6         | Cilium, CoreDNS, GPU operator and system components |
@@ -23,17 +23,19 @@ This document provides an index of all applications deployed in the Kubernetes c
 
 ### 🎬 media
 
-| App         | Type             | Image                            | Port | Domain                   | Notes                                    |
-| ----------- | ---------------- | -------------------------------- | ---- | ------------------------ | ---------------------------------------- |
-| jellyfin    | Media Server     | lscr.io/linuxserver/jellyfin     | 8096 | jelly.krapulax.dev       | Media player; Longhorn config + cache    |
-| jellyseerr  | Request Manager  | seerr-team/seerr                 | 5055 | requests.krapulax.dev    | Media requests; Longhorn config          |
-| immich      | Photo Management | ghcr.io/immich-app/immich-server | 2283 | photos.krapulax.dev      | Photo/video backup; Longhorn DB/Redis/ML |
-| prowlarr    | Indexer Manager  | lscr.io/linuxserver/prowlarr     | 9696 | prowlarr.krapulax.dev    | Usenet/Torrent indexers; Longhorn config |
-| qbittorrent | Torrent Client   | lscr.io/linuxserver/qbittorrent  | 8080 | qbittorrent.krapulax.dev | Torrent downloads; Longhorn config       |
-| radarr      | Movie Manager    | lscr.io/linuxserver/radarr       | 7878 | radarr.krapulax.dev      | Movie automation; Longhorn config        |
-| sonarr      | TV Manager       | lscr.io/linuxserver/sonarr       | 8989 | sonarr.krapulax.dev      | TV automation; Longhorn config           |
-| sabnzbd     | Usenet Client    | lscr.io/linuxserver/sabnzbd      | 8080 | sabnzbd.krapulax.dev     | Usenet downloads; Longhorn config        |
-| recyclarr   | Sync Tool        | ghcr.io/recyclarr/recyclarr      | -    | -                        | Sonarr/Radarr sync; Longhorn config      |
+| App            | Type             | Image                            | Port  | Domain                                                     | Notes                                                        |
+| -------------- | ---------------- | -------------------------------- | ----- | ---------------------------------------------------------- | ------------------------------------------------------------ |
+| chaptarr       | Book Manager     | docker.io/chaptarr/chaptarr      | 8789  | chaptarr.krapulax.dev / chaptarr.krapulax.home             | Ebook and audiobook imports; Longhorn config and NAS media   |
+| audiobookshelf | Book Server      | ghcr.io/advplyr/audiobookshelf   | 13378 | audiobookshelf.krapulax.dev / audiobookshelf.krapulax.home | Playback and reading; Longhorn state and read-only NAS media |
+| jellyfin       | Media Server     | lscr.io/linuxserver/jellyfin     | 8096  | jelly.krapulax.dev                                         | Media player; Longhorn config + cache                        |
+| jellyseerr     | Request Manager  | seerr-team/seerr                 | 5055  | requests.krapulax.dev                                      | Media requests; Longhorn config                              |
+| immich         | Photo Management | ghcr.io/immich-app/immich-server | 2283  | photos.krapulax.dev                                        | Photo/video backup; Longhorn DB/Redis/ML                     |
+| prowlarr       | Indexer Manager  | lscr.io/linuxserver/prowlarr     | 9696  | prowlarr.krapulax.dev                                      | Usenet/Torrent indexers; Longhorn config                     |
+| qbittorrent    | Torrent Client   | lscr.io/linuxserver/qbittorrent  | 8080  | qbittorrent.krapulax.dev                                   | Torrent downloads; Longhorn config                           |
+| radarr         | Movie Manager    | lscr.io/linuxserver/radarr       | 7878  | radarr.krapulax.dev                                        | Movie automation; Longhorn config                            |
+| sonarr         | TV Manager       | lscr.io/linuxserver/sonarr       | 8989  | sonarr.krapulax.dev                                        | TV automation; Longhorn config                               |
+| sabnzbd        | Usenet Client    | lscr.io/linuxserver/sabnzbd      | 8080  | sabnzbd.krapulax.dev                                       | Usenet downloads; Longhorn config                            |
+| recyclarr      | Sync Tool        | ghcr.io/recyclarr/recyclarr      | -     | -                                                          | Sonarr/Radarr sync; Longhorn config                          |
 
 ### 📈 trading
 
@@ -124,7 +126,7 @@ old LiteLLM PostgreSQL) were deleted with their directories on 2026-11-11 (#562,
 
 ### 🔹 LinuxServer.io (lscr.io)
 
--   jellyfin, jellyseerr, sonarr, radarr, prowlarr, qbittorrent, sabnzbd
+-   jellyfin, jellyseerr, sonarr, radarr, prowlarr, qbittorrent, sabnzbd, chaptarr, audiobookshelf
 
 ### 🔹 GHCR.IO
 

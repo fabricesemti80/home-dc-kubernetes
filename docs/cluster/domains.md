@@ -46,16 +46,18 @@ The migration from `external.krapulax.dev` is complete:
 
 ### 🎬 Media
 
-| App         | Hostname                   | Config                                                                 |
-| ----------- | -------------------------- | ---------------------------------------------------------------------- |
-| Jellyfin    | `jelly.krapulax.dev`       | `kubernetes/apps/app-cluster/media/jellyfin/config/http-route.yaml`    |
-| SABnzbd     | `sabnzbd.krapulax.dev`     | `kubernetes/apps/app-cluster/media/sabnzbd/config/http-route.yaml`     |
-| qBittorrent | `qbittorrent.krapulax.dev` | `kubernetes/apps/app-cluster/media/qbittorrent/config/http-route.yaml` |
-| Sonarr      | `sonarr.krapulax.dev`      | `kubernetes/apps/app-cluster/media/sonarr/config/http-route.yaml`      |
-| Radarr      | `radarr.krapulax.dev`      | `kubernetes/apps/app-cluster/media/radarr/config/http-route.yaml`      |
-| Prowlarr    | `prowlarr.krapulax.dev`    | `kubernetes/apps/app-cluster/media/prowlarr/config/http-route.yaml`    |
-| Jellyseerr  | `requests.krapulax.dev`    | `kubernetes/apps/app-cluster/media/jellyseerr/config/http-route.yaml`  |
-| Immich      | `photos.krapulax.dev`      | `kubernetes/apps/app-cluster/media/immich/config/http-route.yaml`      |
+| App            | Hostname                      | Config                                                                    |
+| -------------- | ----------------------------- | ------------------------------------------------------------------------- |
+| Jellyfin       | `jelly.krapulax.dev`          | `kubernetes/apps/app-cluster/media/jellyfin/config/http-route.yaml`       |
+| SABnzbd        | `sabnzbd.krapulax.dev`        | `kubernetes/apps/app-cluster/media/sabnzbd/config/http-route.yaml`        |
+| qBittorrent    | `qbittorrent.krapulax.dev`    | `kubernetes/apps/app-cluster/media/qbittorrent/config/http-route.yaml`    |
+| Sonarr         | `sonarr.krapulax.dev`         | `kubernetes/apps/app-cluster/media/sonarr/config/http-route.yaml`         |
+| Radarr         | `radarr.krapulax.dev`         | `kubernetes/apps/app-cluster/media/radarr/config/http-route.yaml`         |
+| Prowlarr       | `prowlarr.krapulax.dev`       | `kubernetes/apps/app-cluster/media/prowlarr/config/http-route.yaml`       |
+| Jellyseerr     | `requests.krapulax.dev`       | `kubernetes/apps/app-cluster/media/jellyseerr/config/http-route.yaml`     |
+| Immich         | `photos.krapulax.dev`         | `kubernetes/apps/app-cluster/media/immich/config/http-route.yaml`         |
+| Chaptarr       | `chaptarr.krapulax.dev`       | `kubernetes/apps/app-cluster/media/chaptarr/config/http-route.yaml`       |
+| Audiobookshelf | `audiobookshelf.krapulax.dev` | `kubernetes/apps/app-cluster/media/audiobookshelf/config/http-route.yaml` |
 
 ### 📊 Monitoring
 

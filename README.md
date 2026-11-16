@@ -253,6 +253,8 @@ The app cluster uses:
 -   `longhorn` StorageClass (cluster default, 3 replicas on dedicated passthrough SSDs, `Retain`): every app-cluster app claim (freqtrade, Recyclarr, Prowlarr, Jellyseerr, Sonarr, Radarr, SABnzbd, qBittorrent, Jellyfin, Immich, Backrest and the vmagent queue) uses it; new workloads should too, one at a time per the [migration runbook](docs/operations/local-path-to-longhorn.md). It is not a backup and remains a single-host failure domain. See [Longhorn operations](docs/operations/longhorn.md).
 -   Static NFS PV/PVC (`media-library-pv` / `media-library-pvc`) at `10.0.40.2:/media` for media/downloads.
 
+Chaptarr and Audiobookshelf use the shared NAS media export for ebooks and audiobooks. Their Argo-managed routes declare both public hostnames for Cloudflare ExternalDNS. Prepare the NAS folders and Doppler admin credentials using the [book services setup](docs/architecture/MEDIA_MANAGEMENT_STACK.md#ebook-and-audiobook-services).
+
 Do not restore stateful apps until the bound worker node, volume node affinity,
 and any required backup data have been verified.
 
