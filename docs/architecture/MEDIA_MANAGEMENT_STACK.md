@@ -180,6 +180,34 @@ The external HTTPRoutes declare both public DNS names with `external-apps.krapul
 4. In Audiobookshelf, add libraries pointing at `/audiobooks` and `/books`. Give listeners their own accounts. Verify an authorized test download imports, appears in the correct library, and can be opened or played from a client outside the LAN.
 5. Check that both HTTPRoutes per app are accepted and have resolved backends. Run `dig @1.1.1.1 +short chaptarr.krapulax.dev` and `dig @1.1.1.1 +short audiobookshelf.krapulax.dev` for public resolution. If either public name is missing, check Cloudflare ExternalDNS reconciliation. If the controller is unavailable, create only the missing proxied CNAMEs with target `external-apps.krapulax.dev` in Cloudflare, keeping the shared DNS application's manual sync gate in place. Verify the `.home` names against Technitium and confirm the two app-protect exports and Backrest plans succeed.
 
+#### Completed-book download permissions
+
+SABnzbd currently runs as UID/GID 0 while Chaptarr runs as UID/GID 1000. The
+shared `/downloads/ebooks` and `/downloads/audiobooks` directories need group
+1000 and group write access, including existing job directories. Apply only to
+these book categories, not the other shared media paths. For example, through
+SABnzbd's existing mount (the operator's app-cluster kubeconfig is required):
+
+```sh
+kubectl -n media exec deploy/sabnzbd -c app -- sh -ec '
+  for dir in /downloads/ebooks /downloads/audiobooks; do
+    test -d "$dir"
+    chgrp -R 1000 "$dir"
+    chmod -R g+rwX "$dir"
+    find "$dir" -type d -exec chmod g+s {} +
+  done
+'
+```
+
+The setgid bit makes new children inherit group 1000, but an extractor may
+override ownership or modes. Verify a new completed download's directory and
+files, and confirm an actual Chaptarr import and Audiobookshelf scan; a write
+test on the category root alone does not prove an import works. Avoid deleting
+duplicate download directories until Chaptarr's queue and seeding state have
+been checked. Changing group permissions grants group 1000 write access to
+these trees; restore previous permissions from recorded metadata or backup if
+rolling back.
+
 ### Rollback
 
 Remove the two apps and their routes through Argo, then verify ExternalDNS removes their records. Remove any CNAMEs that were created manually. Keep the retained Longhorn claims and NAS book folders for recovery. Remove their app-protect and Backrest plans together if retiring both workloads.
