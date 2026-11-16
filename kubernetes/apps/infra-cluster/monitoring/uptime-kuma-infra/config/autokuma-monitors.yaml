@@ -16,6 +16,22 @@ data:
       "interval": 60,
       "max_retries": 3
     }
+  audiobookshelf.json: |-
+    {
+      "type": "http",
+      "name": "Audiobookshelf",
+      "url": "https://audiobookshelf.krapulax.dev",
+      "interval": 60,
+      "max_retries": 3
+    }
+  chaptarr.json: |-
+    {
+      "type": "http",
+      "name": "Chaptarr",
+      "url": "https://chaptarr.krapulax.dev",
+      "interval": 60,
+      "max_retries": 3
+    }
   dns.json: |-
     {
       "type": "http",
