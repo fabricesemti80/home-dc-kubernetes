@@ -1,0 +1,18 @@
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: uptime-kuma-internal
+  namespace: monitoring
+spec:
+  parentRefs:
+    - name: envoy-internal
+      namespace: network
+      sectionName: http
+  hostnames:
+    - uptime.krapulax.home
+  rules:
+    - backendRefs:
+        - name: uptime-kuma
+          namespace: monitoring
+          port: 3001

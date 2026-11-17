@@ -3,6 +3,7 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
   - ./config/http-route.yaml
+  - ./config/http-route-internal.yaml
   - ./config/autokuma-monitors.yaml
   - ./config/doppler-secret.yaml
   - ./config/namespace.yaml

@@ -21,3 +21,4 @@ resources:
   - ./clusterrole.yaml
   - ./clusterrolebinding.yaml
   - ./http-route.yaml
+  - ./http-route-internal.yaml
