@@ -8,6 +8,8 @@ on:
       - "kubernetes/**/*.yaml"
       - "kubernetes/**/*.yml"
       - "scripts/generate-autokuma-monitors.py"
+      - "scripts/domains.py"
+      - "domains.yaml"
       - ".github/workflows/generate-autokuma-monitors.yaml"
   workflow_dispatch:
 
@@ -42,6 +44,9 @@ jobs:
             -O /usr/local/bin/yq
           sudo chmod +x /usr/local/bin/yq
           yq --version
+
+      - name: Install Python dependencies
+        run: pip install pyyaml
 
       - name: Generate AutoKuma monitors
         run: python scripts/generate-autokuma-monitors.py

@@ -1,0 +1,32 @@
+---
+# Single source of truth for the DNS zones this repository publishes.
+#
+#   public:   zones served by Cloudflare (tunnel + envoy-external)
+#   internal: zones served by Technitium (envoy-internal, LAN only)
+#
+# Each list may hold more than one zone; the first entry is the primary.
+# Argo CD cannot substitute variables, so manifests keep literal hostnames.
+# Change a zone with the rename task, never by hand:
+#
+#   task domains:rename KIND=public FROM=old.example TO=new.example
+#
+# `task domains:check` (also run by scripts/validate.sh) fails when a route
+# uses a zone that is not listed here, or the wrong kind of zone for its gateway.
+# See docs/cluster/domains.md#changing-a-domain.
+public:
+  - krapulax.dev
+internal:
+  - krapulax.home
+
+# Strings that look like domains but are Kubernetes label/annotation keys.
+# Renaming them would change selectors on live objects, so rename skips them.
+preserve:
+  - backup.krapulax.dev/
+  - backup.krapulax.home/
+  - krapulax.dev/tailscale-router
+  - monitoring.krapulax.home/
+
+# Paths (fnmatch globs) rename never touches: historical records.
+rename_exclude:
+  - docs/archive/*
+  - docs/operations/20??-??-??-*.md

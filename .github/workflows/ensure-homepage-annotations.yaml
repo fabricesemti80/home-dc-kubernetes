@@ -8,6 +8,8 @@ on:
       - "kubernetes/**/*.yaml"
       - "kubernetes/**/*.yml"
       - "scripts/ensure-homepage-annotations.py"
+      - "scripts/domains.py"
+      - "domains.yaml"
       - ".github/workflows/ensure-homepage-annotations.yaml"
   workflow_dispatch:
 
