@@ -205,6 +205,11 @@ auto-syncs applications from Git. The NAS backup target and the data-preserving
 Kestra/KubeVirt retirement procedure are documented in
 [NAS backup target](docs/architecture/nas-backup-target.md).
 
+**Immich PostgreSQL major upgrades:** never sync an image-only major bump or a
+fresh database claim as an ordinary GitOps update. Stop writers, verify a
+logical backup, and restore it before starting Immich. Follow the
+[PG16→17 migration and rollback procedure](docs/operations/immich-postgres-17.md).
+
 Before syncing, confirm both scoped Doppler operator token Secrets are present
 in Git and decryptable:
 
