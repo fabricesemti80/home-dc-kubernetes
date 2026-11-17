@@ -272,6 +272,11 @@ kubectl get dnsendpoint -A
 kubectl get application cloudflare-dns cloudflare-tunnel cloudflare-tunnel-infra -n argo-system
 ```
 
+DNS zones are declared once in [`domains.yaml`](domains.yaml) (`public`: Cloudflare, `internal`: Technitium).
+`task domains:check` (part of `task validate`) fails on a route outside those zones. Change a zone with
+`task domains:rename KIND=public FROM=<old> TO=<new>` (dry run; add `WRITE=true` to apply), following
+[Changing a domain](docs/cluster/domains.md#changing-a-domain).
+
 Verify Doppler runtime secret sync after Argo converges:
 
 ```bash

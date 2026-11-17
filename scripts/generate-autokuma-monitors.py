@@ -11,13 +11,17 @@ import sys
 import tempfile
 from pathlib import Path
 
+from domains import public_zones, strip_zone, zone_of
+
 ROOT = Path(__file__).resolve().parents[1]
 KUBERNETES_DIR = ROOT / "kubernetes"
 OUTPUT = (
     ROOT
     / "kubernetes/apps/infra-cluster/monitoring/uptime-kuma-infra/config/autokuma-monitors.yaml"
 )
-PUBLIC_HOST_RE = re.compile(r"^[a-z0-9][a-z0-9.-]*\.krapulax\.dev$")
+# Public zones come from domains.yaml (`public`).
+PUBLIC_ZONES = public_zones()
+HOST_RE = re.compile(r"^[a-z0-9][a-z0-9.-]*$")
 
 DISPLAY_NAME_OVERRIDES = {
     "argo.krapulax.dev": "Argo CD",
@@ -78,7 +82,7 @@ def discover_monitors() -> dict[str, str]:
                 continue
             discovered_name, hostname = line.split("\t", 1)
             hostname = hostname.strip().lower()
-            if not PUBLIC_HOST_RE.fullmatch(hostname):
+            if not HOST_RE.fullmatch(hostname) or zone_of(hostname, PUBLIC_ZONES) in (None, hostname):
                 continue
 
             name = DISPLAY_NAME_OVERRIDES.get(hostname, discovered_name.strip())
@@ -90,13 +94,15 @@ def discover_monitors() -> dict[str, str]:
             monitors[hostname] = name
 
     if not monitors:
-        raise RuntimeError("no public *.krapulax.dev HTTPRoute hostnames were discovered")
+        raise RuntimeError(f"no public HTTPRoute hostnames under {PUBLIC_ZONES} were discovered")
 
     return dict(sorted(monitors.items()))
 
 
 def monitor_key(hostname: str) -> str:
-    return hostname.removesuffix(".krapulax.dev").replace(".", "-") + ".json"
+    # Only the primary zone is stripped, so sonarr.<second-zone> cannot collide
+    # with sonarr.<primary> (existing keys stay unchanged).
+    return strip_zone(hostname, PUBLIC_ZONES[:1]).replace(".", "-") + ".json"
 
 
 def render(monitors: dict[str, str]) -> str:

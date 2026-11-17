@@ -8,6 +8,8 @@ from urllib.parse import urlsplit, urlunsplit
 
 import yaml
 
+from domains import is_public_host
+
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 APPS_DIR = os.path.join(REPO, "kubernetes", "apps")
 SETTINGS_PATH = os.path.join(
@@ -124,11 +126,11 @@ def title_name(name: str) -> str:
 
 
 def upgrade_http_to_https(href: str) -> str:
-    """Upgrade http:// to https:// for public .dev hosts, preserving path/query."""
+    """Upgrade http:// to https:// for public hosts, preserving path/query."""
     if not href.startswith("http://"):
         return href
     host = href.split("/")[2].split(":")[0]
-    if not host.endswith(".dev"):
+    if not is_public_host(host):
         return href
     parts = urlsplit(href)
     return urlunsplit(parts._replace(scheme="https"))
@@ -145,17 +147,17 @@ def route_host(doc: dict) -> str | None:
 
 
 def is_public_route(doc: dict) -> bool:
-    """Only public DNS records (currently .dev) should appear on the homepage."""
+    """Only public DNS records (zones under `public` in domains.yaml) appear on the homepage."""
     host = route_host(doc)
-    return bool(host and host.endswith(".dev"))
+    return bool(host and is_public_host(host))
 
 
 def determine_href(doc: dict) -> str | None:
     host = route_host(doc)
     if not host:
         return None
-    # Public .dev endpoints terminate TLS at Cloudflare, so use HTTPS.
-    scheme = "https" if host.endswith(".dev") else "http"
+    # Public endpoints terminate TLS at Cloudflare, so use HTTPS.
+    scheme = "https" if is_public_host(host) else "http"
     return f"{scheme}://{host}"
 
 

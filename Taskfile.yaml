@@ -36,6 +36,20 @@ tasks:
       - bash {{.ROOT_DIR}}/scripts/validate.sh
       - python3 {{.ROOT_DIR}}/scripts/generate-autokuma-monitors.py --check
 
+  domains:check:
+    desc: Check every HTTPRoute hostname against domains.yaml
+    cmd: python3 {{.ROOT_DIR}}/scripts/domains.py check
+
+  domains:env:
+    desc: Print the zones from domains.yaml as DOMAIN_* shell assignments
+    cmd: python3 {{.ROOT_DIR}}/scripts/domains.py env
+
+  domains:rename:
+    desc: Rename a public or internal zone everywhere (dry run unless WRITE=true)
+    requires:
+      vars: [KIND, FROM, TO]
+    cmd: python3 {{.ROOT_DIR}}/scripts/domains.py rename "{{.KIND}}" "{{.FROM}}" "{{.TO}}" {{if eq .WRITE "true"}}--write{{end}}
+
   arc:repair-stale-listener:
     desc: Re-register an ARC scale set after GitHub returns RunnerScaleSetNotFoundException
     requires:
