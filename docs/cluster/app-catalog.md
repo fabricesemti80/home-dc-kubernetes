@@ -126,19 +126,19 @@ old LiteLLM PostgreSQL) were deleted with their directories on 2026-11-11 (#562,
 
 ### 🔹 LinuxServer.io (lscr.io)
 
-- jellyfin, jellyseerr, sonarr, radarr, prowlarr, qbittorrent, sabnzbd, chaptarr, audiobookshelf
+-   jellyfin, jellyseerr, sonarr, radarr, prowlarr, qbittorrent, sabnzbd, chaptarr, audiobookshelf
 
 ### 🔹 GHCR.IO
 
-- immich-app/immich-server, immich-app/immich-machine-learning
-- recyclarr/recyclarr
-- spegel/spegel
+-   immich-app/immich-server, immich-app/immich-machine-learning
+-   recyclarr/recyclarr
+-   spegel/spegel
 
 ### 🔹 Official
 
-- argoproj/argo-cd, bitnami/k8s-sidecar, cloudflare/cloudflared, hashicorp/http-echo
-- stakater/reloader, cilium/cilium
-- projectsorted/k8s-gateway, registry.k8s.io/coredns
+-   argoproj/argo-cd, bitnami/k8s-sidecar, cloudflare/cloudflared, hashicorp/http-echo
+-   stakater/reloader, cilium/cilium
+-   projectsorted/k8s-gateway, registry.k8s.io/coredns
 
 ---
 
