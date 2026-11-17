@@ -81,6 +81,45 @@ There is no public route for the NAS backup target.
 | Homepage | `homepage.krapulax.dev` | `kubernetes/apps/app-cluster/web/homepage/config/http-route.yaml` |
 | Echo     | `echo.krapulax.dev`     | `kubernetes/apps/app-cluster/default/echo/values.sops.yaml`       |
 
+## 🏠 Internal hostnames (`krapulax.home`)
+
+Every app with a web UI or API has an internal route on `envoy-internal`
+(`sectionName: http`). Public apps keep their `krapulax.dev` route unchanged;
+the internal route is an additional `HTTPRoute`. App-cluster routes carry
+`external-dns.alpha.kubernetes.io/target: kubernetes.krapulax.home`
+(`10.0.40.102`); infra-cluster routes resolve to the infra `envoy-internal`
+gateway address (`10.0.40.106`).
+
+| Hostname                        | Cluster | Public counterpart            |
+| ------------------------------- | ------- | ----------------------------- |
+| `argo.krapulax.home`            | app     | `argo.krapulax.dev`           |
+| `audiobookshelf.krapulax.home`  | app     | `audiobookshelf.krapulax.dev` |
+| `backrest.krapulax.home`        | app     | -                             |
+| `chaptarr.krapulax.home`        | app     | `chaptarr.krapulax.dev`       |
+| `echo.krapulax.home`            | app     | `echo.krapulax.dev`           |
+| `freqtrade.krapulax.home`       | app     | -                             |
+| `homepage.krapulax.home`        | app     | `homepage.krapulax.dev`       |
+| `jellyfin.krapulax.home`        | app     | `jelly.krapulax.dev`          |
+| `longhorn.krapulax.home`        | app     | -                             |
+| `photos.krapulax.home`          | app     | `photos.krapulax.dev`         |
+| `prowlarr.krapulax.home`        | app     | `prowlarr.krapulax.dev`       |
+| `qbittorrent.krapulax.home`     | app     | `qbittorrent.krapulax.dev`    |
+| `radarr.krapulax.home`          | app     | `radarr.krapulax.dev`         |
+| `requests.krapulax.home`        | app     | `requests.krapulax.dev`       |
+| `sabnzbd.krapulax.home`         | app     | `sabnzbd.krapulax.dev`        |
+| `sonarr.krapulax.home`          | app     | `sonarr.krapulax.dev`         |
+| `alertmanager.krapulax.home`    | infra   | -                             |
+| `backrest-infra.krapulax.home`  | infra   | -                             |
+| `dns.krapulax.home`             | infra   | `dns.krapulax.dev`            |
+| `grafana.krapulax.home`         | infra   | -                             |
+| `litellm.krapulax.home`         | infra   | `litellm.krapulax.dev`        |
+| `uptime.krapulax.home`          | infra   | `uptime.krapulax.dev`         |
+| `victoriametrics.krapulax.home` | infra   | -                             |
+
+Validation after sync: `dig +short <host>.krapulax.home @10.0.40.53` returns
+`kubernetes.krapulax.home`/`10.0.40.102` (app) or `10.0.40.106` (infra), and
+`curl -sI http://<host>.krapulax.home` answers from the app.
+
 ## 📌 Deprecated / Inactive
 
 -   `plex.krapulax.net` - External Plex server (not in this repo)

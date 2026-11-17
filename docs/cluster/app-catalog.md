@@ -63,9 +63,9 @@ The app-cluster apps use Longhorn (`ReadWriteOnce`, 3 replicas) for config, stat
 
 ### 🔹 argo-system
 
-| App     | Type   | Image            | Port | Domain            | Notes             |
-| ------- | ------ | ---------------- | ---- | ----------------- | ----------------- |
-| argo-cd | GitOps | argoproj/argo-cd | 8080 | argo.krapulax.dev | GitOps controller |
+| App     | Type   | Image            | Port | Domain                                | Notes             |
+| ------- | ------ | ---------------- | ---- | ------------------------------------- | ----------------- |
+| argo-cd | GitOps | argoproj/argo-cd | 8080 | argo.krapulax.dev, argo.krapulax.home | GitOps controller |
 
 ### 🔹 kube-system
 
@@ -80,10 +80,10 @@ The app-cluster apps use Longhorn (`ReadWriteOnce`, 3 replicas) for config, stat
 
 ### 🔹 default
 
-| App      | Type      | Image                        | Port | Domain                | Notes          |
-| -------- | --------- | ---------------------------- | ---- | --------------------- | -------------- |
-| echo     | Test      | hashicorp/http-echo          | 5678 | echo.krapulax.dev     | Test endpoint  |
-| homepage | Dashboard | ghcr.io/gethomepage/homepage | 3000 | homepage.krapulax.dev | Home dashboard |
+| App      | Type      | Image                        | Port | Domain                                        | Notes          |
+| -------- | --------- | ---------------------------- | ---- | --------------------------------------------- | -------------- |
+| echo     | Test      | hashicorp/http-echo          | 5678 | echo.krapulax.dev, echo.krapulax.home         | Test endpoint  |
+| homepage | Dashboard | ghcr.io/gethomepage/homepage | 3000 | homepage.krapulax.dev, homepage.krapulax.home | Home dashboard |
 
 ### 🔹 doppler-operator-system
 
@@ -95,17 +95,17 @@ The app-cluster apps use Longhorn (`ReadWriteOnce`, 3 replicas) for config, stat
 
 Argo CD on `app-cluster` also deploys these `infra-cluster` workloads:
 
-| App                          | Type       | Image                                       | Notes                      |
-| ---------------------------- | ---------- | ------------------------------------------- | -------------------------- |
-| doppler-operator-infra       | Secrets    | mirror.gcr.io/dopplerhq/kubernetes-operator | Doppler operator           |
-| reloader-infra               | Reloader   | stakater/reloader                           | Config reload watcher      |
-| uptime-kuma-infra            | Monitoring | louislam/uptime-kuma                        | Uptime monitoring          |
-| cloudflare-tunnel-infra      | Tunnel     | cloudflare/cloudflared                      | Cloudflare Tunnel          |
-| envoy-gateway-infra          | Gateway    | envoyproxy/gateway                          | Gateway API implementation |
-| tailscale-infra              | Tailscale  | tailscale/tailscale                         | Tailscale operator         |
-| technitium-dns-infra         | DNS Sync   | external-dns                                | Internal DNS records       |
-| technitium-infra             | DNS        | technitium/dns-server                       | DNS admin/server           |
-| local-path-provisioner-infra | Storage    | rancher/local-path-provisioner              | Local PV provisioner       |
+| App                          | Type       | Image                                       | Notes                                                             |
+| ---------------------------- | ---------- | ------------------------------------------- | ----------------------------------------------------------------- |
+| doppler-operator-infra       | Secrets    | mirror.gcr.io/dopplerhq/kubernetes-operator | Doppler operator                                                  |
+| reloader-infra               | Reloader   | stakater/reloader                           | Config reload watcher                                             |
+| uptime-kuma-infra            | Monitoring | louislam/uptime-kuma                        | Uptime monitoring (`uptime.krapulax.dev`, `uptime.krapulax.home`) |
+| cloudflare-tunnel-infra      | Tunnel     | cloudflare/cloudflared                      | Cloudflare Tunnel                                                 |
+| envoy-gateway-infra          | Gateway    | envoyproxy/gateway                          | Gateway API implementation                                        |
+| tailscale-infra              | Tailscale  | tailscale/tailscale                         | Tailscale operator                                                |
+| technitium-dns-infra         | DNS Sync   | external-dns                                | Internal DNS records                                              |
+| technitium-infra             | DNS        | technitium/dns-server                       | DNS admin/server                                                  |
+| local-path-provisioner-infra | Storage    | rancher/local-path-provisioner              | Local PV provisioner                                              |
 
 Both clusters also have a `nas-backup` GitOps Application provisioning the retained
 `backups/k8s-backup` NFS claim; no storage-server image runs for this target.
@@ -126,19 +126,19 @@ old LiteLLM PostgreSQL) were deleted with their directories on 2026-11-11 (#562,
 
 ### 🔹 LinuxServer.io (lscr.io)
 
--   jellyfin, jellyseerr, sonarr, radarr, prowlarr, qbittorrent, sabnzbd, chaptarr, audiobookshelf
+- jellyfin, jellyseerr, sonarr, radarr, prowlarr, qbittorrent, sabnzbd, chaptarr, audiobookshelf
 
 ### 🔹 GHCR.IO
 
--   immich-app/immich-server, immich-app/immich-machine-learning
--   recyclarr/recyclarr
--   spegel/spegel
+- immich-app/immich-server, immich-app/immich-machine-learning
+- recyclarr/recyclarr
+- spegel/spegel
 
 ### 🔹 Official
 
--   argoproj/argo-cd, bitnami/k8s-sidecar, cloudflare/cloudflared, hashicorp/http-echo
--   stakater/reloader, cilium/cilium
--   projectsorted/k8s-gateway, registry.k8s.io/coredns
+- argoproj/argo-cd, bitnami/k8s-sidecar, cloudflare/cloudflared, hashicorp/http-echo
+- stakater/reloader, cilium/cilium
+- projectsorted/k8s-gateway, registry.k8s.io/coredns
 
 ---
 
