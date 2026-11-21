@@ -5,9 +5,9 @@ global:
 defaultPodOptions:
   automountServiceAccountToken: false
   securityContext:
-    runAsNonRoot: true
-    runAsUser: 1000
-    runAsGroup: 1000
+    runAsNonRoot: false
+    runAsUser: 0
+    runAsGroup: 0
     fsGroup: 1000
     fsGroupChangePolicy: OnRootMismatch
     seccompProfile:
@@ -32,6 +32,7 @@ controllers:
           allowPrivilegeEscalation: false
           capabilities:
             drop: ["ALL"]
+            add: ["DAC_OVERRIDE"]
         probes:
           readiness:
             enabled: true
