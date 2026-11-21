@@ -27,6 +27,7 @@ cardBlur: md
 
 layout:
   App Cluster - argo-system:
+  App Cluster - dev:
   App Cluster - media:
     style: row
     columns: 3
