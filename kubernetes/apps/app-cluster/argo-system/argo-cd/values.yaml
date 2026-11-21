@@ -74,7 +74,8 @@ controller:
     applicationLabels:
       enabled: true
 dex:
-  replicas: 2
+  # Multiple Dex replicas require a shared persistent storage backend.
+  replicas: 1
   resources:
     requests:
       cpu: 50m
