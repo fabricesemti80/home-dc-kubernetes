@@ -24,6 +24,14 @@ data:
       "interval": 60,
       "max_retries": 3
     }
+  awx.json: |-
+    {
+      "type": "http",
+      "name": "AWX",
+      "url": "https://awx.krapulax.dev",
+      "interval": 60,
+      "max_retries": 3
+    }
   chaptarr.json: |-
     {
       "type": "http",
