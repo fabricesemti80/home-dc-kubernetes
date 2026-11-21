@@ -37,3 +37,21 @@ stable through a full reconciliation, and the root Application's reconciled
 revision advances. If OOM kills continue or memory approaches 2 GiB, inspect
 controller workload and concurrency before raising the limit further. Roll back
 by restoring the 1 GiB limit if node memory pressure appears.
+
+## Dex replica count (2026-11-21)
+
+The Argo CD chart 10.18.2 rejects `dex.replicas: 2` without a persistent,
+shared Dex storage backend. The live deployment has one ready replica and the
+live Dex configuration does not specify a storage backend. Set the desired
+replica count to one rather than introduce a database for a small installation.
+This restores manifest generation without changing the live replica count.
+
+Assumption: the existing single Dex replica is sufficient; Dex is not highly
+available and an outage can interrupt SSO login. Existing Argo sessions and
+the remaining components are not made highly available by this change.
+Validate a rendered chart with the actual encrypted values, then after sync
+check the `argo` Application is Synced and Healthy, Dex is Ready, and the
+configured sign-in flow works. If Dex is unavailable or SSO is disrupted,
+restore the last working chart and values together; reverting the replica count
+alone would recreate the chart rendering error. A future two-replica setup needs
+a supported shared storage backend and a separate security and recovery design.
