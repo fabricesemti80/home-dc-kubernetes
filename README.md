@@ -44,8 +44,8 @@ kubernetes/apps/infra-cluster/<namespace>/<app>/
 
 The app cluster includes [FileBrowser Quantum](docs/architecture/filebrowser.md)
 for managing the NAS media share at `files.krapulax.home`, also listed on Homepage.
-Folder write access is governed by NAS permissions; its memory limit allows headroom
-for media indexing.
+FileBrowser runs as root to manage files with differing NAS ownership; this grants
+it broad write access to the media share. Its memory limit allows indexing headroom.
 
 ## 🛤️ Stage 0: Recovery Inputs
 
