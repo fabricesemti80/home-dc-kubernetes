@@ -51,7 +51,7 @@ flowchart LR
 - **Secrets**: Doppler `home-dc-kubernetes/apps` provides `AWX_ADMIN_PASSWORD` and `AWX_SECRET_KEY`, synced to `dev/awx-secrets`. No secret is stored in Git.
 - **Access**: the internal route relies on the trusted LAN plus the AWX login. The external route must get a Cloudflare Access application (allowed emails) in `home-dc-terraform` **before** the manual `cloudflare-dns` sync publishes `awx.krapulax.dev`. Until then the name does not resolve publicly.
 - **Blast radius**: AWX can reach anything its stored credentials allow. Give machine credentials least privilege, and prefer per-environment credentials.
-- **Backups**: none yet. `app-protect` has `protect: false` (a file copy of a running PGDATA is not a valid backup). A native `pg_dump` export with a Backrest plan, following the immich-db pattern, is a follow-up.
+- **Backups**: none yet. `app-protect` has `protect: false` (a file copy of a running PGDATA is not a valid backup). A native `pg_dump` export with a Backrest plan, following the immich-db pattern, is tracked in #637.
 
 ## Validation
 
