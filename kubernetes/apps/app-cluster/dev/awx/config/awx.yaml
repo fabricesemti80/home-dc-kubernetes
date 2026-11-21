@@ -1,0 +1,95 @@
+---
+# AWX instance reconciled by the awx-operator (installed by the same Argo app).
+# Spec reference: https://ansible.readthedocs.io/projects/awx-operator/
+apiVersion: awx.ansible.com/v1beta1
+kind: AWX
+metadata:
+  name: awx
+  namespace: dev
+  annotations:
+    # The CRD comes from the chart in the same sync; skip the dry-run until it exists.
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  # Exposure is handled by the Envoy HTTPRoutes in this directory.
+  service_type: ClusterIP
+  ingress_type: none
+  hostname: awx.krapulax.dev
+
+  admin_user: admin
+  admin_password_secret: awx-secrets
+  secret_key_secret: awx-secrets
+  # postgres_configuration_secret is left unset: the operator generates
+  # `awx-postgres-configuration` (random password) on first reconcile.
+
+  # TLS terminates at Envoy; trust the forwarded headers and both hostnames.
+  extra_settings:
+    - setting: CSRF_TRUSTED_ORIGINS
+      value:
+        - https://awx.krapulax.dev
+        - http://awx.krapulax.home
+    - setting: USE_X_FORWARDED_HOST
+      value: true
+    - setting: USE_X_FORWARDED_PORT
+      value: true
+    - setting: REMOTE_HOST_HEADERS
+      value:
+        - HTTP_X_FORWARDED_FOR
+        - REMOTE_ADDR
+        - REMOTE_HOST
+
+  # Managed Postgres on a Longhorn volume (StorageClass reclaimPolicy: Retain).
+  postgres_storage_class: longhorn
+  postgres_storage_requirements:
+    requests:
+      storage: 10Gi
+  postgres_data_volume_init: true
+  postgres_keep_pvc_after_upgrade: true
+  postgres_resource_requirements:
+    requests:
+      cpu: 50m
+      memory: 256Mi
+    limits:
+      memory: 1Gi
+
+  # Projects are pulled from Git per job; no projects PVC.
+  projects_persistence: false
+
+  web_replicas: 1
+  task_replicas: 1
+  web_resource_requirements:
+    requests:
+      cpu: 100m
+      memory: 768Mi
+    limits:
+      memory: 2Gi
+  task_resource_requirements:
+    requests:
+      cpu: 100m
+      memory: 768Mi
+    limits:
+      memory: 2Gi
+  ee_resource_requirements:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      memory: 1Gi
+  redis_resource_requirements:
+    requests:
+      cpu: 25m
+      memory: 64Mi
+    limits:
+      memory: 256Mi
+  rsyslog_resource_requirements:
+    requests:
+      cpu: 10m
+      memory: 64Mi
+    limits:
+      memory: 256Mi
+  init_container_resource_requirements:
+    requests:
+      cpu: 10m
+      memory: 64Mi
+    limits:
+      memory: 256Mi

@@ -1,0 +1,45 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: awx
+  namespace: argo-system
+  annotations:
+    # After Longhorn (1): the operator-managed Postgres claims a Longhorn volume.
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  project: kubernetes
+  sources:
+    # AWX instance (CR), Doppler secret and routes.
+    - repoURL: "https://github.com/fabricesemti80/home-dc-kubernetes.git"
+      path: kubernetes/apps/app-cluster/dev/awx
+      targetRevision: main
+      ref: repo
+    # AWX Operator (chart 3.2.0 ships awx-operator 2.19.1 / AWX 24.6.1).
+    - repoURL: https://ansible-community.github.io/awx-operator-helm/
+      chart: awx-operator
+      targetRevision: 3.2.0
+      helm:
+        releaseName: awx-operator
+        valueFiles:
+          - $repo/kubernetes/apps/app-cluster/dev/awx/values.yaml
+  destination:
+    name: app-cluster
+    namespace: dev
+  syncPolicy:
+    automated:
+      allowEmpty: true
+      prune: true
+      selfHeal: true
+    retry:
+      limit: 3
+      backoff:
+        duration: 10s
+        factor: 2
+        maxDuration: 3m
+    syncOptions:
+      - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true
+      - ServerSideApply=true
+      - PruneLast=true
+      - RespectIgnoreDifferences=true

@@ -118,3 +118,9 @@ apps:
 - name: vmagent-queue
   namespace: monitoring
   protect: false
+# AWX keeps its state in the operator-managed Postgres. A file copy of a running
+# PGDATA is not a valid backup, so app-protect is opted out; a native pg_dump
+# export + Backrest plan (like immich-db) is tracked as a follow-up issue.
+- name: awx
+  namespace: dev
+  protect: false

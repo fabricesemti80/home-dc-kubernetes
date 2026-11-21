@@ -1,0 +1,32 @@
+---
+# Public route through the Cloudflare tunnel. AWX holds infrastructure
+# credentials, so the intended policy is Cloudflare Access with allowed emails
+# in front of AWX's own login (home-dc-terraform, see docs/architecture/awx.md).
+# The public DNS record only appears after a manual cloudflare-dns sync.
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: awx
+  namespace: dev
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: awx.krapulax.dev
+    external-dns.alpha.kubernetes.io/target: external-apps.krapulax.dev
+    gethomepage.dev/description: "Ansible automation (AWX)"
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/group: "App Cluster - dev"
+    gethomepage.dev/href: "https://awx.krapulax.dev"
+    gethomepage.dev/icon: "awx.png"
+    gethomepage.dev/name: "AWX"
+    gethomepage.dev/weight: "10"
+spec:
+  parentRefs:
+    - name: envoy-external
+      namespace: network
+      sectionName: https
+  hostnames:
+    - awx.krapulax.dev
+  rules:
+    - backendRefs:
+        - name: awx-service
+          namespace: dev
+          port: 80
