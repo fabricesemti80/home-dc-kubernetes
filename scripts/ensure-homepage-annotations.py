@@ -62,6 +62,14 @@ STATIC_APP_STORAGE = {
     },
 }
 
+STATIC_APP_MEDIA = {
+    "FileBrowser Quantum": {
+        "icon": "mdi-folder-multiple-outline",
+        "href": "http://files.krapulax.home",
+        "description": "Browse and manage NAS media files",
+    },
+}
+
 ICON_MAP = {
     "argo-cd": "argo-cd.png",
     "audiobookshelf": "audiobookshelf.png",
@@ -479,6 +487,18 @@ def main():
             **{f"gethomepage.dev/{key}": value for key, value in service.items()},
         }
         for name, service in STATIC_APP_STORAGE.items()
+    )
+
+    media_group = "App Cluster - media"
+    groups.add(media_group)
+    infra_routes.extend(
+        {
+            "gethomepage.dev/group": media_group,
+            "gethomepage.dev/name": name,
+            "gethomepage.dev/weight": "20",
+            **{f"gethomepage.dev/{key}": value for key, value in service.items()},
+        }
+        for name, service in STATIC_APP_MEDIA.items()
     )
 
     route_files = sorted(

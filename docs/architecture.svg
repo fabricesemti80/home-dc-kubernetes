@@ -129,7 +129,7 @@
 
           <rect x="648" y="472" width="248" height="48" rx="6" class="node-external"/>
           <text x="660" y="492" class="node-name">NAS · 10.0.40.2</text>
-          <text x="660" y="510" class="sublabel">media NFS · video, ebooks, audiobooks</text>
+          <text x="660" y="510" class="sublabel">media NFS · playback and FileBrowser</text>
         </g>
 
         <g>

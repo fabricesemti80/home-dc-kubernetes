@@ -1,0 +1,13 @@
+---
+http:
+  port: 8080
+server:
+  sources:
+    - path: /media
+      name: Media
+      config:
+        defaultEnabled: true
+auth:
+  methods:
+    password:
+      enabled: true

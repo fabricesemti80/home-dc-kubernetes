@@ -1,3 +1,9 @@
+- App Cluster - media:
+    - FileBrowser Quantum:
+        icon: mdi-folder-multiple-outline
+        href: http://files.krapulax.home
+        description: Browse and manage NAS media files
+
 - App Cluster - storage:
     - Longhorn:
         icon: longhorn.png
