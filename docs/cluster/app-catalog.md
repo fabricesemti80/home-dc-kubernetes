@@ -25,7 +25,7 @@ This document provides an index of all applications deployed in the Kubernetes c
 
 | App            | Type             | Image                            | Port  | Domain                                                     | Notes                                                        |
 | -------------- | ---------------- | -------------------------------- | ----- | ---------------------------------------------------------- | ------------------------------------------------------------ |
-| filebrowser    | Web File Manager | ghcr.io/gtsteffaniak/filebrowser | 8080 | files.krapulax.home | Read/write NAS media; Longhorn state |
+| filebrowser    | Web File Manager | ghcr.io/gtsteffaniak/filebrowser | 8080  | files.krapulax.home                                        | Read/write NAS media; Longhorn state                         |
 | chaptarr       | Book Manager     | docker.io/chaptarr/chaptarr      | 8789  | chaptarr.krapulax.dev / chaptarr.krapulax.home             | Ebook and audiobook imports; Longhorn config and NAS media   |
 | audiobookshelf | Book Server      | ghcr.io/advplyr/audiobookshelf   | 13378 | audiobookshelf.krapulax.dev / audiobookshelf.krapulax.home | Playback and reading; Longhorn state and read-only NAS media |
 | jellyfin       | Media Server     | lscr.io/linuxserver/jellyfin     | 8096  | jelly.krapulax.dev                                         | Media player; Longhorn config + cache                        |

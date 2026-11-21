@@ -22,6 +22,11 @@ controllers:
           repository: ghcr.io/gtsteffaniak/filebrowser
           tag: "2.0.1-stable"
         env:
+          FILEBROWSER_ADMIN_PASSWORD:
+            valueFrom:
+              secretKeyRef:
+                name: filebrowser-admin
+                key: FILEBROWSER_ADMIN_PASSWORD
           FILEBROWSER_CONFIG: /etc/filebrowser/config.yaml
         securityContext:
           allowPrivilegeEscalation: false

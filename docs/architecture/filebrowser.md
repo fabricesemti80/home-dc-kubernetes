@@ -4,13 +4,15 @@ FileBrowser Quantum provides authenticated browser access to the QNAP media shar
 
 The app mounts the existing `media-library-pvc` (`10.0.40.2:/media`) at `/media` with write access. It runs as UID and GID 1000, matching Chaptarr. Uploading and editing require the NAS to grant appropriate write access. Renaming and deleting require write and search access on the containing directory. Check the QNAP export mapping and directory ACLs if access differs between folders.
 
-The app generates a one-time password for `admin` during the first startup. Retrieve it from the initial pod's logs (`kubectl -n media logs deploy/filebrowser | grep -i 'initial admin password'`) and set a new password when prompted. The retained Longhorn claim stores the user database and app state. Backrest protects that state. Media files remain on the NAS, and deleting them in FileBrowser affects the shared library directly.
+Sign in as `admin` with `FILEBROWSER_ADMIN_PASSWORD` from Doppler (`home-dc-kubernetes/apps`). The Doppler operator syncs the key to `media/filebrowser-admin`. FileBrowser reapplies the configured password on startup. To rotate it, update the key in Doppler, wait for the Kubernetes Secret to sync, then restart the deployment.
+
+The retained Longhorn claim stores the user database and app state. Backrest protects that state. Media files remain on the NAS, and deleting them in FileBrowser affects the shared library directly.
 
 ## Validation
 
-- Confirm Argo sync, a ready deployment, and an accepted internal HTTPRoute. Check that `files.krapulax.home` resolves to the internal gateway and opens from Homepage.
-- Sign in and in each media directory you intend to manage, upload a disposable file, overwrite it, rename it, and delete it. Confirm the changes on the NAS. A newly created test directory alone does not validate permissions on existing library folders.
-- Check the `app-filebrowser` Backrest plan after the first scheduled export.
+-   Confirm Argo sync, a ready deployment, and an accepted internal HTTPRoute. Check that `files.krapulax.home` resolves to the internal gateway and opens from Homepage.
+-   Sign in and in each media directory you intend to manage, upload a disposable file, overwrite it, rename it, and delete it. Confirm the changes on the NAS. A newly created test directory alone does not validate permissions on existing library folders.
+-   Check the `app-filebrowser` Backrest plan after the first scheduled export.
 
 ## Rollback
 
