@@ -146,9 +146,9 @@ GitHub Actions workflows in `.github/workflows/` use no repository secrets.
 
 ## Rotation notes
 
-- Cross-project references (`TUNNEL_*`, `PVE_MONITORING_TOKEN_SECRET`, `PBS_MONITORING_TOKEN_SECRET`) are rotated in their source repository. After rotating, check that the reference resolves here.
-- The `MONITORING_REMOTE_*` and `MONITORING_HW_*` pairs are generated together by `scripts/monitoring-remote-pki.py`. The `MONITORING_HW_*` server half lives in `home-dc-proxmox/prd`.
-- Never rotate `BACKREST_REPOSITORY_PASSWORD` without re-keying the repository; `backrest-secrets.py` refuses to.
-- Chaptarr and Audiobookshelf admin credentials are applied when creating accounts on fresh storage. Rotate existing credentials in each application's UI and update the matching Doppler values together.
-- Argo admin password and webhook secret: run `task secrets:argo-rotate` and commit. After Argo CD syncs, run `task secrets:argo-sync-webhook` to set the matching secret on the GitHub webhook.
-- A new `age.key` means re-encrypting every SOPS file (`task template:encrypt-secrets`) and updating `helm-secrets-private-keys.sops.yaml`.
+-   Cross-project references (`TUNNEL_*`, `PVE_MONITORING_TOKEN_SECRET`, `PBS_MONITORING_TOKEN_SECRET`) are rotated in their source repository. After rotating, check that the reference resolves here.
+-   The `MONITORING_REMOTE_*` and `MONITORING_HW_*` pairs are generated together by `scripts/monitoring-remote-pki.py`. The `MONITORING_HW_*` server half lives in `home-dc-proxmox/prd`.
+-   Never rotate `BACKREST_REPOSITORY_PASSWORD` without re-keying the repository; `backrest-secrets.py` refuses to.
+-   Chaptarr and Audiobookshelf admin credentials are applied when creating accounts on fresh storage. Rotate existing credentials in each application's UI and update the matching Doppler values together.
+-   Argo admin password and webhook secret: run `task secrets:argo-rotate` and commit. After Argo CD syncs, run `task secrets:argo-sync-webhook` to set the matching secret on the GitHub webhook.
+-   A new `age.key` means re-encrypting every SOPS file (`task template:encrypt-secrets`) and updating `helm-secrets-private-keys.sops.yaml`.
