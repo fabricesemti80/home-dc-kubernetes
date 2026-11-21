@@ -47,6 +47,9 @@ for managing the NAS media share at `files.krapulax.home`, also listed on Homepa
 FileBrowser runs as root to manage files with differing NAS ownership; this grants
 it broad write access to the media share. Its memory limit allows indexing headroom.
 
+The [AWX operator](docs/architecture/awx.md) pulls its metrics proxy from Quay
+because the chart's default GCR image is unavailable.
+
 ## 🛤️ Stage 0: Recovery Inputs
 
 Before rebuilding, recover or recreate these local-only inputs. They must not be

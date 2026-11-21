@@ -23,6 +23,7 @@ flowchart LR
 
 -   Argo app: `kubernetes/argo/apps/app-cluster/dev/awx.yaml`. It has two sources: the community `awx-operator` Helm chart, which installs the operator and CRDs, and `kubernetes/apps/app-cluster/dev/awx`, which holds the `AWX` CR, the `DopplerSecret` and the routes.
 -   The chart has `AWX.enabled: false`. The instance is the plain manifest `config/awx.yaml`, synced in wave 1 inside the app with `SkipDryRunOnMissingResource=true`.
+-   The chart's metrics-authentication sidecar uses `quay.io/brancz/kube-rbac-proxy:v0.15.0` via `operator-controller-containers`: the chart's default `gcr.io/kubebuilder/kube-rbac-proxy:v0.15.0` was unavailable. The proxy arguments and operator image remain unchanged.
 -   Service: `awx-service:80` (ClusterIP, `ingress_type: none`). Exposure goes only through the Envoy HTTPRoutes.
 -   Hostnames: `awx.krapulax.home` (internal, Technitium ExternalDNS) and `awx.krapulax.dev` (external, Cloudflare ExternalDNS through `external-apps.krapulax.dev` and the tunnel's `*.krapulax.dev` rule).
 -   Storage: the operator-managed PostgreSQL 15 StatefulSet claims `longhorn` 10Gi. The StorageClass reclaim policy is `Retain`, and `postgres_keep_pvc_after_upgrade: true` is set. Projects are not persisted (`projects_persistence: false`); jobs pull them from Git.
@@ -42,6 +43,7 @@ flowchart LR
 ## Assumptions
 
 -   The chart `awx-operator` 3.2.0 exists at `https://ansible-community.github.io/awx-operator-helm/` with appVersion 2.19.1 (AWX 24.6.1). Upstream AWX has published no newer release since 2024.
+-   The Quay proxy image remains available for the cluster's worker architecture and accepts the chart's v0.15.0 proxy arguments. Check image availability and startup when upgrading the chart.
 -   The operator reads key `password` from `admin_password_secret` and key `secret_key` from `secret_key_secret`, so one Secret can serve both.
 -   The `envoy-external` and `envoy-internal` listeners accept routes from the `dev` namespace, as they do for `trading`.
 -   Longhorn ext4 volumes need `postgres_data_volume_init: true` so the Postgres UID (26) can own its data directory.
@@ -56,6 +58,7 @@ flowchart LR
 ## Validation
 
 1.  `kubectl -n dev get awx awx` shows `Successful`. `kubectl -n dev get pods` shows web, task and postgres pods `Running`.
+    Confirm the operator pod is `2/2` ready, including `kube-rbac-proxy`, and has no image-pull errors.
 2.  `dig +short awx.krapulax.home` returns `kubernetes.krapulax.home` (`10.0.40.102`), and `http://awx.krapulax.home` shows the login page.
 3.  Log in as `admin` with the Doppler password.
 4.  After the Access application exists, sync `cloudflare-dns`. `https://awx.krapulax.dev` then shows the Cloudflare Access challenge first, then the AWX login.
@@ -63,6 +66,7 @@ flowchart LR
 
 ## Rollback
 
+-   To revert only the proxy-image override, remove `operator-controller-containers` from the chart values and sync. The chart's GCR image was unavailable at the time of this change, so this rollback can leave the operator pod unready; use only after a working upstream image is available.
 -   Delete `kubernetes/argo/apps/app-cluster/dev/awx.yaml` (or revert the PR). Argo prunes the operator, the CR and the routes. The operator removes web, task and Postgres. The Postgres PV is retained (`Retain`) for recovery.
 -   To restore the same data later, keep `AWX_SECRET_KEY` unchanged in Doppler and re-bind the retained PV.
 -   Remove the Cloudflare Access application and the public DNS record if the app is retired.
