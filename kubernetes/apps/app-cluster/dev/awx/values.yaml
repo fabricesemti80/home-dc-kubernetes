@@ -1,0 +1,6 @@
+---
+# awx-operator chart values. The chart only installs the operator and its CRDs;
+# the AWX instance is the plain `AWX` resource in config/awx.yaml so its spec is
+# reviewed as a normal manifest rather than through the chart's passthrough.
+AWX:
+  enabled: false

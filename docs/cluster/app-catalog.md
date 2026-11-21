@@ -16,6 +16,7 @@ This document provides an index of all applications deployed in the Kubernetes c
 | cert-manager            | 1         | Certificate manager                                 |
 | doppler-operator-system | 1         | Doppler operator                                    |
 | trading                 | 1         | Freqtrade crypto bot (dry-run)                      |
+| dev                     | 1         | AWX (Ansible automation)                            |
 
 ---
 
@@ -43,6 +44,12 @@ This document provides an index of all applications deployed in the Kubernetes c
 | App       | Type        | Image                  | Port | Domain                  | Notes                                                                          |
 | --------- | ----------- | ---------------------- | ---- | ----------------------- | ------------------------------------------------------------------------------ |
 | freqtrade | Trading Bot | freqtradeorg/freqtrade | 8080 | freqtrade.krapulax.home | Dry-run only; internal UI; LLM entry veto; data on Longhorn (`freqtrade-data`) |
+
+### 🛠️ dev
+
+| App | Type               | Image                                  | Port | Domain                               | Notes                                                                                              |
+| --- | ------------------ | -------------------------------------- | ---- | ------------------------------------ | -------------------------------------------------------------------------------------------------- |
+| awx | Ansible Automation | quay.io/ansible/awx (via awx-operator) | 80   | awx.krapulax.dev / awx.krapulax.home | awx-operator 2.19.1 (chart 3.2.0); operator-managed Postgres on Longhorn (10Gi); DB backup pending |
 
 ### 🔹 network
 
