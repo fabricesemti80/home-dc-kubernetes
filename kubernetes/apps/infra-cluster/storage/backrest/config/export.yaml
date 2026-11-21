@@ -31,7 +31,7 @@ spec:
               type: RuntimeDefault
           containers:
           - name: export
-            image: docker.io/library/postgres@sha256:2ea8630df176ad090ec92136dee850397c5af8781e4bcf2e4162593691c61bbc
+            image: docker.io/library/postgres@sha256:fe9ef8058929c976110d4b75d9b939e61a590ba1e105e609e891c71bb39a8944
             command:
             - sh
             - /runtime/export-postgres.sh
