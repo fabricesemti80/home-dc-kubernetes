@@ -42,6 +42,9 @@ kubernetes/apps/app-cluster/<namespace>/<app>/
 kubernetes/apps/infra-cluster/<namespace>/<app>/
 ```
 
+The app cluster includes [FileBrowser Quantum](docs/architecture/filebrowser.md)
+for managing the NAS media share at `files.krapulax.home`, also listed on Homepage.
+
 ## 🛤️ Stage 0: Recovery Inputs
 
 Before rebuilding, recover or recreate these local-only inputs. They must not be

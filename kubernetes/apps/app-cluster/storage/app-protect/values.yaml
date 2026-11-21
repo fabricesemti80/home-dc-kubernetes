@@ -108,6 +108,13 @@ apps:
     app.kubernetes.io/controller: audiobookshelf
   claim: audiobookshelf-longhorn
   schedule: 50 1 * * *
+- name: filebrowser
+  namespace: media
+  selector:
+    app.kubernetes.io/instance: filebrowser
+    app.kubernetes.io/controller: filebrowser
+  claim: filebrowser-longhorn
+  schedule: 55 1 * * *
 - name: vmagent-queue
   namespace: monitoring
   protect: false
