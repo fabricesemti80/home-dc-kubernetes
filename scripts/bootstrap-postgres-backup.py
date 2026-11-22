@@ -19,6 +19,13 @@ SOURCES = {
         "secret": "IMMICH_BACKUP_PASSWORD",
         "kubeconfig": ROOT / "kubeconfig",
     },
+    "awx": {
+        "config": "apps",
+        "namespace": "dev",
+        "selector": "statefulset.kubernetes.io/pod-name=awx-postgres-15-0",
+        "secret": "AWX_BACKUP_PASSWORD",
+        "kubeconfig": ROOT / "kubeconfig",
+    },
     "infra-cluster": {
         "config": "infra",
         "namespace": "ai",
@@ -48,6 +55,47 @@ def scram(password):
     encode = lambda value: base64.b64encode(value).decode()
     return f"SCRAM-SHA-256$4096:{encode(salt)}${encode(stored)}:{encode(server)}"
 
+def ensure_awx_recovery(kubectl, common, names):
+    """Escrow the operator-generated DB password without overwriting a different key."""
+    if "AWX_SECRET_KEY" not in names:
+        raise RuntimeError("AWX_SECRET_KEY is missing; no credentials changed")
+    encryption_key = json.loads(
+        captured(["doppler", "secrets", "get", "AWX_SECRET_KEY", *common, "--json"])
+    )["AWX_SECRET_KEY"]["computed"]
+    if not isinstance(encryption_key, str) or not encryption_key:
+        raise RuntimeError("AWX_SECRET_KEY is empty; no credentials changed")
+    secret = json.loads(
+        captured(kubectl + ["get", "secret", "awx-postgres-configuration", "-o", "json"])
+    )
+    for field, expected in {
+        "username": "awx",
+        "database": "awx",
+        "host": "awx-postgres-15",
+        "port": "5432",
+    }.items():
+        if base64.b64decode(secret["data"][field], validate=True).decode() != expected:
+            raise RuntimeError(f"Unexpected AWX database {field}; no credentials changed")
+    recovery = base64.b64decode(secret["data"]["password"], validate=True).decode()
+    if not recovery or "\n" in recovery or "\r" in recovery:
+        raise RuntimeError("AWX database password is empty or multiline; no credentials changed")
+    key = "AWX_DB_PASSWORD"
+    if key in names:
+        existing = json.loads(
+            captured(["doppler", "secrets", "get", key, *common, "--json"])
+        )[key]["computed"]
+        if existing != recovery:
+            raise RuntimeError("AWX recovery password differs from the live database; refusing overwrite")
+    else:
+        captured(
+            ["doppler", "secrets", "set", key, *common, "--visibility", "masked", "--json", "--silent"],
+            recovery,
+        )
+        saved = json.loads(
+            captured(["doppler", "secrets", "get", key, *common, "--json"])
+        )[key]["computed"]
+        if saved != recovery:
+            raise RuntimeError("AWX recovery password round-trip failed")
+
 
 def bootstrap(cluster):
     source = SOURCES[cluster]
@@ -56,6 +104,9 @@ def bootstrap(cluster):
     names = json.loads(
         captured(["doppler", "secrets", *common, "--only-names", "--json"])
     )
+    if cluster == "awx":
+        kubectl = ["kubectl", "--kubeconfig", str(source["kubeconfig"]), "-n", source["namespace"]]
+        ensure_awx_recovery(kubectl, common, names)
     if key in names:
         password = json.loads(
             captured(["doppler", "secrets", "get", key, *common, "--json"])
@@ -120,7 +171,11 @@ ALTER ROLE backrest_backup LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATI
 GRANT pg_read_all_data, pg_read_all_settings TO backrest_backup;
 SELECT format('GRANT CONNECT ON DATABASE %I TO backrest_backup',current_database()) \gexec
 """
-    shell = 'PGPASSWORD="$POSTGRES_PASSWORD" psql -X -h 127.0.0.1 -U "$POSTGRES_USER" -d "$POSTGRES_DB" -v ON_ERROR_STOP=1'
+    shell = (
+        'psql -X -U postgres -d "$POSTGRES_DB" -v ON_ERROR_STOP=1'
+        if cluster == "awx"
+        else 'PGPASSWORD="$POSTGRES_PASSWORD" psql -X -h 127.0.0.1 -U "$POSTGRES_USER" -d "$POSTGRES_DB" -v ON_ERROR_STOP=1'
+    )
     captured(kubectl + ["exec", "-i", pod, "--", "sh", "-ec", shell], sql)
     verify = """IFS= read -r PGPASSWORD
 export PGPASSWORD

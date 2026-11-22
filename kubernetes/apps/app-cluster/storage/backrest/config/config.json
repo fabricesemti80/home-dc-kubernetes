@@ -51,6 +51,32 @@
       ]
     },
     {
+      "id": "app-awx-db",
+      "repo": "nas",
+      "paths": ["/state/exports/awx-db.tar"],
+      "schedule": {
+        "cron": "45 0,6,12,18 * * *",
+        "clock": "CLOCK_UTC"
+      },
+      "retention": {
+        "policyTimeBucketed": {
+          "hourly": 24,
+          "daily": 14,
+          "weekly": 8,
+          "monthly": 12
+        }
+      },
+      "hooks": [
+        {
+          "conditions": ["CONDITION_SNAPSHOT_START"],
+          "onError": "ON_ERROR_FATAL",
+          "actionCommand": {
+            "command": "test -f /state/exports/awx-db.tar && test -n \"$(find /state/exports/awx-db.tar -mmin -480 -print)\""
+          }
+        }
+      ]
+    },
+    {
       "id": "backrest-config",
       "repo": "nas",
       "paths": ["/state/config.json"],

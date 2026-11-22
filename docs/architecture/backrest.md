@@ -14,7 +14,7 @@ Replace K8up and the custom capture/recovery framework with upstream Backrest. A
 
 ## Protection contract
 
-The replacement must preserve the currently deployed Immich and LiteLLM logical database coverage. Small ordinary Kubernetes CronJobs run the matching native PostgreSQL client every six hours. They validate the dump, include roles and explicit application recovery credentials, and atomically publish one archive to the Backrest instance's local staging volume. No live PGDATA copy is made. Backrest refuses a database plan whose validated export is missing or older than eight hours.
+The replacement preserves the deployed Immich and LiteLLM logical database coverage and adds AWX PostgreSQL coverage. Small ordinary Kubernetes CronJobs run the matching native PostgreSQL client every six hours. They validate the dump, include roles and explicit application recovery credentials, and atomically publish one archive to the Backrest instance's local staging volume. No live PGDATA copy is made. Backrest refuses a database plan whose validated export is missing or older than eight hours. AWX uses a dedicated marked read-only database login; its operator-generated app password is escrowed without rotation and verified before each export. See [AWX backup design](awx.md#awx-database-backup-design).
 
 The app instance also backs up the scoped `/media/immich` original tree read-only each day, and both instances back up their own configuration. Originals are a separate plan: an online file snapshot and a database export are **not** advertised as one paused, matched Immich recovery point. Recovery must select compatible database/photo points and verify referenced originals before production promotion.
 

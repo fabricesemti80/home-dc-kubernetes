@@ -1,0 +1,100 @@
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: backrest-export-awx-db
+  namespace: backups
+spec:
+  schedule: 25 0,6,12,18 * * *
+  timeZone: UTC
+  concurrencyPolicy: Forbid
+  startingDeadlineSeconds: 1800
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 0
+      activeDeadlineSeconds: 900
+      template:
+        spec:
+          restartPolicy: Never
+          automountServiceAccountToken: false
+          nodeSelector:
+            kubernetes.io/hostname: k8s-wrkr-03
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1004
+            runAsGroup: 65534
+            fsGroup: 1004
+            supplementalGroups: []
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+          - name: export
+            image: quay.io/sclorg/postgresql-15-c9s@sha256:d1439579447ec189f609b74d1939671084b16dafd9ee3490547640cc0817bd04
+            command:
+            - sh
+            - -ec
+            - |
+              PGUSER=awx PGPASSWORD="$(cat /recovery/AWX_DB_PASSWORD)" psql -X -v ON_ERROR_STOP=1 -Atc 'SELECT 1' >/dev/null
+              exec sh /runtime/export-postgres.sh
+            env:
+            - name: BACKUP_APP
+              value: awx-db
+            - name: PGHOST
+              value: awx-postgres-15.dev.svc.cluster.local
+            - name: PGUSER
+              value: backrest_backup
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: backrest-secrets
+                  key: AWX_BACKUP_PASSWORD
+            - name: PGOPTIONS
+              value: -c default_transaction_read_only=on
+            - name: PGDATABASE
+              value: awx
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities:
+                drop:
+                - ALL
+            resources:
+              requests:
+                cpu: 100m
+                memory: 128Mi
+              limits:
+                cpu: '1'
+                memory: 768Mi
+            volumeMounts:
+            - name: state
+              mountPath: /state
+            - name: runtime
+              mountPath: /runtime
+              readOnly: true
+            - name: recovery
+              mountPath: /recovery
+              readOnly: true
+            - name: tmp
+              mountPath: /tmp
+          volumes:
+          - name: state
+            persistentVolumeClaim:
+              claimName: backrest-longhorn
+          - name: runtime
+            configMap:
+              name: backrest-runtime
+          - name: recovery
+            secret:
+              secretName: backrest-secrets
+              defaultMode: 288
+              items:
+              - key: AWX_DB_PASSWORD
+                path: AWX_DB_PASSWORD
+              - key: AWX_SECRET_KEY
+                path: AWX_SECRET_KEY
+          - name: tmp
+            emptyDir:
+              medium: Memory
+              sizeLimit: 512Mi
