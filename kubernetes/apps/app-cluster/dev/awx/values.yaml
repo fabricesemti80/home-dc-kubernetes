@@ -8,4 +8,4 @@ AWX:
 # The chart's default GCR proxy image no longer resolves.
 operator-controller-containers:
   kube-rbac-proxy:
-    image: quay.io/brancz/kube-rbac-proxy:v0.15.0
+    image: quay.io/brancz/kube-rbac-proxy:v0.23.1
