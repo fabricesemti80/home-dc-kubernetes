@@ -30,4 +30,4 @@ The GPU worker adds `siderolabs/nonfree-kmod-nvidia-lts` and `siderolabs/nvidia-
 
 ## Worker data volumes
 
-Each worker has three disks, told apart by **size** (device names are not stable): 55 GiB system, 100 GiB `local-path-provisioner` (`/var/mnt/local-path-provisioner`), ~465 GiB passed-through SSD `longhorn` (`/var/mnt/longhorn`, see [Longhorn](../docs/operations/longhorn.md)). The `worker.patches` entry `patches/worker/machine-longhorn.yaml` adds the kubelet bind mount Longhorn needs.
+Each worker has a 55 GiB system disk and a ~465 GiB passed-through SSD for Longhorn (`/var/mnt/longhorn`, see [Longhorn](../docs/operations/longhorn.md)). The former 100 GiB `scsi1` local-path disk is being retired separately; do not detach it until the [retirement gates](../docs/architecture/longhorn.md#retiring-the-old-worker-virtual-disks) pass. The `worker.patches` entry `patches/worker/machine-longhorn.yaml` adds the kubelet bind mount Longhorn needs.

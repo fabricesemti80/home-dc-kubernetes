@@ -23,12 +23,10 @@ yaml_json() {
 
 yaml_json kubernetes/apps/app-cluster/web/homepage/config/settings.yaml | jq -e '. != null' >/dev/null
 
-# Fresh workers have dedicated local volumes; never schedule on the controller.
+# No worker may provision on a retired local-path disk.
 yaml_json kubernetes/apps/app-cluster/storage/local-path/values.yaml | jq -e '
-  .nodePathMap[0].node == "DEFAULT_PATH_FOR_NON_LISTED_NODES"
-  and .nodePathMap[0].paths == []
-  and ([.nodePathMap[1:][] | select(.paths == ["/var/mnt/local-path-provisioner"]) | .node] | sort)
-    == ["k8s-wrkr-01-gpu", "k8s-wrkr-02", "k8s-wrkr-03"]
+  ([.nodePathMap[] | select(.node == "DEFAULT_PATH_FOR_NON_LISTED_NODES" and .paths == [])] | length) == 1
+  and (.nodePathMap | all(.paths == []))
   and .storageClass.reclaimPolicy == "Retain"
   and .storageClass.volumeBindingMode == "WaitForFirstConsumer"
 ' >/dev/null
@@ -50,15 +48,14 @@ yaml_json kubernetes/apps/app-cluster/storage/longhorn/values.yaml | jq -e '
 yaml_json kubernetes/apps/app-cluster/storage/longhorn/config/namespace.yaml |
   jq -e '.metadata.labels["pod-security.kubernetes.io/enforce"] == "privileged"' >/dev/null
 
-# Worker disks are selected by size so the 100 GiB local-path disk and the ~465 GiB Longhorn
-# SSD can never match each other's selector; Longhorn needs its kubelet bind mount on workers only.
+# Longhorn needs its dedicated SSD selector and kubelet bind mount on workers only.
 yaml_json talos/app/talconfig.yaml | jq -e '
-  (.worker.userVolumes | map(select(.name == "local-path-provisioner"))[0].provisioning.diskSelector.match) == "!system_disk && disk.size < 200u * GiB"
+  (.worker.userVolumes | all(.name != "local-path-provisioner"))
   and (.worker.userVolumes | map(select(.name == "longhorn"))[0].provisioning.diskSelector.match) == "!system_disk && disk.size > 400u * GiB"
   and (.worker.patches | index("@./patches/worker/machine-longhorn.yaml")) != null
   and ([.nodes[] | select(.controlPlane == false) | .talosImageURL | test("/(613e1592b2da41ae5e265e8789429f22e121aab91cb4deb6bc3c0b6262961245|fb73a1920c434ba8ec579d24f15097f18ffb171342b1c61f68c063d1b2b601c2)$")] | all)
 ' >/dev/null || {
-  echo "Talos worker volumes/schematics must keep the size-based selectors, Longhorn bind mount patch and iscsi-tools schematics." >&2
+  echo "Talos workers must omit the retired local-path volume and retain the Longhorn selector, bind mount patch and iscsi-tools schematics." >&2
   exit 1
 }
 

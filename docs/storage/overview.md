@@ -1,5 +1,7 @@
 # 💾 Storage Overview
 
+> **Historical local-path setup:** the app-cluster configuration below describes the pre-Longhorn deployment. App-cluster state now uses Longhorn and the old worker local-path disks are being retired; see [Longhorn](../architecture/longhorn.md#retiring-the-old-worker-virtual-disks) for the current design and gates. The physical infra cluster's local-path storage is unaffected.
+
 ## 🏛️ Architecture Overview
 
 ```mermaid

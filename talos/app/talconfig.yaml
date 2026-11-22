@@ -92,18 +92,9 @@ nodes:
         mtu: 1500
 # Global patches
 
-# Dedicated data disks on each worker, never the Talos system disk.
-# Disks are told apart by size so the two volumes can never claim each other's disk:
-#   - local-path-provisioner: the 100 GiB Proxmox data disk (scsi1).
-#   - longhorn: the ~465 GiB raw SATA SSD passed through from pve-00 (scsi2).
+# Longhorn uses the passed-through ~465 GiB SSD (scsi2), not the system disk.
 worker:
   userVolumes:
-    - name: local-path-provisioner
-      provisioning:
-        diskSelector:
-          match: "!system_disk && disk.size < 200u * GiB"
-        minSize: 80GiB
-        maxSize: 90GiB
     - name: longhorn
       provisioning:
         diskSelector:

@@ -2,9 +2,17 @@
 
 **Status:** live since 2026-11-09 (rollout done, Argo Application still on manual sync). Every app-cluster app claim runs on it since 2026-11-10: freqtrade (pilot) and the 14 claims migrated one app at a time (see [#552](https://github.com/fabricesemti80/home-dc-kubernetes/issues/552) and the [runbook](../operations/local-path-to-longhorn.md)). The old local-path claims were deleted on 2026-11-10 (rollback is Backrest only). Soak of the Longhorn side continues, see [#551](https://github.com/fabricesemti80/home-dc-kubernetes/issues/551).
 
+## Retiring the old worker virtual disks
+
+The app cluster no longer has local-path PVs or PVCs, and the three old local-path mount directories were empty when checked on 2026-11-22. Disable new app-cluster local-path provisioning and remove the Talos `local-path-provisioner` user volume before detaching the workers' 100 GiB `scsi1` virtual disks in `home-dc-terraform`. The physical infra cluster's local-path provisioner is separate and must remain. Longhorn's three passed-through `scsi2` SSDs and the workers' `scsi0` system disks are not part of this retirement.
+
+**Gate:** immediately before each disk is detached, recheck for local-path PVs and PVCs (including retained and released PVs), direct hostPath users, directory contents, current backups and healthy Longhorn replicas. Apply the Talos configuration without the old user volume and confirm its `VolumeStatus` and `MountStatus` are absent. Stop if any check differs. Work on one worker at a time; return it to Ready and wait for Longhorn replicas to become healthy before touching the next. Terraform ignores the VM disk block to protect `scsi2`, so updating the declaration alone cannot detach existing `scsi1` disks; follow the separately reviewed Terraform retirement runbook.
+
+**Rollback:** before any VM disk is permanently deleted, an operator can reattach the exact retained `scsi1` volume and restore the old Talos user-volume configuration; this does not restore removed Kubernetes claims or apps. After deletion, app state must be restored from tested Backrest backups to Longhorn. A detached but retained Proxmox disk is not a substitute for an off-host backup. Device names inside Talos are not stable.
+
 ## Problem
 
-All app-cluster state lives on `local-path` volumes: node-local, bound to the worker that first used them, and lost with that worker's 100 GiB virtual data disk. Three unused 500 GB SATA SSDs (Crucial MX500, about 465.76 GiB each) sit in `pve-00`. The goal is replicated block storage on those SSDs that apps can adopt later, without touching the existing `local-path` volumes.
+Before the migration, app-cluster state lived on node-local `local-path` volumes and three 500 GB SATA SSDs were unused on `pve-00`. Longhorn now provides replicated block storage on those SSDs.
 
 ## Decision
 
@@ -22,10 +30,7 @@ All app-cluster state lives on `local-path` volumes: node-local, bound to the wo
     -   GPU worker: `fb73a1920c434ba8ec579d24f15097f18ffb171342b1c61f68c063d1b2b601c2` = `iscsi-tools` + `nonfree-kmod-nvidia-lts` + `nvidia-container-toolkit-lts` + `util-linux-tools` (was `af8eb8…`; the 580-series LTS pair is kept unchanged);
     -   the control plane keeps `3765…`: Longhorn does not run there (NoSchedule taint, no data disk).
     -   All four extensions were confirmed to exist for Talos `v1.13.12` in the factory's official extension list.
--   **Disk selection by size, never by name.** Talos `UserVolumeConfig` selects disks with a CEL expression; `/dev/sdX` names are not stable. Per worker there are three disks: the 55 GiB system disk, the 100 GiB `local-path-provisioner` data disk and the new ~465 GiB SSD.
-    -   `local-path-provisioner`: `!system_disk && disk.size < 200u * GiB` (was `!system_disk`, which would also match the new SSD on a fresh node), `minSize: 80GiB`, `maxSize: 90GiB` unchanged.
-    -   `longhorn`: `!system_disk && disk.size > 400u * GiB`, `minSize: 400GiB`, `grow: true`. Mounted by Talos at `/var/mnt/longhorn`.
-    -   The two sizes are disjoint by more than a factor of two, so neither selector can match the other's disk. Talos finds an existing volume by its partition label (`u-<name>`), so the already-provisioned `local-path-provisioner` partition keeps being used.
+-   **Disk selection by size, never by name.** The Longhorn `UserVolumeConfig` selects `!system_disk && disk.size > 400u * GiB`, with `minSize: 400GiB` and `grow: true`, mounted at `/var/mnt/longhorn`. Device names such as `/dev/sdX` are not stable. The obsolete 100 GiB local-path disk is retired separately using the gates above.
 -   **Kubelet bind mount.** Longhorn needs `/var/mnt/longhorn` visible in the kubelet mount namespace with `rshared` propagation (Longhorn's Talos guide for Talos ≥ 1.10: `extraMounts` of `type: bind`, options `bind, rshared, rw`). It is a **worker-only** patch (`talos/app/patches/worker/machine-longhorn.yaml`): the control plane has no such volume and a bind mount with a missing source would endanger the kubelet there.
 -   The `worker:` block of `templates/config/talos/talconfig.yaml.j2` now carries both `userVolumes` and `patches` in one mapping (previously a second `worker:` key would have been emitted as soon as a worker patch existed).
 

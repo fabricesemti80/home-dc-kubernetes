@@ -265,7 +265,7 @@ kubectl get pv media-library-pv
 
 The app cluster uses:
 
--   `local-path` StorageClass for node-local app config/state PVCs (`ReadWriteOnce`, `Retain`).
+-   The app-cluster `local-path` provisioner remains installed but has no enabled node paths; new local-path claims cannot be provisioned. The old worker disks are being retired under the [retirement gates](docs/architecture/longhorn.md#retiring-the-old-worker-virtual-disks). Infra-cluster local-path is unchanged.
 -   `longhorn` StorageClass (cluster default, 3 replicas on dedicated passthrough SSDs, `Retain`): every app-cluster app claim (freqtrade, Recyclarr, Prowlarr, Jellyseerr, Sonarr, Radarr, SABnzbd, qBittorrent, Jellyfin, Immich, Backrest and the vmagent queue) uses it; new workloads should too, one at a time per the [migration runbook](docs/operations/local-path-to-longhorn.md). It is not a backup and remains a single-host failure domain. See [Longhorn operations](docs/operations/longhorn.md).
 -   Static NFS PV/PVC (`media-library-pv` / `media-library-pvc`) at `10.0.40.2:/media` for media/downloads.
 
@@ -274,10 +274,9 @@ Chaptarr and Audiobookshelf use the shared NAS media export for ebooks and audio
 Do not restore stateful apps until the bound worker node, volume node affinity,
 and any required backup data have been verified.
 
-Application config backups (`app-protect` export jobs, read by Backrest): a job for an app on a
-node-local volume (`local-path`) is pinned to the node that holds the data (`node`); for an app on a
-movable Longhorn volume it follows the app's pod (`selector`, pod affinity), because a ReadWriteOnce
-volume is attached to one node at a time. See
+Application config backups (`app-protect` export jobs, read by Backrest) follow
+the application pod with `selector` (pod affinity) on Longhorn, because a
+ReadWriteOnce volume is attached to one node at a time. See
 [Backrest operations](docs/operations/backrest.md#protecting-and-opting-out-apps).
 
 Verify public and internal routing:
