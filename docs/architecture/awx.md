@@ -48,12 +48,22 @@ flowchart LR
 -   The `envoy-external` and `envoy-internal` listeners accept routes from the `dev` namespace, as they do for `trading`.
 -   Longhorn ext4 volumes need `postgres_data_volume_init: true` so the Postgres UID (26) can own its data directory.
 
+## AWX database backup design
+
+AWX PostgreSQL is exported with a dedicated marked `backrest_backup` login, not a live PGDATA copy. `task backups:awx-credentials` uses the database pod's local PostgreSQL administrative connection to provision that login without rotating the AWX application user. It creates `AWX_BACKUP_PASSWORD` in Doppler if missing and copies the operator-generated `awx-postgres-configuration` password into `AWX_DB_PASSWORD` only if no conflicting value exists; never silently overwrite an existing recovery credential.
+
+An app-cluster Backrest export CronJob runs the matching PostgreSQL 15 client and publishes a validated custom-format dump, role definitions and recovery metadata to the retained Backrest staging claim. Before publishing, it verifies that the captured application database password can authenticate. The archive also contains the operator-generated PostgreSQL password and the existing `AWX_SECRET_KEY`, which encrypts AWX credentials. The `app-awx-db` Backrest plan requires a fresh export and encrypts it in the existing NAS repository. Staging files contain secrets and remain private; logs and Git must never contain values.
+
+Assumptions to validate: the operator-managed database is `dev/awx-postgres-15` using PostgreSQL 15, its application database/user are `awx`, and the PostgreSQL pod permits the local administrative connection. A generated password change requires a reviewed recovery-credential update before backups resume. After deployment, run an export and plan, restore the archive to a fresh isolated PostgreSQL 15 instance with outbound integrations disabled, verify data and AWX credential recovery, and record immutable snapshot and version evidence. A successful dump or archive extraction alone does not prove recovery.
+
+Rollback: suspend or revert the CronJob and plan while retaining encrypted snapshots, repository keys, `AWX_SECRET_KEY` and the recovery credentials. Do not delete the database, rotate its application password, or drop an unverified role as rollback.
+
 ## Security impact
 
--   **Secrets**: Doppler `home-dc-kubernetes/apps` provides `AWX_ADMIN_PASSWORD` and `AWX_SECRET_KEY`, synced to `dev/awx-secrets`. No secret is stored in Git.
+-   **Secrets**: Doppler `home-dc-kubernetes/apps` provides `AWX_ADMIN_PASSWORD` and `AWX_SECRET_KEY`, synced to `dev/awx-secrets`. The backup exporter receives `AWX_BACKUP_PASSWORD`, `AWX_DB_PASSWORD`, and `AWX_SECRET_KEY` in `backups/backrest-secrets`; recovery material is included only in private staging and encrypted snapshots. No secret is stored in Git.
 -   **Access**: the internal route relies on the trusted LAN plus the AWX login. The external route must get a Cloudflare Access application (allowed emails) in `home-dc-terraform` **before** the manual `cloudflare-dns` sync publishes `awx.krapulax.dev`. Until then the name does not resolve publicly.
 -   **Blast radius**: AWX can reach anything its stored credentials allow. Give machine credentials least privilege, and prefer per-environment credentials.
--   **Backups**: none yet. `app-protect` has `protect: false` (a file copy of a running PGDATA is not a valid backup). A native `pg_dump` export with a Backrest plan, following the immich-db pattern, is tracked in #637.
+-   **Backups**: `app-protect` remains `protect: false` because a file copy of a running PGDATA is not valid; the separate native `app-awx-db` Backrest plan covers PostgreSQL. The initial export, backup and isolated restore must pass before claiming coverage.
 
 ## Validation
 
@@ -81,5 +91,5 @@ flowchart LR
 -   [ ] Create `AWX_ADMIN_PASSWORD` and `AWX_SECRET_KEY` in Doppler `home-dc-kubernetes/apps` before merging.
 -   [ ] Merge, then confirm the Validation steps 1–3 above.
 -   [ ] `home-dc-terraform`: add a Cloudflare Access application for `awx.krapulax.dev` (allowed emails), then sync `cloudflare-dns`.
--   [ ] Add a native `pg_dump` export with an `app-awx-db` Backrest plan, and flip the app-protect entry off `protect: false`.
+-   [ ] Run the first `app-awx-db` native export and Backrest snapshot; rehearse recovery and record the evidence.
 -   [ ] Add the `dev` group/icon check on Homepage after the annotation workflow runs on `main`.

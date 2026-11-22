@@ -12,6 +12,12 @@ tasks:
       - uv run '{{.ROOT_DIR}}/scripts/backrest-secrets.py' '{{.CLUSTER}}'
       - python3 '{{.ROOT_DIR}}/scripts/bootstrap-postgres-backup.py' '{{.CLUSTER}}'
 
+  awx-credentials:
+    desc: Escrow the AWX database recovery password and provision its read-only backup login
+    cmds:
+      - python3 '{{.ROOT_DIR}}/scripts/bootstrap-postgres-backup.py' awx
+
+
   bootstrap:
     desc: Register the GitOps Backrest Application (main by default)
     requires:
@@ -44,7 +50,7 @@ tasks:
         - name: CLUSTER
           enum: [app-cluster, infra-cluster]
         - name: APP
-          enum: [immich-db, litellm-db]
+          enum: [immich-db, litellm-db, awx-db]
     vars:
       JOB: 'backrest-export-manual-{{now | date "20060102150405"}}'
       TARGET_KUBECONFIG: '{{if eq .CLUSTER "infra-cluster"}}{{.ROOT_DIR}}/.private/infra-cluster/kubeconfig{{else}}{{.ROOT_DIR}}/kubeconfig{{end}}'

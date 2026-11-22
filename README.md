@@ -279,6 +279,11 @@ the application pod with `selector` (pod affinity) on Longhorn, because a
 ReadWriteOnce volume is attached to one node at a time. See
 [Backrest operations](docs/operations/backrest.md#protecting-and-opting-out-apps).
 
+AWX PostgreSQL uses a native logical export and the `app-awx-db` Backrest plan;
+bootstrap its read-only backup role and recovery escrow with
+`task backups:awx-credentials` before running the export. See
+[AWX recovery](docs/architecture/awx.md#awx-database-backup-design).
+
 Verify public and internal routing:
 
 ```bash
