@@ -157,6 +157,12 @@ Add a new app (protected):
    fail to mount it. If the app is scaled to zero the job stays `Pending` and the export goes
    stale (the freshness hook then fails); set `protect: false` for an app that is intentionally
    off. Add `excludes` for caches/logs/regenerable data (fnmatch on a name or relative path).
+   The job must also fit the node's CPU requests: on 2026-11-24 worker `k8s-wrkr-02` was at
+   99% requested CPU after the disk-retirement drains, so a reproduced `selector` job stayed `Pending`
+   until its 30-minute deadline (`DeadlineExceeded`, no pod logs) and `AppConfigExportStale`
+   fired. The job therefore requests only `10m` CPU (limit unchanged). If it recurs, check
+   `kubectl describe node` allocation and `kubectl -n <ns> describe pod -l job-name=<job>`
+   events for `Insufficient cpu`.
    Add `tolerations` for tainted nodes.
 2. Copy an existing `app-<name>` plan in `config.json`: path
    `/backups/<cluster>/exports/<name>/current`, start hook checking `.captured-at`
