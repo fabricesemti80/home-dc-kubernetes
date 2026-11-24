@@ -2,13 +2,15 @@
 
 **Status:** live since 2026-11-09 (rollout done, Argo Application still on manual sync). Every app-cluster app claim runs on it since 2026-11-10: freqtrade (pilot) and the 14 claims migrated one app at a time (see [#552](https://github.com/fabricesemti80/home-dc-kubernetes/issues/552) and the [runbook](../operations/local-path-to-longhorn.md)). The old local-path claims were deleted on 2026-11-10 (rollback is Backrest only). Soak of the Longhorn side continues, see [#551](https://github.com/fabricesemti80/home-dc-kubernetes/issues/551).
 
-## Retiring the old worker virtual disks
+## Retired worker virtual disks (2026-11-22)
 
-The app cluster no longer has local-path PVs or PVCs, and the three old local-path mount directories were empty when checked on 2026-11-22. Disable new app-cluster local-path provisioning and remove the Talos `local-path-provisioner` user volume before detaching the workers' 100 GiB `scsi1` virtual disks in `home-dc-terraform`. The physical infra cluster's local-path provisioner is separate and must remain. Longhorn's three passed-through `scsi2` SSDs and the workers' `scsi0` system disks are not part of this retirement.
+The workers' 100 GiB `scsi1` virtual disks, which backed the old local-path volumes, were retired on 2026-11-22 ([#644](https://github.com/fabricesemti80/home-dc-kubernetes/issues/644)). The app cluster had no local-path PVs or PVCs and the old mount directories were empty. App-cluster local-path provisioning is disabled and the Talos `local-path-provisioner` user volume is removed. The physical infra cluster's local-path provisioner is separate and remains. The passed-through `scsi2` SSDs and the `scsi0` system disks were not touched.
 
-**Gate:** immediately before each disk is detached, recheck for local-path PVs and PVCs (including retained and released PVs), direct hostPath users, directory contents, current backups and healthy Longhorn replicas. Apply the Talos configuration without the old user volume and confirm its `VolumeStatus` and `MountStatus` are absent. Stop if any check differs. Work on one worker at a time; return it to Ready and wait for Longhorn replicas to become healthy before touching the next. Terraform ignores the VM disk block to protect `scsi2`, so updating the declaration alone cannot detach existing `scsi1` disks; follow the separately reviewed Terraform retirement runbook.
+Procedure, one worker at a time (`k8s-wrkr-02`, `k8s-wrkr-03`, then the GPU worker): apply the Talos config without the old user volume and confirm its `VolumeStatus` is absent, drain, shut the VM down, run `qm set <vmid> --delete scsi1` (this keeps the disk as `unused0`), start it, uncordon, then wait until no Longhorn volume is degraded or rebuilding and every pod is Running before the next worker. Terraform ignores VM disk changes to protect `scsi2`, so new workers no longer get `scsi1` but existing disks must be detached with `qm`.
 
-**Rollback:** before any VM disk is permanently deleted, an operator can reattach the exact retained `scsi1` volume and restore the old Talos user-volume configuration; this does not restore removed Kubernetes claims or apps. After deletion, app state must be restored from tested Backrest backups to Longhorn. A detached but retained Proxmox disk is not a substitute for an off-host backup. Device names inside Talos are not stable.
+The `unused0` disks were deleted the same day. A post-detach PBS backup of VM 4096 contained only `scsi0` (about 59 GB against about 166 GB before). PBS snapshots from before 2026-11-22 were deleted; the three 2026-11-22 01:xx snapshots still contain the old disks until retention prunes them.
+
+**Rollback:** none for the deleted disks beyond those snapshots. App state is restored from tested Backrest backups to Longhorn. Device names inside Talos are not stable.
 
 ## Problem
 
