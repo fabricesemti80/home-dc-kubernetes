@@ -11,7 +11,7 @@ controllers:
       app:
         image:
           repository: ghcr.io/recyclarr/recyclarr
-          tag: "8"
+          tag: "9"
         env:
           TZ: Europe/London
           CRON_SCHEDULE: "0 4 * * *"
